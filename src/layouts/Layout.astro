@@ -1,0 +1,118 @@
+---
+import AnimatedBackground from "../components/AnimatedBackground.astro";
+import CursorEffect from "../components/CursorEffect.astro";
+import FloatingElements from "../components/FloatingElements.astro";
+import ThemeToggle from "../components/ThemeToggle.astro";
+import ReadingProgress from "../components/ReadingProgress.astro";
+import Search from "../components/Search.astro";
+import Newsletter from "../components/Newsletter.astro";
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="Professional Tech Blog" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body class="text-gray-100 min-h-screen">
+    <header
+      class="fixed top-0 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur z-50 border-b border-gray-200 dark:border-gray-800"
+    >
+      <nav
+        class="h-14 max-w-6xl mx-auto px-4 flex justify-between items-center"
+      >
+        <a
+          href="/"
+          class="text-lg font-semibold hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+        >
+          Tech Insights
+        </a>
+        <div class="flex items-center space-x-4">
+          <Search />
+          <!-- <div class="w-px h-5 bg-gray-200 dark:bg-gray-700"></div>
+          <ThemeToggle /> -->
+        </div>
+      </nav>
+    </header>
+
+    <main
+      class="min-h-screen pt-14 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+    >
+      <AnimatedBackground />
+      <FloatingElements />
+      <CursorEffect />
+      <div class="relative z-10 mx-auto">
+        <slot />
+      </div>
+    </main>
+    <ReadingProgress />
+
+    <footer>
+      <Newsletter />
+    </footer>
+  </body>
+</html>
+
+<script is:inline>
+  // Handle initial theme
+  const theme = (() => {
+    if (typeof localStorage !== "undefined" && localStorage.getItem("theme")) {
+      return localStorage.getItem("theme");
+    }
+    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      return "dark";
+    }
+    return "light";
+  })();
+
+  if (theme === "light") {
+    document.documentElement.classList.remove("dark");
+  } else {
+    document.documentElement.classList.add("dark");
+  }
+
+  window.localStorage.setItem("theme", theme);
+</script>
+
+<style is:global>
+  :root {
+    --background: #ffffff;
+    --text: #1a1a1a;
+  }
+
+  :root.dark {
+    --background: #1a1a1a;
+    --text: #ffffff;
+  }
+
+  html {
+    background-color: var(--background);
+    color: var(--text);
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
+  }
+</style>

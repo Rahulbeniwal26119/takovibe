@@ -1,0 +1,95 @@
+---
+---
+<div id="cursor-blob" class="cursor-blob"></div>
+<div id="cursor-border" class="cursor-border"></div>
+
+<style>
+  .cursor-blob {
+    position: fixed;
+    width: 150px;
+    height: 150px;
+    background: linear-gradient(to right, rgba(126, 34, 206, 0.2), rgba(219, 39, 119, 0.2));
+    border-radius: 50%;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+    transition: opacity 0.3s;
+    filter: blur(30px);
+    opacity: 0;
+    will-change: transform;  /* Optimize performance */
+  }
+
+  @media (hover: none) {
+    .cursor-blob, .cursor-border {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  let blob = document.getElementById('cursor-blob');
+  let border = document.getElementById('cursor-border');
+  let lastX = 0;
+  let lastY = 0;
+  let speed = 0;
+  let animationFrameId;
+
+  // Use requestAnimationFrame for smooth cursor movement
+  function updateCursor(e) {
+    const mouseX = e.clientX;
+    const mouseY = e.clientY;
+
+    // Calculate speed of mouse movement
+    speed = Math.sqrt(Math.pow(mouseX - lastX, 2) + Math.pow(mouseY - lastY, 2));
+    
+    // Update border position
+    if (border) {
+      border.style.transform = `translate(${mouseX}px, ${mouseY}px)`;
+      border.style.scale = Math.min(1 + speed * 0.001, 1.5); // Reduced speed multiplier
+    }
+
+    // Update blob position with transform instead of animation
+    if (blob) {
+      blob.style.opacity = '1';
+      blob.style.transform = `translate(${mouseX}px, ${mouseY}px)`;
+    }
+
+    // Update hover effects
+    const hoveredElement = document.elementFromPoint(mouseX, mouseY);
+    if (hoveredElement?.closest('a, button, [role="button"]')) {
+      if (border) {
+        border.style.scale = '1.5';
+        border.style.borderColor = 'rgba(139, 92, 246, 0.8)';
+      }
+    } else {
+      if (border) {
+        border.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+      }
+    }
+
+    lastX = mouseX;
+    lastY = mouseY;
+  }
+
+  // Throttle mousemove events
+  function throttledMouseMove(e) {
+    if (animationFrameId) return;
+    
+    animationFrameId = requestAnimationFrame(() => {
+      updateCursor(e);
+      animationFrameId = null;
+    });
+  }
+
+  // Event listeners
+  document.addEventListener('mousemove', throttledMouseMove, { passive: true });
+
+  document.addEventListener('mouseleave', () => {
+    if (blob) blob.style.opacity = '0';
+    if (border) border.style.opacity = '0';
+  });
+
+  document.addEventListener('mouseenter', () => {
+    if (border) border.style.opacity = '1';
+  });
+</script>

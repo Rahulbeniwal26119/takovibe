@@ -1,0 +1,85 @@
+<div class="search-container">
+    <div class="search-wrapper">
+      <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+      <input 
+        type="text" 
+        id="search" 
+        placeholder="Search posts..."
+        class="search-input"
+      />
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+
+  <style>
+    .search-container {
+      position: relative;
+    }
+  
+    .search-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+  
+    .search-icon {
+      position: absolute;
+      left: 10px;
+      width: 16px;
+      height: 16px;
+      color: #6b7280;
+      pointer-events: none;
+    }
+  
+    .search-input {
+      width: 200px;
+      height: 34px;
+      padding: 8px 12px 8px 32px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      background: #f3f4f6;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+  
+    .search-input:focus {
+      width: 250px;
+      background: white;
+      border-color: #a855f7;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+    }
+  
+    /* Dark mode styles */
+    :global(.dark) .search-input {
+      background: #1f2937;
+      border-color: #374151;
+      color: white;
+    }
+  
+    :global(.dark) .search-input:focus {
+      background: #111827;
+      border-color: #a855f7;
+    }
+  
+    .search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      margin-top: 0.5rem;
+      padding: 0.5rem;
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      display: none;
+    }
+  
+    :global(.dark) .search-results {
+      background: #1f2937;
+      border-color: #374151;
+    }
+  </style>

@@ -1,0 +1,11 @@
+---
+const { title, url } = Astro.props;
+---
+<div class="share-buttons">
+  <button onclick={`window.open('https://twitter.com/intent/tweet?text=${title}&url=${url}')`}>
+    Twitter
+  </button>
+  <button onclick={`window.open('https://www.linkedin.com/sharing/share-offsite/?url=${url}')`}>
+    LinkedIn
+  </button>
+</div> 

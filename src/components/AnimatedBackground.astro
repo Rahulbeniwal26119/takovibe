@@ -1,0 +1,70 @@
+---
+---
+<div class="animated-background">
+  <div class="gradient-sphere"></div>
+  <div class="gradient-sphere"></div>
+  <div class="gradient-sphere"></div>
+</div>
+
+<style>
+  .animated-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    overflow: hidden;
+    background: radial-gradient(circle at 50% 50%, #1a1a2e, #0f0f1a);
+  }
+
+  .gradient-sphere {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.4;
+    animation: float 20s infinite;
+  }
+
+  .gradient-sphere:nth-child(1) {
+    background: radial-gradient(circle at center, #4f46e5, #7c3aed);
+    width: 50vw;
+    height: 50vw;
+    top: -25%;
+    left: -25%;
+    animation-delay: 0s;
+  }
+
+  .gradient-sphere:nth-child(2) {
+    background: radial-gradient(circle at center, #ec4899, #8b5cf6);
+    width: 40vw;
+    height: 40vw;
+    top: 60%;
+    right: -20%;
+    animation-delay: -5s;
+  }
+
+  .gradient-sphere:nth-child(3) {
+    background: radial-gradient(circle at center, #3b82f6, #06b6d4);
+    width: 45vw;
+    height: 45vw;
+    bottom: -25%;
+    left: 30%;
+    animation-delay: -10s;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translate(0, 0) rotate(0deg);
+    }
+    25% {
+      transform: translate(2%, 2%) rotate(5deg);
+    }
+    50% {
+      transform: translate(-2%, 4%) rotate(-5deg);
+    }
+    75% {
+      transform: translate(-4%, -2%) rotate(5deg);
+    }
+  }
+</style>
