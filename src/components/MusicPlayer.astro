@@ -198,12 +198,10 @@
 
             // Load player state
             const loadPlayerState = () => {
-                const minimized =
-                    localStorage.getItem("playerMinimized") === "true";
+                const minimized = localStorage.getItem("playerMinimized") === "true";
                 if (minimized) {
                     playerContent.classList.add("hidden");
-                    minimizeBtn.querySelector("svg").style.transform =
-                        "rotate(180deg)";
+                    minimizeBtn.querySelector("svg").style.transform = "";
                 }
             };
 
@@ -215,8 +213,8 @@
                 playerContent.classList.toggle("hidden");
                 minimizeBtn.querySelector("svg").style.transform =
                     playerContent.classList.contains("hidden")
-                        ? "rotate(180deg)"
-                        : "";
+                        ? ""
+                        : "rotate(180deg)";
                 savePlayerState();
             });
 

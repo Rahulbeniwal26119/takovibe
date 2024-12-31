@@ -8,6 +8,7 @@ import Search from "../components/Search.astro";
 import Newsletter from "../components/Newsletter.astro";
 import Footer from "../components/Footer.astro";
 import MusicPlayer from "../components/MusicPlayer.astro";
+import EnhancedNotes from '../components/EnhancedNotes.astro';
 
 interface Props {
   title: string;
@@ -63,6 +64,7 @@ const { title } = Astro.props;
       <FloatingElements />
       <CursorEffect />
       <MusicPlayer />
+      <EnhancedNotes />
       <div class="relative z-10 mx-auto">
         <slot />
       </div>

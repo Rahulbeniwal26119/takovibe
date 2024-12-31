@@ -1,0 +1,419 @@
+---
+// Remove any TipTap CSS imports - we'll handle styles ourselves
+---
+
+<div id="enhanced-notes-container">
+    <div
+        id="notes-toolbar"
+        class="fixed bottom-[96px] right-4 bg-gray-800/95 backdrop-blur-sm rounded-lg shadow-lg p-4 w-72 transition-all duration-300 ease-in-out hidden"
+        style="z-index: 48;"
+    >
+        <!-- Header with Controls (Always visible) -->
+        <div class="grid grid-cols-[1fr_auto] items-center gap-2">
+            <!-- Left side: Title and Add button -->
+            <div class="flex items-center gap-3">
+                <div class="w-20 min-w-[80px] overflow-hidden">
+                    <p class="text-sm font-medium text-gray-300 truncate">Quick Notes</p>
+                    <p class="text-xs text-gray-400 truncate">Add your thoughts</p>
+                </div>
+                
+                <button
+                    id="add-note"
+                    class="w-8 h-8 flex items-center justify-center text-white rounded-full hover:bg-purple-700 transition-colors bg-purple-600 shadow-lg hover:shadow-purple-500/30"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 4v16m8-8H4"
+                        ></path>
+                    </svg>
+                </button>
+            </div>
+
+                <!-- Right side: Minimize button -->
+                <button
+                    id="minimize-notes"
+                    class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-200 transition-colors"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5 transition-transform duration-300"
+                        style="transform: rotate(180deg);"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 9l-7 7-7-7"
+                        ></path>
+                    </svg>
+                </button>
+            </div>
+
+        <!-- Expanded Content -->
+        <div id="notes-content" class="mt-4">
+            <!-- Notes List -->
+            <div id="notes-list" class="space-y-3 max-h-[300px] overflow-y-auto px-1">
+                <!-- Notes will be dynamically added here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    import { Editor } from '@tiptap/core';
+    import StarterKit from '@tiptap/starter-kit';
+    import Color from '@tiptap/extension-color';
+    import TextStyle from '@tiptap/extension-text-style';
+    import Highlight from '@tiptap/extension-highlight';
+    import Placeholder from '@tiptap/extension-placeholder';
+    import { nanoid } from 'nanoid';
+    import interact from 'interactjs';
+
+    declare global {
+        interface Window {
+            notesManager: any;
+        }
+    }
+
+    class Note {
+        id: string;
+        element: HTMLElement;
+        editor: Editor;
+        content: string;
+        position: { x: number; y: number };
+        color: string;
+        
+        constructor(position = { x: 100, y: 100 }) {
+            this.id = nanoid();
+            this.position = position;
+            this.color = this.getRandomColor();
+            this.createNoteElement();
+            this.initializeEditor();
+            this.setupDraggable();
+            this.setupEventListeners();
+        }
+
+        private getRandomColor() {
+            const colors = [
+                'bg-amber-100 border-amber-200',
+                'bg-emerald-100 border-emerald-200',
+                'bg-rose-100 border-rose-200',
+                'bg-violet-100 border-violet-200',
+                'bg-cyan-100 border-cyan-200'
+            ];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        private createNoteElement() {
+            const noteElement = document.createElement('div');
+            noteElement.className = `${this.color} rounded-lg shadow-md p-3 transition-all hover:shadow-lg`;
+            noteElement.innerHTML = `
+                <div class="editor-content min-h-[100px] max-h-[200px] overflow-y-auto"></div>
+            `;
+            
+            const notesList = document.getElementById('notes-list');
+            if (notesList) {
+                notesList.prepend(noteElement);
+                this.element = noteElement;
+            }
+        }
+
+        private initializeEditor() {
+            const editorContent = this.element.querySelector('.editor-content');
+            
+            this.editor = new Editor({
+                element: editorContent,
+                extensions: [
+                    StarterKit,
+                    Color,
+                    TextStyle,
+                    Highlight.configure({ multicolor: true }),
+                    Placeholder.configure({
+                        placeholder: 'Write your note here...'
+                    })
+                ],
+                content: '',
+                editorProps: {
+                    attributes: {
+                        class: 'prose prose-sm max-w-none focus:outline-none'
+                    }
+                }
+            });
+        }
+
+        private setupEventListeners() {
+            this.element.addEventListener('dblclick', () => {
+                this.element.classList.toggle('fixed');
+                if (this.element.classList.contains('fixed')) {
+                    this.element.style.left = `${this.position.x}px`;
+                    this.element.style.top = `${this.position.y}px`;
+                    this.element.style.zIndex = '100';
+                    this.setupDraggable();
+                } else {
+                    this.element.style.transform = '';
+                    this.element.style.left = '';
+                    this.element.style.top = '';
+                }
+            });
+        }
+
+        private setupDraggable() {
+            if (this.element.classList.contains('fixed')) {
+                interact(this.element).draggable({
+                    inertia: true,
+                    modifiers: [
+                        interact.modifiers.restrictRect({
+                            restriction: 'parent',
+                            endOnly: true
+                        })
+                    ],
+                    listeners: {
+                        move: (event) => {
+                            const target = event.target;
+                            const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+                            const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+                            target.style.transform = `translate(${x}px, ${y}px)`;
+                            target.setAttribute('data-x', x);
+                            target.setAttribute('data-y', y);
+                        }
+                    }
+                });
+            }
+        }
+
+        destroy() {
+            this.editor.destroy();
+            this.element.remove();
+        }
+    }
+
+    class NotesManager {
+        notes: Map<string, Note> = new Map();
+        isExpanded: boolean = true;
+
+        constructor() {
+            this.initializeAddButton();
+            this.initializeMinimizeButton();
+            this.loadNotes();
+            this.loadState();
+        }
+
+        private initializeAddButton() {
+            const addButton = document.getElementById('add-note');
+            addButton?.addEventListener('click', () => {
+                const note = new Note();
+                this.notes.set(note.id, note);
+                this.saveNotes();
+            });
+        }
+
+        private initializeMinimizeButton() {
+            const minimizeBtn = document.getElementById('minimize-notes');
+            const notesContent = document.getElementById('notes-content');
+            const notesToolbar = document.getElementById('notes-toolbar');
+            const musicPlayer = document.getElementById('music-player');
+            const minimizeIcon = minimizeBtn?.querySelector('svg');
+            
+            if (minimizeBtn && notesContent && minimizeIcon) {
+                // Update position based on music player state
+                const updatePosition = () => {
+                    const musicPlayerContent = musicPlayer?.querySelector('#player-content');
+                    const isMusicExpanded = musicPlayerContent && !musicPlayerContent.classList.contains('hidden');
+                    const baseHeight = 96; // Height of collapsed music player
+                    const expandedOffset = 440; // Height when music player is expanded
+
+                    if (notesToolbar) {
+                        notesToolbar.style.bottom = isMusicExpanded 
+                            ? `${expandedOffset}px` 
+                            : `${baseHeight}px`;
+                    }
+                };
+
+                // Initial position
+                updatePosition();
+
+                // Watch for music player changes
+                const observer = new MutationObserver(() => {
+                    updatePosition();
+                });
+
+                if (musicPlayer) {
+                    observer.observe(musicPlayer, {
+                        subtree: true,
+                        attributes: true,
+                        attributeFilter: ['class']
+                    });
+                }
+
+                // Original minimize button logic
+                minimizeBtn.addEventListener('click', () => {
+                    this.isExpanded = !this.isExpanded;
+                    notesContent.classList.toggle('hidden');
+                    minimizeIcon.style.transform = this.isExpanded ? '' : 'rotate(180deg)';
+                    this.saveState();
+                });
+
+                // Set initial state
+                if (!this.isExpanded) {
+                    notesContent.classList.add('hidden');
+                    minimizeIcon.style.transform = 'rotate(180deg)';
+                } else {
+                    minimizeIcon.style.transform = '';
+                }
+            }
+        }
+
+        private saveNotes() {
+            const notesData = Array.from(this.notes.values()).map(note => ({
+                id: note.id,
+                content: note.editor.getHTML(),
+                position: note.position,
+                color: note.color
+            }));
+            localStorage.setItem('enhanced-notes', JSON.stringify(notesData));
+        }
+
+        private loadNotes() {
+            const savedNotes = localStorage.getItem('enhanced-notes');
+            if (savedNotes) {
+                JSON.parse(savedNotes).forEach(noteData => {
+                    const note = new Note(noteData.position);
+                    note.editor.commands.setContent(noteData.content);
+                    this.notes.set(note.id, note);
+                });
+            }
+        }
+
+        private saveState() {
+            localStorage.setItem('notes-expanded', String(this.isExpanded));
+        }
+
+        private loadState() {
+            const savedState = localStorage.getItem('notes-expanded');
+            if (savedState !== null) {
+                this.isExpanded = savedState === 'true';
+                const notesContent = document.getElementById('notes-content');
+                const minimizeBtn = document.getElementById('minimize-notes');
+                const minimizeIcon = minimizeBtn?.querySelector('svg');
+                
+                if (!this.isExpanded && notesContent) {
+                    notesContent.classList.add('hidden');
+                    if (minimizeIcon) {
+                        minimizeIcon.style.transform = 'rotate(180deg)';
+                    }
+                } else if (minimizeIcon) {
+                    minimizeIcon.style.transform = '';
+                }
+            }
+        }
+    }
+
+    function initializeNotesManager() {
+        // Check for existing instances and remove duplicates
+        const existingContainers = document.querySelectorAll("#enhanced-notes-container");
+        if (existingContainers.length > 1) {
+            for (let i = 1; i < existingContainers.length; i++) {
+                existingContainers[i].remove();
+            }
+        }
+
+        // Show the first instance
+        const firstContainer = document.querySelector("#notes-toolbar");
+        if (firstContainer) {
+            firstContainer.classList.remove('hidden');
+        }
+
+        const existingManager = window.notesManager;
+        if (!existingManager) {
+            window.notesManager = new NotesManager();
+        }
+    }
+
+    // Initialize on both initial load and page transitions
+    window.addEventListener('load', initializeNotesManager);
+    document.addEventListener('astro:page-load', initializeNotesManager);
+    
+    document.addEventListener('astro:before-swap', () => {
+        if (window.notesManager) {
+            window.notesManager.saveNotes();
+        }
+    });
+</script>
+
+<style>
+    .toolbar-btn {
+        @apply p-1 rounded hover:bg-black/10 transition-colors;
+    }
+
+    /* TipTap base styles */
+    .ProseMirror {
+        @apply min-h-[100px] max-h-[200px] overflow-y-auto p-2;
+    }
+
+    .ProseMirror:focus {
+        @apply outline-none;
+    }
+
+    .ProseMirror p {
+        @apply mb-2;
+    }
+
+    .ProseMirror h1 {
+        @apply text-xl font-bold mb-2;
+    }
+
+    .ProseMirror h2 {
+        @apply text-lg font-bold mb-2;
+    }
+
+    .ProseMirror ul,
+    .ProseMirror ol {
+        @apply ml-4 mb-2;
+    }
+
+    .ProseMirror ul {
+        @apply list-disc;
+    }
+
+    .ProseMirror ol {
+        @apply list-decimal;
+    }
+
+    /* Custom scrollbar */
+    #notes-list::-webkit-scrollbar,
+    .ProseMirror::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    #notes-list::-webkit-scrollbar-track,
+    .ProseMirror::-webkit-scrollbar-track {
+        @apply bg-transparent;
+    }
+
+    #notes-list::-webkit-scrollbar-thumb,
+    .ProseMirror::-webkit-scrollbar-thumb {
+        @apply bg-gray-500/50 rounded-full;
+    }
+
+    /* Note animations */
+    #notes-list > div {
+        @apply transform transition-all duration-200 ease-in-out;
+    }
+
+    #notes-list > div:hover {
+        @apply -translate-y-0.5;
+    }
+</style> 

@@ -19,5 +19,10 @@ export default defineConfig({
       theme: 'dracula',
       wrap: true
     }
+  },
+  vite: {
+    optimizeDeps: {
+      include: ['@tiptap/core', '@tiptap/starter-kit', 'interactjs']
+    }
   }
 });
