@@ -1,0 +1,270 @@
+---
+---
+
+<div id="pomodoro-container">
+    <div
+        id="pomodoro-toolbar"
+        class="fixed top-16 right-4 bg-gray-800/95 backdrop-blur-sm rounded-lg shadow-lg p-4 w-72 transition-all duration-300 ease-in-out hidden cursor-grab active:cursor-grabbing"
+        style="z-index: 48;"
+    >
+        <!-- Header with Controls (Always visible) -->
+        <div class="grid grid-cols-[1fr_auto] items-center gap-2">
+            <!-- Left side: Title and Timer -->
+            <div class="flex items-center gap-3">
+                <div class="w-20 min-w-[80px] overflow-hidden">
+                    <p class="text-sm font-medium text-gray-300 truncate">Pomodoro Timer</p>
+                    <p id="miniTimeDisplay" class="text-xs text-gray-400 truncate">25:00</p>
+                </div>
+                
+                <button id="miniStartBtn" class="w-8 h-8 flex items-center justify-center text-white rounded-full hover:bg-purple-700 transition-colors bg-purple-600 shadow-lg hover:shadow-purple-500/30">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Right side: Reset Position and Minimize buttons -->
+            <div class="flex items-center gap-2">
+                <button id="resetPositionBtn" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-200 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                </button>
+                <button id="pomodoroMinimizeBtn" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-200 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Expanded Content -->
+        <div id="pomodoroContent" class="mt-4">
+            <div class="flex flex-col justify-center items-center">
+                <div class="text-center mb-8">
+                    <span class="text-6xl font-bold text-white" id="timeDisplay">25:00</span>
+                </div>
+                <div class="flex justify-center space-x-2 mb-6">
+                    <button class="px-4 py-2 bg-[#7c3aed] text-white rounded-md hover:bg-[#6d28d9] text-sm" id="workBtn">Work</button>
+                    <button class="px-4 py-2 bg-[#1e293b] text-white rounded-md hover:bg-[#334155] text-sm" id="shortBreakBtn">Short Break</button>
+                    <button class="px-4 py-2 bg-[#1e293b] text-white rounded-md hover:bg-[#334155] text-sm" id="longBreakBtn">Long Break</button>
+                </div>
+                <div class="flex justify-center space-x-4">
+                    <button class="px-6 py-2 bg-[#7c3aed] text-white rounded-md hover:bg-[#6d28d9] text-sm" id="startBtn">Start</button>
+                    <button class="px-6 py-2 bg-[#1e293b] text-white rounded-md hover:bg-[#334155] text-sm" id="resetBtn">Reset</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function initializePomodoroTimer() {
+        // Check for existing instances and remove duplicates
+        const existingContainers = document.querySelectorAll("#pomodoro-container");
+        if (existingContainers.length > 1) {
+            for (let i = 1; i < existingContainers.length; i++) {
+                existingContainers[i].remove();
+            }
+        }
+
+        // Show the first instance
+        const pomodoroToolbar = document.querySelector("#pomodoro-toolbar");
+        if (pomodoroToolbar) {
+            pomodoroToolbar.classList.remove('hidden');
+        }
+
+        const pomodoroContent = document.getElementById("pomodoroContent");
+        const pomodoroMinimizeBtn = document.getElementById("pomodoroMinimizeBtn");
+        const minimizeIcon = pomodoroMinimizeBtn?.querySelector("svg");
+        const workBtn = document.getElementById("workBtn");
+        const shortBreakBtn = document.getElementById("shortBreakBtn");
+        const longBreakBtn = document.getElementById("longBreakBtn");
+        const startBtn = document.getElementById("startBtn");
+        const resetBtn = document.getElementById("resetBtn");
+        const timeDisplay = document.getElementById("timeDisplay");
+        const miniTimeDisplay = document.getElementById("miniTimeDisplay");
+        const miniStartBtn = document.getElementById("miniStartBtn");
+        const resetPositionBtn = document.getElementById("resetPositionBtn");
+
+        let timer = null;
+        let timeLeft = 25 * 60;
+        let isRunning = false;
+        let xOffset = 0;
+        let yOffset = 0;
+
+        // Show toolbar initially
+        if (pomodoroToolbar) {
+            pomodoroToolbar.classList.remove('hidden');
+        }
+
+        // Initially collapse the content
+        if (pomodoroContent) {
+            pomodoroContent.classList.add('hidden');
+        }
+        if (minimizeIcon) {
+            minimizeIcon.style.transform = 'rotate(180deg)';
+        }
+
+        function toggleContent(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            if (pomodoroContent && minimizeIcon) {
+                const isHidden = pomodoroContent.classList.contains('hidden');
+                
+                // Toggle content visibility
+                pomodoroContent.classList.toggle('hidden');
+                
+                // Update icon rotation
+                minimizeIcon.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
+            }
+        }
+
+        function updateDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            if (timeDisplay) timeDisplay.textContent = timeString;
+            if (miniTimeDisplay) miniTimeDisplay.textContent = timeString;
+        }
+
+        function startTimer() {
+            if (!isRunning) {
+                isRunning = true;
+                if (startBtn) startBtn.textContent = "Pause";
+                timer = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        updateDisplay();
+                    } else {
+                        clearInterval(timer);
+                        isRunning = false;
+                        if (startBtn) startBtn.textContent = "Start";
+                    }
+                }, 1000);
+            } else {
+                clearInterval(timer);
+                isRunning = false;
+                if (startBtn) startBtn.textContent = "Start";
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timer);
+            isRunning = false;
+            timeLeft = 25 * 60;
+            if (startBtn) startBtn.textContent = "Start";
+            updateDisplay();
+        }
+
+        // Dragging functionality
+        let isDragging = false;
+        let currentX;
+        let currentY;
+        let initialX;
+        let initialY;
+
+        function dragStart(e) {
+            if (pomodoroToolbar) {
+                pomodoroToolbar.style.cursor = 'grabbing';
+            }
+            if (e.type === "touchstart") {
+                initialX = e.touches[0].clientX - xOffset;
+                initialY = e.touches[0].clientY - yOffset;
+            } else {
+                initialX = e.clientX - xOffset;
+                initialY = e.clientY - yOffset;
+            }
+            isDragging = true;
+        }
+
+        function dragEnd() {
+            isDragging = false;
+            if (pomodoroToolbar) {
+                pomodoroToolbar.style.cursor = 'grab';
+            }
+        }
+
+        function drag(e) {
+            if (isDragging && pomodoroToolbar) {
+                e.preventDefault();
+                
+                if (e.type === "touchmove") {
+                    currentX = e.touches[0].clientX - initialX;
+                    currentY = e.touches[0].clientY - initialY;
+                } else {
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+                }
+
+                xOffset = currentX;
+                yOffset = currentY;
+                
+                // Ensure the timer stays within viewport bounds
+                const rect = pomodoroToolbar.getBoundingClientRect();
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                
+                if (rect.left < 0) xOffset = -initialX;
+                if (rect.right > viewportWidth) xOffset = viewportWidth - rect.width - initialX;
+                if (rect.top < 0) yOffset = -initialY;
+                if (rect.bottom > viewportHeight) yOffset = viewportHeight - rect.height - initialY;
+
+                setTranslate(xOffset, yOffset, pomodoroToolbar);
+            }
+        }
+
+        function setTranslate(xPos, yPos, el) {
+            el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+        }
+
+        function resetPosition() {
+            xOffset = 0;
+            yOffset = 0;
+            if (pomodoroToolbar) {
+                pomodoroToolbar.style.transform = 'translate3d(0px, 0px, 0)';
+            }
+        }
+
+        // Add event listeners
+        if (pomodoroToolbar) {
+            pomodoroToolbar.addEventListener("mousedown", dragStart);
+            document.addEventListener("mousemove", drag);
+            document.addEventListener("mouseup", dragEnd);
+            pomodoroToolbar.addEventListener("touchstart", dragStart);
+            document.addEventListener("touchmove", drag);
+            document.addEventListener("touchend", dragEnd);
+        }
+
+        miniStartBtn?.addEventListener("click", startTimer);
+        startBtn?.addEventListener("click", startTimer);
+        resetBtn?.addEventListener("click", resetTimer);
+        resetPositionBtn?.addEventListener("click", resetPosition);
+        
+        workBtn?.addEventListener("click", () => {
+            timeLeft = 25 * 60;
+            updateDisplay();
+        });
+        
+        shortBreakBtn?.addEventListener("click", () => {
+            timeLeft = 5 * 60;
+            updateDisplay();
+        });
+        
+        longBreakBtn?.addEventListener("click", () => {
+            timeLeft = 15 * 60;
+            updateDisplay();
+        });
+
+        // Add event listeners
+        pomodoroMinimizeBtn?.addEventListener("click", toggleContent);
+
+        // Initialize display
+        updateDisplay();
+    }
+
+    // Initialize on both initial load and page transitions
+    window.addEventListener('load', initializePomodoroTimer);
+    document.addEventListener('astro:page-load', initializePomodoroTimer);
+</script> 
