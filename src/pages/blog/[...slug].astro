@@ -1,6 +1,8 @@
 ---
 import { getCollection } from 'astro:content';
-import BlogPost from '../../layouts/BlogPost.astro';
+import Layout from '../../layouts/Layout.astro';
+import Footer from '../../components/Footer.astro';
+import CopyButton from '../../components/CopyButton.astro';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
@@ -14,6 +16,158 @@ const { post } = Astro.props;
 const { Content } = await post.render();
 ---
 
-<BlogPost frontmatter={post.data}>
-  <Content />
-</BlogPost> 
+<Layout title={post.data.title}>
+    <CopyButton />
+  <div class="max-w-5xl mx-auto px-4 py-16">
+    {post.data.image && (
+      <img 
+        src={post.data.image} 
+        alt={post.data.title}
+        class="w-full h-[500px] object-cover rounded-xl mb-12 shadow-xl"
+      />
+    )}
+    
+    <header class="mb-12">
+      <h1 class="text-5xl font-bold mb-6 leading-tight">{post.data.title}</h1>
+      <div class="flex items-center text-lg text-gray-600 dark:text-gray-400 mb-8">
+        <span>{post.data.date}</span>
+        <span class="mx-3">•</span>
+        <span>{post.data.author}</span>
+      </div>
+      
+      <div class="flex items-center justify-center space-x-4 my-12">
+        <div class="h-px bg-gradient-to-r from-transparent via-purple-500 to-transparent w-32"></div>
+        <div class="flex space-x-2">
+          <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+          <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+          <span class="w-2 h-2 rounded-full bg-purple-300"></span>
+        </div>
+        <div class="h-px bg-gradient-to-r from-transparent via-purple-500 to-transparent w-32"></div>
+      </div>
+    </header>
+
+    <article class="prose prose-xl dark:prose-invert max-w-none">
+      <Content />
+    </article>
+
+    <footer class="mt-16">
+      <div class="text-center text-gray-600 dark:text-gray-400 mb-8">
+        <p class="text-sm">Thanks for reading!</p>
+      </div>
+
+      <div class="flex items-center justify-center space-x-4">
+        <div class="h-px bg-gradient-to-r from-transparent via-purple-500 to-transparent w-32"></div>
+        <div class="flex space-x-2">
+          <span class="w-2 h-2 rounded-full bg-purple-300"></span>
+          <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+          <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+        </div>
+        <div class="h-px bg-gradient-to-r from-transparent via-purple-500 to-transparent w-32"></div>
+      </div>
+      <div class="text-center text-gray-600 dark:text-gray-400 mt-12">
+        <Footer />
+      </div>
+    </footer>
+  </div>
+</Layout>
+
+<style is:global>
+  .prose {
+    font-size: 1.25rem;
+    line-height: 1.8;
+  }
+
+  .prose h2 {
+    font-size: 2.5rem;
+    margin-top: 3rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .prose h3 {
+    font-size: 2rem;
+    margin-top: 2.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .prose p {
+    margin-bottom: 1.5rem;
+    font-size: 1.25rem !important;
+    line-height: 1.8;
+  }
+
+  .prose code {
+    font-size: 1.15em;
+    background-color: rgba(0,0,0,0.1);
+    padding: 0.2em 0.4em;
+    border-radius: 0.375rem;
+  }
+
+  .dark .prose code {
+    /* background-color: rgba(255,255,255,0.1); */
+  }
+
+  .prose pre {
+    position: relative;
+    font-size: 1.15em;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    margin: 2rem 0;
+    background-color: #1a1a1a;
+  }
+
+  .prose pre code {
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+    font-size: inherit;
+  }
+
+  .dark .prose pre {
+    background-color: #1a1a1a;
+  }
+
+  .prose pre {
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .prose ul, .prose ol {
+    margin: 1.5rem 0;
+    padding-left: 1.5rem;
+    font-size: 1.25rem;
+  }
+
+  .prose li {
+    margin: 0.75rem 0;
+  }
+
+  .prose blockquote {
+    font-size: 1.35rem;
+    margin: 2rem 0;
+    padding: 1rem 1.5rem;
+    border-left: 4px solid #6366f1;
+    background-color: rgba(99, 102, 241, 0.1);
+  }
+
+  article.prose p {
+    font-size: 25px !important;
+    line-height: 1.4;
+    margin-bottom: 3rem;
+  }
+
+  main {
+    background-color: transparent !important;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.8; }
+    50% { opacity: 0.4; }
+  }
+
+  .rounded-full {
+    transition: transform 0.2s ease;
+  }
+
+  .rounded-full:hover {
+    transform: scale(1.2);
+  }
+</style> 

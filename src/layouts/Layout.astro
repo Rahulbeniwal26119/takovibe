@@ -6,6 +6,8 @@ import ThemeToggle from "../components/ThemeToggle.astro";
 import ReadingProgress from "../components/ReadingProgress.astro";
 import Search from "../components/Search.astro";
 import Newsletter from "../components/Newsletter.astro";
+import Footer from "../components/Footer.astro";
+import MusicPlayer from "../components/MusicPlayer.astro";
 
 interface Props {
   title: string;
@@ -15,7 +17,7 @@ const { title } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en" class="dark overflow-x-hidden">
   <head>
     <meta charset="UTF-8" />
     <meta name="description" content="Professional Tech Blog" />
@@ -32,7 +34,7 @@ const { title } = Astro.props;
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
   </head>
-  <body class="text-gray-100 min-h-screen">
+  <body class="text-gray-100 min-h-screen overflow-x-hidden">
     <header
       class="fixed top-0 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur z-50 border-b border-gray-200 dark:border-gray-800"
     >
@@ -56,18 +58,16 @@ const { title } = Astro.props;
     <main
       class="min-h-screen pt-14 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
     >
+      <ReadingProgress />
       <AnimatedBackground />
       <FloatingElements />
       <CursorEffect />
+      <MusicPlayer />
       <div class="relative z-10 mx-auto">
         <slot />
       </div>
     </main>
-    <ReadingProgress />
-
-    <footer>
-      <Newsletter />
-    </footer>
+    <!-- <Footer /> -->
   </body>
 </html>
 
@@ -114,5 +114,11 @@ const { title } = Astro.props;
     transition:
       background-color 0.3s ease,
       color 0.3s ease;
+  }
+
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+    position: relative;
   }
 </style>

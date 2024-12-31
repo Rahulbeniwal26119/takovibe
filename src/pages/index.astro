@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import FloatingCard from '../components/FloatingCard.astro';
 import { getCollection } from 'astro:content';
+import Footer from '../components/Footer.astro';
 
 // Fetch all blog posts from the blog directory
 let blogEntries = [];
@@ -58,10 +59,104 @@ const sortedPosts = blogEntries.sort((a, b) =>
         </div>
       )}
     </div>
+    <Footer />
   </div>
 
   <script>
-    // Three.js script remains the same
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+
+    // Scene setup
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    
+    const canvas = document.querySelector('#hero-canvas');
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      alpha: true,
+      antialias: true
+    });
+    
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    // Create floating spheres
+    const sphereGeometry = new THREE.SphereGeometry(1, 32, 32);
+    const sphereMaterial = new THREE.MeshPhongMaterial({
+      color: 0x6366f1,
+      shininess: 100,
+      transparent: true,
+      opacity: 0.9
+    });
+
+    const spheres = [];
+    for (let i = 0; i < 15; i++) {
+      const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial.clone());
+      sphere.position.set(
+        (Math.random() - 0.5) * 20,
+        (Math.random() - 0.5) * 20,
+        (Math.random() - 0.5) * 20
+      );
+      sphere.scale.setScalar(Math.random() * 0.5 + 0.5);
+      sphere.material.color.setHSL(Math.random(), 0.7, 0.7);
+      spheres.push(sphere);
+      scene.add(sphere);
+    }
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(5, 5, 5);
+    scene.add(directionalLight);
+
+    camera.position.z = 15;
+
+    // Controls
+    const controls = new OrbitControls(camera, canvas);
+    controls.enableDamping = true;
+    controls.enableZoom = false;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.5;
+
+    // Animation
+    function animate() {
+      requestAnimationFrame(animate);
+      
+      spheres.forEach((sphere, i) => {
+        sphere.rotation.x += 0.001 * (i + 1);
+        sphere.rotation.y += 0.002 * (i + 1);
+        
+        // Add floating animation
+        sphere.position.y += Math.sin(Date.now() * 0.001 + i) * 0.01;
+      });
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // Start animation
+    animate();
+
+    // Mouse interaction
+    const mouse = new THREE.Vector2();
+    window.addEventListener('mousemove', (event) => {
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+      spheres.forEach((sphere) => {
+        sphere.rotation.x += mouse.y * 0.01;
+        sphere.rotation.y += mouse.x * 0.01;
+      });
+    });
   </script>
 </Layout>
 

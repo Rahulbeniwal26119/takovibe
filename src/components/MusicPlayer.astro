@@ -1,0 +1,386 @@
+---
+---
+
+{/* Only render if no music player exists */}
+<div id="music-player-container">
+    <div
+        id="music-player"
+        class="fixed bottom-4 right-4 bg-gray-800/95 backdrop-blur-sm rounded-lg shadow-lg w-72 p-4 z-50"
+    >
+        <!-- Header with Controls (Always visible) -->
+        <div class="grid grid-cols-[1fr_auto] items-center gap-2">
+            <!-- Left side: Track info and controls -->
+            <div class="flex items-center gap-3">
+                <!-- Track Info -->
+                <div class="w-20 min-w-[80px] overflow-hidden">
+                    <p
+                        id="mini-title"
+                        class="text-sm font-medium text-gray-300 truncate"
+                        >Now Playing</p>
+                    <p
+                        id="mini-artist"
+                        class="text-xs text-gray-400 truncate">Artist</p
+                    >
+                </div>
+                
+                <!-- Controls with fixed width and better spacing -->
+                <div class="flex items-center gap-2">
+                    <button
+                        id="prev-btn"
+                        class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-200 transition-colors"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M15 19l-7-7 7-7"
+                            ></path>
+                        </svg>
+                    </button>
+                    
+                    <button
+                        id="play-btn"
+                        class="w-8 h-8 flex items-center justify-center text-white rounded-full hover:bg-purple-700 transition-colors bg-purple-600"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                            ></path>
+                        </svg>
+                    </button>
+                    
+                    <button
+                        id="next-btn"
+                        class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-200 transition-colors"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M9 5l7 7-7 7"
+                            ></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right side: Minimize button -->
+            <button
+                id="minimize-player"
+                class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-200 transition-colors"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 15l7-7 7 7"
+                    ></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Expanded Content -->
+        <div id="player-content">
+            <!-- Album Art -->
+            <div class="flex items-center justify-center mb-4">
+                <img
+                    id="song-cover"
+                    src="/default-cover.jpg"
+                    alt="Album cover"
+                    class="w-full h-48 rounded-lg shadow-md object-cover"
+                />
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="mb-4">
+                <div class="bg-gray-700 rounded-full h-1">
+                    <div
+                        id="progress-bar"
+                        class="bg-purple-600 h-1 rounded-full w-0 transition-all"
+                    >
+                    </div>
+                </div>
+                <div class="flex justify-between text-xs text-gray-400 mt-1">
+                    <span id="current-time">0:00</span>
+                    <span id="duration">0:00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Remove any existing players before initializing
+    function initializeMusicPlayer() {
+        const existingPlayers = document.querySelectorAll(
+            "#music-player-container",
+        );
+        if (existingPlayers.length > 1) {
+            // Keep only the first instance
+            for (let i = 1; i < existingPlayers.length; i++) {
+                existingPlayers[i].remove();
+            }
+        }
+
+        // Only initialize if not already done
+        if (!window.musicPlayerInitialized) {
+            window.musicPlayerInitialized = true;
+
+            const playlist = [
+                {
+                    title: "Once in Paris",
+                    artist: "Ashot Danielyan",
+                    url: "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3",
+                    cover: "https://picsum.photos/seed/music1/200",
+                },
+                {
+                    title: "Please Calm My Mind",
+                    artist: "music_for_video",
+                    url: "https://cdn.pixabay.com/download/audio/2022/11/11/audio_84306ee149.mp3?filename=please-calm-my-mind-125566.mp3",
+                    cover: "https://pixabay.com/music/thumbnail/b62a9b1b0af14e066814d383cbaf3145.svg",
+                },
+            ];
+
+            let currentTrack = 0;
+            let isPlaying = false;
+            let audio = new Audio();
+
+            // Get all button elements
+            const playBtn = document.getElementById("play-btn");
+            const prevBtn = document.getElementById("prev-btn");
+            const nextBtn = document.getElementById("next-btn");
+            const minimizeBtn = document.getElementById("minimize-player");
+            const playerContent = document.getElementById("player-content");
+            const progressBar = document.getElementById("progress-bar");
+            const currentTimeSpan = document.getElementById("current-time");
+            const durationSpan = document.getElementById("duration");
+            const miniTitle = document.getElementById("mini-title");
+            const miniArtist = document.getElementById("mini-artist");
+            const songCover = document.getElementById("song-cover");
+
+            // Store player state in localStorage
+            const savePlayerState = () => {
+                localStorage.setItem(
+                    "playerMinimized",
+                    playerContent.classList.contains("hidden"),
+                );
+            };
+
+            // Load player state
+            const loadPlayerState = () => {
+                const minimized =
+                    localStorage.getItem("playerMinimized") === "true";
+                if (minimized) {
+                    playerContent.classList.add("hidden");
+                    minimizeBtn.querySelector("svg").style.transform =
+                        "rotate(180deg)";
+                }
+            };
+
+            // Initialize player state
+            loadPlayerState();
+
+            minimizeBtn.addEventListener("click", (e) => {
+                e.stopPropagation(); // Prevent event bubbling
+                playerContent.classList.toggle("hidden");
+                minimizeBtn.querySelector("svg").style.transform =
+                    playerContent.classList.contains("hidden")
+                        ? "rotate(180deg)"
+                        : "";
+                savePlayerState();
+            });
+
+            function togglePlay() {
+                if (isPlaying) {
+                    audio.pause();
+                } else {
+                    audio.play();
+                }
+            }
+
+            function updatePlayButtons() {
+                const playIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+        </svg>`;
+
+                const pauseIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6" />
+        </svg>`;
+
+                playBtn.innerHTML = isPlaying ? pauseIcon : playIcon;
+            }
+
+            // Format time in MM:SS
+            function formatTime(seconds) {
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = Math.floor(seconds % 60);
+                return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+            }
+
+            // Update progress bar and time displays
+            function updateProgress() {
+                const duration = audio.duration;
+                const currentTime = audio.currentTime;
+                const progress = (currentTime / duration) * 100;
+
+                progressBar.style.width = `${progress}%`;
+                currentTimeSpan.textContent = formatTime(currentTime);
+                durationSpan.textContent = formatTime(duration);
+            }
+
+            function loadTrack(trackIndex) {
+                audio.src = playlist[trackIndex].url;
+                miniTitle.textContent = playlist[trackIndex].title;
+                miniArtist.textContent = playlist[trackIndex].artist;
+                songCover.src = playlist[trackIndex].cover;
+
+                // Reset time displays
+                currentTimeSpan.textContent = "0:00";
+                durationSpan.textContent = "0:00";
+                progressBar.style.width = "0%";
+
+                // Preserve minimize state when changing tracks
+                const wasMinimized = playerContent.classList.contains("hidden");
+                if (wasMinimized) {
+                    playerContent.classList.add("hidden");
+                    minimizeBtn.querySelector("svg").style.transform =
+                        "rotate(180deg)";
+                }
+
+                // Wait for metadata to load
+                audio.addEventListener("loadedmetadata", () => {
+                    durationSpan.textContent = formatTime(audio.duration);
+                });
+            }
+
+            // Event Listeners
+            playBtn.addEventListener("click", togglePlay);
+
+            prevBtn.addEventListener("click", () => {
+                currentTrack =
+                    (currentTrack - 1 + playlist.length) % playlist.length;
+                loadTrack(currentTrack);
+                if (isPlaying) audio.play();
+            });
+
+            nextBtn.addEventListener("click", () => {
+                currentTrack = (currentTrack + 1) % playlist.length;
+                loadTrack(currentTrack);
+                if (isPlaying) audio.play();
+            });
+
+            // Audio event listeners
+            audio.addEventListener("play", () => {
+                isPlaying = true;
+                updatePlayButtons();
+            });
+
+            audio.addEventListener("pause", () => {
+                isPlaying = false;
+                updatePlayButtons();
+            });
+
+            // Add timeupdate event listener
+            audio.addEventListener("timeupdate", updateProgress);
+
+            // Make progress bar clickable
+            const progressContainer = progressBar.parentElement;
+            progressContainer.addEventListener("click", (e) => {
+                const rect = progressContainer.getBoundingClientRect();
+                const clickPosition = e.clientX - rect.left;
+                const clickPercentage = clickPosition / rect.width;
+                audio.currentTime = clickPercentage * audio.duration;
+            });
+
+            // Add ended event listener to play next track
+            audio.addEventListener("ended", () => {
+                currentTrack = (currentTrack + 1) % playlist.length;
+                loadTrack(currentTrack);
+                audio.play();
+            });
+
+            // Initialize first track
+            loadTrack(currentTrack);
+            updatePlayButtons();
+        }
+    }
+
+    // Initial setup
+    initializeMusicPlayer();
+
+    // Update on navigation
+    document.addEventListener("astro:page-load", initializeMusicPlayer);
+</script>
+
+<style>
+    #music-player {
+        width: 288px;
+    }
+
+    /* Fixed dimensions for all buttons */
+    button {
+        flex-shrink: 0;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Prevent text selection */
+    .truncate {
+        user-select: none;
+    }
+
+    /* Ensure consistent button sizing */
+    #prev-btn,
+    #play-btn,
+    #next-btn,
+    #minimize-player {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        border-radius: 8px;
+    }
+
+    #play-btn {
+        border-radius: 9999px;
+    }
+
+    /* Add hover effect without size change */
+    button:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    #play-btn:hover {
+        background-color: rgb(126, 34, 206);
+    }
+</style>
+

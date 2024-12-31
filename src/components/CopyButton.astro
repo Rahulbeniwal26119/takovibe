@@ -1,0 +1,124 @@
+---
+
+---
+
+<button aria-label="Copy code" data-copied="false">
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-3.5 w-3.5 copy-icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+    >
+        <path d="M6 9H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-2"
+        ></path>
+        <path
+            d="M19 13V4a2 2 0 0 0-2-2h-9a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2z"
+        ></path>
+    </svg>
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-3.5 w-3.5 check-icon hidden"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+    >
+        <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+</button>
+
+<script>
+    function updateCopyButtons() {
+        document.querySelectorAll("pre").forEach((block) => {
+            if (!block.querySelector(".copy-button")) {
+                const button = document.createElement("button");
+                button.className =
+                    "copy-button absolute right-2 top-2 p-1 rounded-md transition-all duration-150 display-none";
+                button.style.height = "30px";
+                button.style.width = "30px";
+                button.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-2"/>
+            <path d="M19 13V4a2 2 0 0 0-2-2h-9a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2z"/>
+          </svg>
+         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 check-icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        `;
+
+                block.style.position = "relative";
+
+                button.addEventListener("click", async () => {
+                    const code = block.querySelector("code");
+                    const text = code?.textContent || "";
+
+                    try {
+                        await navigator.clipboard.writeText(text);
+                        button.classList.add("copied");
+
+                        const copyIcon = button.querySelector(".copy-icon");
+                        const checkIcon = button.querySelector(".check-icon");
+
+                        copyIcon?.classList.add("hidden");
+                        checkIcon?.classList.remove("hidden");
+
+                        setTimeout(() => {
+                            copyIcon?.classList.remove("hidden");
+                            checkIcon?.classList.add("hidden");
+                            button.classList.remove("copied");
+                        }, 2000);
+                    } catch (err) {
+                        console.error("Failed to copy:", err);
+                    }
+                });
+
+                block.appendChild(button);
+            }
+        });
+    }
+
+    // Initial setup
+    updateCopyButtons();
+
+    // Update on dynamic content changes
+    document.addEventListener("astro:after-swap", updateCopyButtons);
+</script>
+
+<style>
+    .copy-button {
+        opacity: 0;
+        transform: scale(0.95);
+        transition: all 0.1s ease-in-out;
+        color: transparent;
+    }
+
+    pre:hover .copy-button {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    .copy-button:hover {
+        transform: scale(1.05);
+    }
+
+    .copy-button:active {
+        transform: scale(0.95);
+    }
+
+    .copy-button.copied {
+        @apply bg-green-600/50 text-green-200 border-green-500/25;
+    }
+
+    .copy-button:focus {
+        opacity: 1;
+        outline: none;
+        @apply ring-2 ring-purple-500/40;
+    }
+</style>
+
