@@ -1,0 +1,37 @@
+---
+import Search from "./Search.astro";
+import ThemeToggle from "./ThemeToggle.astro";
+---
+
+<header
+  class="fixed top-0 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur z-50 border-b border-gray-200 dark:border-gray-800"
+>
+  <nav
+    class="h-14 max-w-6xl mx-auto px-4 flex justify-between items-center"
+  >
+    <a
+      href="/"
+      class="text-lg font-semibold hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+    >
+      Tech Insights
+    </a>
+    <div class="flex items-center space-x-4">
+      <!-- Updated Blog link to point to home page -->
+      <a 
+        href="/" 
+        class="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+      >
+        Blog
+      </a>
+      <a 
+        href="/portfolio" 
+        class="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+      >
+        Portfolio
+      </a>
+      <div class="w-px h-5 bg-gray-200 dark:bg-gray-700"></div>
+      <Search />
+      <!-- <ThemeToggle /> -->
+    </div>
+  </nav>
+</header> 

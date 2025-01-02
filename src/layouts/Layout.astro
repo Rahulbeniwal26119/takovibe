@@ -1,10 +1,10 @@
 ---
+import Header from "../components/Header.astro";
 import AnimatedBackground from "../components/AnimatedBackground.astro";
 import CursorEffect from "../components/CursorEffect.astro";
 import FloatingElements from "../components/FloatingElements.astro";
 import ThemeToggle from "../components/ThemeToggle.astro";
 import ReadingProgress from "../components/ReadingProgress.astro";
-import Search from "../components/Search.astro";
 import Newsletter from "../components/Newsletter.astro";
 import Footer from "../components/Footer.astro";
 import MusicPlayer from "../components/MusicPlayer.astro";
@@ -37,26 +37,7 @@ const { title } = Astro.props;
     <title>{title}</title>
   </head>
   <body class="text-gray-100 min-h-screen overflow-x-hidden">
-    <header
-      class="fixed top-0 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur z-50 border-b border-gray-200 dark:border-gray-800"
-    >
-      <nav
-        class="h-14 max-w-6xl mx-auto px-4 flex justify-between items-center"
-      >
-        <a
-          href="/"
-          class="text-lg font-semibold hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-        >
-          Tech Insights
-        </a>
-        <div class="flex items-center space-x-4">
-          <Search />
-          <!-- <div class="w-px h-5 bg-gray-200 dark:bg-gray-700"></div>
-          <ThemeToggle /> -->
-        </div>
-      </nav>
-    </header>
-
+    <Header />
     <main
       class="min-h-screen pt-14 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
     >
