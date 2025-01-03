@@ -55,3 +55,4 @@ coverage/
 # PWA files
 dev-dist/
 .vscode/
+run_docker_prod.sh
