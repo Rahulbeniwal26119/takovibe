@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  portfolio-app:
+    image: portfolio-app
+    build:
+      context: .
+      args:
+        - ENV=local
+    ports:
+      - 80:80
+    container_name: portfolio-app
+

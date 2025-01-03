@@ -22,8 +22,10 @@ RUN npm run build
 # Use a lightweight base image for production
 FROM nginx:1.25-alpine AS production
 
-# Remove default nginx config and copy custom configuration (if needed)
-COPY nginx.conf /etc/nginx/nginx.conf
+ARG ENV=local
+
+# Copy the appropriate nginx config based on environment
+COPY nginx.${ENV}.conf /etc/nginx/nginx.conf
 
 # Copy built assets from the builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
