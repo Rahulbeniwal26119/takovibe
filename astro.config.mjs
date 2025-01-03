@@ -7,10 +7,12 @@ import rehypeKatex from 'rehype-katex';
 export default defineConfig({
   integrations: [
     mdx({
-      remarkPlugins: [],
-      rehypePlugins: [],
       remarkRehype: {},
       gfm: true, // GitHub Flavored Markdown
+      // use reMarkMath
+      remarkPlugins: [remarkMath],
+      rehypePlugins: [rehypeKatex],
+      remarkRehype: {},
     }),
     tailwind(),
   ],
@@ -24,5 +26,7 @@ export default defineConfig({
     optimizeDeps: {
       include: ['@tiptap/core', '@tiptap/starter-kit', 'interactjs']
     }
-  }
+  },
+  base: '/',
+  output: 'static',  // Since you're using nginx
 });
