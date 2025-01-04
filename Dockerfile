@@ -24,6 +24,7 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # Set permissions
 RUN chown -R nginx:nginx /usr/share/nginx/html
 
+RUN echo "ENV: ${ENV}"
 RUN ls -la /usr/share/nginx/html
 
 EXPOSE 8080
