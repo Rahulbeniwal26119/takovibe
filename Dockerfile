@@ -33,8 +33,7 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # Set permissions to avoid potential issues
 RUN chown -R nginx:nginx /usr/share/nginx/html
 
-# Expose port 80
-EXPOSE 80
+EXPOSE 8080
 
 # Healthcheck to ensure the service is running
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
