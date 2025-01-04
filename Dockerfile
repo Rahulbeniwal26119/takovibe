@@ -1,43 +1,32 @@
 # Build stage
 FROM node:18-alpine AS builder
 
-# Install essential build tools (for node-gyp or other dependencies)
+# Install essential build tools
 RUN apk add --no-cache python3 make g++
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files early for dependency caching
 COPY package*.json ./
-
-# Install dependencies with npm
 RUN npm ci --only=production
 
-# Copy the rest of the application files
 COPY . .
-
-# Build the Astro application
 RUN npm run build
 
-# Use a lightweight base image for production
+# Production stage
 FROM nginx:1.25-alpine AS production
 
 ARG ENV=local
 
-# Copy the appropriate nginx config based on environment
+# Copy nginx config and built assets
 COPY nginx.${ENV}.conf /etc/nginx/nginx.conf
-
-# Copy built assets from the builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Set permissions to avoid potential issues
+# Set permissions
 RUN chown -R nginx:nginx /usr/share/nginx/html
 
 EXPOSE 8080
 
-# Healthcheck to ensure the service is running
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD curl -f http://localhost:80/ || exit 1
+  CMD curl -f http://localhost:8080/ || exit 1
 
-# Start nginx
 CMD ["nginx", "-g", "daemon off;"]
