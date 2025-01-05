@@ -1,85 +1,197 @@
 <div class="search-container">
-    <div class="search-wrapper">
-      <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-      </svg>
-      <input 
-        type="text" 
-        id="search" 
-        placeholder="Search posts..."
-        class="search-input"
-      />
-    </div>
-    <div id="search-results" class="search-results"></div>
+  <div class="search-wrapper">
+    <svg
+      class="search-icon"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+    </svg>
+    <input
+      type="text"
+      id="search"
+      placeholder="Search posts..."
+      class="search-input"
+    />
   </div>
+  <div id="search-results" class="search-results"></div>
+</div>
 
-  <style>
-    .search-container {
-      position: relative;
+<script>
+  import $ from "jquery";
+
+  $(document).ready(function () {
+    const $searchInput = $("#search");
+    const $searchResults = $("#search-results");
+
+    let timeoutId: number;
+
+    $searchInput.on("input", function () {
+      const searchTerm = $(this).val() as string;
+      clearTimeout(timeoutId);
+
+      if (!searchTerm.trim()) {
+        $searchResults.hide().empty();
+        return;
+      }
+
+      timeoutId = setTimeout(() => {
+        const posts = $("article")
+          .map(function () {
+            return {
+              title: $(this).find("h2").text(),
+              url: $(this).find("a").attr("href"),
+              excerpt: $(this).find("p").first().text(),
+            };
+          })
+          .get();
+
+        const filteredPosts = posts.filter((post) =>
+          post.title.toLowerCase().includes(searchTerm.toLowerCase()),
+        );
+
+        if (filteredPosts.length) {
+          const resultsHtml = filteredPosts
+            .map(
+              (post) => `
+              <div class="search-result-item" style="
+                padding: 0.75rem 1rem;
+                background: rgba(30, 41, 59, 0.6);
+                border: 1px solid rgba(148, 163, 184, 0.2);
+                border-radius: 6px;
+                margin-bottom: 8px;
+                transition: all 0.2s ease;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+              ">
+                <a href="${post.url}" style="
+                  text-decoration: none;
+                  display: block;
+                ">
+                  <h3 style="
+                    color: #e2e8f0;
+                    font-size: 0.95rem;
+                    font-weight: 500;
+                    margin-bottom: 0.25rem;
+                  ">${highlightMatch(post.title, searchTerm)}</h3>
+                  <p style="
+                    color: #94a3b8;
+                    font-size: 0.875rem;
+                  ">${truncateText(post.excerpt, 100)}</p>
+                </a>
+              </div>
+          `,
+            )
+            .join("");
+
+          $searchResults
+            .html(resultsHtml)
+            .css({
+              position: "absolute",
+              top: "100%",
+              left: 0,
+              right: 0,
+              marginTop: "0.5rem",
+              maxHeight: "400px",
+              overflowY: "auto",
+              background: "rgba(15, 23, 42, 0.95)",
+              backdropFilter: "blur(8px)",
+              borderRadius: "8px",
+              zIndex: 1000,
+              padding: "0.5rem",
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px",
+              boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)"
+            })
+            .slideDown(200);
+
+          // Add hover effect
+          $(".search-result-item").hover(
+            function() {
+              $(this).css({
+                background: "rgba(51, 65, 85, 0.8)",
+                borderColor: "rgba(148, 163, 184, 0.4)",
+                transform: "translateY(-1px)",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)"
+              });
+            },
+            function() {
+              $(this).css({
+                background: "rgba(30, 41, 59, 0.6)",
+                borderColor: "rgba(148, 163, 184, 0.2)",
+                transform: "none",
+                boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)"
+              });
+            }
+          );
+        } else {
+          $searchResults
+            .html('<p class="no-results" style="text-align: center; color: #94a3b8; padding: 1rem;">No posts found</p>')
+            .slideDown(200);
+        }
+      }, 300);
+    });
+
+    // Helper functions
+    function highlightMatch(text: string, term: string): string {
+      const regex = new RegExp(`(${term})`, "gi");
+      return text.replace(regex, '<mark style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%); color: #ffffff; padding: 0 0.2em; border-radius: 2px; font-weight: 500; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);">$1</mark>');
     }
-  
-    .search-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
+
+    function truncateText(text: string, length: number): string {
+      return text.length > length ? text.substring(0, length) + "..." : text;
     }
-  
-    .search-icon {
-      position: absolute;
-      left: 10px;
-      width: 16px;
-      height: 16px;
-      color: #6b7280;
-      pointer-events: none;
-    }
-  
-    .search-input {
-      width: 200px;
-      height: 34px;
-      padding: 8px 12px 8px 32px;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      background: #f3f4f6;
-      font-size: 14px;
-      transition: all 0.2s;
-    }
-  
-    .search-input:focus {
-      width: 250px;
-      background: white;
-      border-color: #a855f7;
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
-    }
-  
-    /* Dark mode styles */
-    :global(.dark) .search-input {
-      background: #1f2937;
-      border-color: #374151;
-      color: white;
-    }
-  
-    :global(.dark) .search-input:focus {
-      background: #111827;
-      border-color: #a855f7;
-    }
-  
-    .search-results {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      margin-top: 0.5rem;
-      padding: 0.5rem;
-      background: white;
-      border-radius: 8px;
-      border: 1px solid #e2e8f0;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      display: none;
-    }
-  
-    :global(.dark) .search-results {
-      background: #1f2937;
-      border-color: #374151;
-    }
-  </style>
+
+    // Hide results when clicking outside
+    $(document).on("click", function (event) {
+      if (!$(event.target).closest(".search-container").length) {
+        $searchResults.slideUp(200);
+      }
+    });
+  });
+</script>
+
+<style>
+  .search-container {
+    position: relative;
+    display: inline-block;
+  }
+
+  .search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 8px;
+    width: 16px;
+    height: 16px;
+    color: #94a3b8;
+    pointer-events: none;
+  }
+
+  .search-input {
+    background: rgba(30, 41, 59, 0.5);
+    border: none;
+    border-radius: 6px;
+    color: #e2e8f0;
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem 0.5rem 2rem;
+    width: 200px;
+    transition: all 0.3s ease;
+  }
+
+  .search-input:focus {
+    outline: none;
+    background: rgba(30, 41, 59, 0.7);
+    width: 300px;
+  }
+</style>

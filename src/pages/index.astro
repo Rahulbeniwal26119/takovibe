@@ -1,36 +1,42 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import FloatingCard from '../components/FloatingCard.astro';
-import { getCollection } from 'astro:content';
-import Footer from '../components/Footer.astro';
+import Layout from "../layouts/Layout.astro";
+import FloatingCard from "../components/FloatingCard.astro";
+import { getCollection } from "astro:content";
+import Footer from "../components/Footer.astro";
 
-// Fetch all blog posts from the blog directory
+// Fetch all blog posts
 let blogEntries = [];
 try {
-  blogEntries = await getCollection('blog');
-  console.log('Blog entries:', blogEntries); // Debug log
+  blogEntries = await getCollection("blog");
 } catch (error) {
-  console.error('Error fetching blog posts:', error);
+  console.error("Error fetching blog posts:", error);
 }
-// If your posts are in a different directory, adjust the path above
-// For example: './blog/*.{md,mdx}' or '../pages/blog/*.{md,mdx}'
 
-// Sort posts by date (optional)
-const sortedPosts = blogEntries.sort((a, b) => 
-  new Date(b.data.date).getTime() - new Date(a.data.date).getTime()
+// Sort posts by date
+const sortedPosts = blogEntries.sort(
+  (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime(),
 );
+
+// Pagination configuration
+const POSTS_PER_PAGE = 6;
+const totalPages = Math.ceil(sortedPosts.length / POSTS_PER_PAGE);
+const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 ---
 
 <Layout title="Tech Insights">
   <div class="relative min-h-screen">
     <!-- Hero Section -->
-    <div class="relative h-[80vh] flex items-center justify-center overflow-hidden">
+    <div
+      class="relative h-[80vh] flex items-center justify-center overflow-hidden hero-section"
+    >
       <!-- 3D Canvas -->
       <canvas id="hero-canvas" class="absolute inset-0 w-full h-full"></canvas>
-      
+
       <!-- Content -->
       <div class="relative z-10 text-center">
-        <h1 class="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">
+        <h1
+          class="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600"
+        >
           Tech Insights
         </h1>
         <p class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
@@ -41,13 +47,12 @@ const sortedPosts = blogEntries.sort((a, b) =>
 
     <!-- Blog Posts Grid -->
     <div class="max-w-6xl mx-auto px-4 py-16">
-      {sortedPosts.length === 0 ? (
-        <div class="text-center text-gray-600 dark:text-gray-400">
-          <p>No posts yet. Check back soon!</p>
-        </div>
-      ) : (
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {sortedPosts.map((post) => (
+      <div
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+        id="posts-grid"
+      >
+        {
+          sortedPosts.map((post) => (
             <FloatingCard
               title={post.data.title}
               date={post.data.date}
@@ -55,29 +60,70 @@ const sortedPosts = blogEntries.sort((a, b) =>
               image={post.data.image}
               slug={post.slug}
             />
-          ))}
-        </div>
-      )}
+          ))
+        }
+      </div>
+
+      <!-- Pagination -->
+      {
+        totalPages > 1 && (
+          <nav class="pagination mt-12" aria-label="Pagination">
+            <div class="pagination-container">
+              <a
+                href="#"
+                class="pagination-link prev-page"
+                aria-label="Previous page"
+              >
+                ←
+              </a>
+
+              {pageNumbers.map((pageNum) => (
+                <a
+                  href="#"
+                  class="pagination-link page-number"
+                  data-page={pageNum}
+                  aria-label={`Page ${pageNum}`}
+                >
+                  {pageNum}
+                </a>
+              ))}
+
+              <a
+                href="#"
+                class="pagination-link next-page"
+                aria-label="Next page"
+              >
+                →
+              </a>
+            </div>
+          </nav>
+        )
+      }
     </div>
     <Footer />
   </div>
 
   <script>
-    import * as THREE from 'three';
-    import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+    import * as THREE from "three";
+    import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
     // Scene setup
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    
-    const canvas = document.querySelector('#hero-canvas');
+    const camera = new THREE.PerspectiveCamera(
+      75,
+      window.innerWidth / (window.innerHeight * 0.5),
+      0.1,
+      1000,
+    );
+
+    const canvas = document.querySelector("#hero-canvas");
     const renderer = new THREE.WebGLRenderer({
       canvas,
       alpha: true,
-      antialias: true
+      antialias: true,
     });
-    
-    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    renderer.setSize(window.innerWidth, window.innerHeight * 0.5);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
     // Create floating spheres
@@ -86,7 +132,7 @@ const sortedPosts = blogEntries.sort((a, b) =>
       color: 0x6366f1,
       shininess: 100,
       transparent: true,
-      opacity: 0.9
+      opacity: 0.9,
     });
 
     const spheres = [];
@@ -95,7 +141,7 @@ const sortedPosts = blogEntries.sort((a, b) =>
       sphere.position.set(
         (Math.random() - 0.5) * 20,
         (Math.random() - 0.5) * 20,
-        (Math.random() - 0.5) * 20
+        (Math.random() - 0.5) * 20,
       );
       sphere.scale.setScalar(Math.random() * 0.5 + 0.5);
       sphere.material.color.setHSL(Math.random(), 0.7, 0.7);
@@ -123,11 +169,11 @@ const sortedPosts = blogEntries.sort((a, b) =>
     // Animation
     function animate() {
       requestAnimationFrame(animate);
-      
+
       spheres.forEach((sphere, i) => {
         sphere.rotation.x += 0.001 * (i + 1);
         sphere.rotation.y += 0.002 * (i + 1);
-        
+
         // Add floating animation
         sphere.position.y += Math.sin(Date.now() * 0.001 + i) * 0.01;
       });
@@ -137,10 +183,10 @@ const sortedPosts = blogEntries.sort((a, b) =>
     }
 
     // Handle window resize
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / (window.innerHeight * 0.5);
       camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setSize(window.innerWidth, window.innerHeight * 0.5);
     });
 
     // Start animation
@@ -148,7 +194,7 @@ const sortedPosts = blogEntries.sort((a, b) =>
 
     // Mouse interaction
     const mouse = new THREE.Vector2();
-    window.addEventListener('mousemove', (event) => {
+    window.addEventListener("mousemove", (event) => {
       mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
@@ -164,4 +210,112 @@ const sortedPosts = blogEntries.sort((a, b) =>
   canvas {
     touch-action: none;
   }
+
+  .pagination-container {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
+    background: rgba(30, 41, 59, 0.5);
+    padding: 0.5rem;
+    border-radius: 6px;
+    backdrop-filter: blur(8px);
+  }
+
+  .pagination-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    color: #94a3b8;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+  }
+
+  .pagination-link:hover:not(.disabled) {
+    background: rgba(51, 65, 85, 0.5);
+    color: #e2e8f0;
+  }
+
+  .pagination-link.active {
+    background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
+    color: white;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+  }
+
+  .pagination-link.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .hero-section {
+    height: 30vh;
+  }
 </style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const POSTS_PER_PAGE = 6;
+
+    // Get current page from URL using window
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentPage = Number(urlParams.get("page")) || 1;
+    const totalPages = document.querySelectorAll(".page-number").length;
+
+    // Show only current page posts
+    const start = (currentPage - 1) * POSTS_PER_PAGE;
+    const end = start + POSTS_PER_PAGE;
+    const posts = document.querySelectorAll("#posts-grid > *");
+
+    posts.forEach((post, index) => {
+      if (index >= start && index < end) {
+        post.style.display = "";
+      } else {
+        post.style.display = "none";
+      }
+    });
+
+    // Add click handlers
+    document.querySelectorAll(".page-number").forEach((link) => {
+      link.addEventListener("click", (e) => {
+        e.preventDefault();
+        const pageNum = Number(e.currentTarget.dataset.page);
+        window.location.href = `/?page=${pageNum}`;
+      });
+    });
+
+    document.querySelector(".prev-page")?.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (currentPage > 1) {
+        window.location.href = `/?page=${currentPage - 1}`;
+      }
+    });
+
+    document.querySelector(".next-page")?.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (currentPage < totalPages) {
+        window.location.href = `/?page=${currentPage + 1}`;
+      }
+    });
+
+    // Update active states
+    document.querySelectorAll(".pagination-link").forEach((link) => {
+      if (link.dataset.page === currentPage.toString()) {
+        link.classList.add("active");
+      }
+    });
+
+    // Update prev/next buttons state
+    document
+      .querySelector(".prev-page")
+      ?.classList.toggle("disabled", currentPage <= 1);
+    document
+      .querySelector(".next-page")
+      ?.classList.toggle("disabled", currentPage >= totalPages);
+  });
+</script>
