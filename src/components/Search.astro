@@ -18,6 +18,7 @@
       id="search"
       placeholder="Search posts..."
       class="search-input"
+      autocomplete="off"
     />
   </div>
   <div id="search-results" class="search-results"></div>
@@ -132,7 +133,18 @@
           );
         } else {
           $searchResults
-            .html('<p class="no-results" style="text-align: center; color: #94a3b8; padding: 1rem;">No posts found</p>')
+            .html('<p class="no-results">No posts found</p>')
+            .css({
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              background: 'transparent',
+              padding: '0.5rem',
+              width: 'auto',
+              textAlign: 'left',
+              color: '#94a3b8',
+              fontSize: '0.875rem'
+            })
             .slideDown(200);
         }
       }, 300);
@@ -193,5 +205,18 @@
     outline: none;
     background: rgba(30, 41, 59, 0.7);
     width: 300px;
+  }
+
+  .no-results {
+    color: #94a3b8;
+    font-size: 0.875rem;
+    padding: 0.5rem;
+    margin: 0;
+    white-space: nowrap;
+  }
+
+  .search-results {
+    width: auto;
+    margin: 0;
   }
 </style>
