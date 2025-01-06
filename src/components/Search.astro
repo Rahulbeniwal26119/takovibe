@@ -30,8 +30,21 @@
   $(document).ready(function () {
     const $searchInput = $("#search");
     const $searchResults = $("#search-results");
-
     let timeoutId: number;
+    let cachedPosts: any[] = []; // Cache the posts
+
+    // Fetch posts initially
+    async function fetchPosts() {
+      try {
+        const response = await fetch('https://backend.takovibe.com/api/blogs/');
+        cachedPosts = await response.json();
+      } catch (error) {
+        console.error('Error fetching posts:', error);
+      }
+    }
+
+    // Fetch posts when component loads
+    fetchPosts();
 
     $searchInput.on("input", function () {
       const searchTerm = $(this).val() as string;
@@ -43,34 +56,16 @@
       }
 
       timeoutId = setTimeout(() => {
-        const posts = $("article")
-          .map(function () {
-            return {
-              title: $(this).find("h2").text(),
-              url: $(this).find("a").attr("href"),
-              excerpt: $(this).find("p").first().text(),
-            };
-          })
-          .get();
-
-        const filteredPosts = posts.filter((post) =>
-          post.title.toLowerCase().includes(searchTerm.toLowerCase()),
+        const filteredPosts = cachedPosts.filter((post) =>
+          post.title.toLowerCase().includes(searchTerm.toLowerCase())
         );
 
         if (filteredPosts.length) {
           const resultsHtml = filteredPosts
             .map(
               (post) => `
-              <div class="search-result-item" style="
-                padding: 0.75rem 1rem;
-                background: rgba(30, 41, 59, 0.6);
-                border: 1px solid rgba(148, 163, 184, 0.2);
-                border-radius: 6px;
-                margin-bottom: 8px;
-                transition: all 0.2s ease;
-                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-              ">
-                <a href="${post.url}" style="
+              <div class="search-result-item">
+                <a href="${post.uri}" style="
                   text-decoration: none;
                   display: block;
                 ">
@@ -83,10 +78,10 @@
                   <p style="
                     color: #94a3b8;
                     font-size: 0.875rem;
-                  ">${truncateText(post.excerpt, 100)}</p>
+                  ">${truncateText(post.description, 100)}</p>
                 </a>
               </div>
-          `,
+          `
             )
             .join("");
 
@@ -104,33 +99,10 @@
               backdropFilter: "blur(8px)",
               borderRadius: "8px",
               zIndex: 1000,
-              padding: "0.5rem",
-              display: "flex",
-              flexDirection: "column",
-              gap: "8px",
-              boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)"
+              padding: "0.5rem"
             })
             .slideDown(200);
 
-          // Add hover effect
-          $(".search-result-item").hover(
-            function() {
-              $(this).css({
-                background: "rgba(51, 65, 85, 0.8)",
-                borderColor: "rgba(148, 163, 184, 0.4)",
-                transform: "translateY(-1px)",
-                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)"
-              });
-            },
-            function() {
-              $(this).css({
-                background: "rgba(30, 41, 59, 0.6)",
-                borderColor: "rgba(148, 163, 184, 0.2)",
-                transform: "none",
-                boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)"
-              });
-            }
-          );
         } else {
           $searchResults
             .html('<p class="no-results">No posts found</p>')
@@ -153,7 +125,7 @@
     // Helper functions
     function highlightMatch(text: string, term: string): string {
       const regex = new RegExp(`(${term})`, "gi");
-      return text.replace(regex, '<mark style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%); color: #ffffff; padding: 0 0.2em; border-radius: 2px; font-weight: 500; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);">$1</mark>');
+      return text.replace(regex, '<mark style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%); color: #ffffff; padding: 0 0.2em; border-radius: 2px; font-weight: 500;">$1</mark>');
     }
 
     function truncateText(text: string, length: number): string {
