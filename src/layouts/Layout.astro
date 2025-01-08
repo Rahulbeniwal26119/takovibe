@@ -13,16 +13,18 @@ import PomodoroTimer from '../components/PomodoroTimer.astro';
 
 interface Props {
   title: string;
+  description?: string;
+  noAds?: boolean;
 }
 
-const { title } = Astro.props;
+const { title, description, noAds = false } = Astro.props;
 ---
 
 <!doctype html>
 <html lang="en" class="dark overflow-x-hidden">
   <head>
     <meta charset="UTF-8" />
-    <meta name="description" content="Professional Tech Blog" />
+    <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link
@@ -35,6 +37,15 @@ const { title } = Astro.props;
     />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
+
+    {/* Add AdSense script only if noAds is false */}
+    {!noAds && (
+      <script 
+        async 
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4238071991829602"
+        crossorigin="anonymous"
+      ></script>
+    )}
   </head>
   <body class="text-gray-100 min-h-screen overflow-x-hidden">
     <Header />
