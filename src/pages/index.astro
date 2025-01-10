@@ -35,7 +35,7 @@ const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
       <!-- Content -->
       <div class="relative z-10 text-center">
         <h1
-          class="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600"
+          class="fluid-text"
         >
           TakoVibe
         </h1>
@@ -255,6 +255,28 @@ const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   .hero-section {
     height: 30vh;
+  }
+
+  @keyframes colorAnimation {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .fluid-text {
+    background: linear-gradient(270deg, #ff9a9e, #fad0c4, #a0d8ef, #ff9a9e);
+    background-size: 400% 400%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: colorAnimation 5s ease infinite;
+    font-size: 5rem; /* Adjust size as needed */
+    font-weight: bold; /* Make it bold */
   }
 </style>
 
