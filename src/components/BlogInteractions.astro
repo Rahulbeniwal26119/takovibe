@@ -1,5 +1,7 @@
 ---
-// No props needed for now, but you can add them later if needed
+const currentPath = Astro.url.pathname;
+const slug = currentPath.split('/').filter(Boolean).pop();
+const apiUrl = import.meta.env.PUBLIC_API_URL;
 ---
 
 <div class="relative">
@@ -69,22 +71,111 @@
   </div>
 </div>
 
-<script>
+<script define:vars={{ slug, apiUrl }}>
   const commentToggle = document.getElementById('commentToggle');
   const commentSection = document.getElementById('commentSection');
   const interactionButtons = document.getElementById('interactionButtons');
-  let likeCount = 0;
-  let likeTimeout = null;
-
-  // Like button functionality
   const likeButton = document.getElementById('likeButton');
   const likeCountElement = document.getElementById('likeCount');
+  const commentsList = document.getElementById('commentsList');
+  const commentInput = document.getElementById('commentInput');
+  const postCommentBtn = document.getElementById('postCommentBtn');
+  
+  let likeCount = 0;
+  let likeTimeout = null;
+  let pendingLikes = 0;
+  let likeUpdateTimeout = null;
 
+  // Fetch blog stats
+  async function fetchBlogStats() {
+    try {
+      const response = await fetch(`${apiUrl}/api/blogs/meta/?blog_slug=${slug}`);
+      const data = await response.json();
+      
+      if (data.code === 0) {
+        likeCount = data.data.like_count;
+        likeCountElement.textContent = likeCount.toString();
+      }
+    } catch (error) {
+      console.error('Error fetching blog stats:', error);
+    }
+  }
+
+  // Fetch comments
+  async function fetchComments() {
+    try {
+      const response = await fetch(`${apiUrl}/api/blogs/comments/?blog_slug=${slug}`);
+      const comments = await response.json();
+      
+      if (commentsList) {
+        commentsList.innerHTML = comments.map(comment => `
+          <div class="bg-gray-800/50 rounded-xl p-3 space-y-2">
+            <span class="text-gray-400 text-xs">User • ${new Date(comment.created_at).toLocaleString()}</span>
+            <p class="text-white text-sm">${comment.comment}</p>
+          </div>
+        `).join('');
+      }
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    }
+  }
+
+  // Post comment
+  async function postComment(comment) {
+    try {
+      const response = await fetch(`${apiUrl}/api/blogs/comments/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          comment,
+          blog: slug
+        })
+      });
+
+      if (response.ok) {
+        await fetchComments(); // Refresh comments
+        await fetchBlogStats(); // Refresh stats
+        commentInput.value = ''; // Clear input
+      }
+    } catch (error) {
+      console.error('Error posting comment:', error);
+    }
+  }
+
+  // Add function to update likes
+  async function updateLikes() {
+    if (pendingLikes > 0) {
+      try {
+        const response = await fetch(`${apiUrl}/api/blogs/likes/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            likes: pendingLikes,
+            blog: slug
+          })
+        });
+
+        if (response.ok) {
+          pendingLikes = 0; // Reset pending likes after successful update
+          await fetchBlogStats(); // Refresh the stats
+        }
+      } catch (error) {
+        console.error('Error updating likes:', error);
+      }
+    }
+  }
+
+  // Like button functionality
   if (likeButton && likeCountElement) {
     let isHolding = false;
 
     const incrementLike = () => {
       likeCount++;
+      pendingLikes++;
       likeCountElement.textContent = likeCount.toString();
       
       const heartIcon = likeButton.querySelector('svg');
@@ -92,6 +183,16 @@
         heartIcon.classList.add('scale-125');
         setTimeout(() => heartIcon.classList.remove('scale-125'), 100);
       }
+      
+      // Clear existing timeout
+      if (likeUpdateTimeout) {
+        clearTimeout(likeUpdateTimeout);
+      }
+      
+      // Set new timeout to update likes
+      likeUpdateTimeout = setTimeout(() => {
+        updateLikes();
+      }, 1000);
       
       if (isHolding) {
         likeTimeout = setTimeout(incrementLike, 150);
@@ -118,18 +219,15 @@
     });
   }
 
-  // Comment section toggle
+  // Comment section toggle functionality (keep existing code)
   if (commentToggle && commentSection && interactionButtons) {
     commentToggle.addEventListener('click', () => {
       const isHidden = commentSection.classList.contains('-translate-x-full');
       commentSection.classList.toggle('-translate-x-full');
       
-      // Animate the buttons
       if (isHidden) {
-        // Panel is opening, hide buttons
         interactionButtons.classList.add('opacity-0', '-translate-x-full');
       } else {
-        // Panel is closing, show buttons
         interactionButtons.classList.remove('opacity-0', '-translate-x-full');
       }
     });
@@ -143,40 +241,31 @@
     });
   }
 
-  // Add dummy comments on load
-  document.addEventListener('DOMContentLoaded', () => {
-    const dummyComments = [
-      "This is absolutely brilliant! The way you've explained complex concepts makes it so easy to understand.",
-      "I've been following your blog for a while, and this is one of your best posts yet! 🎉",
-      "Interesting perspective! Have you considered exploring the relationship between these concepts further?",
-      "The examples you provided really helped clarify things. Thanks for sharing! 👍",
-      "This reminds me of a similar concept I learned about recently. Great explanation!",
-      "Your writing style makes technical topics so approachable. Keep it up! 💯",
-      "I had a different view on this, but your arguments are very convincing.",
-      "The diagrams and illustrations really help visualize the concepts. Well done! 🎨",
-      "This is exactly what I needed to read today. Perfect timing!",
-      "Quick question - how does this apply to [specific scenario]? Would love your thoughts!",
-      "The practical applications you've outlined are super helpful. Going to try these out.",
-      "Been struggling with this topic for a while, but your explanation finally made it click! 🌟",
-      "Love how you've broken down such a complex topic into digestible pieces.",
-      "This post deserves more attention! Sharing it with my network. 🚀",
-      "Looking forward to more content like this. Your blog is becoming my go-to resource!"
-    ];
+  // Handle comment submission
+  if (postCommentBtn && commentInput) {
+    postCommentBtn.addEventListener('click', () => {
+      const comment = commentInput.value.trim();
+      if (comment) {
+        postComment(comment);
+      }
+    });
 
-    const commentsList = document.getElementById('commentsList');
-    if (commentsList) {
-      dummyComments.forEach((text, index) => {
-        const commentHtml = `
-          <div class="bg-gray-800/50 rounded-xl p-3 space-y-2">
-            <span class="text-gray-400 text-xs">User ${index + 1} • ${new Date(Date.now() - index * 3600000).toLocaleString()}</span>
-            <p class="text-white text-sm">${text}</p>
-          </div>
-        `;
-        commentsList.insertAdjacentHTML('beforeend', commentHtml);
-      });
-    }
-  });
-</script> 
+    // Allow Enter key to submit
+    commentInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        const comment = commentInput.value.trim();
+        if (comment) {
+          postComment(comment);
+        }
+      }
+    });
+  }
+
+  // Initial load
+  fetchBlogStats();
+  fetchComments();
+</script>
 
 <style>
   #interactionButtons {
