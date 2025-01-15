@@ -3,12 +3,7 @@ import Header from "../components/Header.astro";
 import AnimatedBackground from "../components/AnimatedBackground.astro";
 import CursorEffect from "../components/CursorEffect.astro";
 import FloatingElements from "../components/FloatingElements.astro";
-import ThemeToggle from "../components/ThemeToggle.astro";
 import ReadingProgress from "../components/ReadingProgress.astro";
-import Newsletter from "../components/Newsletter.astro";
-import Footer from "../components/Footer.astro";
-import MusicPlayer from "../components/MusicPlayer.astro";
-import EnhancedNotes from '../components/EnhancedNotes.astro';
 
 interface Props {
   title: string;
@@ -66,9 +61,9 @@ const { title, description, noAds = false } = Astro.props;
   </body>
 </html>
 
-<script is:inline>
+<!-- <script is:inline>
   // Handle initial theme
-  const theme = (() => {
+  let theme = (() => {
     if (typeof localStorage !== "undefined" && localStorage.getItem("theme")) {
       return localStorage.getItem("theme");
     }
@@ -85,7 +80,7 @@ const { title, description, noAds = false } = Astro.props;
   }
 
   window.localStorage.setItem("theme", theme);
-</script>
+</script> -->
 
 <style is:global>
   :root {
