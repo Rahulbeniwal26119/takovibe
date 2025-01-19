@@ -54,8 +54,6 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
     const token = localStorage.getItem('access_token');
     const user = JSON.parse(localStorage.getItem('user') || 'null');
     
-    console.log('Checking auth status:', { token, user }); // Debug log
-    
     if (token && user) {
       showUserInfo(user);
     } else {
@@ -67,7 +65,6 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
     document.querySelector('.g_id_signin').style.display = 'none';
     const userInfo = document.getElementById('userInfo');
     userInfo.classList.remove('hidden');
-    console.log("user_image", user.image);
     document.getElementById('userAvatar').src = user.image;
     document.getElementById('userName').textContent = user.name;
   }
@@ -96,20 +93,16 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
         })
       });
 
-      console.log('Backend response status:', backendResponse.status); // Debug log
-
       if (!backendResponse.ok) {
         throw new Error(`Authentication failed: ${backendResponse.status}`);
       }
 
       var data = await backendResponse.json();
       data = data.data;
-      console.log('Backend response data:', data); // Debug log
 
       // Store auth data
       localStorage.setItem('access_token', data.access || data.token);
       localStorage.setItem('refresh_token', data.refresh || data.refresh);
-      console.log(data.user);
       localStorage.setItem('user', JSON.stringify(data.user || data));
 
       // Update UI
