@@ -3,7 +3,6 @@ import mdx from '@astrojs/mdx';
 import tailwind from '@astrojs/tailwind';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
-import auth from 'auth-astro';
 import node from '@astrojs/node';
 
 export default defineConfig({
@@ -17,7 +16,6 @@ export default defineConfig({
       remarkRehype: {},
     }),
     tailwind(),
-    auth(),
   ],
   markdown: {
     shikiConfig: {
@@ -31,7 +29,7 @@ export default defineConfig({
     }
   },
   base: '/',
-  output: 'hybrid',  // Since you're using nginx
+  output: 'static',  // Since you're using nginx
   adapter: node(
     {
       "mode": "standalone",
