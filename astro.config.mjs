@@ -10,7 +10,7 @@ import pwa from '@vite-pwa/astro';
 import robotsTxt from 'astro-robots-txt';
 
 export default defineConfig({
-  site: 'https://rahulbeniwal.dev',
+  site: 'https://takovibe.com',
   integrations: [
     mdx({
       remarkRehype: {},
