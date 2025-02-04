@@ -35,6 +35,7 @@
     "gsap": "^3.12.5",
     "interactjs": "^1.10.27",
     "jquery": "^3.7.1",
+    "mermaid": "^11.4.1",
     "nanoid": "^5.0.9",
     "rehype-katex": "^7.0.0",
     "remark-math": "^6.0.0",

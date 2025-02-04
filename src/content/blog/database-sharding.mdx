@@ -7,17 +7,19 @@ description: "Implementing effective database sharding"
 image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa"
 ---
 
+import Mermaid from '../../components/Mermaid.astro';
+
 Let's explore database sharding strategies.
 
 ## Sharding Architecture
 
-```mermaid
+<Mermaid code={`
 graph TB
     App --> Router[Shard Router]
     Router --> S1[Shard 1]
     Router --> S2[Shard 2]
     Router --> S3[Shard 3]
-```
+`}/>
 
 ## Shard Key Selection
 

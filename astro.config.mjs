@@ -13,10 +13,13 @@ export default defineConfig({
   site: 'https://takovibe.com',
   integrations: [
     mdx({
-      remarkRehype: {},
-      gfm: true,
       remarkPlugins: [remarkMath],
       rehypePlugins: [rehypeKatex],
+      remarkRehype: {
+        allowDangerousHtml: true
+      },
+      extendMarkdownConfig: true,
+      gfm: true
     }),
     tailwind({
       // Minify CSS in production

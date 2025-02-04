@@ -15,8 +15,46 @@ const { title, date, author, description, image } = Astro.props.frontmatter || A
 ---
 
 <Layout title={title}>
-    <div class="prose dark:prose-invert max-w-none">
-      <slot />
+  <div class="prose dark:prose-invert max-w-none">
+
+    <!-- Content -->
+    <div class="prose prose-lg prose-invert max-w-none">
+      <div class="space-y-6">
+        <slot />
+      </div>
+    </div>
+
+    <!-- Table of Contents (optional) -->
+    <div class="hidden lg:block fixed top-32 right-8 w-64">
+      <nav class="space-y-2 text-sm">
+        <!-- Add TOC items here -->
+      </nav>
     </div>
   </article>
 </Layout>
+
+<style is:global>
+  .prose h2 {
+    @apply text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#FFB4B4] to-[#B4D4FF] mt-12 mb-6;
+  }
+
+  .prose h3 {
+    @apply text-2xl font-semibold text-gray-200 mt-8 mb-4;
+  }
+
+  .prose p {
+    @apply text-gray-300 leading-relaxed mb-6;
+  }
+
+  .prose code {
+    @apply bg-gray-800 px-1.5 py-0.5 rounded text-pink-400;
+  }
+
+  .prose pre {
+    @apply bg-gray-900 rounded-lg p-4 my-6;
+  }
+
+  .prose ul {
+    @apply list-disc list-inside text-gray-300 space-y-2 ml-4;
+  }
+</style>

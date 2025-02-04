@@ -5,6 +5,12 @@ import Footer from '../../components/Footer.astro';
 import CopyButton from '../../components/CopyButton.astro';
 import BlogInteractions from '../../components/BlogInteractions.astro';
 import PomodoroTimer from '../../components/PomodoroTimer.astro';
+import { Image } from 'astro:assets';
+
+// Add this function to sanitize the HTML content
+const removeTabIndex = (content: string) => {
+  return content.replace(/tabindex="-1"/g, '');
+};
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
@@ -23,10 +29,15 @@ const { Content } = await post.render();
     <CopyButton />
   <div class="max-w-5xl mx-auto px-4 py-16">
     {post.data.image && (
-      <img 
+      <Image 
         src={post.data.image} 
         alt={post.data.title}
+        width={800}
+        height={400}
         class="w-full h-[500px] object-cover rounded-xl mb-12 shadow-xl"
+        loading="eager"
+        format="webp"
+        quality={80}
       />
     )}
     
@@ -50,7 +61,9 @@ const { Content } = await post.render();
     </header>
 
     <article class="prose prose-xl dark:prose-invert max-w-none">
-      <Content />
+      <div class="mdx-content">
+        <Content />
+      </div>
     </article>
 
     <footer class="mt-16">
@@ -176,4 +189,34 @@ const { Content } = await post.render();
   .rounded-full:hover {
     transform: scale(1.2);
   }
-</style> 
+
+  /* Add these styles to fix accessibility */
+  .mdx-content [tabindex="-1"] {
+    outline: none !important;
+  }
+
+  .mdx-content pre,
+  .mdx-content code {
+    tab-index: 0;
+  }
+
+  /* Optional: If you want to remove tabindex from specific elements */
+  .mdx-content h1[tabindex],
+  .mdx-content h2[tabindex],
+  .mdx-content h3[tabindex],
+  .mdx-content h4[tabindex],
+  .mdx-content h5[tabindex],
+  .mdx-content h6[tabindex] {
+    tabindex: none;
+  }
+</style>
+
+<script>
+  // Remove tabindex from elements after the page loads
+  document.addEventListener('astro:page-load', () => {
+    const elements = document.querySelectorAll('[tabindex="-1"]');
+    elements.forEach(element => {
+      element.removeAttribute('tabindex');
+    });
+  });
+</script> 

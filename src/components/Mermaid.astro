@@ -1,0 +1,36 @@
+---
+const { code } = Astro.props;
+---
+
+<div class="mermaid">
+  {code}
+</div>
+
+<script>
+  import mermaid from 'mermaid';
+  
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    securityLevel: 'loose',
+    themeVariables: {
+      fontFamily: 'ui-monospace, monospace',
+      fontSize: '16px',
+      lineColor: '#FFB4B4',
+      primaryColor: '#B4D4FF',
+      primaryTextColor: '#fff',
+      primaryBorderColor: '#FFB4B4',
+      secondaryColor: '#B4D4FF',
+      tertiaryColor: '#1B1E2B'
+    }
+  });
+</script>
+
+<style>
+  .mermaid {
+    background: rgba(27, 30, 43, 0.5);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 1rem 0;
+  }
+</style> 
