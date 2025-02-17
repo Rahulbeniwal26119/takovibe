@@ -14,11 +14,11 @@ Let's explore database sharding strategies.
 ## Sharding Architecture
 
 <Mermaid code={`
-graph TB
-    App --> Router[Shard Router]
-    Router --> S1[Shard 1]
-    Router --> S2[Shard 2]
-    Router --> S3[Shard 3]
+flowchart TB
+    App --> Router["Shard Router"]
+    Router --> S1["Shard 1"]
+    Router --> S2["Shard 2"]
+    Router --> S3["Shard 3"]
 `}/>
 
 ## Shard Key Selection
