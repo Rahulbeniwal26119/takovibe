@@ -3,14 +3,26 @@ layout: ../../layouts/BlogPost.astro
 title: "How PYTHONPATH Cost My Friend a Job Offer"
 date: "2025-02-16"
 author: "Rahul Beniwal"
-description: "A small environment variable, a big interview disaster"
+description: "Learn how a simple PYTHONPATH misconfiguration led to a failed technical interview, and discover best practices for Python's import system to avoid the same mistake."
 image: "https://images.unsplash.com/photo-1526379095098-d400fd0bf935"
 readingTime: "3 min read"
+tags: ["python", "programming", "career", "interview", "debugging"]
+canonical: "https://takovibe.com/blog/pythonpath-job-offer"
+type: "article"
 ---
 import Mermaid from '../../components/Mermaid.astro';
 
 <div className="prose-base leading-relaxed mt-0">
 <span className="float-left text-7xl font-serif mr-3 mt-1">T</span>he import mechanism is a fundamental part of Python. Many new developers find it simple at first, but as projects grow, understanding imports becomes more challenging. With several moving parts like where Python looks for modules and packages, it's easy to run into issues. By the end of this article, you'll learn key details that many Python developers overlook.
+</div>
+
+<div className="bg-gray-50/5 dark:bg-gray-800/50 rounded-xl p-8 my-8 border border-gray-200/5 dark:border-gray-700/50 backdrop-blur-sm shadow-xl prose-a:text-purple-400 hover:prose-a:text-purple-300 prose-a:no-underline prose-a:transition-colors">
+## Table of Contents
+- [Understanding PYTHONPATH](#understanding-pythonpath)
+  - [What is PYTHONPATH?](#what-is-pythonpath)
+  - [Solutions](#solutions)
+  - [Alternative Code Solution](#alternative-code-solution)
+- [Conclusion](#conclusion)
 </div>
 
 # Understanding PYTHONPATH

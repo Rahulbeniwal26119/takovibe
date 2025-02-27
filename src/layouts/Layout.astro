@@ -8,19 +8,67 @@ import ReadingProgress from "../components/ReadingProgress.astro";
 interface Props {
   title: string;
   description?: string;
+  image?: string;
+  type?: 'website' | 'article';
+  tags?: string[];
+  author?: string;
   noAds?: boolean;
+  published_date?: string;
 }
 
-const { title, description, noAds = false } = Astro.props;
+const {
+  title, 
+  description,
+  image = "https://takovibe.com/images/logo.svg",
+  type,
+  noAds = false,
+  author = "Rahul Beniwal",
+  tags = [],
+  published_date = new Date().toISOString()
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
 
 <!doctype html>
 <html lang="en" class="dark overflow-x-hidden">
   <head>
     <meta charset="UTF-8" />
-    <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} />
+    <meta name="keywords" content={tags.join(', ')} />
+    <meta name="author" content={author} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={canonicalURL} />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content={type} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={image} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:site_name" content="TakoVibe" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={image} />
+    <!-- <meta name="twitter:site" content="@takovibe" /> -->
+    
+    <!-- Article specific meta tags (for blog posts) -->
+    {type === 'article' && (
+      <>
+        { published_date && (
+          <meta property="article:published_time" content={published_date} />
+        )}
+        <meta property="article:author" content={author} />
+        {tags.map(tag => (
+          <meta property="article:tag" content={tag} />
+        ))}
+      </>
+    )}
+    
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
@@ -31,6 +79,11 @@ const { title, description, noAds = false } = Astro.props;
     />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
+    
+    <slot name="head" />
+
+    <!-- Schema.org markup for Google -->
+
 
     {/* Add AdSense script only if noAds is false */}
     {!noAds && (

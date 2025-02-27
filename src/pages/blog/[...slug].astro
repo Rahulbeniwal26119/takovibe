@@ -6,6 +6,8 @@ import CopyButton from '../../components/CopyButton.astro';
 import BlogInteractions from '../../components/BlogInteractions.astro';
 import PomodoroTimer from '../../components/PomodoroTimer.astro';
 import { Image } from 'astro:assets';
+import SocialShare from '../../components/SocialShare.astro';
+import RelatedPosts from '../../components/RelatedPosts.astro';
 
 // Add this function to sanitize the HTML content
 const removeTabIndex = (content: string) => {
@@ -24,7 +26,7 @@ const { post } = Astro.props;
 const { Content } = await post.render();
 ---
 
-<Layout title={post.data.title}>
+<Layout title={post.data.title} description={post.data.description} type="article" author={post.data.author} tags={post.data.tags} published_date={post.data.date}>
   <!-- <PomodoroTimer /> -->
     <CopyButton />
   <div class="max-w-6xl mx-auto px-4 py-16">
@@ -72,6 +74,10 @@ const { Content } = await post.render();
       </div>
     </article>
 
+    <div class="mt-12 border-t border-gray-700 pt-8">
+      <RelatedPosts currentSlug={post.slug} tags={post.data.tags || []} />
+    </div>
+
     <footer class="mt-16">
       <div class="text-center text-gray-600 dark:text-gray-400 mb-8">
         <p class="text-sm">Thanks for reading!</p>
@@ -87,7 +93,7 @@ const { Content } = await post.render();
         <div class="h-px bg-gradient-to-r from-transparent via-purple-500 to-transparent w-32"></div>
       </div>
       <div>
-        <BlogInteractions />
+        <BlogInteractions post={post} />
       </div>
       <div class="text-center text-gray-600 dark:text-gray-400 mt-12">
         <Footer />
