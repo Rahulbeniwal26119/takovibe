@@ -23,7 +23,13 @@ const totalPages = Math.ceil(sortedPosts.length / POSTS_PER_PAGE);
 const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 ---
 
-<Layout title="TakoVibe" description="TakoVibe - Exploring software engineering, system design, and technology innovations" type="website" author="Rahul Beniwal" tags={["software engineering", "system design", "technology innovations"]}>
+<Layout
+  title="TakoVibe"
+  description="TakoVibe - Exploring software engineering, system design, and technology innovations"
+  type="website"
+  author="Rahul Beniwal"
+  tags={["software engineering", "system design", "technology innovations"]}
+>
   <div class="relative min-h-screen">
     <!-- Hero Section -->
     <div
@@ -34,11 +40,7 @@ const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
       <!-- Content -->
       <div class="relative z-10 text-center">
-        <h1
-          class="fluid-text"
-        >
-          TakoVibe
-        </h1>
+        <h1 class="fluid-text">TakoVibe</h1>
         <p class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
           Exploring the ever-changing landscape of software and creativity.
         </p>
