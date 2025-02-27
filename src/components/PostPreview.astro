@@ -11,9 +11,9 @@ interface Props {
     };
   };
 }
-
+console.log(Astro.props);
 const { post } = Astro.props;
-const { title, date, author, description, image } = post.frontmatter;
+const { title, date, author, description, image } = post.data;
 ---
 
 <article class="group relative bg-gray-800/30 rounded-xl overflow-hidden hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] backdrop-blur-sm border border-gray-700/50 animate-fade-in">

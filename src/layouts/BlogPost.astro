@@ -10,10 +10,11 @@ interface Props {
     image: string;
     tags?: string[];
     canonical?: string;
+    type?: string;
   };
 }
 
-const { title, date, author, description, image, tags, canonical, type } = Astro.props.frontmatter || Astro.props;
+const { title, date, author, description, image, tags, canonical, type } = Astro.props.frontmatter;
 
 const isoDate = new Date(date).toISOString();
 
