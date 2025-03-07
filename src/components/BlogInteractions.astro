@@ -67,15 +67,31 @@ const { post } = Astro.props;
         ></textarea>
         <button 
           id="postCommentBtn"
-          class="w-full px-4 py-1.5 bg-gradient-to-r from-gray-900 to-gray-800 text-white text-sm font-medium rounded-full hover:from-gray-800 hover:to-gray-700 transition-all duration-200"
+          class="px-4 py-1.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white text-sm font-medium rounded-full hover:from-purple-700 hover:to-purple-800 transition-all duration-200 ml-auto flex items-center gap-1"
         >
-          Post Comment
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+          </svg>
+          Post
         </button>
       </div>
 
       <!-- Comments list -->
       <div id="commentsList" class="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
         <!-- Comments will be dynamically inserted here -->
+      </div>
+      
+      <!-- Load More Button -->
+      <div id="loadMoreContainer" class="mt-3 text-center hidden">
+        <button 
+          id="loadMoreBtn"
+          class="px-4 py-1.5 bg-gray-800 text-white text-sm font-medium rounded-full hover:bg-gray-700 transition-all duration-200 inline-flex items-center gap-1"
+        >
+          <span>Show More</span>
+          <svg class="w-3.5 h-3.5 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+          </svg>
+        </button>
       </div>
     </div>
   </div>
@@ -90,11 +106,15 @@ const { post } = Astro.props;
   const commentsList = document.getElementById('commentsList');
   const commentInput = document.getElementById('commentInput');
   const postCommentBtn = document.getElementById('postCommentBtn');
+  const loadMoreBtn = document.getElementById('loadMoreBtn');
+  const loadMoreContainer = document.getElementById('loadMoreContainer');
   
   let likeCount = 0;
   let likeTimeout = null;
   let pendingLikes = 0;
   let likeUpdateTimeout = null;
+  let nextCommentsUrl = null;
+  let isLoadingComments = false;
 
   // Fetch blog stats
   async function fetchBlogStats() {
@@ -112,21 +132,46 @@ const { post } = Astro.props;
   }
 
   // Fetch comments
-  async function fetchComments() {
+  async function fetchComments(url = null) {
+    if (isLoadingComments) return;
+    
+    isLoadingComments = true;
     try {
-      const response = await fetch(`${apiUrl}/api/blogs/comments/?blog_slug=${slug}`);
-      const comments = await response.json();
+      const fetchUrl = url || `${apiUrl}/api/blogs/comments/?blog_slug=${slug}`;
+      const response = await fetch(fetchUrl);
+      const data = await response.json();
       
-      if (commentsList) {
-        commentsList.innerHTML = comments.map(comment => `
+      // Store next page URL if it exists
+      nextCommentsUrl = data.next;
+      
+      // Show or hide load more button based on whether there's a next page
+      if (nextCommentsUrl) {
+        loadMoreContainer.classList.remove('hidden');
+      } else {
+        loadMoreContainer.classList.add('hidden');
+      }
+      
+      if (commentsList && data.results) {
+        // If loading more comments, append them; otherwise, replace the content
+        const commentsHtml = data.results.map(comment => `
           <div class="bg-gray-800/50 rounded-xl p-3 space-y-2">
             <span class="text-gray-400 text-xs">User • ${new Date(comment.created_at).toLocaleString()}</span>
             <p class="text-white text-sm">${comment.comment}</p>
           </div>
         `).join('');
+        
+        if (url) {
+          // Append comments if loading more
+          commentsList.innerHTML += commentsHtml;
+        } else {
+          // Replace comments if initial load
+          commentsList.innerHTML = commentsHtml;
+        }
       }
     } catch (error) {
       console.error('Error fetching comments:', error);
+    } finally {
+      isLoadingComments = false;
     }
   }
 
@@ -229,7 +274,7 @@ const { post } = Astro.props;
     });
   }
 
-  // Comment section toggle functionality (keep existing code)
+  // Comment section toggle functionality
   if (commentToggle && commentSection && interactionButtons) {
     commentToggle.addEventListener('click', () => {
       const isHidden = commentSection.classList.contains('-translate-x-full');
@@ -268,6 +313,15 @@ const { post } = Astro.props;
         if (comment) {
           postComment(comment);
         }
+      }
+    });
+  }
+  
+  // Load more comments
+  if (loadMoreBtn) {
+    loadMoreBtn.addEventListener('click', () => {
+      if (nextCommentsUrl && !isLoadingComments) {
+        fetchComments(nextCommentsUrl);
       }
     });
   }

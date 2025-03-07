@@ -17,28 +17,10 @@ interface Props {
 const { title, date, author, description, image, tags, canonical, type } = Astro.props.frontmatter;
 
 const isoDate = new Date(date).toISOString();
-
-const articleSchema = {
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": title,
-  "image": [image],
-  "datePublished": isoDate,
-  "dateModified": isoDate,
-  "author": {
-    "@type": "Person",
-    "name": author
-  },
-  "description": description,
-  "keywords": tags?.join(", ") || ""
-};
-
 ---
 <Layout title={title} type={type} description={description} image={image} tags={tags} type={type}>
 
   {canonical && <link rel="canonical" href={canonical} slot="head" />}
-
-  <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} slot="head" />
 
   <article>
     <div class="prose dark:prose-invert max-w-none">
