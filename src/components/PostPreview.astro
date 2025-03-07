@@ -2,7 +2,8 @@
 interface Props {
   post: {
     url: string;
-    frontmatter: {
+    slug: string;
+    data: {
       title: string;
       date: string;
       author: string;
@@ -11,44 +12,45 @@ interface Props {
     };
   };
 }
-console.log(Astro.props);
+
 const { post } = Astro.props;
 const { title, date, author, description, image } = post.data;
+const postUrl = `/blog/${post.slug}`;
 ---
 
-<article class="group relative bg-gray-800/30 rounded-xl overflow-hidden hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] backdrop-blur-sm border border-gray-700/50 animate-fade-in">
-  <div class="absolute inset-0 bg-gradient-to-r from-purple-800/10 to-pink-800/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-  {image && (
-    <div class="relative h-64 overflow-hidden">
-      <img 
-        src={image} 
-        alt={title} 
-        class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
-      />
-      <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent"></div>
-    </div>
-  )}
-  <div class="p-6 relative z-10">
-    <h2 class="text-2xl font-bold mb-2 bg-clip-text hover:text-transparent hover:bg-gradient-to-r hover:from-purple-400 hover:to-pink-400 transition-all duration-300">
-      <a href={post.url} class="block relative overflow-hidden">
+<a href={postUrl} class="block group cursor-pointer no-underline">
+  <article class="relative bg-gray-800/30 rounded-xl overflow-hidden hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] backdrop-blur-sm border border-gray-700/50 animate-fade-in pointer-events-auto">
+    <div class="absolute inset-0 bg-gradient-to-r from-purple-800/10 to-pink-800/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+    {image && (
+      <div class="relative h-64 overflow-hidden">
+        <img 
+          src={image} 
+          alt={title} 
+          class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+        />
+        <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent"></div>
+      </div>
+    )}
+    <div class="p-6 relative z-10">
+      <h2 class="text-2xl font-bold mb-2 bg-clip-text hover:text-transparent hover:bg-gradient-to-r hover:from-purple-400 hover:to-pink-400 transition-all duration-300">
         <span class="relative z-10">{title}</span>
         <span class="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-purple-400 to-pink-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
-      </a>
-    </h2>
-    <div class="text-sm text-gray-400 mb-4 flex items-center gap-4">
-      <time class="animate-slide-in">{new Date(date).toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      })}</time>
-      <span class="w-1 h-1 rounded-full bg-gray-500"></span>
-      <span class="animate-slide-in" style="animation-delay: 100ms">{author}</span>
+      </h2>
+      <div class="text-sm text-gray-400 mb-4 flex items-center gap-4">
+        <time class="animate-slide-in">{new Date(date).toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        })}</time>
+        <span class="w-1 h-1 rounded-full bg-gray-500"></span>
+        <span class="animate-slide-in" style="animation-delay: 100ms">{author}</span>
+      </div>
+      {description && (
+        <p class="text-gray-300 line-clamp-3 animate-slide-in" style="animation-delay: 200ms">{description}</p>
+      )}
     </div>
-    {description && (
-      <p class="text-gray-300 line-clamp-3 animate-slide-in" style="animation-delay: 200ms">{description}</p>
-    )}
-  </div>
-</article>
+  </article>
+</a>
 
 <style>
   @keyframes fade-in {
@@ -70,3 +72,18 @@ const { title, date, author, description, image } = post.data;
     animation: slide-in 0.6s ease-out forwards;
   }
 </style>
+
+<script>
+  // Add event listeners to ensure clicks work
+  document.addEventListener('DOMContentLoaded', () => {
+    const articleLinks = document.querySelectorAll('.block.group');
+    articleLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        const href = link.getAttribute('href');
+        if (href) {
+          window.location.href = href;
+        }
+      });
+    });
+  });
+</script>

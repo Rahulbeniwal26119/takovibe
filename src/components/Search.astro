@@ -51,20 +51,33 @@ const hostUrl = import.meta.env.PUBLIC_API_URL;
           try {
             const response = await fetch(`${hostUrl}/api/blogs/blogs/`);
             const data = await response.json();
-            const posts = Array.isArray(data) ? data : data.data || [];
+            const posts = Array.isArray(data) ? data : data.results || [];
+
+            console.log(posts);
 
             const filteredPosts = posts.filter((post) =>
               post.title.toLowerCase().includes(searchTerm.toLowerCase())
             );
 
             if (filteredPosts.length) {
+              // if url don't starts with / then append / else just use the url
               const resultsHtml = filteredPosts
                 .map(
-                  (post) => `
-                  <div class="search-result-item">
-                    <a href="${post.uri}" style="
-                      text-decoration: none;
-                      display: block;
+                  (post) => {
+                    const url = post.uri.startsWith('/') ? post.uri : `/${post.uri}`;
+                  return `
+                  <a href="${url}" style="
+                    text-decoration: none;
+                    display: block;
+                  ">
+                    <div class="search-result-item" style="
+                      padding: 0.75rem;
+                      border-radius: 6px;
+                      transition: background-color 0.2s ease;
+                      margin-bottom: 0.5rem;
+                      background: rgba(30, 41, 59, 0.4);
+                      border: 1px solid rgba(148, 163, 184, 0.1);
+                      cursor: pointer;
                     ">
                       <h3 style="
                         color: #e2e8f0;
@@ -75,10 +88,13 @@ const hostUrl = import.meta.env.PUBLIC_API_URL;
                       <p style="
                         color: #94a3b8;
                         font-size: 0.875rem;
-                      ">${truncateText(post.description, 100)}</p>
-                    </a>
-                  </div>
+                        margin: 0;
+                        line-height: 1.4;
+                      ">${truncateText(post.description || '', 100)}</p>
+                    </div>
+                  </a>
               `
+              }
                 )
                 .join("");
 
