@@ -5,7 +5,7 @@ export default {
   providers: [
     Google({
       clientId: import.meta.env.PUBLIC_GOOGLE_CLIENT_ID,
-      clientSecret: import.meta.env.GOOGLE_SECRET_KEY,
+      // clientSecret: "",
     }),
   ],
   callbacks: {
