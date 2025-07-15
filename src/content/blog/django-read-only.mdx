@@ -1,0 +1,137 @@
+---
+layout: ../../layouts/BlogPost.astro
+title: "This Django Package Saved My Production Database — Meet django-read-only"
+date: "2025-07-15"
+author: "Rahul Beniwal"
+description: "Discover how the django-read-only package prevents accidental database writes in production. A must-have tool for every Django developer."
+image: "https://images.unsplash.com/photo-1491309055486-24ae511c15c7"
+readingTime: "4 min read"
+tags: ["django", "python", "backend", "database", "debugging", "tips"]
+canonical: "https://takovibe.com/blog/django-read-only"
+type: "article"
+---
+
+Hey Django devs!  
+If you've ever feared **accidentally writing to your production database** – you're not alone. Today, I’m sharing a **game-changing Django package** I recently discovered.
+
+It’s like a seatbelt for your database: **lightweight**, **powerful**, and a true **life-saver in production** environments. Once you start using it, you’ll wonder how you ever lived without it.
+
+---
+
+## 🔗 Source Code on GitHub
+
+Explore the implementation here:  
+👉 [GitHub – Rahulbeniwal26119/intermediate-django](https://github.com/Rahulbeniwal26119/intermediate-django/commit/46b6f1171f57b1785781219fe0d2164480c331f7)
+
+---
+
+## ⚙️ Installation
+
+To set up your Django project, follow this detailed guide:  
+📖 [The Ultimate Guide to Django Setup Using Docker and Compose](https://levelup.gitconnected.com/the-ultimate-guide-to-django-setup-using-docker-and-compose-4e58b37d04d0)
+
+Install the package using `pip` or `uv`:
+
+```bash
+pip install django-read-only
+```
+
+---
+
+## 🛠️ Usage
+
+Update your `settings.py`:
+
+```python
+INSTALLED_APPS = [
+    ...
+    "django_read_only",
+    ...
+]
+
+DJANGO_READ_ONLY = True 
+```
+
+Now your Django server will run in **read-only mode**. Let’s test it:
+
+```python
+>>> first_user = User.objects.first()
+>>> first_user.first_name = 'Rahul'
+>>> first_user.save()
+
+# DjangoReadOnlyError: Write queries are currently disabled. 
+# Enable with django_read_only.enable_writes().
+```
+
+---
+
+## ⚠️ But Wait — There's a Catch!
+
+Enabling read-only mode globally will lock your entire app – not ideal for production! Users won’t be able to perform any write actions on your website.
+
+A better alternative: **limit read-only mode to just the Django shell.**
+
+---
+
+## ✅ Shell-Only Read-Only Mode
+
+1. **Remove or set** `DJANGO_READ_ONLY = False` in `settings.py`.
+2. Start the shell in read-only mode:
+
+```bash
+DJANGO_READ_ONLY=1 python manage.py shell
+```
+
+Now test it again:
+
+```python
+>>> from django.contrib.auth.models import User
+>>> user = User.objects.first()
+>>> user.first_name = "Rahul"
+>>> user.save()
+
+# DjangoReadOnlyError: Write queries are currently disabled.
+```
+
+---
+
+## 🧠 Dynamic Shell Control with IPython or ptpython
+
+Already inside a shell but want to **toggle read-only** without restarting?
+
+```python
+>>> from django.contrib.auth.models import User
+>>> user = User.objects.first()
+>>> user.save()  # This works for now
+
+>>> %load_ext django_read_only
+>>> %read_only on  # Turns on read-only mode
+>>> user.save()
+
+# DjangoReadOnlyError: Write queries are currently disabled.
+```
+
+💡 This is a super useful technique when debugging live issues on production.
+
+---
+
+## ✅ Conclusion
+
+I found `django-read-only` incredibly helpful, especially when you need to **debug production safely** without risking accidental writes or deletes.
+
+This little tool can prevent major headaches – definitely a **must-have for serious Django developers**.
+
+---
+
+## 🙌 Found it helpful?
+
+Drop a 👏 and follow **[Rahul Beniwal](https://rahulbeniwal26119.medium.com/)** for more deep-dive Django and Python content.
+
+---
+
+## 📚 More Django & Python Resources:
+
+- 🚀 [Advance Django Tips – Excel Your Django](ttps://rahulbeniwal26119.medium.com/list/b1f56d2627b0)
+- 🔌 [Django Integrations](https://rahulbeniwal26119.medium.com/list/c28d394281c9)
+- 🐍 [Python Bootcamp – Deep Explanations](https://rahulbeniwal26119.medium.com/list/695854827b94)
+- 🧙‍♂️ [Decoding Python Magic](https://rahulbeniwal26119.medium.com/list/deb587aaf0ae)
