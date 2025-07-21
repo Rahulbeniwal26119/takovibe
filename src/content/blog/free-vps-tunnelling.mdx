@@ -1,0 +1,248 @@
+---
+layout: ../../layouts/BlogPost.astro
+title: "No More VPS Bills: I Host My Site for Free Using an Old PC"
+date: "2025-07-21"
+author: "Rahul Beniwal"
+description: "Discover how I turned my spare PC into a 16 GB VPS using Cloudflare Tunnel and now host my blog for free — with no static IP or port forwarding."
+image: "https://images.unsplash.com/photo-1683322499436-f4383dd59f5a"
+readingTime: "6 min read"
+tags: ["cloudflare", "vps", "astro", "self-hosting", "linux", "blog"]
+canonical: "https://takovibe.com/blog/self-host-blog-from-old-pc"
+type: "article"
+---
+
+Hi, if you’re a **developer or blogger** trying to keep your costs down while running personal projects, you know how frustrating it is to **pay for VPS hosting that’s barely used**. 
+
+I found myself in the same boat — paying nearly **$20/month** for a server that was mostly idle. That’s when I realized I had a powerful but **underused Linux PC** lying around. I decided to turn it into my personal server. 
+
+And with the help of **Cloudflare Tunnel**, I’m now hosting my blog for free — no public IP, no port forwarding, no headaches.
+
+In this article, I’ll walk you through how I replaced my paid server setup with a **free, secure, and reliable solution** using **Cloudflare Tunnel** and my spare machine.
+
+
+---
+
+## 💥 Why I Ditched My VPS
+
+A few weeks ago, I launched a personal blog built with **Astro and React**. 
+
+To host it, I initially purchased a **VPS from OVHcloud**, which offered decent specs at a low price.
+
+However, I soon upgraded the server because the initial plan wasn’t sufficient, which bumped my monthly bill to **~$20**. For a low-traffic blog, it felt like overkill — especially when my server usage showed barely any load.
+
+That’s when it hit me:  
+💡 **Why am I paying for an idle VPS when I have a perfectly capable Linux PC collecting dust?**
+
+---
+
+## 🖥️ My DIY Server Setup
+
+I repurposed an old Linux PC with the following specs:
+
+- **CPU:** Intel i5 (5th Gen), 8 threads  
+- **RAM:** 16 GB  
+- **OS:** Ubuntu 22.04 (any modern Linux distro works)
+
+This machine now runs **24/7 in my home** and serves my blog, **completely free of hosting charges**. 
+
+No need for a static IP or complex port forwarding either. The magic sauce? **Cloudflare Tunnel**.
+
+---
+
+## ⚙️ Step 0: Planning
+
+Before jumping into commands, here’s the plan:
+
+- Use **Cloudflare Tunnel** to expose your local server to the internet securely.  
+- Install `cloudflared`, Cloudflare’s lightweight daemon, on your Linux machine.  
+- Create a tunnel and bind it to your domain or subdomain.  
+- Point your domain’s DNS to the tunnel.  
+- Ensure your machine stays on and doesn’t go to sleep.
+
+---
+
+## 🌐 Create a Cloudflare Account
+
+If you don’t already have one, sign up at Cloudflare. It’s completely free:  
+👉 https://dash.cloudflare.com/sign-up
+
+<img src="https://ik.imagekit.io/bhu1voux5/Screenshot_20250721_085320.png?updatedAt=1753075789717" alt="Cloudflare Sign Up" />
+
+---
+
+## 🧾 Add Your Domain to Cloudflare
+
+👆 Click on **"Add a domain"** and then enter your domain. 
+<img src="https://ik.imagekit.io/bhu1voux5/Screenshot_20250721_085913.png?updatedAt=1753075789415" alt="Add Domain to Cloudflare" />
+
+Continue and select the **Free Plan**.
+<img src="https://ik.imagekit.io/bhu1voux5/1_sJZoTmlTUtzPzFES3vvZqQ.webp?updatedAt=1753078145580" alt="Select Free Plan" />
+
+Make sure you're either using a domain purchased from Cloudflare or your domain’s **nameservers are pointing to Cloudflare**.
+
+In my case, I purchased it from WordPress. So I updated nameservers in WordPress like this:
+<img src="https://ik.imagekit.io/bhu1voux5/Screenshot_20250721_090609.png?updatedAt=1753075789415" alt="Update Nameservers in WordPress" />
+
+```
+DAWN.NS.CLOUDFLARE.COM
+REMY.NS.CLOUDFLARE.COM
+```
+
+Update these here. Great — now things will take some time to update the record, so better if you go for a **walk or a football game**.
+
+Once you’ve done all the steps, you should see confirmation like this:  
+<img src="https://ik.imagekit.io/bhu1voux5/1_je1AUASSVqZGnsX2TkiMlw.webp?updatedAt=1753078145580" alt="Domain Added Successfully" />
+**Great, let’s move ahead.**
+
+---
+
+## 📦 Install `cloudflared` on Your Server
+
+```bash
+# Download the latest cloudflared binary
+wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+
+# Install the package
+sudo dpkg -i cloudflared-linux-amd64.deb
+
+cloudflared --version
+# cloudflared version 2025.7.0 (built 2025-07-03-1705 UTC)
+```
+
+---
+
+## 🔐 Authenticate and Create a Tunnel
+
+```bash
+cloudflared tunnel login
+```
+
+This opens a browser to authenticate with your Cloudflare account.
+
+Then create a named tunnel:
+
+```bash
+cloudflared tunnel create takovibe
+cloudflared tunnel info takovibe
+```
+
+Example output:
+
+```
+NAME:     takovibe
+ID:       nn081d49-aaaa-bbbb-b3e2-494252595e17
+CREATED:  2025-07-19 08:12:58.724499 +0000 UTC
+
+CONNECTOR ID                         CREATED              ARCHITECTURE VERSION  ORIGIN IP     EDGE             
+a0211111-bbbb-aaaa-llll-1545baf57d0d 2025-07-21T03:07:52Z linux_amd64  2025.7.0 157.48.80.148 2xdel03, 2xdel06
+```
+
+It will generate a credentials file at:  
+`~/.cloudflared/<TUNNEL_ID>.json`
+
+---
+
+## ⚙️ Configure Your Tunnel
+
+Create or update the file at `~/.cloudflared/config.yml`:
+
+```yaml
+tunnel: nn081d49-aaaa-bbbb-b3e2-494252595e17
+credentials-file: /home/default/.cloudflared/nn081d49-aaaa-bbbb-b3e2-494252595e17.json
+
+ingress:
+  - hostname: takovibe.com
+    service: http://localhost:10000
+  - hostname: www.takovibe.com
+    service: http://localhost:10000
+```
+
+Make sure you put the **right port** where your server is running. 
+
+I’m using **nginx** to serve content.
+
+If you don’t have any server, you can launch one with:
+
+```bash
+python3 -m http.server 3000
+# Serving HTTP on 0.0.0.0 port 3000 (http://0.0.0.0:3000/)
+```
+
+---
+
+## 🌍 Update the DNS
+
+```bash
+cloudflared tunnel route dns nn081d49-aaaa-bbbb-b3e2-494252595e17 takovibe.com
+```
+
+---
+
+## 🚀 Run the Tunnel
+
+```bash
+cloudflared tunnel run nn081d49-aaaa-bbbb-b3e2-494252595e17
+```
+
+Or run it in the background using systemd:
+
+```bash
+cat /etc/systemd/system/takovibe.service
+```
+
+```
+[Unit]
+Description=Cloudflare Tunnel for Takovibe
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/cloudflared tunnel run nn081d49-aaaa-bbbb-b3e2-494252595e17
+Restart=always
+User=default
+
+[Install]
+WantedBy=multi-user.target
+```
+
+---
+
+## 💤 Prevent Your PC from Sleeping
+
+I use KDE. Here’s how I prevented suspend:
+
+```bash
+cat /etc/NetworkManager/conf.d/disable-suspend.conf
+```
+
+```ini
+[connection]
+wifi.powersave = 2
+```
+
+<img src="https://ik.imagekit.io/bhu1voux5/Screenshot_20250721_093247.png" alt="Prevent Suspend in KDE" />
+
+<img src="https://ik.imagekit.io/bhu1voux5/Screenshot_20250721_093338.png" alt="Prevent Suspend in KDE" />
+
+**Great! Now your laptop won’t sleep.**
+
+---
+
+## 🔗 You can visit other sites:
+
+- **Medium →** <a target="_blank" href="https://medium.com/@rahulbeniwal26119">https://medium.com/@rahulbeniwal26119</a>
+- **Most Clean Code Diff tool for developers →** <a target="_blank" href="https://codediff.takovibe.com/">https://codediff.takovibe.com/</a>
+
+---
+
+## ✅ Summary
+
+If you’re just getting started or managing a low-traffic project, there’s no reason to overpay for hosting. 
+
+Repurposing an old PC and pairing it with **Cloudflare Tunnel** is one of the **simplest and most cost-effective ways** to host your site.
+
+**Let your hardware work for you** — and enjoy the peace of mind knowing you’re saving money every month.
+
+**Thank You** for reading till the end. Hope you found it helpful. 
+
+I’d love to hear your experiences about it.
