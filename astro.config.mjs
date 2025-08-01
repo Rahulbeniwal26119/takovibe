@@ -10,6 +10,13 @@ import pwa from '@vite-pwa/astro';
 export default defineConfig({
   site: 'https://takovibe.com',
   integrations: [
+    sitemap({
+      filter: (page) => !page.includes('/auth/') && !page.includes('/admin/'),
+      customPages: ['https://takovibe.com/blog'],
+      changefreq: 'weekly',
+      priority: 0.7,
+      lastmod: new Date()
+    }),
     mdx({
       remarkPlugins: [remarkMath],
       rehypePlugins: [rehypeKatex],

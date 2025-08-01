@@ -18,6 +18,9 @@ FROM nginx:1.25-alpine AS production
 ARG ENV=local
 
 # Copy nginx config and built assets
+COPY --from=builder /app/dist /usr/share/nginx/html/
+COPY --from=builder /app/public/robots.txt /usr/share/nginx/html/
+COPY nginx.${ENV}.conf /etc/nginx/nginx.conf
 COPY nginx.${ENV}.conf /etc/nginx/nginx.conf
 COPY --from=builder /app/dist /usr/share/nginx/html
 
