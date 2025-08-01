@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "@astrojs/mdx": "^2.3.1",
-    "@astrojs/node": "^7.0.4",
     "@astrojs/sitemap": "^3.2.1",
     "@astrojs/tailwind": "^5.1.4",
     "@auth/core": "^0.37.4",
@@ -30,7 +29,6 @@
     "@vite-pwa/astro": "^0.5.0",
     "astro": "^4.16.18",
     "astro-compress": "^2.3.6",
-    "astro-robots-txt": "^1.0.0",
     "auth-astro": "^4.2.0",
     "gsap": "^3.12.5",
     "interactjs": "^1.10.27",

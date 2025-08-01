@@ -3,11 +3,9 @@ import mdx from '@astrojs/mdx';
 import tailwind from '@astrojs/tailwind';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
-import node from '@astrojs/node';
 import sitemap from '@astrojs/sitemap';
 import compress from 'astro-compress';
 import pwa from '@vite-pwa/astro';
-import robotsTxt from 'astro-robots-txt';
 
 export default defineConfig({
   site: 'https://takovibe.com',
@@ -30,7 +28,38 @@ export default defineConfig({
         safelist: ['katex']
       }
     }),
-    sitemap(),
+    sitemap({
+      filter: (page) => {
+        // Exclude auth pages, fixed files, but allow most other pages
+        return !page.includes('/Auth') && 
+               !page.includes('/auth') &&
+               !page.includes('fixed') && 
+               !page.includes('/_');
+      },
+      changefreq: 'weekly',
+      priority: 0.7,
+      lastmod: new Date(),
+      serialize(item) {
+        // Customize priorities and changefreq based on page type
+        if (item.url === 'https://takovibe.com/') {
+          item.priority = 1.0;
+          item.changefreq = 'daily';
+        } else if (item.url.includes('/blog/')) {
+          item.priority = 0.8;
+          item.changefreq = 'monthly';
+        } else if (item.url.includes('/blog') && !item.url.includes('/blog/')) {
+          item.priority = 0.9;
+          item.changefreq = 'daily';
+        } else if (item.url.includes('/portfolio')) {
+          item.priority = 0.6;
+          item.changefreq = 'monthly';
+        } else if (item.url.includes('/about')) {
+          item.priority = 0.5;
+          item.changefreq = 'monthly';
+        }
+        return item;
+      }
+    }),
     compress({
       CSS: true,
       HTML: {
@@ -106,7 +135,6 @@ export default defineConfig({
         ]
       },
     }),
-    robotsTxt(),
   ],
   markdown: {
     shikiConfig: {
@@ -143,8 +171,5 @@ export default defineConfig({
     }
   },
   base: '/',
-  output: 'static',
-  adapter: node({
-    mode: "standalone",
-  })
+  output: 'static'
 });
