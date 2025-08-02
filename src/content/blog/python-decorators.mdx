@@ -1,0 +1,220 @@
+---
+layout: ../../layouts/BlogPost.astro
+title: "Decorators in Python: Enhancing Functions with Elegant Patterns"
+date: "2025-08-02"
+author: "Rahul Beniwal"
+description: "Master Python decorators with practical examples. Learn how to modify function behavior without touching existing code using closures and decorator patterns."
+image: "https://images.unsplash.com/photo-1605792657660-596af9009e82?q=80&w=2002&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+readingTime: "5 min read"
+tags: ["python", "decorators", "programming", "code-patterns", "software-design", "closures", "developer-tools"]
+type: "article"
+canonical: "https://takovibe.com/blog/python-decorators",
+---
+
+Decorators are powerful and useful concept being implemented in Python. It is a design pattern also. Django and DRF use decorators extensively. Decorators allow changing the behavior of an existing function or class without modifying the existing code. These are very similar to closures.
+
+## Changing Behavior by Closure and then by Decorator
+
+### Defining the Behavior to Apply on Function
+
+```python
+def decorate(fn):
+    def wrapper(*args, **kwargs):
+        print("Executing", fn.__name__)
+        return fn(*args, **kwargs)
+    return wrapper
+```
+
+### Applying Using Closures
+
+```python
+def fn(a, b):
+    return a + b
+
+fn = decorate(fn)
+```
+
+### Applying Using Decorators
+
+```python
+@decorate
+def fn(a, b):
+    return a + b
+```
+
+Both code snippets have the same effect.
+
+## Decoding Decorator Code
+
+Above code snippets contain 3 callables instead of 2.
+
+![Zoom image will be displayed](https://dummyimage.com/600x400/000/fff&text=Zoom+Image+Placeholder)
+
+*Image credit: Reuven M. Lerner (PyCon 2019)*
+
+## Implementing Closures by Class
+
+Because classes are callable too.
+
+```python
+class decorate:
+    def __init__(self, function):
+        self.function = function
+    def __call__(self, *args, **kwargs):
+        print("Executing", self.function.__name__)
+        result = self.function(*args, **kwargs)
+        return result
+
+@decorate
+def get_square(n):
+    return n ** 2
+```
+
+## Application of Decorators
+
+Decorators are used in many places but let’s see some small use cases of decorators.
+
+### 1. Log Time of a Function
+
+```python
+import time
+
+def log_time(func):
+    def wrapper(*args):
+        now = time.time()
+        response = func(*args)
+        print(func.__name__, "took", time.time() - now)
+        return response
+    return wrapper
+
+@log_time
+def do_nothing():
+    for i in range(1000000):
+        i ** 10
+
+# do_nothing took 0.1369309425354004
+```
+
+### 2. Adding Caching in Function Based on Params
+
+```python
+def add_cache(func):
+    cache = {}
+    def wrapper(*args):
+        nonlocal cache
+        if cache.get(args):
+            return cache[args]
+        response = func(*args)
+        cache[args] = response
+        return response
+    return wrapper
+
+@log_time
+@add_cache
+def calculate_pow(a, b):
+    return a ** b
+
+# On the first run when cache is empty
+>>> result = calculate_pow(100, 4000000)
+# wrapper took 2.697859764099121
+
+# But on further runs
+>>> result = calculate_pow(100, 4000000)
+# wrapper took 5.7220458984375e-06
+```
+
+### Understanding Chaining of Decorators
+
+```python
+@log_time
+@add_cache
+def calculate_pow(a, b): …
+```
+
+Is equivalent to:
+
+```python
+calculate_pow = add_cache(calculate_pow)
+calculate_pow = log_time(calculate_pow)
+```
+
+### 3. Limiting Function Invoke (Passing Argument in Decorator)
+
+We can also pass arguments to decorators to customize their behavior. We just need to add one more level of function nesting.
+
+```python
+def limit_invoke_with_time(time_in_sec=5):
+    def limit_invoke(func):
+        last_invoked = None
+        def wrapper(*args, **kwargs):
+            nonlocal last_invoked
+            if last_invoked and last_invoked > time.time() - time_in_sec:
+                raise Exception("execute too soon")
+            response = func(*args)
+            last_invoked = time.time()
+            return response
+        return wrapper
+    return limit_invoke
+
+@limit_invoke_with_time(2)
+def fn1(a, b):
+    return 10 ** 10, 25000
+
+@limit_invoke_with_time()
+def fn2(a, b):
+    return 10 ** 10, 25000
+```
+
+### Special Case
+
+```python
+@limit_invoke_with_time
+def fn1(a, b):
+    return 10 ** 10, 25000
+```
+
+Above code will fail to execute. Reason being, here `time_in_sec` will be initialized by decorated function itself, and `limit_invoke` will act as a wrapper function instead of the intended inner wrapper.
+
+```python
+def limit_invoke_with_time(func=None, time_in_sec=2):
+
+    def limit_invoke(func):
+        nonlocal time_in_sec
+        last_invoked = None
+
+        def wrapper(*args):
+            nonlocal last_invoked
+            if last_invoked and last_invoked > time.time() - time_in_sec:
+                raise Exception("execute too soon")
+            response = func(*args)
+            last_invoked = time.time()
+            return response
+
+        return wrapper
+
+    if func is None:
+        # Decorator called with argument
+        def wrapper(func):
+            return limit_invoke(func)
+
+        return wrapper
+    return limit_invoke(func)
+
+# These all three declarations are valid now 
+
+@limit_invoke_with_time
+def print_time(a, b):
+    return a * b
+
+@limit_invoke_with_time()
+def print_time2(a, b):
+    return a * b
+
+@limit_invoke_with_time(time_in_sec=10)
+def print_time3(a, b):
+    return a * b
+```
+
+Hope you also found decorators super cool. That’s all for now.
+
+👏 Clap for the story if you found it helpful.
