@@ -120,5 +120,33 @@
         outline: none;
         @apply ring-2 ring-purple-500/40;
     }
+
+    /* Mobile responsive styles */
+    @media (max-width: 768px) {
+        .copy-button {
+            opacity: 0.7;
+            right: 8px;
+            top: 8px;
+            height: 28px;
+            width: 28px;
+            padding: 4px;
+        }
+        
+        pre:hover .copy-button,
+        .copy-button:focus {
+            opacity: 1;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .copy-button {
+            opacity: 0.8;
+            right: 4px;
+            top: 4px;
+            height: 26px;
+            width: 26px;
+            padding: 3px;
+        }
+    }
 </style>
 

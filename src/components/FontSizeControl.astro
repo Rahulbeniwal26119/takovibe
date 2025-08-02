@@ -3,8 +3,28 @@
 ---
 
 <div id="fontSizeController" class="font-size-control fixed right-4 top-20 z-50">
-  <div class="control-panel bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-xl p-4 border border-gray-200/80 dark:border-gray-700/80 shadow-lg hover:shadow-xl transition-all duration-300">
+  <!-- Mobile Collapsed Button -->
+  <div id="mobileToggleBtn" class="mobile-toggle-btn bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-xl p-3 border border-gray-200/80 dark:border-gray-700/80 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hidden">
+    <div class="flex flex-col items-center justify-center">
+      <div class="font-bold text-lg text-gray-700 dark:text-gray-300" style="font-family: serif;">
+        Tt
+      </div>
+      <div id="mobileSizeDisplay" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+        25px
+      </div>
+    </div>
+  </div>
+
+  <!-- Full Control Panel -->
+  <div id="fullControlPanel" class="control-panel bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-xl p-4 border border-gray-200/80 dark:border-gray-700/80 shadow-lg hover:shadow-xl transition-all duration-300">
     <div class="flex flex-col items-center space-y-4">
+      <!-- Close button for mobile -->
+      <button id="mobileCloseBtn" class="mobile-close-btn absolute top-2 right-2 w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 hidden">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" class="text-gray-500 dark:text-gray-400 mx-auto">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+      </button>
+
       <!-- Header with current size -->
       <div class="flex items-center space-x-2">
         <div class="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
@@ -15,17 +35,19 @@
         <span id="currentSize" class="text-sm font-semibold text-gray-700 dark:text-gray-300">25px</span>
       </div>
       
-      <!-- Clean Vertical Slider -->
+            <!-- Clean Vertical Slider -->
       <div class="relative flex flex-col items-center">
         <!-- Slider Container -->
-        <div class="relative h-24 w-1.5 bg-gray-200 dark:bg-gray-700 rounded-full">
-          <!-- Slider Track (filled portion) -->
-          <div id="sliderTrack" class="absolute bottom-0 w-full bg-gray-600 dark:bg-gray-400 rounded-full transition-all duration-300"></div>
-          
-          <!-- Slider Handle -->
-          <div id="sliderHandle" class="absolute w-5 h-5 bg-white dark:bg-gray-900 border-2 border-gray-400 dark:border-gray-500 rounded-full shadow-sm cursor-pointer transition-all duration-200 hover:border-gray-600 dark:hover:border-gray-300 transform -translate-x-1.75">
-            <!-- Simple center dot -->
-            <div class="w-1 h-1 bg-gray-400 dark:bg-gray-500 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
+        <div class="relative h-24 w-6 flex justify-center">
+          <div class="w-1.5 bg-gray-200 dark:bg-gray-700 rounded-full">
+            <!-- Slider Track (filled portion) -->
+            <div id="sliderTrack" class="absolute bottom-0 w-full bg-gray-600 dark:bg-gray-400 rounded-full transition-all duration-300"></div>
+            
+            <!-- Slider Handle -->
+            <div id="sliderHandle" class="absolute w-5 h-5 bg-white dark:bg-gray-900 border-2 border-gray-400 dark:border-gray-500 rounded-full shadow-sm cursor-pointer transition-all duration-200 hover:border-gray-600 dark:hover:border-gray-300">
+              <!-- Simple center dot -->
+              <div class="w-1 h-1 bg-gray-400 dark:bg-gray-500 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
+            </div>
           </div>
         </div>
         
@@ -36,8 +58,8 @@
         </div>
       </div>
       
-      <!-- Keyboard shortcuts info -->
-      <div class="text-center">
+      <!-- Keyboard shortcuts info (desktop only) -->
+      <div class="keyboard-shortcuts text-center">
         <div class="text-xs text-gray-500 dark:text-gray-400 space-y-1">
           <div class="font-medium text-gray-600 dark:text-gray-300">Shortcuts</div>
           <div class="space-y-0.5">
@@ -53,7 +75,7 @@
 <style>
   .font-size-control {
     transition: all 0.3s ease;
-    width: 80px; /* Slightly wider for better proportions */
+    width: 90px; /* Wider to contain the centered slider properly */
   }
   
   .font-size-control:hover {
@@ -71,29 +93,33 @@
   
   /* Clean slider styling */
   #sliderHandle {
-    position: relative;
+    position: absolute;
     z-index: 10;
+    left: 50%;
+    transform: translateX(-50%);
   }
   
   #sliderHandle:hover {
-    transform: translateX(-1.75rem) scale(1.1);
+    transform: translateX(-50%) scale(1.1);
   }
   
   #sliderHandle:active {
-    transform: translateX(-1.75rem) scale(0.95);
+    transform: translateX(-50%) scale(0.95);
   }
   
   /* Make the entire slider container clickable */
   .font-size-control .h-24 {
     cursor: pointer;
+    padding: 0 8px; /* Add padding for easier clicking */
   }
   
   .font-size-control .h-24:hover {
-    background: #e5e7eb;
+    background: rgba(229, 231, 235, 0.3);
+    border-radius: 8px;
   }
   
   .dark .font-size-control .h-24:hover {
-    background: #4b5563;
+    background: rgba(75, 85, 99, 0.3);
   }
   
   /* Keyboard shortcut styling */
@@ -115,28 +141,92 @@
     color: #e5e7eb;
   }
   
-  /* Clean responsive design */
-  @media (max-width: 768px) {
+  /* Clean responsive design - Collapse for screens < 1407px */
+  @media (max-width: 1406px) {
     .font-size-control {
       right: 1rem;
       top: 5rem;
-      width: 70px;
+      width: auto;
+    }
+    
+    /* Show mobile toggle button, hide full panel by default */
+    .mobile-toggle-btn {
+      display: flex !important;
+      width: 50px;
+      height: 60px;
     }
     
     .control-panel {
-      padding: 0.75rem;
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 260px;
+      padding: 1rem;
     }
     
-    /* Smaller slider on mobile */
+    .control-panel.expanded {
+      display: flex !important;
+    }
+    
+    /* Hide keyboard shortcuts on smaller screens */
+    .keyboard-shortcuts {
+      display: none;
+    }
+    
+    /* Show close button on smaller screens */
+    .mobile-close-btn {
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    /* Smaller slider on smaller screens */
     .font-size-control .h-24 {
-      height: 5rem;
+      height: 4rem;
     }
   }
   
-  /* Hide on very small screens */
+  /* More compact for small screens */
   @media (max-width: 480px) {
     .font-size-control {
-      display: none;
+      right: 0.5rem;
+      top: 4rem;
+    }
+    
+    .mobile-toggle-btn {
+      width: 45px;
+      height: 55px;
+    }
+    
+    .control-panel {
+      width: 240px;
+      padding: 0.875rem;
+    }
+    
+    .font-size-control .h-24 {
+      height: 3.5rem;
+    }
+  }
+  
+  /* Desktop styles - ensure full panel is visible and mobile elements are hidden */
+  @media (min-width: 1407px) {
+    .mobile-toggle-btn {
+      display: none !important;
+    }
+    
+    .mobile-close-btn {
+      display: none !important;
+    }
+    
+    .control-panel {
+      display: flex !important;
+      position: static;
+      width: 90px;
+    }
+    
+    .keyboard-shortcuts {
+      display: block;
     }
   }
   
@@ -170,11 +260,38 @@
     const sliderHandle = document.getElementById('sliderHandle');
     const sliderTrack = document.getElementById('sliderTrack');
     const currentSizeDisplay = document.getElementById('currentSize');
+    const mobileSizeDisplay = document.getElementById('mobileSizeDisplay');
+    const mobileToggleBtn = document.getElementById('mobileToggleBtn');
+    const fullControlPanel = document.getElementById('fullControlPanel');
+    const mobileCloseBtn = document.getElementById('mobileCloseBtn');
     
     // Check if all elements exist
     if (!controller || !sliderHandle || !sliderTrack || !currentSizeDisplay) {
       console.error('❌ FontSizeControl: Required elements not found');
       return;
+    }
+    
+    // Mobile toggle functionality
+    if (mobileToggleBtn && fullControlPanel && mobileCloseBtn) {
+      mobileToggleBtn.addEventListener('click', () => {
+        fullControlPanel.classList.add('expanded');
+        mobileToggleBtn.style.display = 'none';
+      });
+      
+      mobileCloseBtn.addEventListener('click', () => {
+        fullControlPanel.classList.remove('expanded');
+        mobileToggleBtn.style.display = 'flex';
+      });
+      
+      // Close when clicking outside on smaller screens
+      document.addEventListener('click', (e) => {
+        if (window.innerWidth <= 1406 && 
+            !controller.contains(e.target) && 
+            fullControlPanel.classList.contains('expanded')) {
+          fullControlPanel.classList.remove('expanded');
+          mobileToggleBtn.style.display = 'flex';
+        }
+      });
     }
     
     // Configuration
@@ -196,8 +313,8 @@
       const percentage = (size - MIN_SIZE) / (MAX_SIZE - MIN_SIZE);
       const position = SLIDER_HEIGHT - (percentage * SLIDER_HEIGHT);
       
-      sliderHandle.style.top = `${position - 10}px`; // -10px to center the handle
-      sliderTrack.style.height = `${percentage * 100}%`; // Fixed: removed (1 - percentage)
+      sliderHandle.style.top = `${position - 10}px`; // -10px to center the handle (handle is 20px high)
+      sliderTrack.style.height = `${percentage * 100}%`;
     }
     
     // Apply font size to content
@@ -252,6 +369,9 @@
       
       // Update display
       currentSizeDisplay.textContent = `${size}px`;
+      if (mobileSizeDisplay) {
+        mobileSizeDisplay.textContent = `${size}px`;
+      }
       
       // Update slider position
       updateSliderPosition(size);
