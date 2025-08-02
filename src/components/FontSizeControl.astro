@@ -1,0 +1,368 @@
+---
+// Font Size Control Component - Clean & Elegant
+---
+
+<div id="fontSizeController" class="font-size-control fixed right-4 top-20 z-50">
+  <div class="control-panel bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-xl p-4 border border-gray-200/80 dark:border-gray-700/80 shadow-lg hover:shadow-xl transition-all duration-300">
+    <div class="flex flex-col items-center space-y-4">
+      <!-- Header with current size -->
+      <div class="flex items-center space-x-2">
+        <div class="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="text-gray-600 dark:text-gray-400">
+            <path d="M9 4v3h5v12h3V7h5V4H9zm-6 8h3v7h3v-7h3V9H3v3z"/>
+          </svg>
+        </div>
+        <span id="currentSize" class="text-sm font-semibold text-gray-700 dark:text-gray-300">25px</span>
+      </div>
+      
+      <!-- Clean Vertical Slider -->
+      <div class="relative flex flex-col items-center">
+        <!-- Slider Container -->
+        <div class="relative h-24 w-1.5 bg-gray-200 dark:bg-gray-700 rounded-full">
+          <!-- Slider Track (filled portion) -->
+          <div id="sliderTrack" class="absolute bottom-0 w-full bg-gray-600 dark:bg-gray-400 rounded-full transition-all duration-300"></div>
+          
+          <!-- Slider Handle -->
+          <div id="sliderHandle" class="absolute w-5 h-5 bg-white dark:bg-gray-900 border-2 border-gray-400 dark:border-gray-500 rounded-full shadow-sm cursor-pointer transition-all duration-200 hover:border-gray-600 dark:hover:border-gray-300 transform -translate-x-1.75">
+            <!-- Simple center dot -->
+            <div class="w-1 h-1 bg-gray-400 dark:bg-gray-500 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
+          </div>
+        </div>
+        
+        <!-- Size range indicators -->
+        <div class="flex justify-between w-12 mt-2 text-xs text-gray-500 dark:text-gray-400">
+          <span>16</span>
+          <span>32</span>
+        </div>
+      </div>
+      
+      <!-- Keyboard shortcuts info -->
+      <div class="text-center">
+        <div class="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+          <div class="font-medium text-gray-600 dark:text-gray-300">Shortcuts</div>
+          <div class="space-y-0.5">
+            <div><kbd class="kbd">Ctrl ±</kbd> Resize</div>
+            <div><kbd class="kbd">Ctrl 0</kbd> Reset</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .font-size-control {
+    transition: all 0.3s ease;
+    width: 80px; /* Slightly wider for better proportions */
+  }
+  
+  .font-size-control:hover {
+    transform: translateY(-2px);
+  }
+  
+  .control-panel {
+    position: relative;
+  }
+  
+  /* Subtle hover effects */
+  .font-size-control:hover .control-panel {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Clean slider styling */
+  #sliderHandle {
+    position: relative;
+    z-index: 10;
+  }
+  
+  #sliderHandle:hover {
+    transform: translateX(-1.75rem) scale(1.1);
+  }
+  
+  #sliderHandle:active {
+    transform: translateX(-1.75rem) scale(0.95);
+  }
+  
+  /* Make the entire slider container clickable */
+  .font-size-control .h-24 {
+    cursor: pointer;
+  }
+  
+  .font-size-control .h-24:hover {
+    background: #e5e7eb;
+  }
+  
+  .dark .font-size-control .h-24:hover {
+    background: #4b5563;
+  }
+  
+  /* Keyboard shortcut styling */
+  .kbd {
+    display: inline-block;
+    padding: 1px 4px;
+    font-size: 10px;
+    font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 3px;
+    color: #374151;
+    font-weight: 500;
+  }
+  
+  .dark .kbd {
+    background: #374151;
+    border-color: #4b5563;
+    color: #e5e7eb;
+  }
+  
+  /* Clean responsive design */
+  @media (max-width: 768px) {
+    .font-size-control {
+      right: 1rem;
+      top: 5rem;
+      width: 70px;
+    }
+    
+    .control-panel {
+      padding: 0.75rem;
+    }
+    
+    /* Smaller slider on mobile */
+    .font-size-control .h-24 {
+      height: 5rem;
+    }
+  }
+  
+  /* Hide on very small screens */
+  @media (max-width: 480px) {
+    .font-size-control {
+      display: none;
+    }
+  }
+  
+  /* Clean interactions */
+  .font-size-control * {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  
+  /* Proper stacking for tool ecosystem */
+  .font-size-control {
+    z-index: 45;
+  }
+  
+  /* Space management for other tools */
+  .floating-tool:nth-child(2) {
+    top: 200px; /* Stack below font control */
+  }
+  
+  .floating-tool:nth-child(3) {
+    top: 360px; /* Stack below second tool */
+  }
+</style>
+
+<script is:inline>
+  function initializeFontSizeControl() {
+    console.log('🎛️ FontSizeControl: Initializing...');
+    
+    // Get all elements
+    const controller = document.getElementById('fontSizeController');
+    const sliderHandle = document.getElementById('sliderHandle');
+    const sliderTrack = document.getElementById('sliderTrack');
+    const currentSizeDisplay = document.getElementById('currentSize');
+    
+    // Check if all elements exist
+    if (!controller || !sliderHandle || !sliderTrack || !currentSizeDisplay) {
+      console.error('❌ FontSizeControl: Required elements not found');
+      return;
+    }
+    
+    // Configuration
+    const MIN_SIZE = 16;
+    const MAX_SIZE = 32;
+    const DEFAULT_SIZE = 25;
+    const SLIDER_HEIGHT = 96; // 6rem = 96px (h-24)
+    
+    // Get current font size
+    let currentSize = parseInt(localStorage.getItem('blog-font-size')) || DEFAULT_SIZE;
+    
+    // Clamp function
+    function clamp(value, min, max) {
+      return Math.min(Math.max(value, min), max);
+    }
+    
+    // Update slider position based on font size
+    function updateSliderPosition(size) {
+      const percentage = (size - MIN_SIZE) / (MAX_SIZE - MIN_SIZE);
+      const position = SLIDER_HEIGHT - (percentage * SLIDER_HEIGHT);
+      
+      sliderHandle.style.top = `${position - 10}px`; // -10px to center the handle
+      sliderTrack.style.height = `${percentage * 100}%`; // Fixed: removed (1 - percentage)
+    }
+    
+    // Apply font size to content
+    function applyFontSize(size) {
+      const article = document.querySelector('article.prose');
+      if (!article) {
+        console.warn('⚠️ FontSizeControl: Article not found');
+        return;
+      }
+      
+      // Update paragraphs with more specific targeting
+      const paragraphs = article.querySelectorAll('p, .mdx-content p');
+      paragraphs.forEach(p => {
+        p.style.setProperty('font-size', `${size}px`, 'important');
+        p.style.setProperty('line-height', '1.6', 'important');
+      });
+      
+      // Update list items
+      const listItems = article.querySelectorAll('li, .mdx-content li');
+      listItems.forEach(li => {
+        li.style.setProperty('font-size', `${size}px`, 'important');
+        li.style.setProperty('line-height', '1.6', 'important');
+      });
+      
+      // Update blockquotes (slightly larger)
+      const blockquotes = article.querySelectorAll('blockquote, .mdx-content blockquote');
+      blockquotes.forEach(bq => {
+        bq.style.setProperty('font-size', `${size + 2}px`, 'important');
+        bq.style.setProperty('line-height', '1.6', 'important');
+      });
+      
+      // Also target any direct content in mdx-content
+      const mdxContent = document.querySelector('.mdx-content');
+      if (mdxContent) {
+        // Apply to all text content within mdx-content
+        const allTextElements = mdxContent.querySelectorAll('p, li, span, div:not([class*="code"]):not(pre):not(code)');
+        allTextElements.forEach(el => {
+          if (!el.closest('pre') && !el.closest('code')) {
+            el.style.setProperty('font-size', `${size}px`, 'important');
+            el.style.setProperty('line-height', '1.6', 'important');
+          }
+        });
+      }
+      
+      console.log(`📝 FontSizeControl: Applied ${size}px to ${paragraphs.length} paragraphs, ${listItems.length} list items, ${blockquotes.length} blockquotes`);
+    }
+    
+    // Update everything
+    function updateFontSize(size) {
+      size = clamp(size, MIN_SIZE, MAX_SIZE);
+      currentSize = size;
+      
+      // Update display
+      currentSizeDisplay.textContent = `${size}px`;
+      
+      // Update slider position
+      updateSliderPosition(size);
+      
+      // Apply to content
+      applyFontSize(size);
+      
+      // Save to localStorage
+      localStorage.setItem('blog-font-size', size.toString());
+      
+      console.log(`🔄 FontSizeControl: Updated to ${size}px`);
+    }
+    
+    // Slider drag functionality
+    let isDragging = false;
+    
+    function handleSliderInteraction(e) {
+      const sliderContainer = sliderHandle.parentElement;
+      const rect = sliderContainer.getBoundingClientRect();
+      const y = (e.type.includes('touch') ? e.touches[0].clientY : e.clientY) - rect.top;
+      const percentage = 1 - (y / SLIDER_HEIGHT);
+      const clampedPercentage = clamp(percentage, 0, 1);
+      const newSize = Math.round(MIN_SIZE + (clampedPercentage * (MAX_SIZE - MIN_SIZE)));
+      
+      updateFontSize(newSize);
+    }
+    
+    // Mouse events - allow clicking anywhere on the slider
+    const sliderContainer = sliderHandle.parentElement;
+    
+    sliderContainer.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      handleSliderInteraction(e);
+      e.preventDefault();
+    });
+    
+    sliderHandle.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      handleSliderInteraction(e);
+      e.preventDefault();
+    });
+    
+    document.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        handleSliderInteraction(e);
+      }
+    });
+    
+    document.addEventListener('mouseup', () => {
+      isDragging = false;
+    });
+    
+    // Touch events for mobile
+    sliderContainer.addEventListener('touchstart', (e) => {
+      isDragging = true;
+      handleSliderInteraction(e);
+      e.preventDefault();
+    }, { passive: false });
+    
+    sliderHandle.addEventListener('touchstart', (e) => {
+      isDragging = true;
+      handleSliderInteraction(e);
+      e.preventDefault();
+    }, { passive: false });
+    
+    document.addEventListener('touchmove', (e) => {
+      if (isDragging) {
+        handleSliderInteraction(e);
+        e.preventDefault();
+      }
+    }, { passive: false });
+    
+    document.addEventListener('touchend', () => {
+      isDragging = false;
+    });
+    
+    // Keyboard shortcuts (the main benefit!)
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === '=' || e.key === '+') {
+          e.preventDefault();
+          updateFontSize(currentSize + 2);
+        } else if (e.key === '-') {
+          e.preventDefault();
+          updateFontSize(currentSize - 2);
+        } else if (e.key === '0') {
+          e.preventDefault();
+          updateFontSize(DEFAULT_SIZE);
+        }
+      }
+    });
+    
+    // Initialize with saved size
+    setTimeout(() => {
+      updateFontSize(currentSize);
+    }, 100);
+    
+    console.log('✅ FontSizeControl: Initialized successfully');
+  }
+  
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(initializeFontSizeControl, 200);
+    });
+  } else {
+    setTimeout(initializeFontSizeControl, 100);
+  }
+  
+  // Re-initialize on Astro page transitions
+  document.addEventListener('astro:page-load', () => {
+    setTimeout(initializeFontSizeControl, 200);
+  });
+</script>

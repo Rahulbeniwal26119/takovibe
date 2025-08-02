@@ -1,13 +1,26 @@
 ---
 ---
-<div class="animated-background">
-  <div class="gradient-sphere"></div>
-  <div class="gradient-sphere"></div>
-  <div class="gradient-sphere"></div>
+<div class="readable-background">
+  <!-- Ultra-subtle gradient base -->
+  <div class="base-gradient"></div>
+  
+  <!-- Minimal floating dots -->
+  <div class="dots-container">
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+  </div>
+  
+  <!-- Soft ambient glow -->
+  <div class="ambient-glow"></div>
+  
+  <!-- Reading zone enhancement -->
+  <div class="reading-zone"></div>
 </div>
 
 <style>
-  .animated-background {
+  .readable-background {
     position: fixed;
     top: 0;
     left: 0;
@@ -15,56 +28,224 @@
     bottom: 0;
     z-index: -1;
     overflow: hidden;
-    background: radial-gradient(circle at 50% 50%, #1a1a2e, #0f0f1a);
+    /* Optimized for maximum contrast and readability */
+    background: linear-gradient(180deg, 
+      #0a0a0f 0%,     /* Deep dark blue-black */
+      #0f0f1a 30%,    /* Slightly lighter */
+      #1a1a2e 60%,    /* Your original dark */
+      #0f0f1a 100%    /* Back to darker */
+    );
   }
 
-  .gradient-sphere {
+  .base-gradient {
     position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    /* Extremely subtle gradient shifts */
+    background: 
+      radial-gradient(circle at 10% 20%, rgba(30, 41, 59, 0.15) 0%, transparent 40%),
+      radial-gradient(circle at 90% 80%, rgba(30, 41, 59, 0.1) 0%, transparent 40%);
+    animation: subtleShift 60s ease-in-out infinite;
+  }
+
+  .dots-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+
+  .dot {
+    position: absolute;
+    background: rgba(148, 163, 184, 0.03);  /* Ultra-low opacity */
     border-radius: 50%;
-    filter: blur(80px);
-    opacity: 0.4;
-    animation: float 20s infinite;
+    pointer-events: none;
   }
 
-  .gradient-sphere:nth-child(1) {
-    background: radial-gradient(circle at center, #4f46e5, #7c3aed);
-    width: 50vw;
-    height: 50vw;
-    top: -25%;
-    left: -25%;
-    animation-delay: 0s;
+  .dot:nth-child(1) {
+    width: 1px;
+    height: 1px;
+    top: 15%;
+    left: 20%;
+    animation: gentleFloat 40s linear infinite;
   }
 
-  .gradient-sphere:nth-child(2) {
-    background: radial-gradient(circle at center, #ec4899, #8b5cf6);
-    width: 40vw;
-    height: 40vw;
-    top: 60%;
-    right: -20%;
-    animation-delay: -5s;
+  .dot:nth-child(2) {
+    width: 1px;
+    height: 1px;
+    top: 65%;
+    left: 80%;
+    animation: gentleFloat 50s linear infinite;
+    animation-delay: -15s;
   }
 
-  .gradient-sphere:nth-child(3) {
-    background: radial-gradient(circle at center, #3b82f6, #06b6d4);
-    width: 45vw;
-    height: 45vw;
-    bottom: -25%;
+  .dot:nth-child(3) {
+    width: 1px;
+    height: 1px;
+    top: 40%;
+    left: 70%;
+    animation: gentleFloat 45s linear infinite;
+    animation-delay: -25s;
+  }
+
+  .dot:nth-child(4) {
+    width: 1px;
+    height: 1px;
+    top: 80%;
     left: 30%;
-    animation-delay: -10s;
+    animation: gentleFloat 55s linear infinite;
+    animation-delay: -35s;
   }
 
-  @keyframes float {
+  .ambient-glow {
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, 
+      rgba(30, 41, 59, 0.08) 0%,    /* Very subtle glow */
+      rgba(30, 41, 59, 0.04) 40%, 
+      transparent 70%
+    );
+    border-radius: 50%;
+    animation: gentleBreathe 20s ease-in-out infinite;
+  }
+
+  .reading-zone {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 1200px;
+    height: 80%;
+    /* Creates a subtle "reading zone" with better contrast */
+    background: radial-gradient(ellipse at center, 
+      rgba(0, 0, 0, 0.1) 0%,      /* Slight darkening for better text contrast */
+      transparent 60%
+    );
+    border-radius: 50%;
+    animation: readingZonePulse 30s ease-in-out infinite;
+  }
+
+  /* Ultra-gentle animations for relaxation */
+  @keyframes subtleShift {
     0%, 100% {
-      transform: translate(0, 0) rotate(0deg);
-    }
-    25% {
-      transform: translate(2%, 2%) rotate(5deg);
+      opacity: 1;
+      transform: translateY(0px);
     }
     50% {
-      transform: translate(-2%, 4%) rotate(-5deg);
+      opacity: 0.8;
+      transform: translateY(-10px);
     }
-    75% {
-      transform: translate(-4%, -2%) rotate(5deg);
+  }
+
+  @keyframes gentleFloat {
+    0% {
+      transform: translate(0, 0);
+      opacity: 0;
     }
+    10%, 90% {
+      opacity: 1;
+    }
+    100% {
+      transform: translate(20px, -30px);
+      opacity: 0;
+    }
+  }
+
+  @keyframes gentleBreathe {
+    0%, 100% {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 0.6;
+    }
+    50% {
+      transform: translate(-50%, -50%) scale(1.05);
+      opacity: 0.4;
+    }
+  }
+
+  @keyframes readingZonePulse {
+    0%, 100% {
+      opacity: 0.3;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+      opacity: 0.5;
+      transform: translate(-50%, -50%) scale(1.02);
+    }
+  }
+
+  /* Mobile optimization for readability */
+  @media (max-width: 768px) {
+    .ambient-glow {
+      width: 400px;
+      height: 400px;
+    }
+    
+    .reading-zone {
+      width: 95%;
+      height: 85%;
+    }
+    
+    .dot {
+      opacity: 0.5;  /* Even more subtle on mobile */
+    }
+  }
+
+  /* Dark mode enhancement */
+  @media (prefers-color-scheme: dark) {
+    .readable-background {
+      background: linear-gradient(180deg, 
+        #050508 0%,     /* Even darker for better contrast */
+        #0a0a0f 30%,
+        #0f0f1a 60%,
+        #0a0a0f 100%
+      );
+    }
+  }
+
+  /* Accessibility: Remove all animations for users who prefer reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .readable-background *,
+    .readable-background {
+      animation: none !important;
+      transition: none !important;
+    }
+    
+    .readable-background {
+      background: #0f0f1a;  /* Solid color for maximum readability */
+    }
+    
+    .base-gradient,
+    .dots-container,
+    .ambient-glow {
+      display: none;  /* Remove all distracting elements */
+    }
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .readable-background {
+      background: #000000 !important;  /* Pure black for maximum contrast */
+    }
+    
+    .base-gradient,
+    .dots-container,
+    .ambient-glow,
+    .reading-zone {
+      display: none !important;
+    }
+  }
+
+  /* Focus enhancement - when user is actively reading/typing */
+  .readable-background:focus-within .ambient-glow {
+    animation-duration: 40s;  /* Slower, less distracting */
+    opacity: 0.3;
   }
 </style>

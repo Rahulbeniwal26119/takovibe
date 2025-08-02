@@ -18,7 +18,7 @@ const { title, date, author, description, image, tags, canonical, type } = Astro
 
 const isoDate = new Date(date).toISOString();
 ---
-<Layout title={title} type={type} description={description} image={image} tags={tags} type={type}>
+<Layout title={title} type={type} description={description} image={image} tags={tags} type={type} no_footer={true}>
 
   {canonical && <link rel="canonical" href={canonical} slot="head" />}
 

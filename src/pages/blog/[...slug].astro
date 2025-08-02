@@ -8,6 +8,7 @@ import PomodoroTimer from '../../components/PomodoroTimer.astro';
 import { Image } from 'astro:assets';
 import SocialShare from '../../components/SocialShare.astro';
 import RelatedPosts from '../../components/RelatedPosts.astro';
+import FontSizeControl from '../../components/FontSizeControl.astro';
 
 // Add this function to sanitize the HTML content
 const removeTabIndex = (content: string) => {
@@ -24,32 +25,16 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props;
 const { Content } = await post.render();
+console.log(Content)
 ---
-
-<Layout title={post.data.title} description={post.data.description} type="article" author={post.data.author} tags={post.data.tags} published_date={post.data.date}>
+<Layout title={post.data.title} description={post.data.description} type="article" author={post.data.author} tags={post.data.tags} published_date={post.data.date} no_footer={true}>
   <!-- <PomodoroTimer /> -->
     <CopyButton />
-  <div class="max-w-6xl mx-auto px-4 py-16">
-    {post.data.image && (
-      <Image 
-        src={post.data.image} 
-        alt={post.data.title}
-        width={800}
-        height={400}
-        class="w-full h-[500px] object-cover rounded-xl shadow-xl"
-        loading="eager"
-        format="webp"
-        quality={80}
-      />
-      <div class="text-lg text-gray-500 text-center mt-1 font-thin">
-        Image Source: 
-        <span class="mx-1">
-          <a href={post.data.image} class="text-purple-500 hover:text-purple-600">Unsplash</a>
-        </span>
-      </div>
-    )}
+    <FontSizeControl />
+  <div class="max-w-6xl mx-auto px-4 py-8">
+
     
-    <header class="my-12">
+    <header class="my-8">
       <h1 class="text-6xl font-bold mb-6 leading-tight ">{post.data.title}</h1>
       <div class="flex items-center text-lg text-gray-600 dark:text-gray-400 mb-8">
         <span>{post.data.date}</span>
@@ -57,7 +42,7 @@ const { Content } = await post.render();
         <span>{post.data.author}</span>
       </div>
       
-      <div class="flex items-center justify-center space-x-4 my-12">
+      <div class="flex items-center justify-center space-x-4 my-6">
         <div class="h-px bg-gradient-to-r from-transparent via-purple-500 to-transparent w-32"></div>
         <div class="flex space-x-2">
           <span class="w-2 h-2 rounded-full bg-purple-500"></span>
@@ -68,17 +53,38 @@ const { Content } = await post.render();
       </div>
     </header>
 
+    {post.data.image && (
+      <div class="relative mb-8 -mx-4 md:mx-0">
+        <div class="aspect-[16/10] md:aspect-[16/9] overflow-hidden rounded-none md:rounded-2xl">
+          <Image 
+            src={post.data.image} 
+            alt={post.data.title}
+            width={1200}
+            height={675}
+            class="w-full h-full object-cover transition-transform duration-700 hover:scale-[1.02]"
+            loading="eager"
+            format="webp"
+            quality={85}
+          />
+        </div>
+        <div class="text-sm text-gray-500 dark:text-gray-400 text-center mt-4 italic">
+          Photo by 
+          <a href={post.data.image} class="text-purple-500 hover:text-purple-600 transition-colors duration-200">Unsplash</a>
+        </div>
+      </div>
+    )}
+
     <article class="prose prose-xl dark:prose-invert max-w-none">
       <div class="mdx-content">
         <Content />
       </div>
     </article>
 
-    <div class="mt-12 border-t border-gray-700 pt-8">
+    <div class="mt-6 border-t border-gray-700 pt-6">
       <RelatedPosts currentSlug={post.slug} tags={post.data.tags || []} />
     </div>
 
-    <footer class="mt-16">
+    <footer class="mt-8 mb-0">
       <div class="text-center text-gray-600 dark:text-gray-400 mb-8">
         <p class="text-sm">Thanks for reading!</p>
       </div>
@@ -95,7 +101,7 @@ const { Content } = await post.render();
       <div>
         <BlogInteractions post={post} />
       </div>
-      <div class="text-center text-gray-600 dark:text-gray-400 mt-12">
+      <div class="text-center text-gray-600 dark:text-gray-400 mt-6 mb-0">
         <Footer />
       </div>
     </footer>
@@ -122,7 +128,7 @@ const { Content } = await post.render();
 
   .prose p {
     margin-bottom: 1.5rem;
-    font-size: 1.25rem !important;
+    font-size: 1.25rem; /* Remove !important to allow FontSizeControl to work */
     line-height: 1.8;
   }
 
@@ -180,9 +186,18 @@ const { Content } = await post.render();
   }
 
   article.prose p {
-    font-size: 25px !important;
+    font-size: 25px !important; /* Remove !important to allow FontSizeControl to work */
     line-height: 1.4;
     margin-bottom: 3rem;
+    transition: font-size 0.3s ease;
+  }
+  
+  article.prose li {
+    transition: font-size 0.3s ease;
+  }
+  
+  article.prose blockquote {
+    transition: font-size 0.3s ease;
   }
 
   main {

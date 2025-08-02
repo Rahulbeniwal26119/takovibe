@@ -1,10 +1,12 @@
 ---
 import Header from "../components/Header.astro";
-import AnimatedBackground from "../components/AnimatedBackground.astro";
 import CursorEffect from "../components/CursorEffect.astro";
 import FloatingElements from "../components/FloatingElements.astro";
 import ReadingProgress from "../components/ReadingProgress.astro";
 import Footer from "../components/Footer.astro";
+import MusicPlayer from "../components/MusicPlayer.astro";
+import PomodoroTimer from "../components/PomodoroTimer.astro";
+import AnimatedBackground from "../components/AnimatedBackground.astro";
 
 interface Props {
   title: string;
@@ -15,6 +17,7 @@ interface Props {
   author?: string;
   noAds?: boolean;
   published_date?: string;
+  no_footer?: boolean;
 }
 
 const {
@@ -25,7 +28,8 @@ const {
   noAds = false,
   author = "Rahul Beniwal",
   tags = [],
-  published_date = new Date().toISOString()
+  published_date = new Date().toISOString(),
+  no_footer = false
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
@@ -126,7 +130,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
       class="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 pt-0"
     >
       <ReadingProgress />
-      <!-- <AnimatedBackground /> -->
+      <AnimatedBackground />
       <FloatingElements />
       <CursorEffect />
       <!-- <MusicPlayer /> -->
@@ -136,7 +140,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         <slot />
       </div>
     </main>
-    <Footer />
+    {!no_footer && <Footer />}
   </body>
 </html>
 
