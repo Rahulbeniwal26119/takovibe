@@ -1,0 +1,189 @@
+---
+layout: ../../layouts/BlogPost.astro
+title: "Bytes vs String in Python: Key Differences Explained"
+date: "2025-08-02"
+author: "Rahul Beniwal"
+description: "Understand the core differences between bytes and string in Python with practical code examples. Learn encoding-decoding, comparisons, and behavior nuances."
+image: "https://miro.medium.com/v2/resize:fit:640/format:webp/1*ww1dUvfdnTQPKySGU2gI_g.png"
+readingTime: "3 min read"
+tags: ["python", "bytes", "string", "encoding", "decoding", "unicode", "developer-guide"]
+type: "article"
+canonical: "https://takovibe.com/blog/python-bytes-vs-string"
+---
+
+Bytes and String show very similar behavior and use cases but these are not exactly the same. Let's find out the difference and similarities between these two.
+
+## Bytes and String
+
+### Bytes
+
+Object of bytes contains raw, unsigned 8-bit values (most of the time displayed in ASCII Encoding).
+
+Bytes can only represent unsigned 8-bit characters.
+
+```python
+bstring = b'h\x65llo'
+print(list(bstring))
+print(bstring)
+```
+
+Output:
+
+```python
+[104, 101, 108, 108, 111]
+b'hello'
+```
+
+```python
+string = b"こんにちは"
+print(string)
+```
+
+Output:
+
+```python
+SyntaxError: bytes can only contain ASCII literal characters
+```
+
+### String
+
+Object of string contains Unicode code that represents characters from human languages.
+
+String represents multiple bytes Unicode characters.
+
+```python
+a = 'a\u0300 propos'
+b = 'こんにちは'
+print(a)
+print(b)
+```
+
+Output:
+
+```python
+à propos
+こんにちは
+```
+
+## Conversion between str and bytes
+
+While converting from bytes to string, encoding must be specified or OS encoding will be considered as default.
+
+```python
+import locale
+
+# get os default encoding
+os_default_encoding = locale.getpreferredencoding()
+
+def to_str(string, encoding=os_default_encoding):
+    if isinstance(string, bytes):
+        return string.decode(encoding)
+    return string
+
+def to_bytes(string, encoding=os_default_encoding):
+    if isinstance(string, str):
+        return string.encode(encoding)
+    return string
+
+string = "こんにちは"
+encoded_string = to_bytes(string)
+decoded_string = to_str(encoded_string)
+wrong_decoded_string = to_str(encoded_string, "latin-1")
+
+print(encoded_string)
+print(decoded_string)
+print(wrong_decoded_string)
+```
+
+Output:
+
+```python
+b'\xe3\x81\x93\xe3\x82\x93\xe3\x81\xab\xe3\x81\xa1\xe3\x81\xaf'
+こんにちは
+ããã«ã¡ã¯
+```
+
+As we can see, if we don't know the right encoding at the time of decoding (as in `wrong_decoded_string`), information may be lost.
+
+## Diff b/w str and bytes
+
+### 1. Behaves differently on applying list.
+
+```python
+String1 = b"String"
+String2 = "String"
+print(list(String1))
+print(list(String2))
+```
+
+Output:
+
+```python
+[83, 116, 114, 105, 110, 103]
+['S', 't', 'r', 'i', 'n', 'g']
+```
+
+### 2. Comparison Operators
+
+```python
+assert b'hello' > b'Hello'
+assert 'hello' > 'Hello'
+
+# bytes can be compared to bytes only and string to string only.
+
+assert 'hello' > 'Hello'
+
+# This will throw:
+TypeError: '>' not supported between instances of 'bytes' and 'str'
+
+# equality check is an exception in this case because instead of exception it will always yield False even same character there.
+assert not b'hello' == 'hello'
+```
+
+### 3. String Interpolation
+
+Bytes cannot be substituted by string:
+
+```python
+print(b'color %s' % b'red')
+print('color %s' % 'red')
+```
+
+Output:
+
+```python
+b'color red'
+color red
+```
+
+```python
+print(b'color %s' % 'red')
+```
+
+Output:
+
+```python
+TypeError: %b requires a bytes-like object, or an object that implements __bytes__, not 'str'
+```
+
+But string can be substituted by bytes, though the result is not as expected:
+
+```python
+print('color %s' % b'red')
+```
+
+Output:
+
+```python
+color b'red'
+```
+
+## Conclusion
+
+String and Bytes are two independent classes. String is for human language character representation, but Bytes is for storing data in 8 bits and representing that information as a string.
+
+## Python Tip
+
+Python interpreter automatically sets a constant `__debug__` when it starts and we cannot change its value while the interpreter is running. Because if `__debug__` is False, `assert` will not execute.
+
+👏 Clap for the story if you found it helpful.
