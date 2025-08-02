@@ -4,6 +4,7 @@ import AnimatedBackground from "../components/AnimatedBackground.astro";
 import CursorEffect from "../components/CursorEffect.astro";
 import FloatingElements from "../components/FloatingElements.astro";
 import ReadingProgress from "../components/ReadingProgress.astro";
+import Footer from "../components/Footer.astro";
 
 interface Props {
   title: string;
@@ -135,7 +136,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         <slot />
       </div>
     </main>
-    <!-- <Footer /> -->
+    <Footer />
   </body>
 </html>
 

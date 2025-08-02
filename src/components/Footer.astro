@@ -1,39 +1,51 @@
 ---
 import { getCollection } from 'astro:content';
+import NewsletterCTA from './NewsletterCTA.astro';
 const currentYear = new Date().getFullYear();
 const apiUrl = import.meta.env.PUBLIC_API_URL;
 ---
 
 <footer class="bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
   <div class="max-w-6xl mx-auto px-4 py-12">
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
       <!-- Brand Section -->
-      <div class="col-span-1 md:col-span-2">
-        <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">TakoVibe</h2>
-        <p class="text-gray-600 dark:text-gray-400 mb-4 max-w-md">
-          Exploring the depths of software engineering, system design, and technology innovations.
-        </p>
-        <div class="flex space-x-4">
-          <a href="https://linkedin.com/in/rahulbeniwal26119" class="text-gray-400 hover:text-purple-500 dark:hover:text-purple-400">
-            <span class="sr-only">LinkedIn</span>
-            <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-              <path fill-rule="evenodd" d="M19 0h-14c-2.76 0-5 2.24-5 5v14c0 2.76 2.24 5 
-              5 5h14c2.76 0 5-2.24 5-5v-14c0-2.76-2.24-5-5-5zm-11 19h-3v-10h3v10zm-1.5-11.27c-.966 
-              0-1.75-.786-1.75-1.75s.784-1.75 
-              1.75-1.75 1.75.786 
-              1.75 1.75-.784 1.75-1.75 
-              1.75zm13.5 11.27h-3v-5.604c0-1.337-.024-3.064-1.868-3.064-1.869 
-              0-2.155 1.46-2.155 2.964v5.703h-3v-10h2.882v1.367h.041c.402-.76 
-              1.385-1.56 2.848-1.56 3.046 0 3.614 
-              2.005 3.614 4.617v5.595z" clip-rule="evenodd"/>
-            </svg>
-          </a>
-          <a href="https://github.com/Rahulbeniwal26119" class="text-gray-400 hover:text-purple-500 dark:hover:text-purple-400">
-            <span class="sr-only">GitHub</span>
-            <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-              <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"/>
-            </svg>
-          </a>
+      <div class="col-span-1 md:col-span-4">
+        <div class="bg-white/5 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-200/10 dark:border-gray-700/10">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="p-2 bg-gradient-to-br from-purple-600/10 to-indigo-600/10 dark:from-purple-500/20 dark:to-indigo-500/20 rounded-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+              </svg>
+            </div>
+            <h2 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-400 dark:to-indigo-400">
+              TakoVibe
+            </h2>
+          </div>
+          <p class="text-gray-600 dark:text-gray-400 mb-6 text-sm leading-relaxed">
+            Exploring the depths of software engineering, system design, and technology innovations. Join me on this journey of continuous learning and discovery.
+          </p>
+          <div class="flex items-center gap-4">
+            <a 
+              href="https://linkedin.com/in/rahulbeniwal26119" 
+              class="group flex items-center gap-2 text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 transition-colors duration-200"
+            >
+              <span class="sr-only">LinkedIn</span>
+              <svg class="h-5 w-5 transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M19 0h-14c-2.76 0-5 2.24-5 5v14c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24 5-5v-14c0-2.76-2.24-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.27c-.966 0-1.75-.79-1.75-1.75s.784-1.75 1.75-1.75 1.75.79 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.27h-3v-5.6c0-3.37-4-3.12-4 0v5.6h-3v-11h3v1.76c1.4-2.59 7-2.78 7 2.47v6.77z"/>
+              </svg>
+              <span class="text-sm font-medium">LinkedIn</span>
+            </a>
+            <a 
+              href="https://github.com/Rahulbeniwal26119" 
+              class="group flex items-center gap-2 text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 transition-colors duration-200"
+            >
+              <span class="sr-only">GitHub</span>
+              <svg class="h-5 w-5 transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+              </svg>
+              <span class="text-sm font-medium">GitHub</span>
+            </a>
+          </div>
         </div>
       </div>
 
@@ -50,41 +62,80 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
       </div> -->
 
       <!-- Newsletter Section -->
-      <div>
-        <div id="subscribe-form">
-          <h3 class="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-4">Join the upcoming newsletter</h3>
-          <p class="text-gray-600 dark:text-gray-400 mb-4">Subscribe to our upcoming newsletter to stay updated.</p>
-          <form class="space-y-3">
-            <label for="email-address" class="sr-only">Email address</label>
-            <input
-              id="email-address"
-              name="email"
-              type="email"
-              autocomplete="email"
-              required
-              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-800"
-              placeholder="Enter your email"
-            />
-          <button
-            type="submit" onclick="toggle_newsletter_subscription(event)"
-            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-          >
-            Subscribe
+      <div class="col-span-1 md:col-span-8">
+        <div id="newsletter-wrapper" class="bg-gradient-to-br from-purple-900/10 to-indigo-900/10 dark:from-purple-800/20 dark:to-indigo-800/20 backdrop-blur-sm rounded-xl p-8 border border-purple-200/20 dark:border-purple-700/20 shadow-xl">
+          <div id="subscribe-form">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="p-2 bg-purple-600/10 dark:bg-purple-500/20 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-400 dark:to-indigo-400">Join the Newsletter</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Get weekly insights and tutorials</p>
+              </div>
+            </div>
+            
+            <form class="space-y-4">
+              <label for="email-address" class="sr-only">Email address</label>
+              <div class="flex flex-col sm:flex-row gap-3">
+                <input
+                  id="email-address"
+                  name="email"
+                  type="email"
+                  autocomplete="email"
+                  required
+                  class="flex-1 px-4 py-2.5 bg-white dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all duration-200"
+                  placeholder="Enter your email address"
+                />
+                <button
+                  type="submit" 
+                  onclick="toggle_newsletter_subscription(event)"
+                  class="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all duration-200 font-medium shadow-lg shadow-purple-500/25 hover:shadow-purple-500/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+                >
+                  Subscribe
+                </button>
+              </div>
+            </form>
+          </div>
+          <div id="unsubscribed-message" style="display: none;" class="text-center py-2">
+            <div class="flex items-center justify-center gap-2 text-green-600 dark:text-green-400 mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p class="font-medium">You're subscribed to the newsletter!</p>
+            </div>
+            <button 
+              id="unsubscribe-button" 
+              class="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium hover:underline transition-colors duration-200"
+            >
+              Unsubscribe
             </button>
-          </form>
-        </div>
-        <div id="unsubscribed-message" style="display: none;">
-          <p>You are already subscribed to the newsletter.</p>
-          <button id="unsubscribe-button" class="text-gray-600 dark:text-gray-400 hover:text-purple-500 dark:hover:text-purple-400">Unsubscribe</button>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Bottom Bar -->
-    <div class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-800">
-      <p class="text-center text-gray-400 text-sm">
-        © {currentYear} TakoVibe. All rights reserved.
-      </p>
+    <div class="mt-12 pt-8 border-t border-gray-200/10 dark:border-gray-800/50">
+      <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-2">
+          <div class="h-8 w-8 rounded-full bg-gradient-to-br from-purple-600/20 to-indigo-600/20 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+            </svg>
+          </div>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            © {currentYear} <span class="font-medium bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-400 dark:to-indigo-400">TakoVibe</span>
+          </p>
+        </div>
+        <div class="flex items-center gap-6">
+          <a href="/privacy" class="text-sm text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 transition-colors">Privacy Policy</a>
+          <a href="/terms" class="text-sm text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 transition-colors">Terms of Service</a>
+          <span class="text-sm text-gray-500 dark:text-gray-400">Made with ❤️ in India</span>
+        </div>
+      </div>
     </div>
   </div>
 </footer>

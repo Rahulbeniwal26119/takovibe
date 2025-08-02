@@ -4,31 +4,83 @@ const hostUrl = import.meta.env.PUBLIC_API_URL;
 
 <script is:inline src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-<div class="search-container">
-  <div class="search-wrapper">
-    <svg
-      class="search-icon"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        stroke-width="2"
-        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-    </svg>
-    <input
-      type="text"
-      id="search"
-      placeholder="Search posts..."
-      class="search-input"
-      autocomplete="off"
-    />
+<!-- Search Button -->
+<button 
+  class="search-trigger flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-sm text-gray-600 dark:text-gray-400 transition-all duration-200"
+  aria-label="Open search"
+>
+  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+  </svg>
+  <span class="hidden sm:flex items-center gap-1">
+    Search
+    <span class="flex gap-1 ml-1 text-xs opacity-70">
+      <kbd class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono">/</kbd>
+    </span>
+  </span>
+</button>
+
+<!-- Search Modal -->
+<div class="search-modal fixed inset-0 z-[100] overflow-y-auto bg-gray-900/80 backdrop-blur-sm" aria-labelledby="search-modal" role="dialog" aria-modal="true" style="display: none;">
+    <div class="flex min-h-[8rem] items-start justify-center p-4 mt-14 relative z-[101]">
+    <div class="relative w-full max-w-2xl transform rounded-xl bg-white/95 dark:bg-gray-800/95 shadow-2xl transition-all backdrop-blur-lg border border-gray-200/20 dark:border-gray-700/20">
+      <div class="relative p-4">
+        <div class="search-wrapper relative">
+          <div class="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center">
+            <svg
+              class="w-5 h-5 text-gray-400"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+          <input
+            type="text"
+            id="search"
+            placeholder="Type to search posts..."
+            class="w-full bg-gray-50/50 dark:bg-gray-900/50 rounded-lg border border-gray-200/50 dark:border-gray-700/50 py-3 pl-12 pr-32 text-lg focus:outline-none focus:ring-2 focus:ring-purple-500/50 dark:focus:ring-purple-400/50 placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-all duration-300"
+            autocomplete="off"
+          />
+          <div class="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 text-xs text-gray-400">
+            <kbd class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-md">ESC</kbd>
+            <span>to close</span>
+          </div>
+        </div>
+        <div id="search-results" class="search-results mt-4 space-y-4 max-h-[60vh] overflow-y-auto"></div>
+      </div>
+    </div>
   </div>
-  <div id="search-results" class="search-results"></div>
 </div>
+
+<style is:global>
+  .search-modal {
+    display: none;
+  }
+  
+  .search-results {
+    padding: 1rem;
+    border-top: 1px solid rgba(148, 163, 184, 0.1);
+  }
+
+  .search-result-item {
+    background: rgba(30, 41, 59, 0.4);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+    transition: all 0.2s ease;
+  }
+
+  .search-result-item:hover {
+    transform: translateY(-2px);
+    background: rgba(30, 41, 59, 0.6);
+    border-color: rgba(148, 163, 184, 0.2);
+  }
+</style>
 
 <script define:vars={{ hostUrl }}>
   if (!window.searchInitialized) {
@@ -48,88 +100,89 @@ const hostUrl = import.meta.env.PUBLIC_API_URL;
         }
 
         timeoutId = setTimeout(async () => {
+          // Show loading state
+          $searchResults
+            .html(`
+              <div class="flex items-center justify-center p-8">
+                <div class="animate-spin rounded-full h-8 w-8 border-2 border-purple-500 border-t-transparent"></div>
+              </div>
+            `)
+            .show();
+
           try {
             const response = await fetch(`${hostUrl}/api/blogs/blogs/`);
             const data = await response.json();
             const posts = Array.isArray(data) ? data : data.results || [];
 
-            console.log(posts);
+            const filteredPosts = posts.filter((post) => {
+              console.log('Checking post:', post.title);
+              const searchTermLower = searchTerm.toLowerCase();
+              // Search in title
+              if (post.title.toLowerCase().includes(searchTermLower)) return true;
+              
+              // Search in tags
+              if (post.tags && Array.isArray(post.tags)) {
+                const tagsMatch = post.tags.some(tag => {
+                  // Handle both formats: "\"tag\"" and "tag"
+                  const cleanTag = tag.replace(/['"]+/g, '').toLowerCase();
+                  return cleanTag.includes(searchTermLower);
+                });
+                if (tagsMatch) return true;
+              }
+              
+              // Search in description
+              if (post.description && post.description.toLowerCase().includes(searchTermLower)) return true;
+              
+              return false;
+            });
 
-            const filteredPosts = posts.filter((post) =>
-              post.title.toLowerCase().includes(searchTerm.toLowerCase())
-            );
+
+            console.log("Filtered posts:", filteredPosts);
 
             if (filteredPosts.length) {
-              // if url don't starts with / then append / else just use the url
               const resultsHtml = filteredPosts
                 .map(
                   (post) => {
                     const url = post.uri.startsWith('/') ? post.uri : `/${post.uri}`;
-                  return `
-                  <a href="${url}" style="
-                    text-decoration: none;
-                    display: block;
-                  ">
-                    <div class="search-result-item" style="
-                      padding: 0.75rem;
-                      border-radius: 6px;
-                      transition: background-color 0.2s ease;
-                      margin-bottom: 0.5rem;
-                      background: rgba(30, 41, 59, 0.4);
-                      border: 1px solid rgba(148, 163, 184, 0.1);
-                      cursor: pointer;
-                    ">
-                      <h3 style="
-                        color: #e2e8f0;
-                        font-size: 0.95rem;
-                        font-weight: 500;
-                        margin-bottom: 0.25rem;
-                      ">${highlightMatch(post.title, searchTerm)}</h3>
-                      <p style="
-                        color: #94a3b8;
-                        font-size: 0.875rem;
-                        margin: 0;
-                        line-height: 1.4;
-                      ">${truncateText(post.description || '', 100)}</p>
-                    </div>
-                  </a>
-              `
+                    return `
+                      <div class="search-result-item bg-gray-800/40 rounded-lg p-4 hover:bg-gray-800/60 transition-all">
+                        <a href="${url}" class="block no-underline">
+                          <h3 class="text-white text-lg font-semibold mb-2">
+                            ${highlightMatch(post.title, searchTerm)}
+                          </h3>
+                          <p class="text-gray-300 text-sm mb-3">
+                            ${truncateText(post.description || '', 120)}
+                          </p>
+                          <div class="flex flex-wrap gap-2">
+                            ${post.tags && Array.isArray(post.tags) ? post.tags.map(tag => {
+                              const cleanTag = tag.replace(/['"]+/g, '');
+                              return `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-500/10 text-purple-300 border border-purple-500/20">
+                                ${highlightMatch(cleanTag, searchTerm)}
+                              </span>`;
+                            }).join(''): ''}
+                          </div>
+                        </a>
+                      </div>
+                    `
               }
                 )
                 .join("");
 
               $searchResults
                 .html(resultsHtml)
-                .css({
-                  position: "absolute",
-                  top: "100%",
-                  left: 0,
-                  right: 0,
-                  marginTop: "0.5rem",
-                  maxHeight: "400px",
-                  overflowY: "auto",
-                  background: "rgba(15, 23, 42, 0.95)",
-                  backdropFilter: "blur(8px)",
-                  borderRadius: "8px",
-                  zIndex: 1000,
-                  padding: "0.5rem"
-                })
-                .slideDown(200);
+                .show();
 
             } else {
               $searchResults
-                .html('<p class="no-results">No posts found</p>')
-                .css({
-                  position: 'absolute',
-                  top: '100%',
-                  left: 0,
-                  background: 'transparent',
-                  padding: '0.5rem',
-                  width: 'auto',
-                  textAlign: 'left',
-                  color: '#94a3b8',
-                  fontSize: '0.875rem'
-                })
+                .html(`
+                  <div class="flex flex-col items-center justify-center p-8 text-center">
+                    <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p class="text-gray-400 text-lg mb-2">No matching posts found</p>
+                    <p class="text-gray-500 text-sm">Try searching with different keywords</p>
+                  </div>
+                `)
                 .slideDown(200);
             }
           } catch (error) {
@@ -143,20 +196,48 @@ const hostUrl = import.meta.env.PUBLIC_API_URL;
 
       // Helper functions
       function highlightMatch(text, term) {
-        const regex = new RegExp(`(${term})`, "gi");
-        return text.replace(regex, '<mark style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%); color: #ffffff; padding: 0 0.2em; border-radius: 2px; font-weight: 500;">$1</mark>');
+        if (!term) return text;
+        const regex = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, "gi");
+        return text.replace(regex, '<mark class="bg-purple-500/20 text-purple-200 px-1 rounded">$1</mark>');
       }
 
       function truncateText(text, length) {
         return text.length > length ? text.substring(0, length) + "..." : text;
       }
 
-      // Hide results when clicking outside
-      $(document).on("click", function (event) {
-        if (!$(event.target).closest(".search-container").length) {
-          $searchResults.slideUp(200);
+      // Click handler for search button
+      $(".search-trigger").on("click", function() {
+        openSearchModal();
+      });
+
+      // Keyboard shortcuts to open search
+      $(document).on("keydown", function(event) {
+        // Command/Meta + K or Alt + K or forward slash
+        if ((event.metaKey || event.altKey) && event.key.toLowerCase() === "k" || event.key === "/") {
+          event.preventDefault();
+          openSearchModal();
+        } else if (event.key === "Escape") {
+          closeSearchModal();
         }
       });
+
+      // Close when clicking outside
+      $(".search-modal").on("click", function(event) {
+        if ($(event.target).is(".search-modal")) {
+          closeSearchModal();
+        }
+      });
+
+      function openSearchModal() {
+        $(".search-modal").fadeIn(200);
+        $searchInput.focus();
+      }
+
+      function closeSearchModal() {
+        $(".search-modal").fadeOut(200);
+        $searchInput.val("");
+        $searchResults.empty();
+      }
     });
   }
 </script>
@@ -182,32 +263,74 @@ const hostUrl = import.meta.env.PUBLIC_API_URL;
   }
 
   .search-input {
-    background: rgba(30, 41, 59, 0.5);
-    border: none;
-    border-radius: 6px;
-    color: #e2e8f0;
-    font-size: 0.875rem;
-    padding: 0.5rem 0.75rem 0.5rem 2rem;
-    width: 200px;
+    font-family: 'Space Grotesk', sans-serif;
+    color: #1a1a1a;
+    font-size: 1.25rem;
     transition: all 0.3s ease;
+    width: 100%;
   }
 
-  .search-input:focus {
-    outline: none;
-    background: rgba(30, 41, 59, 0.7);
-    width: 300px;
+  .search-input::placeholder {
+    opacity: 0.5;
   }
 
   .no-results {
     color: #94a3b8;
     font-size: 0.875rem;
-    padding: 0.5rem;
-    margin: 0;
-    white-space: nowrap;
+    padding: 1rem;
+    text-align: center;
+    border: 1px dashed rgba(148, 163, 184, 0.2);
+    border-radius: 0.5rem;
+    margin: 1rem 0;
   }
 
   .search-results {
-    width: auto;
-    margin: 0;
+    max-height: 60vh;
+    overflow-y: auto;
+    margin: 1rem -1.5rem -1.5rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid rgba(148, 163, 184, 0.1);
+  }
+
+  .search-results::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .search-results::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .search-results::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.2);
+    border-radius: 4px;
+  }
+
+  .search-results::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.3);
+  }
+
+  .search-result-item {
+    transition: all 0.2s ease;
+  }
+
+  .search-result-item:hover {
+    transform: translateY(-2px);
+    background: rgba(30, 41, 59, 0.6) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .search-modal {
+    animation: fadeIn 0.2s ease-out;
   }
 </style>
