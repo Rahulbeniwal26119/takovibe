@@ -1,0 +1,249 @@
+---
+layout: ../../layouts/BlogPost.astro
+title: "Python's itertools for Iterators Explained with Practical Examples"
+date: "2025-08-03"
+author: "Rahul Beniwal"
+description: "Master Python's itertools module with practical examples to handle complex iterator operations effortlessly. Learn chaining, tee, zip_longest, accumulate, product, permutations, and more."
+image: "https://miro.medium.com/v2/resize:fit:1100/format:webp/1*qeyYdhK8xl6q-DNgR9-7JQ.png"
+readingTime: "5 min read"
+tags: ["python", "itertools", "iterators", "python-tutorial", "developer-tools", "generators", "advanced-python"]
+type: "article"
+canonical: "https://takovibe.com/blog/python-itertools-iterators"
+---
+
+Iterator protocol decided how python deals with collections. Iterators can be seen in almost every place in language either in for loop or in expansion of generators.
+
+![Zoom image will be displayed](https://miro.medium.com/v2/resize:fit:1100/format:webp/1*qeyYdhK8xl6q-DNgR9-7JQ.png)
+
+## Simple Iterator Example
+
+```python
+import math
+class SimpleContainer:
+    def __init__(self, *range):
+        if not range:
+            raise Exception("At length one argument must be provided.")
+        if len(range) == 1:
+            self._start = 0
+            self._end = range[0]
+            self._step = 1
+        elif len(range) == 2:
+            self._start, self._end = range
+            self._step = 1
+        elif len(range) == 3:
+            self._start, self._end, self._step = range
+        else:
+            raise ValueError("Atmost 3 arguments are expected.")
+
+        self.length = math.ceil((self._end - self._start) / self._step)
+
+    def __next__(self):
+        if self.start >= self.end:
+            raise StopIteration
+        else:
+            self.start += self.step
+            return self.start - self.step
+
+    def __iter__(self):
+        self.start = self._start
+        self.end = self._end
+        self.step = self._step
+        return self
+
+    def __len__(self):
+        return self.length
+
+    def __list__(self):
+        for i in self:
+            yield i
+
+l = SimpleContainer(5, 15, 3)
+for i in l:
+    print(i, end=" ")
+print()
+print("length -> ", len(l))
+```
+
+```
+5 8 11 14 
+length ->  4
+```
+
+This small example shows working of iterator protocol. (Ignore the naming 😆)
+
+## Helpful itertools methods for handling Iterators.
+
+```python
+import itertools
+```
+
+### chain
+
+Chain is used to combine multiple sequential iterator into one iterator.
+
+```python
+res = list(itertools.chain(SimpleContainer(5, 15, 3), SimpleContainer(15, 30, 3)))
+print(list(res))
+```
+```
+[5, 8, 11, 14, 15, 18, 21, 24, 27]
+```
+
+### repeat
+
+```python
+it = itertools.repeat('hello', 3)
+print(list(it))
+```
+```
+['hello', 'hello', 'hello']
+```
+
+### cycle
+
+```python
+it = itertools.cycle(SimpleContainer(1, 5))
+for _ in range(10):
+    print(next(it), end=" ")
+```
+```
+1 2 3 4 1 2 3 4 1 2
+```
+
+### tee
+
+```python
+it1, it2, it3 = itertools.tee(SimpleContainer(1, 5), 3)
+for element in itertools.chain(it1, it2, it3):
+    print(element, end=" ")
+```
+```
+1 2 3 4 1 2 3 4 1 2 3 4
+```
+
+### zip_longest
+
+```python
+combined_iter = itertools.zip_longest(SimpleContainer(1, 5), SimpleContainer(3, 30, 6))
+for elements in combined_iter:
+    print(elements, end=" ")
+```
+```
+(1, 3) (2, 9) (3, 15) (4, 21) (None, 27)
+```
+
+### islice
+
+```python
+values = [1,2,3,5,5,6]
+starting_3 = itertools.islice(values, 3)
+odds = itertools.islice(values,1, None, 2)
+evens = itertools.islice(values, 0, None, 2)
+print(list(starting_3))
+print(list(odds))
+print(list(evens))
+```
+```
+[1, 2, 3]
+[2, 5, 6]
+[1, 3, 5]
+```
+
+### takewhile
+
+```python
+items = [1, 2, 3, 4, 0, -1, -2, 10]
+less_than_3 = lambda x: x < 3
+it = itertools.takewhile(less_than_3, items)
+print(list(it))
+```
+```
+[1, 2]
+```
+
+### dropwhile
+
+```python
+items = [1, 2, 3, 4, 0, -1, -2, 10]
+less_than_3 = lambda x: x < 3
+it = itertools.dropwhile(less_than_3, items)
+print(list(it))
+```
+```
+[3, 4, 0, -1, -2, 10]
+```
+
+### filterfalse
+
+```python
+items = [1, 2, 3, 4, 0, -1, -2, 10]
+less_than_3 = lambda x: x < 3
+it = filter(less_than_3, items)
+it2 = itertools.filterfalse(less_than_3, items)
+
+print(list(it))
+print(list(it2))
+```
+```
+[1, 2, 0, -1, -2]
+[3, 4, 10]
+```
+
+### accumulate
+
+```python
+items = SimpleContainer(1, 20, 4)
+sum_reduce = lambda x, y: (x + y) % 20
+result = itertools.accumulate(items, sum_reduce)
+print(list(result)) 
+```
+```
+[1, 6, 15, 8, 5]
+```
+
+### product
+
+```python
+items = SimpleContainer(1, 3)
+alpha = ["a", "b", "c", "d"]
+single = itertools.product(items, repeat=2)
+print(list(single))
+multiple = itertools.product(items, alpha)
+print(list(multiple))
+```
+```
+[(1, 1), (1, 2), (2, 1), (2, 2)]
+[(1, 'a'), (1, 'b'), (1, 'c'), (1, 'd'), (2, 'a'), (2, 'b'), (2, 'c'), (2, 'd')]
+```
+
+### permutations
+
+```python
+it = itertools.permutations([1,2,3], 2)
+print(list(it))
+```
+```
+[(1, 2), (1, 3), (2, 1), (2, 3), (3, 1), (3, 2)]
+```
+
+### combinations
+
+```python
+it = itertools.combinations([1,2,3], 2)
+print(list(it))
+```
+```
+[(1, 2), (1, 3), (2, 3)]
+```
+
+### combinations_with_replacement
+
+```python
+it = itertools.combinations_with_replacement([1,2,3], 2)
+print(list(it))
+```
+```
+[(1, 1), (1, 2), (1, 3), (2, 2), (2, 3), (3, 3)]
+```
+
+Drop a clap if you found this helpful 👏

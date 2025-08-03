@@ -1,0 +1,164 @@
+---
+layout: ../../layouts/BlogPost.astro
+title: "Why We Need 'super' in Python"
+date: "2025-08-03"
+author: "Rahul Beniwal"
+description: "Understand the importance of Python's super() function in inheritance, diamond problem resolution, and Method Resolution Order (MRO)."
+image: "/public/super_in_python.png"
+readingTime: "3 min read"
+tags: ["python", "super", "inheritance", "OOP", "method-resolution-order", "diamond-problem", "python-tips"]
+type: "article"
+canonical: "https://takovibe.com/blog/why-super-in-python"
+---
+
+Python is an OOP supported language. Let’s discuss some problems with examples regarding inheritance without super.
+
+## Useless BaseClass position during initialization.
+
+```python
+class BaseClassA:
+    def __init__(self, value1):
+        self.value1 = value1
+
+class BaseClassB:
+    def __init__(self, value2):
+        self.value2 = value2
+
+class TimeSeven(BaseClassA):
+    def __init__(self, value1):
+        BaseClassA.__init__(self, value1)
+        self.value1 *= 7
+
+class PlusFive(BaseClassB):
+    def __init__(self, value2):
+        BaseClassB.__init__(self, value2)
+        self.value2 += 5
+
+class OneWay(PlusFive, TimeSeven):
+    def __init__(self, value1, value2):
+        TimeSeven.__init__(self, value1)
+        PlusFive.__init__(self, value2)
+        print(self.value1, self.value2)
+
+OneWay(100, 200)
+# Output: 700 205
+```
+
+Changing base class order has no effect on initialization order:
+
+```python
+class OneWay(TimeSeven, PlusFive):
+    def __init__(self, value1, value2):
+        TimeSeven.__init__(self, value1)
+        PlusFive.__init__(self, value2)
+        print(self.value1, self.value2)
+
+OneWay(100, 200)
+# Output: 700 205
+```
+
+## Diamond Inheritance Problem
+
+![Diamond Inheritance](https://miro.medium.com/v2/resize:fit:1100/format:webp/1*tGQ4lEJLSyINQe3siWAsgQ.png)
+
+```python
+class BaseClass:
+    def __init__(self, value):
+        self.value = value
+
+class TimeSeven(BaseClass):
+    def __init__(self, value):
+        BaseClass.__init__(self, value)
+        self.value *= 7
+
+class PlusFive(BaseClass):
+    def __init__(self, value):
+        BaseClass.__init__(self, value)
+        self.value += 5
+
+class OneWay(TimeSeven, PlusFive):
+    def __init__(self, value):
+        TimeSeven.__init__(self, value)
+        PlusFive.__init__(self, value)
+
+obj = OneWay(100)
+print(obj.value)
+# Output: 105
+```
+
+Changing init order:
+
+```python
+class OneWay(TimeSeven, PlusFive):
+    def __init__(self, value):
+        PlusFive.__init__(self, value)
+        TimeSeven.__init__(self, value)
+
+obj = OneWay(100)
+print(obj.value)
+# Output: 700
+```
+
+## Using super()
+
+```python
+class BaseClass:
+    def __init__(self, value):
+        self.value = value
+
+class TimeSeven(BaseClass):
+    def __init__(self, value):
+        super().__init__(value)
+        self.value *= 7
+
+class PlusFive(BaseClass):
+    def __init__(self, value):
+        super().__init__(value)
+        self.value += 5
+
+class OneWay(TimeSeven, PlusFive):
+    def __init__(self, value):
+        super().__init__(value)
+
+print(OneWay(100).value)
+print("MRO -> ", OneWay.mro())
+# Output: 735
+# MRO -> [<class '__main__.OneWay'>, <class '__main__.TimeSeven'>, <class '__main__.PlusFive'>, <class '__main__.BaseClass'>, <class 'object'>]
+```
+
+Changing base class order affects result:
+
+```python
+class OneWay(PlusFive, TimeSeven):
+    def __init__(self, value):
+        super().__init__(value)
+
+print(OneWay(100).value)
+print("MRO -> ", OneWay.mro())
+# Output: 705
+# MRO -> [<class '__main__.OneWay'>, <class '__main__.PlusFive'>, <class '__main__.TimeSeven'>, <class '__main__.BaseClass'>, <class 'object'>]
+```
+
+## Using super() with arguments
+
+```python
+class OneWay(PlusFive, TimeSeven):
+    def __init__(self, value):
+        super(PlusFive, self).__init__(value)
+
+print(OneWay(100).value)
+# Output: 700
+
+class OneWay(PlusFive, TimeSeven):
+    def __init__(self, value):
+        super(TimeSeven, self).__init__(value)
+
+print(OneWay(100).value)
+# Output: 100
+```
+
+Changing superclass position impacts output.
+
+Hope you found it helpful and suggestions are highly respected to improve this article.
+
+Leave a 👏 if super is not that “super” for you.
