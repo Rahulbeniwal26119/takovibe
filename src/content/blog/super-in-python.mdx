@@ -1,19 +1,27 @@
 ---
 layout: ../../layouts/BlogPost.astro
-title: "Why We Need 'super' in Python"
+title: "Why We Need `super()` in Python (and How to Use It Like a Pro)"
 date: "2025-08-03"
 author: "Rahul Beniwal"
-description: "Understand the importance of Python's super() function in inheritance, diamond problem resolution, and Method Resolution Order (MRO)."
+description: "Learn why Python’s built-in super() function is essential for clean, maintainable multiple-inheritance code. We’ll tackle the diamond-inheritance problem, explore Method Resolution Order (MRO), and see battle-tested patterns you can copy-paste today."
 image: "/public/super_in_python.png"
 readingTime: "3 min read"
-tags: ["python", "super", "inheritance", "OOP", "method-resolution-order", "diamond-problem", "python-tips"]
-type: "article"
-canonical: "https://takovibe.com/blog/why-super-in-python"
+tags: ["python", "super", "inheritance", "OOP", "method-resolution-order", "diamond-problem", "python-tips", "python-mro"]
+canonical: "https://takovibe.com/blog/super-in-python"
+keywords: ["python super function", "python super tutorial", "method resolution order", "python diamond inheritance", "multiple inheritance in python"]
 ---
 
-Python is an OOP supported language. Let’s discuss some problems with examples regarding inheritance without super.
+> **TL;DR** `super()` is the *safest* way to call parent classes in Python. It respects the *Method Resolution Order* (MRO) so each base class is initialised **once**—even in complex diamond-inheritance hierarchies.
 
-## Useless BaseClass position during initialization.
+Python fully embraces object-oriented programming (OOP), but multiple inheritance can quickly become a minefield. If you’ve ever copy-pasted `BaseClass.__init__(self)` calls or wrestled with unpredictable initialisation order, this post is for you.
+
+Below we’ll diagnose the most common pitfalls *without* `super()`, then solve them cleanly *with* it—no magic, just MRO.
+
+---
+
+## 1. Useless `BaseClass` position during initialisation
+
+Without `super()`, manually calling a parent’s `__init__` locks you into a fragile, hard-coded order.
 
 ```python
 class BaseClassA:
@@ -44,7 +52,7 @@ OneWay(100, 200)
 # Output: 700 205
 ```
 
-Changing base class order has no effect on initialization order:
+Changing the base-class order **doesn’t** change the initialisation order (because you hard-coded it):
 
 ```python
 class OneWay(TimeSeven, PlusFive):
@@ -57,9 +65,11 @@ OneWay(100, 200)
 # Output: 700 205
 ```
 
-## Diamond Inheritance Problem
+---
 
-![Diamond Inheritance](https://miro.medium.com/v2/resize:fit:1100/format:webp/1*tGQ4lEJLSyINQe3siWAsgQ.png)
+## 2. The diamond-inheritance nightmare
+
+![Python diamond inheritance diagram](https://miro.medium.com/v2/resize:fit:1100/format:webp/1*tGQ4lEJLSyINQe3siWAsgQ.png "Diagram of the diamond problem in Python multiple inheritance")
 
 ```python
 class BaseClass:
@@ -86,7 +96,7 @@ print(obj.value)
 # Output: 105
 ```
 
-Changing init order:
+Switching the order flips the behaviour:
 
 ```python
 class OneWay(TimeSeven, PlusFive):
@@ -99,7 +109,11 @@ print(obj.value)
 # Output: 700
 ```
 
-## Using super()
+Two bugs for the price of one! Let’s fix this mess.
+
+---
+
+## 3. Enter `super()` + MRO (C3 linearisation)
 
 ```python
 class BaseClass:
@@ -126,7 +140,7 @@ print("MRO -> ", OneWay.mro())
 # MRO -> [<class '__main__.OneWay'>, <class '__main__.TimeSeven'>, <class '__main__.PlusFive'>, <class '__main__.BaseClass'>, <class 'object'>]
 ```
 
-Changing base class order affects result:
+Change the base-class order and the result updates safely:
 
 ```python
 class OneWay(PlusFive, TimeSeven):
@@ -139,7 +153,7 @@ print("MRO -> ", OneWay.mro())
 # MRO -> [<class '__main__.OneWay'>, <class '__main__.PlusFive'>, <class '__main__.TimeSeven'>, <class '__main__.BaseClass'>, <class 'object'>]
 ```
 
-## Using super() with arguments
+### Using `super()` with arguments
 
 ```python
 class OneWay(PlusFive, TimeSeven):
@@ -157,8 +171,46 @@ print(OneWay(100).value)
 # Output: 100
 ```
 
-Changing superclass position impacts output.
+Changing the *starting* superclass changes where MRO kicks off, hence different totals.
 
-Hope you found it helpful and suggestions are highly respected to improve this article.
+---
 
-Leave a 👏 if super is not that “super” for you.
+## Key takeaways
+
+- **Always** prefer `super()` in hierarchy-aware classes; it’s future-proof and DRY.
+- Python’s **C3 linearisation** guarantees every parent runs only once in a predictable order.
+- Avoid manually hard-coding `Parent.__init__` calls unless you *really* need fine-grained control (and you most likely don’t).
+
+---
+
+## Frequently Asked Questions (FAQs)
+
+### 1. What does `super()` actually return?
+
+`super()` returns a *proxy object* that routes method calls to the next class in the MRO, starting just after the current class. That’s why you can call `super().__init__()` without naming the parent explicitly.
+
+### 2. Can I use `super()` outside `__init__`?
+
+Absolutely. Any instance method—`__str__`, `save`, `close`, etc.—can delegate work upstream with `super().method()`.
+
+### 3. When should I avoid `super()`?
+
+If your class hierarchy is *single* inheritance (only one direct parent) and you’re positive it will never change, manually calling the parent may be fine. Otherwise, default to `super()`.
+
+### 4. How do keyword arguments flow through `super()`?
+
+Design your `__init__` signatures to accept `*args` and `**kwargs`, then pass them along via `super().__init__(*args, **kwargs)`. Each class pops what it needs, leaving the rest for upstream classes.
+
+### 5. Why does `super()` sometimes raise `TypeError: super(type, obj): obj must be an instance or subtype of type`?
+
+This happens when you call `super(Class, instance)` but `instance` isn’t actually an instance (or subclass) of `Class`. Double-check you’re passing the right object.
+
+### 6. Is `super()` slower than direct parent calls?
+
+Negligibly. The clarity and safety you gain far outweigh the microseconds lost. Premature optimisation is the real performance killer here.
+
+---
+
+---
+
+*Thanks for reading!* If `super()` still seems anything but super, drop your questions below—or hit the 👏 to show some love.

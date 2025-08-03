@@ -1,0 +1,201 @@
+---
+layout: ../../layouts/BlogPost.astro
+title: "NamedTuple vs dataclass in Python — Which Code Generator Should You Use?"
+date: "2025-08-03"
+author: "Rahul Beniwal"
+description: "Deep‑dive into Python’s built‑in code generators: typing.NamedTuple and dataclasses.dataclass. Learn their differences, performance trade‑offs, and advanced tweaks to write clean, maintainable code."
+image: "https://miro.medium.com/v2/resize:fit:1100/format:webp/1*EfEuN709Bkv3mt6KEGbXlA.png"
+readingTime: "5 min read"
+tags: ["python", "dataclass", "namedtuple", "code-generation", "software-development", "clean-code", "typing", "immutability"]
+type: "article"
+canonical: "https://takovibe.com/blog/python-code-generators"
+keywords: ["python dataclass tutorial", "namedtuple vs dataclass", "python code generator", "compare dataclass and namedtuple", "immutable data structures python"]
+---
+
+> **TL;DR** `typing.NamedTuple` gives you a **lightweight, immutable, iterable** record (implemented in C). `@dataclass` gives you a **mutable, flexible** object with rich options (pure Python). Choose the one that matches your data’s mutability and hashing needs—no more boilerplate constructors or `__repr__`.
+
+---
+
+## 1 · Why bother with code generators?
+
+Hand‑rolling a value object:
+
+```python
+class Point:
+    def __init__(self, x: int, y: int):
+        self.x, self.y = x, y
+
+    def __repr__(self):
+        return f"Point(x={self.x}, y={self.y})"
+
+    def __eq__(self, other):
+        return isinstance(other, Point) and (self.x, self.y) == (other.x, other.y)
+```
+
+is verbose. NamedTuple and dataclass create all that plumbing **for you**.
+
+---
+
+## 2 · One class, three styles
+
+```python
+# 2.1 Classic class (baseline) ← lots of boilerplate
+
+# 2.2 NamedTuple  – immutable & iterable
+from typing import NamedTuple
+class PointNT(NamedTuple):
+    x: int
+    y: int
+
+# 2.3 dataclass – mutable & feature‑rich
+from dataclasses import dataclass
+@dataclass
+class PointDC:
+    x: int
+    y: int
+```
+
+---
+
+## 3 · What you get for free
+
+### 3.1 NamedTuple APIs
+
+| Method | Purpose | Example |
+|--------|---------|---------|
+| `_asdict()` | Convert to `dict` | `PointNT(1,2)._asdict()` → `{'x':1,'y':2}` |
+| `_replace(**kw)` | Return new instance | `p._replace(x=99)` |
+| `tuple(p)` | Iteration / unpacking | `x, y = PointNT(1,2)` |
+
+### 3.2 dataclass helper functions
+
+| Function | Purpose | Example |
+|----------|---------|---------|
+| `asdict(obj)` | Object → dict | `asdict(PointDC(1,2))` |
+| `astuple(obj)`| Object → tuple | `astuple(obj)` |
+| `replace(obj, **kw)`| Copy w/ changes | `replace(p, y=42)` |
+| `fields(obj)`/`obj.__annotations__` | Introspection | data modelling / validation |
+
+---
+
+## 4 · Key differences
+
+| Feature | NamedTuple | dataclass (default) |
+|---------|------------|---------------------|
+| Mutability | **Immutable** | Mutable |
+| Hashable | ✅ (always) | ❌ (unless `frozen=True`) |
+| Ordering | Tuple semantics | Off by default (`order=True`) |
+| Iterable / unpackable | ✅ | ❌ |
+| Speed | Faster (C) | Slightly slower (Python) |
+| Extensibility | Limited (no methods) | Full OOP—inheritance, methods, mixins |
+
+---
+
+## 5 · Advanced dataclass tweaks
+
+### 5.1 Sorting & comparisons
+
+```python
+from dataclasses import dataclass
+@dataclass(order=True)
+class Point:
+    x: int
+    y: int = 10
+
+print(sorted([Point(1,2), Point(-1,2)]))
+```
+
+```text
+[Point(x=-1, y=2), Point(x=1, y=2)]
+```
+
+### 5.2 Immutability + hashing
+
+```python
+from dataclasses import dataclass, replace
+@dataclass(frozen=True, order=True)
+class Point:
+    x: int
+    y: int = 10
+
+p1 = Point(1,2)
+# p1.x = 99  →  raises FrozenInstanceError
+p2 = replace(p1, x=3)   # functional update
+hash(p1)                 # now hashable
+```
+
+### 5.3 Fine‑grained control with `field`
+
+```python
+from dataclasses import dataclass, field
+from datetime import datetime
+
+@dataclass(unsafe_hash=True)
+class Employee:
+    emp_id: int
+    name: str
+    salary: int = field(repr=False, hash=False, metadata={'units':'USD'})
+    viewed_by: list = field(default_factory=list, repr=False, compare=False)
+
+    def access(self, user):            # mutate safely
+        self.viewed_by.append((user, datetime.now()))
+```
+
+---
+
+## 6 · Dataclass + inheritance via `__post_init__`
+
+```python
+from dataclasses import dataclass, asdict
+import json
+
+class JSONMixin:
+    def to_json(self):
+        return json.dumps(asdict(self))
+
+@dataclass
+class Point(JSONMixin):
+    x: int
+    y: int
+```
+
+```python
+print(Point(3,4).to_json())
+# {"x": 3, "y": 4}
+```
+
+---
+
+## 7 · When to choose which?
+
+- **Use NamedTuple** when you need **immutable, lightweight** records: configuration constants, fixed coordinate pairs, read‑only message payloads.
+- **Use dataclass** when you need **mutability or extra behaviour**: domain models, business logic objects, ORM‑like records.
+- Convert a dataclass into a near‑NamedTuple with `@dataclass(frozen=True, slots=True)` (Python 3.10+).
+
+---
+
+## 8 · FAQs
+
+<details>
+<summary><strong>Is <code>slots=True</code> faster than a NamedTuple?</strong></summary>
+`slots=True` removes `__dict__`, reducing memory, but NamedTuple is still marginally faster because it’s implemented in C.
+</details>
+
+<details>
+<summary><strong>Can a dataclass be unpacked like a tuple?</strong></summary>
+Not by default, but you can write `x, y = astuple(dc_instance)` or set `__iter__` manually.
+</details>
+
+<details>
+<summary><strong>Do NamedTuple instances support methods?</strong></summary>
+Yes, you can define methods **after** the field declarations, but mutating state inside them defeats the purpose of immutability.
+</details>
+
+<details>
+<summary><strong>How do I make a dataclass JSON‑serialisable?</strong></summary>
+Call `asdict()` then `json.dumps()`, or mix in a helper like the `JSONMixin` above.
+</details>
+
+---
+
+*Learned something new? Give the post a 👏 and share it with your Python pals!*

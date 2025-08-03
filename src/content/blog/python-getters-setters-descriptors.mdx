@@ -1,0 +1,290 @@
+---
+layout: ../../layouts/BlogPost.astro
+title: "Getters & Setters vs @property vs Descriptors in Python (When to Use What)"
+date: "2025-08-03"
+author: "Rahul Beniwal"
+description: "Understand the real differences between classic getters/setters, the @property decorator, and the full descriptor protocol. Includes copy‑paste recipes, advanced patterns, and performance notes."
+image: "https://miro.medium.com/v2/resize:fit:1100/format:webp/1*Ie3dsoFcLQ9pzBHs5Eq5zw.png"
+readingTime: "5 min read"
+tags: ["python", "getters", "setters", "property", "descriptors", "oop", "encapsulation", "python-advanced"]
+type: "article"
+canonical: "https://takovibe.com/blog/python-getters-setters-descriptors"
+keywords: ["python getters and setters", "python @property tutorial", "python descriptor protocol", "encapsulation in python", "private attributes python"]
+---
+
+> **TL;DR** In Python, you rarely need Java‑style *explicit* getters/setters. Reach for **`@property`** in 95 % of cases; break out **descriptors** only when you need reusable, declarative validation or per‑attribute logic across many classes.
+
+---
+
+## 1 · “Private” attributes in Python?
+
+Python has no *true* privacy—name‑mangling (`__var`) is only a hint. Coming from C++/Java, you might write explicit getters and setters:
+
+```python
+from collections import defaultdict
+
+class StudentRecord:
+    __percentage_dict = defaultdict(int)       # “private” class‑level storage
+
+    def __init__(self, name, number):
+        self.name = name
+        self.number = number
+    
+    def get_percentage(self):
+        return self.__percentage_dict[self.number]
+
+    def set_percentage(self, percentage):
+        if not isinstance(percentage, (int, float)):
+            raise ValueError("Percentage should be a real positive number")
+        if not (0 <= percentage <= 100):
+            raise ValueError("Percentage should be between 0 and 100")
+        self.__percentage_dict[self.number] = percentage
+
+
+s1 = StudentRecord("Student1", 1)
+s1.set_percentage(90)
+print(s1.get_percentage())
+```
+
+```text
+90
+```
+
+### In‑place update gets clunky
+
+```python
+s1.set_percentage(s1.get_percentage() - 1)   # ☹️ noisy
+```
+
+### Bypassing “private”
+
+```python
+print(StudentRecord.__percentage_dict)
+```
+
+```text
+AttributeError: type object 'StudentRecord' has no attribute '__percentage_dict'
+```
+
+But you *can* access it:
+
+```python
+secret = getattr(StudentRecord,
+                 f"_{StudentRecord.__name__}__percentage_dict")
+print(secret is StudentRecord._StudentRecord__percentage_dict)
+```
+
+---
+
+## 2 · `@property` — Pythonic encapsulation
+
+```python
+from collections import defaultdict
+
+class StudentRecord:
+    __percentage_dict = defaultdict(int)
+
+    def __init__(self, name, number):
+        self.name   = name
+        self.number = number
+    
+    @property
+    def percentage(self):
+        return self.__percentage_dict[self.number]
+
+    @percentage.setter
+    def percentage(self, value):
+        if not isinstance(value, (int, float)):
+            raise ValueError("Percentage should be a real positive number")
+        if not (0 <= value <= 100):
+            raise ValueError("Percentage should be between 0 and 100")
+        self.__percentage_dict[self.number] = value
+    
+    @percentage.deleter
+    def percentage(self):
+        del self.__percentage_dict[self.number]
+
+s1 = StudentRecord("Student1", 1)
+s1.percentage = 90      # setter
+s1.percentage -= 1      # in‑place works
+print(s1.percentage)    # getter → 89
+
+del s1.percentage
+print(s1.percentage)    # 0 (default)
+```
+
+```text
+89
+0
+```
+
+### Immutable (read‑only) attributes with `@property`
+
+```python
+class StudentRecord:
+    __percentage_dict = defaultdict(int)
+
+    def __init__(self, name, number):
+        self.name      = name
+        self.__number  = number   # “private”
+
+    # percentage same as above …
+
+    @property
+    def number(self):
+        return self.__number
+
+    @number.setter
+    def number(self, _):
+        raise AttributeError("Can't set attribute")
+
+s1 = StudentRecord("Student1", 1)
+s1.number = 10
+```
+
+```text
+AttributeError: Can't set attribute
+```
+
+`@property` shines for single‑class, single‑field needs—but becomes repetitive for many similar fields.
+
+---
+
+## 3 · Descriptor protocol (power‑user feature)
+
+A **descriptor** is any object implementing one or more of:
+
+```python
+def __get__(self, instance, owner): ...
+def __set__(self, instance, value): ...
+def __delete__(self, instance): ...        # optional
+```
+
+Descriptors let you write reusable validators once and attach them to many classes.
+
+### 3.1 Reusable percentage validator (with `WeakKeyDictionary`)
+
+```python
+from weakref import WeakKeyDictionary
+class Percentage:
+    def __init__(self):
+        self._data = WeakKeyDictionary()
+
+    def __get__(self, instance, owner):
+        return self._data.get(instance, 0)
+
+    def __set__(self, instance, value):
+        if not isinstance(value, (int, float)):
+            raise ValueError("Percentage should be a real positive number")
+        if not (0 <= value <= 100):
+            raise ValueError("Percentage should be between 0 and 100")
+        self._data[instance] = value
+```
+
+A *write‑once* constant descriptor:
+
+```python
+class Constant:
+    def __init__(self):
+        self._vals = WeakKeyDictionary()
+
+    def __get__(self, obj, owner):
+        return self._vals.get(obj)
+
+    def __set__(self, obj, value):
+        if obj in self._vals:
+            raise AttributeError("Can't reset constant") 
+        self._vals[obj] = value
+```
+
+Use them:
+
+```python
+class StudentRecord:
+    english = Percentage()
+    math    = Percentage()
+    physics = Percentage()
+    number  = Constant()
+
+    def __init__(self, name, number):
+        self.name  = name
+        self.number = number   # first‑set is allowed
+
+s1 = StudentRecord("Student1", 10)
+s2 = StudentRecord("Student2", 20)
+
+s1.physics = 100
+s2.physics =  99
+s1.math    = 100
+s2.math    =  98
+s1.math   -= 10
+
+print(s1.math, s2.math)
+```
+
+```text
+90 98
+```
+
+### 3.2 Without `WeakKeyDictionary` (pitfall)
+
+```python
+class PercentageNaive:
+    def __init__(self):
+        self._value = 0
+
+    def __get__(self, inst, owner):  return self._value
+    def __set__(self, inst, val):    self._value = val
+
+class Student:
+    physics = PercentageNaive()
+
+s1, s2 = Student(), Student()
+s1.physics = 98
+s2.physics = 99
+print(s1.physics, s2.physics)
+```
+
+```text
+99 99    # shared state ⇒ BUG!
+```
+
+`WeakKeyDictionary` keeps *per‑instance* storage **and** auto‑removes garbage‑collected keys—no leaks.
+
+---
+
+## 4 · Key takeaways
+
+| Technique      | When to use                               | Boilerplate | Reusability |
+|----------------|-------------------------------------------|-------------|-------------|
+| Getters/Setters| Rarely — mostly legacy / interop          | High        | Low         |
+| `@property`    | Most day‑to‑day encapsulation needs       | Low         | Medium      |
+| Descriptor     | Many fields share the same rules / caching| Medium‑High | **High**    |
+
+---
+
+## 5 · FAQs
+
+<details>
+<summary><strong>What problem do descriptors solve that <code>@property</code> can’t?</strong></summary>
+Descriptors let you reuse the **same validation logic** across many attributes or classes without copy‑pasting property boilerplate.
+</details>
+
+<details>
+<summary><strong>Are descriptors faster than <code>@property</code>?</strong></summary>
+Both are implemented in C and incur similar overhead; choose based on **design clarity**, not micro‑benchmarks.
+</details>
+
+<details>
+<summary><strong>When should I still write explicit getters and setters?</strong></summary>
+Almost never—only when you need Java‑style naming conventions for public APIs (“get_value”, “set_value”).
+</details>
+
+<details>
+<summary><strong>Why use <code>WeakKeyDictionary</code>?</strong></summary>
+To store per‑instance data **without** preventing garbage collection, avoiding memory leaks.
+</details>
+
+---
+
+*Found this breakdown useful? Drop a 👏 to spread the knowledge!*

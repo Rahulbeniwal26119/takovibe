@@ -1,0 +1,220 @@
+---
+layout: ../../layouts/BlogPost.astro
+title: "Context Managers in Python Explained: __enter__, __exit__, contextlib & async"
+date: "2025-08-03"
+author: "Rahul Beniwal"
+description: "Learn how Python's context managers work under the hood using __enter__, __exit__, contextlib decorators, and asynchronous context managers—packed with practical examples."
+image: "https://miro.medium.com/v2/resize:fit:1100/format:webp/1*JvyUByPW_oRhdAd0MhWgaA.png"
+readingTime: "5 min read"
+tags: ["python", "context-manager", "with-statement", "__enter__", "__exit__", "contextlib", "async-await", "clean-code"]
+type: "article"
+canonical: "https://takovibe.com/blog/context-managers-python"
+keywords: ["python context manager tutorial", "with statement python", "__enter__ __exit__ explained", "contextlib.contextmanager", "async context manager python"]
+---
+
+> **TL;DR** `with` just calls `obj.__enter__()` at the start and `obj.__exit__()` at the end—no magic beyond that. Use context managers to *guarantee* cleanup, transactions, timing, locking, and more.
+
+---
+
+## 1 · Why context managers?
+
+- **Concise**: Replace verbose `try … finally` blocks.  
+- **Safety**: Cleanup (file close, DB rollback) happens even on exceptions.  
+- **Reusability**: Wrap any resource in one object.
+
+---
+
+## 2 · Files: `with` vs `try/finally`
+
+```python
+with open('data.txt', 'w') as f:
+    f.write('Hello World')
+```
+
+is equivalent to:
+
+```python
+f = open('data.txt', 'w')
+try:
+    f.write('Hello World')
+finally:
+    f.close()
+```
+
+Both write “Hello World” then close the file, but the first is shorter and exception‑safe.
+
+---
+
+## 3 · Build your own: timing logger
+
+```python
+import time
+
+class LogTime:
+    def __init__(self, name=None):
+        self.name = name
+
+    def __enter__(self):
+        self.start = time.time()        # setup
+        return self                     # optional
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.delta = time.time() - self.start
+        label = self.name or "block"
+        print(f"{label} took {self.delta:.6f}s")  # teardown
+
+with LogTime("sleep1"):
+    time.sleep(1)
+
+with LogTime():
+    time.sleep(2)
+```
+
+```text
+sleep1 took 1.000267s
+block took 2.000144s
+```
+
+---
+
+## 4 · FileHandler example
+
+```python
+class FileHandler:
+    def __init__(self, filename, mode):
+        self.filename = filename
+        self.mode = mode
+
+    def __enter__(self):
+        self.fp = open(self.filename, self.mode)
+        return self.fp
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.fp.close()
+
+with FileHandler('data.txt', 'w') as f:
+    f.write('Hello World')
+```
+
+---
+
+## 5 · Exception‑aware context manager
+
+```python
+import traceback
+
+class ErrorLogger:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_type:
+            print(f"Exception Type: {exc_type.__name__}")
+            print(f"Value        : {exc_val}")
+            print("Traceback:")
+            traceback.print_tb(exc_tb)
+        else:
+            print("No exception occurred.")
+```
+
+```python
+with ErrorLogger():
+    raise ValueError("Boom!")
+
+with ErrorLogger():
+    pass
+```
+
+```text
+Exception Type: ValueError
+Value        : Boom!
+Traceback:
+<stack trace printed>
+No exception occurred.
+```
+
+---
+
+## 6 · `contextlib.contextmanager` decorator
+
+```python
+from contextlib import contextmanager
+
+@contextmanager
+def file_handler(name, mode):
+    fp = open(name, mode)
+    try:
+        yield fp            # acts like __enter__
+    finally:
+        fp.close()          # acts like __exit__
+
+with file_handler('data.txt', 'w') as f:
+    f.write('Hello World')
+```
+
+---
+
+## 7 · Async context managers (`__aenter__`, `__aexit__`)
+
+```python
+import time, asyncio
+
+class AsyncLogTime:
+    def __init__(self, name=None):
+        self.name = name
+
+    async def __aenter__(self):
+        self.start = time.time()
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        delta = time.time() - self.start
+        print(f"{self.name or 'block'} took {delta:.6f}s")
+
+async def main():
+    async with AsyncLogTime("async‑sleep"):
+        await asyncio.sleep(1)
+
+asyncio.run(main())
+```
+
+```text
+async‑sleep took 1.001438s
+```
+
+---
+
+## 8 · Key takeaways
+
+| Need | Recommended tool |
+|------|------------------|
+| Simple resource cleanup | Built‑in `with` using existing objects |
+| Custom one‑off cleanup  | Class with `__enter__/__exit__` |
+| Lightweight / functional style | `@contextmanager` generator |
+| Async resource management | `__aenter__/__aexit__` |
+
+---
+
+## 9 · FAQs
+
+<details>
+<summary><strong>What does <code>__exit__</code> return?</strong></summary>
+If it returns **True**, the exception (if any) is suppressed. Returning anything else lets the exception propagate.
+</details>
+
+<details>
+<summary><strong>Can I nest context managers?</strong></summary>
+Yes. Use multiple `with` statements or the comma syntax:  
+<code>with open('a') as fa, open('b') as fb:</code>
+</details>
+
+<details>
+<summary><strong>Is <code>@contextmanager</code> slower than a class?</strong></summary>
+Negligibly. Prefer whichever is clearer for your team.
+</details>
+
+<details>
+<summary><strong>Do async context managers work in normal <code>with</code> blocks?</strong></summary>
+No. They require <code>async with</code> and must be awaited inside an async function.
+</details>
+---
+*Enjoyed the deep dive? Smash that 👏 and share!*
