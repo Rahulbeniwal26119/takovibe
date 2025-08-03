@@ -1,0 +1,270 @@
+---
+layout: ../../layouts/BlogPost.astro
+title: "Getter Setters vs property vs Descriptors in Python"
+date: "2025-08-03"
+author: "Rahul Beniwal"
+description: "Understand the core differences between getters, setters, properties, and descriptors in Python with practical code examples and advanced usage."
+image: "https://miro.medium.com/v2/resize:fit:1100/format:webp/1*Ie3dsoFcLQ9pzBHs5Eq5zw.png "
+readingTime: "5 min read"
+tags: ["python", "getters", "setters", "property", "descriptors", "oop", "encapsulation", "python-advanced"]
+type: "article"
+canonical: "https://takovibe.com/blog/python-getters-setters-descriptors"
+---
+
+Anyone which is coming into python from either C++ or Java background there exist concept for getters and setters to work with private attributes. But in python there is no concept of private attributes (Some folks may say they exists in python) because we can also access them. Lets try with an example.
+
+Zoom image will be displayed
+
+Python use `__` to indicate an attribute as private.
+
+```python
+from collections import defaultdict
+
+class StudentRecord:
+    __percentage_dict = defaultdict(int)
+
+    def __init__(self, name, number):
+        self.name = name
+        self.number = number
+    
+    def get_percentage(self):
+        return self.__percentage_dict[self.number]
+
+    def set_percentage(self, percentage):
+        if not isinstance(percentage, (int, float)):
+            raise ValueError("Percentage should be an real postive number")
+        if percentage < 0 or percentage > 100:
+            raise ValueError("Percentage should be between 0 and 100")
+        self.__percentage_dict[self.number] = percentage
+
+
+s1 = StudentRecord("Student1", 1)
+s1.set_percentage(90)
+print(s1.get_percentage())
+```
+
+It fairly simple but things get noisy when we have to perform operation like in-place updation.
+
+```python
+s1.set_percentage(s1.get_percentage() - 1)
+```
+
+Lets try to access private attribute.
+
+```python
+print(StudentRecord.__percentage_dict)
+```
+
+```python
+AttributeError: type object 'StudentRecord' has no attribute '__percentage_dict'
+```
+
+But we can access it by using Class name with leading underscore and then attribute name.
+
+```python
+getattr(StudentRecord, "_{}{}".format(StudentRecord.__name__, "__percentage_dict"))
+```
+
+## Property
+
+To create a property use ‘property’ decorator. We can have getter, setter and deleter with a attribute.
+
+```python
+from collections import defaultdict
+
+class StudentRecord:
+    __percentage_dict = defaultdict(int)
+
+    def __init__(self, name, number):
+        self.name = name
+        self.number = number
+    
+    @property
+    def percentage(self):
+        return self.__percentage_dict[self.number]
+
+    @percentage.setter
+    def percentage(self, percentage):
+        if not isinstance(percentage, (int, float)):
+            raise ValueError("Percentage should be an real postive number")
+        if not (0 <= percentage <= 100):
+            raise ValueError("Percentage should be between 0 and 100")
+        self.__percentage_dict[self.number] = percentage
+    
+    @percentage.deleter
+    def percentage(self):
+        del self.__percentage_dict[self.number]
+
+s1 = StudentRecord("Student1", 1)
+s1.percentage = 90
+s1.percentage -= 1
+print(s1.percentage)
+
+del s1.percentage
+print(s1.percentage)
+```
+
+### Using property to make attributes immutable
+
+```python
+from collections import defaultdict
+
+class StudentRecord:
+    __percentage_dict = defaultdict(int)
+
+    def __init__(self, name, number):
+        self.name = name
+        self.__number = number
+
+    @property
+    def percentage(self):
+        ...
+
+    @percentage.setter
+    def percentage(self, percentage):
+        ...
+
+    @percentage.deleter
+    def percentage(self):
+        ...
+
+    @property
+    def number(self):
+        return self.__number
+
+    @number.setter
+    def number(self, number):
+        raise AttributeError("Can't set attribute")
+
+s1 = StudentRecord("Student1", 1)
+s1.number = 10
+# AttributeError: Can't set attribute
+```
+
+## Descriptor
+
+Descriptor protocol defines how attribute access is done by language. For creating a descriptor we have to define following methods.
+
+```python
+def __get__(self, instance, instance_type):
+    ...
+
+def __set__(self, instance, value):
+    ...
+```
+
+### Example using Descriptor Protocol
+
+```python
+from collections import defaultdict
+from weakref import WeakKeyDictionary
+
+class PercentageValidator:
+
+    def __init__(self):
+        self.__value = WeakKeyDictionary()
+
+    def __get__(self, instance, instance_klass):
+        return self.__value.get(instance, 0)
+    
+    def __set__(self, instance, value):
+        if not isinstance(value, (int, float)):
+            raise ValueError("Percentage should be an real postive number")
+        if value < 0 or value > 100:
+            raise ValueError("Percentage should be between 0 and 100")
+        self.__value[instance] = value
+
+
+class Constant:
+    def __init__(self):
+        self.__value = {}
+    
+    def __get__(self, instance, instance_klass):
+        return self.__value.get(instance, None)
+
+    def __set__(self, instance, value):
+        current_value = self.__value.get(instance, None)
+        if current_value is None:
+            self.__value[instance] = value
+            return 
+        raise AttributeError("Can't set attribute")
+
+
+class StudentRecord:
+    english = PercentageValidator()
+    math = PercentageValidator()
+    physics = PercentageValidator()
+    number = Constant()
+
+    def __init__(self, name, number):
+        self.name = name
+
+s1 = StudentRecord("Student1", 10)
+s2 = StudentRecord("Student2", 20)
+s1.physics = 100
+s2.physics = 99
+s1.math = 100
+s2.math = 98
+s1.math -= 10
+print(s1.math, s2.math)
+```
+
+### Without WeakKeyDictionary
+
+```python
+class PercentageValidator:
+
+    def __init__(self):
+        self.__value = 0 
+
+    def __get__(self, instance, instance_klass):
+        return self.__value
+    
+    def __set__(self, instance, value):
+        if not isinstance(value, (int, float)):
+            raise ValueError("Percentage should be an real postive number")
+        if value < 0 or value > 100:
+            raise ValueError("Percentage should be between 0 and 100")
+        self.__value = value
+
+
+class Constant:
+    def __init__(self):
+        self.__value = None
+
+    def __get__(self, instance, instance_klass):
+        return self.__value
+
+    def __set__(self, instance, value):
+        if self.__value is None:
+            self.__value = value
+            return 
+        raise AttributeError("Can't set attribute")
+
+
+class StudentRecord:
+    english = PercentageValidator()
+    math = PercentageValidator()
+    physics = PercentageValidator()
+    number = Constant()
+
+    def __init__(self, name):
+        self.name = name
+
+s1 = StudentRecord("Student1")
+s2 = StudentRecord("Student2")
+s1.physics = 100
+s2.physics = 99
+s1.math = 100
+s2.math = 98
+print(s1.math, s2.math)
+# 98 98
+```
+
+Reason to use WeakKeyDictionary here is that it removes instance references from memory once object is no longer in use, preventing memory leaks which would occur if normal dictionary is used.
+
+I will try to create separate article for Descriptors alone to understand them better.
+
+Hope you found these intermediate concept and difference useful.
+
+Leave a 👏 if you like it.

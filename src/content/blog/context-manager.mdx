@@ -1,0 +1,170 @@
+---
+layout: ../../layouts/BlogPost.astro
+title: "Context Managers in Python Explained: __enter__, __exit__, contextlib & async"
+date: "2025-08-03"
+author: "Rahul Beniwal"
+description: "Learn how Python's context managers work under the hood using __enter__, __exit__, contextlib decorators, and asynchronous context managers. Practical examples included."
+image: "https://miro.medium.com/v2/resize:fit:1100/format:webp/1*JvyUByPW_oRhdAd0MhWgaA.png"
+readingTime: "5 min read"
+tags: ["python", "context-manager", "with-statement", "__enter__", "__exit__", "contextlib", "async-await", "clean-code"]
+type: "article"
+canonical: "https://takovibe.com/blog/context-managers-python"
+---
+
+If you are new in python then you might wonder how ‘with’ keyword works. Lets decode its working today.
+
+We all like python due to its concise and pretty syntax but internally python do some hidden work to provide this functionality. In case of context manager ‘__enter__’ and ‘__exit__’ come into picture. Yup more magic methods.
+
+So context manager are the objects which define __enter__ and __exit__ on there objects. Most of the time context manager are use to reduce finally block code.
+
+![Zoom image will be displayed](#)
+
+```python
+with open('data.txt', 'w') as f:
+    f.write('Hello World')
+
+f = open('data.txt', 'w')
+try:
+    f.write('Hello World')
+finally:
+    f.close()
+```
+
+Code sample #1 and #2 are exactly same when come to operations but #1 looks more concise.
+
+Note: Above code opens a file ‘data.txt’ in truncate write mode and write ‘Hello World’ into file and close that file.
+
+---
+
+### Custom Context Manager Example
+
+```python
+import time
+
+class LogTime:
+    def __init__(self, name=None):
+        self.name = name
+
+    def __enter__(self):
+        self.start = time.time()
+    
+    def __exit__(self, *args):
+        self.end = time.time()
+        self.delta = self.end - self.start
+        if self.name:
+            print(f"{self.name} took {self.delta:.6f}s")
+        else:
+            print(f"took {self.delta:.6f}s")
+
+with LogTime(name='sleep1'):
+    time.sleep(1)
+
+with LogTime():
+    time.sleep(2)
+```
+
+---
+
+### Another Example: FileHandler Context Manager
+
+```python
+class FileHandler:
+    def __init__(self, filename, fmode):
+        self.filename = filename
+        self.fmode = fmode
+
+    def __enter__(self):
+        self.fp = open(self.filename, self.fmode)
+        return self.fp
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.fp.close()
+
+with FileHandler('data.txt', 'w') as f:
+    f.write('Hello World')
+```
+
+---
+
+### Exception Handling in Context Manager
+
+```python
+class ErrorLogger:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_type is not None:
+            print(f"Exception Type ->  '{exc_type.__name__}'\n"
+                  f"value: {exc_val}")
+            import traceback
+            print(f"Traceback:\n{traceback.print_tb(exc_tb)}")
+        else:
+            print("No exception occurred.")
+
+with ErrorLogger():
+    raise ValueError("An error occurred!")
+
+with ErrorLogger():
+    pass
+```
+
+---
+
+### contextlib.contextmanager Decorator
+
+```python
+from contextlib import contextmanager
+
+@contextmanager
+def FileHandler(file_name, file_mode):
+    fp = None
+    try:
+        fp = open(file_name, file_mode)
+        yield fp
+    finally:
+        if fp:
+            fp.close()
+
+with FileHandler('data.txt', 'w') as f:
+    f.write('Hello World')
+```
+
+---
+
+### Async Context Manager (__aenter__, __aexit__)
+
+```python
+import time
+import asyncio
+
+class LogTime:
+    def __init__(self, name=None):
+        self.name = name
+
+    async def __aenter__(self):
+        self.start = time.time()
+
+    async def __aexit__(self, *args):
+        self.end = time.time()
+        self.delta = self.end - self.start
+        if self.name:
+            print(f"{self.name} took {self.delta:.6f}s")
+        else:
+            print(f"took {self.delta:.6f}s")
+
+async def main():
+    async with LogTime(name='sleep1'):
+        await asyncio.sleep(1)
+
+asyncio.run(main())
+```
+
+---
+
+Thank you for being a part of our community! Before you go:
+
+- Be sure to clap and follow the writer! 👏
+- You can find even more content at PlainEnglish.io 🚀
+- Sign up for our free weekly newsletter. 🗞️
+- Follow us on Twitter(X), LinkedIn, YouTube, and Discord.
