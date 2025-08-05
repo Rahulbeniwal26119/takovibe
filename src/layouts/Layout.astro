@@ -126,10 +126,11 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
   </head>
   <body class="text-gray-100 min-h-screen overflow-x-hidden">
     <Header />
+    <ReadingProgress />
+
     <main
       class="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 pt-0"
     >
-      <ReadingProgress />
       <AnimatedBackground />
       <FloatingElements />
       <CursorEffect />

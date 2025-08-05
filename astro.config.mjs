@@ -1,5 +1,6 @@
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
+import react from '@astrojs/react';
 import tailwind from '@astrojs/tailwind';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
@@ -10,6 +11,7 @@ import pwa from '@vite-pwa/astro';
 export default defineConfig({
   site: 'https://takovibe.com',
   integrations: [
+    react(),
     sitemap({
       filter: (page) => !page.includes('/auth/') && !page.includes('/admin/'),
       customPages: ['https://takovibe.com/blog'],
@@ -24,7 +26,8 @@ export default defineConfig({
         allowDangerousHtml: true
       },
       extendMarkdownConfig: true,
-      gfm: true
+      gfm: true,
+      optimize: true
     }),
     tailwind({
       // Minify CSS in production
@@ -175,6 +178,14 @@ export default defineConfig({
     },
     optimizeDeps: {
       include: ['@tiptap/core', '@tiptap/starter-kit', 'interactjs']
+    },
+    worker: {
+      format: 'es'
+    },
+    server: {
+      fs: {
+        allow: ['..']
+      }
     }
   },
   base: '/',
