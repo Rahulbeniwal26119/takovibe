@@ -1,0 +1,239 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const blogEntries = await getCollection('blog');
+  
+  // Extract unique series from blog posts
+  const seriesMap = new Map();
+  
+  blogEntries.forEach(entry => {
+    // Look for series information in frontmatter
+    const series = entry.data.series;
+    if (series) {
+      if (!seriesMap.has(series)) {
+        seriesMap.set(series, []);
+      }
+      seriesMap.get(series).push(entry);
+    }
+  });
+
+  return Array.from(seriesMap.entries()).map(([series, posts]) => ({
+    params: { series: series.toLowerCase().replace(/[^a-z0-9]/g, '-') },
+    props: { 
+      seriesName: series,
+      posts: posts.sort((a, b) => new Date(a.data.date).getTime() - new Date(b.data.date).getTime())
+    }
+  }));
+}
+
+function extractSeriesFromContent(content: string): string | null {
+  // Look for series indicators in content
+  const seriesPatterns = [
+    /30-Days-to-RAG/i,
+    /30 Days to RAG/i,
+    /RAG Series/i
+  ];
+  
+  for (const pattern of seriesPatterns) {
+    if (pattern.test(content)) {
+      return '30-Days-to-RAG';
+    }
+  }
+  return null;
+}
+
+const { seriesName, posts } = Astro.props;
+const currentPost = posts.find(post => post.slug === Astro.url.pathname.split('/').pop());
+
+// Prepare article data
+const articlesData = posts.map((post, index) => {
+  const isPublished = new Date(post.data.date) <= new Date();
+  const isCurrent = currentPost?.slug === post.slug;
+  
+  return {
+    ...post,
+    index,
+    isPublished,
+    isCurrent,
+    cardClasses: isCurrent 
+      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-lg' 
+      : isPublished 
+        ? 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-lg' 
+        : 'border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 opacity-60',
+    badgeClasses: isCurrent 
+      ? 'bg-blue-500 text-white' 
+      : isPublished 
+        ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white' 
+        : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400',
+    titleClasses: isPublished 
+      ? 'text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400' 
+      : 'text-gray-500 dark:text-gray-400',
+    descClasses: isPublished ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500',
+    buttonClasses: isCurrent 
+      ? 'bg-blue-500 hover:bg-blue-600 text-white' 
+      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+  };
+});
+---
+
+<Layout 
+  title={`${seriesName} Series - All Articles`}
+  description={`Complete ${seriesName} series with ${posts.length} articles covering everything from basics to advanced concepts.`}
+>
+  <main class="max-w-4xl mx-auto px-4 py-8 mt-16">
+    <!-- Series Header -->
+    <div class="text-center mb-12">
+      <div class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-orange-500 text-white text-sm font-medium rounded-full mb-4">
+        <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+        <span class="font-bold">LIVE SERIES</span>
+        <svg class="w-4 h-4 text-yellow-300 animate-bounce" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clip-rule="evenodd"/>
+        </svg>
+      </div>
+      
+      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+        {seriesName}
+      </h1>
+      
+      <p class="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-6">
+        A comprehensive journey from tokenization to production-ready RAG systems. 
+        Master Retrieval-Augmented Generation with hands-on tutorials, code examples, and real-world applications.
+      </p>
+      
+      <div class="flex items-center justify-center gap-6 text-sm text-gray-500 dark:text-gray-400">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253z"/>
+          </svg>
+          <span>{posts.length} Articles</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span>~{posts.length * 8} min read</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+          <span>Beginner to Advanced</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Series Progress</span>
+        <span class="text-sm text-gray-500 dark:text-gray-400">
+          {posts.filter(post => new Date(post.data.date) <= new Date()).length}/{posts.length} Published
+        </span>
+      </div>
+      <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+        <div 
+          class="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
+          style={`width: ${(posts.filter(post => new Date(post.data.date) <= new Date()).length / posts.length) * 100}%`}
+        ></div>
+      </div>
+    </div>
+
+    <!-- Articles Grid -->
+    <div class="space-y-6">
+      {articlesData.map((article) => (
+        <article class={`group relative overflow-hidden rounded-xl border transition-all duration-300 ${article.cardClasses}`}>
+          
+          {/* Day Number Badge */}
+          <div class={`absolute top-4 left-4 z-10 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${article.badgeClasses}`}>
+            {article.index + 1}
+          </div>
+
+          {/* Coming Soon Badge */}
+          {!article.isPublished && (
+            <div class="absolute top-4 right-4 z-10 px-3 py-1 bg-yellow-500 text-yellow-900 text-xs font-medium rounded-full">
+              Coming Soon
+            </div>
+          )}
+
+          {/* Current Reading Badge */}
+          {article.isCurrent && (
+            <div class="absolute top-4 right-4 z-10 px-3 py-1 bg-blue-500 text-white text-xs font-medium rounded-full">
+              Currently Reading
+            </div>
+          )}
+
+          <div class="p-6">
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex-1">
+                <h2 class={`text-xl font-bold mb-2 transition-colors ${article.titleClasses}`}>
+                  {article.data.title}
+                </h2>
+                
+                <p class={`text-sm mb-3 ${article.descClasses}`}>
+                  {article.data.description}
+                </p>
+                
+                <div class="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                  <span>{article.data.readingTime || '8 min read'}</span>
+                  <span>•</span>
+                  <span>{new Date(article.data.date).toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}</span>
+                  {article.data.tags && (
+                    <div class="flex items-center gap-1">
+                      <span>•</span>
+                      <div class="flex gap-1">
+                        {article.data.tags.slice(0, 2).map((tag) => (
+                          <span class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Action Button */}
+            <div class="flex justify-between items-center">
+              {article.isPublished ? (
+                <a 
+                  href={`/blog/${article.slug}`}
+                  class={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${article.buttonClasses}`}
+                >
+                  {article.isCurrent ? 'Continue Reading' : 'Read Article'}
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                  </svg>
+                </a>
+              ) : (
+                <div class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 rounded-lg">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  Coming Soon
+                </div>
+              )}
+
+              {/* Completion Status */}
+              <div class="flex items-center gap-2">
+                {article.isPublished && !article.isCurrent && (
+                  <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  </main>
+</Layout>

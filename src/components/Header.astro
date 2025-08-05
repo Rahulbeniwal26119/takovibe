@@ -1,6 +1,7 @@
 ---
 import Search from "./Search.astro";
 import Auth from "./Auth.astro";
+import LiveIndicator from "./LiveIndicator.astro";
 ---
 
 <header
@@ -9,16 +10,25 @@ import Auth from "./Auth.astro";
   <nav
     class="h-14 max-w-6xl mx-auto px-4 flex justify-between items-center"
   >
-    <a
-      href="/"
-      class="hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-    >
-      <img 
-        src="/images/logo.svg" 
-        alt="Tako Vibe Logo" 
-        class="w-10 h-10 rounded-full"
+    <div class="flex items-center gap-3">
+      <a
+        href="/"
+        class="hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+      >
+        <img 
+          src="/images/logo.svg" 
+          alt="Tako Vibe Logo" 
+          class="w-10 h-10 rounded-full"
+        />
+      </a>
+      
+      <!-- Live Indicator for RAG Series -->
+      <LiveIndicator 
+        seriesName="30-Days-to-RAG"
+        message="Series is LIVE! New posts every day"
+        href="/series/30-days-to-rag"
       />
-    </a>
+    </div>
     <div class="flex items-center space-x-4">
       <Auth />
       <a

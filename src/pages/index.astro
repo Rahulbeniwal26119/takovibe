@@ -11,8 +11,11 @@ try {
   console.error("Error fetching blog posts:", error);
 }
 
-// Sort posts by date
-const sortedPosts = blogEntries.sort(
+// Filter out unpublished posts (future dates) and sort by date
+const currentDate = new Date();
+const publishedPosts = blogEntries.filter(post => new Date(post.data.date) <= currentDate);
+
+const sortedPosts = publishedPosts.sort(
   (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime(),
 );
 
