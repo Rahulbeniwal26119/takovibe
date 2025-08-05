@@ -1,26 +1,35 @@
 ---
-// Font Size Control Component - Clean & Elegant
+// Font Size Control Component - Redesigned & Fixed
 ---
 
-<div id="fontSizeController" class="font-size-control fixed right-4 top-20 z-50">
+<div id="fontSizeController" class="font-size-control fixed right-4 top-20 z-40" role="toolbar" aria-label="Font size control">
   <!-- Mobile Collapsed Button -->
-  <div id="mobileToggleBtn" class="mobile-toggle-btn bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-xl p-3 border border-gray-200/80 dark:border-gray-700/80 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hidden">
+  <button 
+    id="mobileToggleBtn" 
+    class="mobile-toggle-btn bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-xl p-3 border border-gray-200/80 dark:border-gray-700/80 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hidden focus:outline-none focus:ring-2 focus:ring-purple-500"
+    aria-label="Open font size controls"
+    aria-expanded="false"
+  >
     <div class="flex flex-col items-center justify-center">
-      <div class="font-bold text-lg text-gray-700 dark:text-gray-300" style="font-family: serif;">
-        Tt
+      <div class="font-bold text-lg text-gray-700 dark:text-gray-300" style="font-family: serif;" aria-hidden="true">
+        Aa
       </div>
       <div id="mobileSizeDisplay" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-        25px
+        18px
       </div>
     </div>
-  </div>
+  </button>
 
   <!-- Full Control Panel -->
   <div id="fullControlPanel" class="control-panel bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-xl p-4 border border-gray-200/80 dark:border-gray-700/80 shadow-lg hover:shadow-xl transition-all duration-300">
     <div class="flex flex-col items-center space-y-4">
       <!-- Close button for mobile -->
-      <button id="mobileCloseBtn" class="mobile-close-btn absolute top-2 right-2 w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 hidden">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" class="text-gray-500 dark:text-gray-400 mx-auto">
+      <button 
+        id="mobileCloseBtn" 
+        class="mobile-close-btn absolute top-2 right-2 w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 hidden focus:outline-none focus:ring-2 focus:ring-purple-500"
+        aria-label="Close font size controls"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="text-gray-500 dark:text-gray-400 mx-auto">
           <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
         </svg>
       </button>
@@ -28,31 +37,48 @@
       <!-- Header with current size -->
       <div class="flex items-center space-x-2">
         <div class="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="text-gray-600 dark:text-gray-400">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="text-gray-600 dark:text-gray-400" aria-hidden="true">
             <path d="M9 4v3h5v12h3V7h5V4H9zm-6 8h3v7h3v-7h3V9H3v3z"/>
           </svg>
         </div>
-        <span id="currentSize" class="text-sm font-semibold text-gray-700 dark:text-gray-300">25px</span>
+        <span id="currentSize" class="text-sm font-semibold text-gray-700 dark:text-gray-300" aria-live="polite">18px</span>
       </div>
       
-            <!-- Clean Vertical Slider -->
+      <!-- Improved Vertical Slider -->
       <div class="relative flex flex-col items-center">
+        <!-- Quick Size Buttons -->
+        <div class="flex space-x-1 mb-3">
+          <button id="decreaseBtn" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-purple-500" aria-label="Decrease font size">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" class="text-gray-600 dark:text-gray-400">
+              <path d="M19 13H5v-2h14v2z"/>
+            </svg>
+          </button>
+          <button id="resetBtn" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 flex items-center justify-center text-xs font-bold text-gray-600 dark:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500" aria-label="Reset font size to default">
+            R
+          </button>
+          <button id="increaseBtn" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-purple-500" aria-label="Increase font size">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" class="text-gray-600 dark:text-gray-400">
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+            </svg>
+          </button>
+        </div>
+
         <!-- Slider Container -->
-        <div class="relative h-24 w-6 flex justify-center">
-          <div class="w-1.5 bg-gray-200 dark:bg-gray-700 rounded-full">
+        <div class="relative h-20 w-8 flex justify-center items-center" role="slider" aria-valuemin="16" aria-valuemax="32" aria-valuenow="18" aria-label="Font size slider" tabindex="0">
+          <div class="w-2 bg-gray-200 dark:bg-gray-700 rounded-full relative h-full">
             <!-- Slider Track (filled portion) -->
-            <div id="sliderTrack" class="absolute bottom-0 w-full bg-gray-600 dark:bg-gray-400 rounded-full transition-all duration-300"></div>
+            <div id="sliderTrack" class="absolute bottom-0 w-full bg-gradient-to-t from-purple-500 to-purple-400 rounded-full transition-all duration-300"></div>
             
             <!-- Slider Handle -->
-            <div id="sliderHandle" class="absolute w-5 h-5 bg-white dark:bg-gray-900 border-2 border-gray-400 dark:border-gray-500 rounded-full shadow-sm cursor-pointer transition-all duration-200 hover:border-gray-600 dark:hover:border-gray-300">
-              <!-- Simple center dot -->
-              <div class="w-1 h-1 bg-gray-400 dark:bg-gray-500 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
+            <div id="sliderHandle" class="absolute w-6 h-6 bg-white dark:bg-gray-900 border-2 border-purple-500 dark:border-purple-400 rounded-full shadow-md cursor-pointer transition-all duration-200 hover:border-purple-600 dark:hover:border-purple-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-purple-500">
+              <!-- Handle indicator -->
+              <div class="w-2 h-2 bg-purple-500 dark:bg-purple-400 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
             </div>
           </div>
         </div>
         
         <!-- Size range indicators -->
-        <div class="flex justify-between w-12 mt-2 text-xs text-gray-500 dark:text-gray-400">
+        <div class="flex justify-between w-16 mt-2 text-xs text-gray-500 dark:text-gray-400">
           <span>16</span>
           <span>32</span>
         </div>
@@ -63,8 +89,8 @@
         <div class="text-xs text-gray-500 dark:text-gray-400 space-y-1">
           <div class="font-medium text-gray-600 dark:text-gray-300">Shortcuts</div>
           <div class="space-y-0.5">
-            <div><kbd class="kbd">Ctrl ±</kbd> Resize</div>
-            <div><kbd class="kbd">Ctrl 0</kbd> Reset</div>
+            <div><kbd class="kbd">Ctrl ±</kbd></div>
+            <div><kbd class="kbd">Ctrl 0</kbd></div>
           </div>
         </div>
       </div>
@@ -75,7 +101,11 @@
 <style>
   .font-size-control {
     transition: all 0.3s ease;
-    width: 90px; /* Wider to contain the centered slider properly */
+    width: auto;
+    min-width: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   
   .font-size-control:hover {
@@ -84,14 +114,27 @@
   
   .control-panel {
     position: relative;
+    width: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Center all content within the control panel */
+  .control-panel > div {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
   
   /* Subtle hover effects */
   .font-size-control:hover .control-panel {
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   }
   
-  /* Clean slider styling */
+  /* Improved slider styling - Fixed centering */
   #sliderHandle {
     position: absolute;
     z-index: 10;
@@ -107,53 +150,76 @@
     transform: translateX(-50%) scale(0.95);
   }
   
-  /* Make the entire slider container clickable */
-  .font-size-control .h-24 {
+  /* Make the entire slider container clickable and centered */
+  .font-size-control .h-20 {
     cursor: pointer;
-    padding: 0 8px; /* Add padding for easier clicking */
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   
-  .font-size-control .h-24:hover {
-    background: rgba(229, 231, 235, 0.3);
+  .font-size-control .h-20:hover {
+    background: rgba(147, 51, 234, 0.05);
     border-radius: 8px;
   }
   
-  .dark .font-size-control .h-24:hover {
-    background: rgba(75, 85, 99, 0.3);
+  .dark .font-size-control .h-20:hover {
+    background: rgba(196, 181, 253, 0.05);
+  }
+  
+  /* Button hover effects */
+  #decreaseBtn:hover, #increaseBtn:hover, #resetBtn:hover {
+    transform: scale(1.05);
+  }
+  
+  #decreaseBtn:active, #increaseBtn:active, #resetBtn:active {
+    transform: scale(0.95);
+  }
+  
+  /* Ensure buttons are properly centered */
+  .flex.space-x-1 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
   }
   
   /* Keyboard shortcut styling */
   .kbd {
     display: inline-block;
-    padding: 1px 4px;
+    padding: 2px 6px;
     font-size: 10px;
     font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
     background: #f3f4f6;
     border: 1px solid #d1d5db;
-    border-radius: 3px;
+    border-radius: 4px;
     color: #374151;
     font-weight: 500;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
   
   .dark .kbd {
     background: #374151;
     border-color: #4b5563;
     color: #e5e7eb;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   }
   
-  /* Clean responsive design - Collapse for screens < 1407px */
-  @media (max-width: 1406px) {
+  /* Clean responsive design - Collapse for screens <= 1024px */
+  @media (max-width: 1024px) {
     .font-size-control {
       right: 1rem;
-      top: 5rem;
+      top: 4rem;
       width: auto;
     }
     
     /* Show mobile toggle button, hide full panel by default */
     .mobile-toggle-btn {
       display: flex !important;
-      width: 50px;
-      height: 60px;
+      width: 60px;
+      height: 70px;
+      margin: 0 auto; /* Center the button */
     }
     
     .control-panel {
@@ -161,8 +227,10 @@
       position: absolute;
       right: 0;
       top: 0;
-      width: 260px;
-      padding: 1rem;
+      width: 280px;
+      padding: 1.25rem;
+      z-index: 50;
+      transform-origin: top right;
     }
     
     .control-panel.expanded {
@@ -181,36 +249,48 @@
       justify-content: center;
     }
     
-    /* Smaller slider on smaller screens */
-    .font-size-control .h-24 {
+    /* Adjust slider for mobile - ensure centering */
+    .font-size-control .h-20 {
       height: 4rem;
+      padding: 0 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
   }
   
   /* More compact for small screens */
-  @media (max-width: 480px) {
+  @media (max-width: 640px) {
     .font-size-control {
       right: 0.5rem;
-      top: 4rem;
+      top: 3rem;
     }
     
     .mobile-toggle-btn {
-      width: 45px;
-      height: 55px;
+      width: 55px;
+      height: 65px;
+      padding: 0.5rem;
+      margin: 0 auto; /* Center the button */
     }
     
     .control-panel {
-      width: 240px;
-      padding: 0.875rem;
+      width: 260px;
+      padding: 1rem;
+      right: -200px; /* Offset to prevent going off-screen */
+      left: auto;
+      transform-origin: top right;
     }
     
-    .font-size-control .h-24 {
+    .font-size-control .h-20 {
       height: 3.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
   }
   
   /* Desktop styles - ensure full panel is visible and mobile elements are hidden */
-  @media (min-width: 1407px) {
+  @media (min-width: 1025px) {
     .mobile-toggle-btn {
       display: none !important;
     }
@@ -222,12 +302,30 @@
     .control-panel {
       display: flex !important;
       position: static;
-      width: 90px;
+      width: 120px;
+      margin: 0 auto; /* Center the panel */
     }
     
     .keyboard-shortcuts {
       display: block;
     }
+    
+    /* Ensure proper centering on desktop */
+    .font-size-control .h-20 {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+  
+  /* Focus indicators for accessibility */
+  .font-size-control button:focus {
+    outline: none;
+  }
+  
+  .font-size-control [role="slider"]:focus {
+    outline: 2px solid #8b5cf6;
+    outline-offset: 2px;
   }
   
   /* Clean interactions */
@@ -238,16 +336,37 @@
   
   /* Proper stacking for tool ecosystem */
   .font-size-control {
-    z-index: 45;
+    z-index: 40;
   }
   
-  /* Space management for other tools */
-  .floating-tool:nth-child(2) {
-    top: 200px; /* Stack below font control */
+  /* Improved visual feedback */
+  .control-panel {
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
   }
   
-  .floating-tool:nth-child(3) {
-    top: 360px; /* Stack below second tool */
+  .dark .control-panel {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Smooth animations */
+  .mobile-toggle-btn, .control-panel {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .control-panel.expanded {
+    animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
 </style>
 
@@ -264,8 +383,12 @@
     const mobileToggleBtn = document.getElementById('mobileToggleBtn');
     const fullControlPanel = document.getElementById('fullControlPanel');
     const mobileCloseBtn = document.getElementById('mobileCloseBtn');
+    const decreaseBtn = document.getElementById('decreaseBtn');
+    const increaseBtn = document.getElementById('increaseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const sliderContainer = document.querySelector('[role="slider"]');
     
-    // Check if all elements exist
+    // Check if all required elements exist
     if (!controller || !sliderHandle || !sliderTrack || !currentSizeDisplay) {
       console.error('❌ FontSizeControl: Required elements not found');
       return;
@@ -276,20 +399,23 @@
       mobileToggleBtn.addEventListener('click', () => {
         fullControlPanel.classList.add('expanded');
         mobileToggleBtn.style.display = 'none';
+        mobileToggleBtn.setAttribute('aria-expanded', 'true');
       });
       
       mobileCloseBtn.addEventListener('click', () => {
         fullControlPanel.classList.remove('expanded');
         mobileToggleBtn.style.display = 'flex';
+        mobileToggleBtn.setAttribute('aria-expanded', 'false');
       });
       
       // Close when clicking outside on smaller screens
       document.addEventListener('click', (e) => {
-        if (window.innerWidth <= 1406 && 
+        if (window.innerWidth <= 1024 && 
             !controller.contains(e.target) && 
             fullControlPanel.classList.contains('expanded')) {
           fullControlPanel.classList.remove('expanded');
           mobileToggleBtn.style.display = 'flex';
+          mobileToggleBtn.setAttribute('aria-expanded', 'false');
         }
       });
     }
@@ -297,8 +423,8 @@
     // Configuration
     const MIN_SIZE = 16;
     const MAX_SIZE = 32;
-    const DEFAULT_SIZE = 25;
-    const SLIDER_HEIGHT = 96; // 6rem = 96px (h-24)
+    const DEFAULT_SIZE = 18;
+    const SLIDER_HEIGHT = 80; // 5rem = 80px (h-20)
     
     // Get current font size
     let currentSize = parseInt(localStorage.getItem('blog-font-size')) || DEFAULT_SIZE;
@@ -308,16 +434,21 @@
       return Math.min(Math.max(value, min), max);
     }
     
-    // Update slider position based on font size
+    // Update slider position based on font size (fixed positioning logic)
     function updateSliderPosition(size) {
       const percentage = (size - MIN_SIZE) / (MAX_SIZE - MIN_SIZE);
-      const position = SLIDER_HEIGHT - (percentage * SLIDER_HEIGHT);
+      const position = (1 - percentage) * SLIDER_HEIGHT; // Fixed: inverted positioning
       
-      sliderHandle.style.top = `${position - 10}px`; // -10px to center the handle (handle is 20px high)
+      sliderHandle.style.top = `${position - 12}px`; // -12px to center the handle (handle is 24px high)
       sliderTrack.style.height = `${percentage * 100}%`;
+      
+      // Update ARIA attributes
+      if (sliderContainer) {
+        sliderContainer.setAttribute('aria-valuenow', size.toString());
+      }
     }
     
-    // Apply font size to content
+    // Apply font size to content (improved targeting)
     function applyFontSize(size) {
       const article = document.querySelector('article.prose');
       if (!article) {
@@ -325,41 +456,38 @@
         return;
       }
       
-      // Update paragraphs with more specific targeting
-      const paragraphs = article.querySelectorAll('p, .mdx-content p');
-      paragraphs.forEach(p => {
-        p.style.setProperty('font-size', `${size}px`, 'important');
-        p.style.setProperty('line-height', '1.6', 'important');
-      });
-      
-      // Update list items
-      const listItems = article.querySelectorAll('li, .mdx-content li');
-      listItems.forEach(li => {
-        li.style.setProperty('font-size', `${size}px`, 'important');
-        li.style.setProperty('line-height', '1.6', 'important');
-      });
-      
-      // Update blockquotes (slightly larger)
-      const blockquotes = article.querySelectorAll('blockquote, .mdx-content blockquote');
-      blockquotes.forEach(bq => {
-        bq.style.setProperty('font-size', `${size + 2}px`, 'important');
-        bq.style.setProperty('line-height', '1.6', 'important');
-      });
-      
-      // Also target any direct content in mdx-content
-      const mdxContent = document.querySelector('.mdx-content');
-      if (mdxContent) {
-        // Apply to all text content within mdx-content
-        const allTextElements = mdxContent.querySelectorAll('p, li, span, div:not([class*="code"]):not(pre):not(code)');
-        allTextElements.forEach(el => {
-          if (!el.closest('pre') && !el.closest('code')) {
-            el.style.setProperty('font-size', `${size}px`, 'important');
-            el.style.setProperty('line-height', '1.6', 'important');
-          }
-        });
+      // Create a more specific CSS rule to override existing styles
+      let existingStyle = document.getElementById('dynamic-font-style');
+      if (existingStyle) {
+        existingStyle.remove();
       }
       
-      console.log(`📝 FontSizeControl: Applied ${size}px to ${paragraphs.length} paragraphs, ${listItems.length} list items, ${blockquotes.length} blockquotes`);
+      const style = document.createElement('style');
+      style.id = 'dynamic-font-style';
+      style.textContent = `
+        article.prose p,
+        article.prose .mdx-content p,
+        article.prose li,
+        article.prose .mdx-content li {
+          font-size: ${size}px !important;
+          line-height: 1.7 !important;
+        }
+        
+        article.prose blockquote,
+        article.prose .mdx-content blockquote {
+          font-size: ${size + 2}px !important;
+          line-height: 1.6 !important;
+        }
+        
+        article.prose .mdx-content > div:not([class*="code"]):not(pre):not(code) {
+          font-size: ${size}px !important;
+          line-height: 1.7 !important;
+        }
+      `;
+      
+      document.head.appendChild(style);
+      
+      console.log(`📝 FontSizeControl: Applied ${size}px font size`);
     }
     
     // Update everything
@@ -385,28 +513,61 @@
       console.log(`🔄 FontSizeControl: Updated to ${size}px`);
     }
     
-    // Slider drag functionality
+    // Button event handlers
+    if (decreaseBtn) {
+      decreaseBtn.addEventListener('click', () => {
+        updateFontSize(currentSize - 2);
+      });
+    }
+    
+    if (increaseBtn) {
+      increaseBtn.addEventListener('click', () => {
+        updateFontSize(currentSize + 2);
+      });
+    }
+    
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        updateFontSize(DEFAULT_SIZE);
+      });
+    }
+    
+    // Slider drag functionality (fixed logic)
     let isDragging = false;
     
     function handleSliderInteraction(e) {
-      const sliderContainer = sliderHandle.parentElement;
       const rect = sliderContainer.getBoundingClientRect();
       const y = (e.type.includes('touch') ? e.touches[0].clientY : e.clientY) - rect.top;
-      const percentage = 1 - (y / SLIDER_HEIGHT);
-      const clampedPercentage = clamp(percentage, 0, 1);
-      const newSize = Math.round(MIN_SIZE + (clampedPercentage * (MAX_SIZE - MIN_SIZE)));
+      const percentage = 1 - clamp(y / SLIDER_HEIGHT, 0, 1); // Fixed: correct percentage calculation
+      const newSize = Math.round(MIN_SIZE + (percentage * (MAX_SIZE - MIN_SIZE)));
       
       updateFontSize(newSize);
     }
     
     // Mouse events - allow clicking anywhere on the slider
-    const sliderContainer = sliderHandle.parentElement;
-    
-    sliderContainer.addEventListener('mousedown', (e) => {
-      isDragging = true;
-      handleSliderInteraction(e);
-      e.preventDefault();
-    });
+    if (sliderContainer) {
+      sliderContainer.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        handleSliderInteraction(e);
+        e.preventDefault();
+      });
+      
+      sliderContainer.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          updateFontSize(currentSize + 1);
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          updateFontSize(currentSize - 1);
+        } else if (e.key === 'Home') {
+          e.preventDefault();
+          updateFontSize(MIN_SIZE);
+        } else if (e.key === 'End') {
+          e.preventDefault();
+          updateFontSize(MAX_SIZE);
+        }
+      });
+    }
     
     sliderHandle.addEventListener('mousedown', (e) => {
       isDragging = true;
@@ -425,11 +586,13 @@
     });
     
     // Touch events for mobile
-    sliderContainer.addEventListener('touchstart', (e) => {
-      isDragging = true;
-      handleSliderInteraction(e);
-      e.preventDefault();
-    }, { passive: false });
+    if (sliderContainer) {
+      sliderContainer.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        handleSliderInteraction(e);
+        e.preventDefault();
+      }, { passive: false });
+    }
     
     sliderHandle.addEventListener('touchstart', (e) => {
       isDragging = true;
@@ -448,7 +611,7 @@
       isDragging = false;
     });
     
-    // Keyboard shortcuts (the main benefit!)
+    // Keyboard shortcuts (improved)
     document.addEventListener('keydown', (e) => {
       if (e.ctrlKey || e.metaKey) {
         if (e.key === '=' || e.key === '+') {
