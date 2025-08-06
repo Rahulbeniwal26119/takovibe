@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 export default function TokenCounter() {
-  const [input, setInput] = useState('Hamburger 🍔 is not Ham + Burger, right?');
+  const [input, setInput] = useState('He,bim');
   const [tokens, setTokens] = useState([]);
   const [tokenTexts, setTokenTexts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);

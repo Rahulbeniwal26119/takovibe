@@ -1,7 +1,7 @@
 ---
 layout: ../../layouts/BlogPost.astro
-title: "Tokenization for RAG: Turning Text into Lego Bricks"
-date: "2025-08-05"
+title: "Day 1 Tokenization for RAG: Turning Text into Lego Bricks"
+date: "2025-08-06"
 author: "Rahul Beniwal"
 description: "Story-driven intro, Python & JS code, live token counter, quiz & FAQ. Learn tokenization from scratch—the first brick of Retrieval-Augmented Generation."
 image: "https://images.unsplash.com/photo-1604307410297-081e0677d3fb"
@@ -19,30 +19,54 @@ import Quiz from '../../components/Quiz';
 
 # Tokenization for RAG: Turning Text into Lego Bricks
 
-*30-Days-to-RAG • Day 1*  
-_A zero-assumption crash-course for absolute beginners_
+<div className="text-purple-600 dark:text-purple-400 font-medium text-sm mb-2">
+30-Days-to-RAG • Day 1
+</div>
+
+<div className="text-gray-600 dark:text-gray-400 italic mb-8 text-sm md:text-base">
+A zero-assumption crash-course for absolute beginners
+</div>
 
 ---
 
 ## ⚡ Quick Snapshot (TL;DR)
 
-| You learn           | In 5 mins you can                 | Why it matters                                |
-| ------------------- | --------------------------------- | --------------------------------------------- |
-| **Define tokens**   | Print token IDs for any sentence  | Vector stores & LLMs speak *tokens*          |
-| **See live counts** | Type text & watch a JS demo       | Fewer tokens = cheaper API calls             |
-
-*(Skimmers read this → Coders jump to §4 → Quiz lovers jump to §8.)*
+<div className="overflow-x-auto">
+<table className="w-full text-sm md:text-base">
+<thead>
+<tr>
+<th className="text-left p-2 md:p-3">You learn</th>
+<th className="text-left p-2 md:p-3">In 5 mins you can</th>
+<th className="text-left p-2 md:p-3">Why it matters</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td className="p-2 md:p-3"><strong>Define tokens</strong></td>
+<td className="p-2 md:p-3">Print token IDs for any sentence</td>
+<td className="p-2 md:p-3">Vector stores & LLMs speak <em>tokens</em></td>
+</tr>
+<tr>
+<td className="p-2 md:p-3"><strong>See live counts</strong></td>
+<td className="p-2 md:p-3">Type text & watch a JS demo</td>
+<td className="p-2 md:p-3">Fewer tokens = cheaper API calls</td>
+</tr>
+</tbody>
+</table>
+</div>
 
 ---
 
 ## 1 | The Story 🏗️
 
-Imagine managing the world’s biggest **LEGO® warehouse**. When a truck arrives with boxes of mixed LEGO sets, you don’t just store them away randomly. Instead, you carefully open each box, sort out every single brick by its type and color, label them, and then put each in the right bin.
+Imagine managing the world's biggest **LEGO® warehouse**. When a truck arrives with boxes of mixed LEGO sets, you don't just store them away randomly. Instead, you carefully open each box, sort out every single brick by its type and color, label them, and then put each in the right bin.
 
-In AI, something similar happens when language models like ChatGPT read text. They don’t understand whole sentences directly. First, they perform a step called **tokenization**, where sentences are broken down into smaller units called **tokens**. Just like sorting LEGO bricks makes building easier, tokenization simplifies the task of understanding and generating language for AI.
+In AI, something similar happens when language models like ChatGPT read text. They don't understand whole sentences directly. First, they perform a step called **tokenization**, where sentences are broken down into smaller units called **tokens**. Just like sorting LEGO bricks makes building easier, tokenization simplifies the task of understanding and generating language for AI.
 
-> **Real-world analogy:**  
-> Think of **tokens as grocery store barcodes**. Just as cashiers scan barcodes instead of typing product names manually, AI models convert words into numerical tokens for efficient processing.
+<div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-400 p-4 my-6 rounded-r-lg">
+<p className="text-sm md:text-base"><strong>Real-world analogy:</strong><br/>
+Think of <strong>tokens as grocery store barcodes</strong>. Just as cashiers scan barcodes instead of typing product names manually, AI models convert words into numerical tokens for efficient processing.</p>
+</div>
 
 Without tokenization, everything else in Retrieval-Augmented Generation (RAG) breaks down. **Retrieval** relies on converting tokens into vectors (numeric form), and **Generation** uses these vectors to reconstruct tokens into coherent sentences. The same tokenizer must be used consistently, ensuring the meanings remain intact throughout.
 
@@ -52,54 +76,92 @@ Without tokenization, everything else in Retrieval-Augmented Generation (RAG) br
 
 A **token** is the smallest meaningful piece of text an AI model understands. Tokens can be:
 
-- A whole word like `apple`
-- Part of a word (sub-word), for example, `▁ap` and `ple`
-- A punctuation mark or emoji such as `!` or `😀`
+<div className="space-y-2 my-4">
+<div className="flex items-center space-x-3">
+<span className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></span>
+<span className="text-sm md:text-base">A whole word like <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-xs md:text-sm">apple</code></span>
+</div>
+<div className="flex items-center space-x-3">
+<span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></span>
+<span className="text-sm md:text-base">Part of a word (sub-word), for example, <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-xs md:text-sm">▁ap</code> and <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-xs md:text-sm">ple</code></span>
+</div>
+<div className="flex items-center space-x-3">
+<span className="w-2 h-2 bg-purple-500 rounded-full flex-shrink-0"></span>
+<span className="text-sm md:text-base">A punctuation mark or emoji such as <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-xs md:text-sm">!</code> or <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-xs md:text-sm">😀</code></span>
+</div>
+</div>
 
 Tokens are stored as numbers (integers) inside an AI model. For instance, `apple` might be represented as token number **9609**. You can imagine tokens as unique inventory IDs in a massive warehouse. Each word or sub-word is a unique item that the AI can quickly identify and handle.
 
-### Two Popular Tokenizer Families
+### Two Popular Tokenizer Families — Explained Simply
 
+<div className="grid md:grid-cols-2 gap-6 my-8">
 
-> **Byte-Pair Encoding (BPE)**
+<div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-4 md:p-6 rounded-xl border border-green-200 dark:border-green-800">
+<h4 className="text-lg font-bold text-green-800 dark:text-green-300 mb-3">Byte-Pair Encoding (BPE)</h4>
+<div className="space-y-2 text-sm md:text-base">
+<p><strong className="text-green-700 dark:text-green-400">Used by:</strong> GPT-2/3/4, GPT-4o, Claude</p>
+<p><strong className="text-green-700 dark:text-green-400">How it works:</strong> Starts with individual letters or small chunks of text, then repeatedly merges the most common pairs until the vocabulary is full.</p>
+<p><strong className="text-green-700 dark:text-green-400">Analogy:</strong> Gluing together the most common LEGO bricks to build larger, frequently-used bricks.</p>
+</div>
+</div>
 
-  **Used by:** GPT-2/3/4, GPT-4o, Claude  
-  **How it works:** Starts with individual letters or small chunks of text, then repeatedly merges the most common pairs until the vocabulary is full.  
-  **Analogy:** Gluing together the most common LEGO bricks to build larger, frequently-used bricks.  
-  **Demo:**
-  ```python
-  import tiktoken
-  enc = tiktoken.get_encoding("cl100k_base")
-  print(enc.encode("unbelievable"))
+<div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-4 md:p-6 rounded-xl border border-blue-200 dark:border-blue-800">
+<h4 className="text-lg font-bold text-blue-800 dark:text-blue-300 mb-3">SentencePiece (Unigram + BPE)</h4>
+<div className="space-y-2 text-sm md:text-base">
+<p><strong className="text-blue-700 dark:text-blue-400">Used by:</strong> Llama 2/3, T5, Gemini</p>
+<p><strong className="text-blue-700 dark:text-blue-400">How it works:</strong> Builds a huge candidate list of possible tokens, scores/prunes them down to the most useful set, and uses Viterbi search at run-time.</p>
+<p><strong className="text-blue-700 dark:text-blue-400">Analogy:</strong> Starting with a million-word dictionary, then removing rare entries until you have a compact, high-coverage list.</p>
+</div>
+</div>
 
-  # [359, 32898, 24694]
-  ```
+</div>
 
-> **SentencePiece (Unigram + BPE)** 
+**Demo - BPE (GPT-4):**
+```python
+import tiktoken
+enc = tiktoken.get_encoding("cl100k_base")
+print(enc.encode("unbelievable"))
 
-  **Used by:** Llama 2/3, T5, Gemini  
-  **How it works:** Builds a huge candidate list of possible tokens, scores/prunes them down to the most useful set, and uses Viterbi search at run-time.  
-  **Analogy:** Starting with a million-word dictionary, then removing rare entries until you have a compact, high-coverage list.  
-  **Demo:**
-  Download the data file from [Link][https://github.com/google/sentencepiece/blob/master/data/botchan.txt]
-  ```python
-  import sentencepiece as spm
-  spm.SentencePieceTrainer.Train('--input=/Users/rahul.beniwal/Downloads/botchan.txt --model_prefix=my_model --vocab_size=5239')
-  sp = spm.SentencePieceProcessor(model_file="toy_sp.model")
-  print(sp.encode("unbelievable", out_type=str))
+# [359, 32898, 24694]
+```
 
-  # ['▁un', 'be', 'li', 'e', 'v', 'able']
-  ```
+**Demo - SentencePiece (Llama):**
+Download the data file from [Link][https://github.com/google/sentencepiece/blob/master/data/botchan.txt]
 
-> **Crucial Insight:** Different models tokenize differently, leading to different token counts. Always match your retriever and generator’s tokenizer!
+```python
+import sentencepiece as spm
+spm.SentencePieceTrainer.Train('--input=/Users/rahul.beniwal/Downloads/botchan.txt --model_prefix=my_model --vocab_size=5239')
+sp = spm.SentencePieceProcessor(model_file="toy_sp.model")
+print(sp.encode("unbelievable", out_type=str))
+
+# ['▁un', 'be', 'li', 'e', 'v', 'able']
+```
+
+<div className="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-400 p-4 my-6 rounded-r-lg">
+<p className="text-sm md:text-base"><strong>Crucial Insight:</strong> Different models tokenize differently, leading to different token counts. Always match your retriever and generator's tokenizer!</p>
+</div>
 
 ---
 
-## 3 | Why Tokenization Matters
+## 3 | Why Tokenization Matters for Beginners
 
-1. **Ensure Accuracy:** Mismatched tokenizers drop retrieval quality.  
-2. **Control Costs:** APIs charge per token—know your counts.  
-3. **Maximize Efficiency:** Fit more information into model context windows.  
+<div className="grid md:grid-cols-3 gap-4 my-8">
+<div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
+<div className="text-red-600 dark:text-red-400 font-bold mb-2">1. Ensure Accuracy</div>
+<p className="text-sm">Mismatched tokenizers drop retrieval quality.</p>
+</div>
+<div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
+<div className="text-green-600 dark:text-green-400 font-bold mb-2">2. Control Costs</div>
+<p className="text-sm">APIs charge per token—know your counts.</p>
+</div>
+<div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+<div className="text-blue-600 dark:text-blue-400 font-bold mb-2">3. Maximize Efficiency</div>
+<p className="text-sm">Fit more information into model context windows.</p>
+</div>
+</div>
+
+---
 
 ---
 
@@ -127,33 +189,57 @@ print("Botchain model  tokens:", sp.encode(s), "count →", len(sp.encode(s)))
 
 ## 5 | Live JS Token Counter  
 
+<div className="my-8">
 <TokenCounter client:load />
+</div>
 
 ---
 
 ## 6 | Interactive Diagram Concept 🎨
 
-Imagine an interactive app where each token is a colored LEGO brick. Users type a sentence, see bricks appear, then drag to reorder and watch the reconstructed text update. This teaches token order and composition visually.
+<div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-6 rounded-xl border border-purple-200 dark:border-purple-800 my-8">
+<p className="text-sm md:text-base">Imagine an interactive app where each token is a colored LEGO brick. Users type a sentence, see bricks appear, then drag to reorder and watch the reconstructed text update. This teaches token order and composition visually.</p>
+</div>
 
 ---
 
 ## 7 | Common Pitfalls & Pro Tips
 
-| Pitfall                                     | Fix                                          |
-|---------------------------------------------|----------------------------------------------|
-| Mix-matched tokenizers between retriever & generator | Use the same tokenizer throughout            |
-| Counting characters instead of tokens       | Always use the tokenizer API to get counts   |
-| Ignoring special tokens (e.g., `<endoftext>`) | Reserve budget for special tokens in prompts |
+<div className="overflow-x-auto">
+<table className="w-full text-sm">
+<thead>
+<tr className="bg-gray-50 dark:bg-gray-800">
+<th className="text-left p-3 font-semibold">Pitfall</th>
+<th className="text-left p-3 font-semibold">Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr className="border-t border-gray-200 dark:border-gray-700">
+<td className="p-3">Mix-matched tokenizers between retriever & generator</td>
+<td className="p-3">Use the same tokenizer throughout</td>
+</tr>
+<tr className="border-t border-gray-200 dark:border-gray-700">
+<td className="p-3">Counting characters instead of tokens</td>
+<td className="p-3">Always use the tokenizer API to get counts</td>
+</tr>
+<tr className="border-t border-gray-200 dark:border-gray-700">
+<td className="p-3">Ignoring special tokens (e.g., <code>&lt;endoftext&gt;</code>)</td>
+<td className="p-3">Reserve budget for special tokens in prompts</td>
+</tr>
+</tbody>
+</table>
+</div>
 
 ---
 
 ## 8 | Mini-Quiz 🎯
 
+<div className="my-8">
 <Quiz 
   title="Tokenization Mastery Quiz"
   description="Test your understanding of tokenization concepts for RAG"
   questions={[
-    {
+{
       id: 'q1',
       question: 'True/False: All GPT models share the same tokenizer.',
       options: [
@@ -189,38 +275,47 @@ Imagine an interactive app where each token is a colored LEGO brick. Users type 
   ]}
   client:load 
 />
+</div>
 
 ---
 
----
+## 9 | Frequently Asked Questions
 
-## 9 | FAQ Schema (SEO + GEO Booster)
+<div className="space-y-6 my-8">
+<div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+<h4 className="font-semibold mb-2 text-sm md:text-base">What is tokenization in NLP?</h4>
+<p className="text-sm md:text-base text-gray-600 dark:text-gray-400">Tokenization splits text into numeric tokens that models can process. It's like breaking sentences into LEGO bricks that AI can understand.</p>
+</div>
 
-```html
-<script type="application/ld+json">
-{
-  "@context":"https://schema.org",
-  "@type":"FAQPage",
-  "mainEntity":[
-    {
-      "@type":"Question",
-      "name":"What is tokenization in NLP?",
-      "acceptedAnswer":{"@type":"Answer","text":"Tokenization splits text into numeric tokens that models can process."}
-    },
-    {
-      "@type":"Question",
-      "name":"Why is tokenization crucial for RAG?",
-      "acceptedAnswer":{"@type":"Answer","text":"RAG needs identical tokenization for queries and documents to ensure accurate vector similarity and cost-efficient prompts."}
-    }
-  ]
-}
-</script>
-```
+<div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+<h4 className="font-semibold mb-2 text-sm md:text-base">Why is tokenization crucial for RAG?</h4>
+<p className="text-sm md:text-base text-gray-600 dark:text-gray-400">RAG needs identical tokenization for queries and documents to ensure accurate vector similarity and cost-efficient prompts.</p>
+</div>
+
+<div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+<h4 className="font-semibold mb-2 text-sm md:text-base">Do different models have different token counts?</h4>
+<p className="text-sm md:text-base text-gray-600 dark:text-gray-400">Yes! GPT-4, Claude, and Llama can tokenize the same text differently. Always use the same tokenizer family throughout your RAG pipeline.</p>
+</div>
+</div>
 
 ---
 
 ## 10 | Next Step
 
-- Up Next → Day 2: Sentence Embeddings  
+<div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 p-4 md:p-6 rounded-xl border border-indigo-200 dark:border-indigo-800 my-8">
+<div className="flex flex-col md:flex-row items-start md:items-center justify-between space-y-4 md:space-y-0">
+<div>
+<h3 className="font-bold text-lg mb-2">Ready for Day 2?</h3>
+<p className="text-sm md:text-base text-gray-600 dark:text-gray-400">Up Next → Day 2: Sentence Embeddings</p>
+</div>
+<div className="flex flex-col sm:flex-row gap-3">
+<a href="/series/30-days-to-rag" className="inline-flex items-center px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-sm font-medium transition-colors">
+📚 View Series
+</a>
+</div>
+</div>
+</div>
 
-*Happy building—brick by brick!*  
+<div className="text-center text-gray-500 dark:text-gray-400 italic text-sm mt-8">
+Happy building—brick by brick! 🧱
+</div>

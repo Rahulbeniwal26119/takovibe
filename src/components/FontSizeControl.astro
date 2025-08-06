@@ -448,7 +448,7 @@
       }
     }
     
-    // Apply font size to content (improved targeting)
+    // Apply font size to content (improved targeting - now includes code blocks and all text elements)
     function applyFontSize(size) {
       const article = document.querySelector('article.prose');
       if (!article) {
@@ -465,29 +465,137 @@
       const style = document.createElement('style');
       style.id = 'dynamic-font-style';
       style.textContent = `
+        /* Regular text content */
         article.prose p,
         article.prose .mdx-content p,
         article.prose li,
-        article.prose .mdx-content li {
+        article.prose .mdx-content li,
+        article.prose div,
+        article.prose .mdx-content div,
+        article.prose span {
           font-size: ${size}px !important;
           line-height: 1.7 !important;
         }
         
+        /* Headings - scale proportionally */
+        article.prose h1,
+        article.prose .mdx-content h1 {
+          font-size: ${size * 2.25}px !important;
+          line-height: 1.2 !important;
+        }
+        
+        article.prose h2,
+        article.prose .mdx-content h2 {
+          font-size: ${size * 1.875}px !important;
+          line-height: 1.3 !important;
+        }
+        
+        article.prose h3,
+        article.prose .mdx-content h3 {
+          font-size: ${size * 1.5}px !important;
+          line-height: 1.4 !important;
+        }
+        
+        article.prose h4,
+        article.prose .mdx-content h4 {
+          font-size: ${size * 1.25}px !important;
+          line-height: 1.5 !important;
+        }
+        
+        article.prose h5,
+        article.prose .mdx-content h5,
+        article.prose h6,
+        article.prose .mdx-content h6 {
+          font-size: ${size * 1.125}px !important;
+          line-height: 1.5 !important;
+        }
+        
+        /* Code blocks and inline code */
+        article.prose code,
+        article.prose .mdx-content code,
+        article.prose pre,
+        article.prose .mdx-content pre,
+        article.prose pre code,
+        article.prose .mdx-content pre code {
+          font-size: ${size * 0.875}px !important;
+          line-height: 1.6 !important;
+        }
+        
+        /* Code blocks inside divs */
+        article.prose div pre,
+        article.prose .mdx-content div pre,
+        article.prose div code,
+        article.prose .mdx-content div code {
+          font-size: ${size * 0.875}px !important;
+        }
+        
+        /* Blockquotes */
         article.prose blockquote,
-        article.prose .mdx-content blockquote {
+        article.prose .mdx-content blockquote,
+        article.prose blockquote p,
+        article.prose .mdx-content blockquote p {
           font-size: ${size + 2}px !important;
           line-height: 1.6 !important;
         }
         
-        article.prose .mdx-content > div:not([class*="code"]):not(pre):not(code) {
+        /* Tables */
+        article.prose table,
+        article.prose .mdx-content table,
+        article.prose td,
+        article.prose .mdx-content td,
+        article.prose th,
+        article.prose .mdx-content th {
           font-size: ${size}px !important;
-          line-height: 1.7 !important;
+        }
+        
+        /* Other text elements */
+        article.prose small,
+        article.prose .mdx-content small {
+          font-size: ${size * 0.875}px !important;
+        }
+        
+        article.prose strong,
+        article.prose .mdx-content strong,
+        article.prose b,
+        article.prose .mdx-content b,
+        article.prose em,
+        article.prose .mdx-content em,
+        article.prose i,
+        article.prose .mdx-content i {
+          font-size: inherit !important;
+        }
+        
+        /* Quiz and interactive components */
+        article.prose .quiz-container,
+        article.prose .quiz-container *,
+        article.prose .token-counter,
+        article.prose .token-counter * {
+          font-size: ${size}px !important;
+        }
+        
+        /* FAQ sections */
+        article.prose details,
+        article.prose details *,
+        article.prose summary,
+        article.prose summary * {
+          font-size: ${size}px !important;
+        }
+        
+        /* Custom components */
+        article.prose .bg-gradient-to-r *,
+        article.prose .bg-gradient-to-br *,
+        article.prose .border-l-4 *,
+        article.prose .rounded-xl *,
+        article.prose .space-y-2 *,
+        article.prose .space-y-4 *,
+        article.prose .space-y-6 * {
+          font-size: ${size}px !important;
         }
       `;
       
       document.head.appendChild(style);
       
-      console.log(`📝 FontSizeControl: Applied ${size}px font size`);
+      console.log(`📝 FontSizeControl: Applied ${size}px font size to all elements`);
     }
     
     // Update everything

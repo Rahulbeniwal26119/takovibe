@@ -56,66 +56,58 @@ const { post, position = "sidebar" } = Astro.props;
       </div>
     </div>
 
-    <!-- Share Button -->
+    <!-- Share Section (Always Expanded) -->
     <div class="group relative">
-      <button
-        id="shareButton"
-        class="flex items-center justify-center p-4 rounded-2xl bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm shadow-lg hover:shadow-xl border border-gray-200/50 dark:border-gray-700/50 hover:scale-105 transition-all duration-300 w-16 h-16"
-      >
-        <svg 
-          class="w-6 h-6 text-green-500"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
-        </svg>
-      </button>
-      <!-- Tooltip -->
-      <div class="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap z-10">
-        Share this article
+      <!-- Share Label -->
+      <div class="flex items-center justify-center p-2 mb-2">
+        <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Share</span>
       </div>
       
-      <!-- Share Dropdown Menu -->
-      <div 
-        id="shareDropdown" 
-        class="absolute left-full ml-3 top-0 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-2 min-w-[160px] hidden z-20"
-      >
-        <div class="px-3 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-700">
-          Share Article
-        </div>
+      <!-- Copy Link Button -->
+      <div class="mb-3">
         <button 
           id="copyLinkBtn"
-          class="w-full flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+          class="group w-full flex flex-col items-center p-3 rounded-2xl bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm shadow-lg hover:shadow-xl border border-gray-200/50 dark:border-gray-700/50 hover:scale-105 transition-all duration-300"
+          title="Copy article link"
         >
-          <svg class="w-4 h-4 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-5 h-5 text-green-600 dark:text-green-400 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
           </svg>
-          <span class="text-sm text-gray-700 dark:text-gray-300">Copy Link</span>
+          <span class="text-xs font-medium text-gray-700 dark:text-gray-300 mt-1">Copy</span>
         </button>
+      </div>
+
+      <!-- Twitter Share -->
+      <div class="mb-3">
         <a 
           href="#"
           id="twitterShare"
           target="_blank"
           rel="noopener noreferrer"
-          class="w-full flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+          class="group w-full flex flex-col items-center p-3 rounded-2xl bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm shadow-lg hover:shadow-xl border border-gray-200/50 dark:border-gray-700/50 hover:scale-105 transition-all duration-300"
+          title="Share on Twitter"
         >
-          <svg class="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+          <svg class="w-5 h-5 text-blue-500 group-hover:scale-110 transition-transform duration-200" fill="currentColor" viewBox="0 0 24 24">
             <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
           </svg>
-          <span class="text-sm text-gray-700 dark:text-gray-300">Twitter</span>
+          <span class="text-xs font-medium text-gray-700 dark:text-gray-300 mt-1">Twitter</span>
         </a>
+      </div>
+
+      <!-- LinkedIn Share -->
+      <div>
         <a 
           href="#"
           id="linkedinShare"
           target="_blank"
           rel="noopener noreferrer"
-          class="w-full flex items-center space-x-3 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+          class="group w-full flex flex-col items-center p-3 rounded-2xl bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm shadow-lg hover:shadow-xl border border-gray-200/50 dark:border-gray-700/50 hover:scale-105 transition-all duration-300"
+          title="Share on LinkedIn"
         >
-          <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+          <svg class="w-5 h-5 text-blue-600 group-hover:scale-110 transition-transform duration-200" fill="currentColor" viewBox="0 0 24 24">
             <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
           </svg>
-          <span class="text-sm text-gray-700 dark:text-gray-300">LinkedIn</span>
+          <span class="text-xs font-medium text-gray-700 dark:text-gray-300 mt-1">LinkedIn</span>
         </a>
       </div>
     </div>
@@ -646,38 +638,6 @@ const { post, position = "sidebar" } = Astro.props;
     const currentUrl = window.location.href;
     const articleTitle = document.title;
     
-    // Desktop share dropdown
-    const desktopShareButton = document.getElementById('shareButton');
-    const desktopShareDropdown = document.getElementById('shareDropdown');
-    
-    // Desktop share button click
-    if (desktopShareButton && desktopShareDropdown) {
-      desktopShareButton.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const isHidden = desktopShareDropdown.classList.contains('hidden');
-        
-        if (isHidden) {
-          desktopShareDropdown.classList.remove('hidden');
-        } else {
-          desktopShareDropdown.classList.add('hidden');
-        }
-      });
-    }
-    
-    // Close dropdown when clicking outside
-    document.addEventListener('click', () => {
-      if (desktopShareDropdown) {
-        desktopShareDropdown.classList.add('hidden');
-      }
-    });
-    
-    // Prevent dropdown from closing when clicking inside
-    if (desktopShareDropdown) {
-      desktopShareDropdown.addEventListener('click', (e) => {
-        e.stopPropagation();
-      });
-    }
-    
     // Copy link functionality
     async function copyToClipboard() {
       try {
@@ -700,11 +660,6 @@ const { post, position = "sidebar" } = Astro.props;
             }
           }
         });
-        
-        // Hide desktop dropdown after copying
-        if (desktopShareDropdown) {
-          desktopShareDropdown.classList.add('hidden');
-        }
       } catch (error) {
         console.error('Failed to copy link:', error);
       }
@@ -721,13 +676,17 @@ const { post, position = "sidebar" } = Astro.props;
       // Update Twitter links (desktop and mobile)
       const twitterLinks = [document.getElementById('twitterShare'), document.getElementById('mobileTwitterShare')];
       twitterLinks.forEach(link => {
-        if (link) link.href = twitterUrl;
+        if (link) {
+          link.href = twitterUrl;
+        }
       });
       
       // Update LinkedIn links (desktop and mobile)
       const linkedinLinks = [document.getElementById('linkedinShare'), document.getElementById('mobileLinkedinShare')];
       linkedinLinks.forEach(link => {
-        if (link) link.href = linkedinUrl;
+        if (link) {
+          link.href = linkedinUrl;
+        }
       });
     }
     
