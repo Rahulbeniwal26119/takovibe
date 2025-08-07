@@ -13,7 +13,7 @@
   "dependencies": {
     "@astrojs/mdx": "^2.3.1",
     "@astrojs/react": "^4.3.0",
-    "@astrojs/sitemap": "^3.2.1",
+    "@astrojs/sitemap": "^3.4.2",
     "@astrojs/tailwind": "^5.1.4",
     "@auth/core": "^0.37.4",
     "@dqbd/tiktoken": "^1.0.21",

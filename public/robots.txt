@@ -1,7 +1,21 @@
-# NOTICE: Content collection through automated means is prohibited
-# except for search engine indexing or with express permission.
+# -------- Global rules --------
+User-agent: *
+Allow: /                       # index everything ...
+Disallow: /auth/              # ... except these
+Disallow: /Auth/              # (case-sensitive)
+Disallow: /admin/
+Disallow: /_astro/
+Disallow: /api/
+Disallow: /.env
+Disallow: /_*
 
-# Cloudflare Bot Protection
+# -------- Disallow specific AI scraping bots --------
+User-agent: GPTBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
 User-agent: Amazonbot
 Disallow: /
 
@@ -17,29 +31,5 @@ Disallow: /
 User-agent: ClaudeBot
 Disallow: /
 
-User-agent: Google-Extended
-Disallow: /
-
-User-agent: GPTBot
-Disallow: /
-
-User-agent: meta-externalagent
-Disallow: /
-
-# Global rules for search engines
-User-agent: *
-Disallow: /.env
-Disallow: /admin/
-Disallow: /_astro/
-Disallow: /api/
-Disallow: /Auth/
-Disallow: /auth/
-Allow: /
-
-# Allow important SEO files
-Allow: /sitemap-index.xml
-Allow: /sitemap-0.xml
-Allow: /robots.txt
-
-# Sitemap location
+# -------- Sitemap --------
 Sitemap: https://takovibe.com/sitemap-index.xml

@@ -31,7 +31,7 @@ clean() {
 install_deps() {
     log "Installing dependencies..."
     # Use clean install and only production dependencies
-    npm ci --only=production --no-audit || error "Failed to install dependencies"
+    npm install --no-audit || error "Failed to install dependencies"
 }
 
 # Build the application

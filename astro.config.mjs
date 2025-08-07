@@ -2,6 +2,7 @@ import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import react from '@astrojs/react';
 import tailwind from '@astrojs/tailwind';
+import fs from 'node:fs';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import sitemap from '@astrojs/sitemap';
@@ -12,13 +13,6 @@ export default defineConfig({
   site: 'https://takovibe.com',
   integrations: [
     react(),
-    sitemap({
-      filter: (page) => !page.includes('/auth/') && !page.includes('/admin/'),
-      customPages: ['https://takovibe.com/blog'],
-      changefreq: 'weekly',
-      priority: 0.7,
-      lastmod: new Date()
-    }),
     mdx({
       remarkPlugins: [remarkMath],
       rehypePlugins: [rehypeKatex],
@@ -40,34 +34,62 @@ export default defineConfig({
     }),
     sitemap({
       filter: (page) => {
-        // Exclude auth pages, fixed files, but allow most other pages
-        return !page.includes('/Auth') && 
-               !page.includes('/auth') &&
-               !page.includes('fixed') && 
-               !page.includes('/_');
+        // Only exclude auth and system pages
+        return !page.includes('/auth/') && 
+               !page.includes('/Auth/') && 
+               !page.includes('/_') && 
+               !page.includes('/admin/');
       },
-      changefreq: 'weekly',
-      priority: 0.7,
-      lastmod: new Date(),
+      customPages: [
+        'https://takovibe.com/blog/',
+        'https://takovibe.com/about/',
+        'https://takovibe.com/portfolio/'
+      ],
       serialize(item) {
-        // Customize priorities and changefreq based on page type
-        if (item.url === 'https://takovibe.com/') {
-          item.priority = 1.0;
-          item.changefreq = 'daily';
-        } else if (item.url.includes('/blog/')) {
-          item.priority = 0.8;
-          item.changefreq = 'monthly';
-        } else if (item.url.includes('/blog') && !item.url.includes('/blog/')) {
-          item.priority = 0.9;
-          item.changefreq = 'daily';
-        } else if (item.url.includes('/portfolio')) {
-          item.priority = 0.6;
-          item.changefreq = 'monthly';
-        } else if (item.url.includes('/about')) {
-          item.priority = 0.5;
-          item.changefreq = 'monthly';
+        // Base configuration
+        let priority = 0.7;
+        let changefreq = 'weekly';
+        
+        // Get the file's last modified date if it's a content file
+        let lastmod = new Date();
+        if (item.url.includes('/blog/')) {
+          try {
+            // This assumes your content is in src/content/blog/
+            const path = item.url.split('/blog/')[1].replace(/\/$/, '');
+            const stats = fs.statSync(`./src/content/blog/${path}.mdx`);
+            lastmod = stats.mtime;
+          } catch (e) {
+            // Fallback to current date if file not found
+            console.warn(`Could not get lastmod for ${item.url}`);
+          }
         }
-        return item;
+
+        // Customize based on URL pattern
+        if (item.url === 'https://takovibe.com/') {
+          priority = 1.0;
+          changefreq = 'daily';
+        } else if (item.url.includes('/blog/')) {
+          // Individual blog posts
+          priority = 0.8;
+          changefreq = 'monthly';
+        } else if (item.url === 'https://takovibe.com/blog/') {
+          // Blog index page
+          priority = 0.9;
+          changefreq = 'daily';
+        } else if (item.url.includes('/portfolio')) {
+          priority = 0.6;
+          changefreq = 'monthly';
+        } else if (item.url.includes('/about')) {
+          priority = 0.5;
+          changefreq = 'monthly';
+        }
+
+        return {
+          ...item,
+          changefreq,
+          priority,
+          lastmod: lastmod.toISOString()
+        };
       }
     }),
     compress({

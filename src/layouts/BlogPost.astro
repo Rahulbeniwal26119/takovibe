@@ -10,17 +10,138 @@ interface Props {
     image: string;
     tags?: string[];
     canonical?: string;
-    type?: string;
+    type?: 'article' | 'website';
   };
 }
 
-const { title, date, author, description, image, tags, canonical, type } = Astro.props.frontmatter;
+// Props interface for the Layout component
+interface LayoutProps {
+  title: string;
+  description: string;
+  image: string;
+  author: string;
+  tags?: string[];
+  type?: 'article' | 'website';
+  publishDate?: string;
+  modifiedDate?: string;
+  canonicalUrl?: string;
+  no_footer?: boolean;
+}
 
-const isoDate = new Date(date).toISOString();
+import fs from 'node:fs';
+import path from 'node:path';
+
+const { title, date, author, description, image, tags, canonical, type = 'article' } = Astro.props.frontmatter;
+
+// Get the publish date from frontmatter
+const publishDate = new Date(date).toISOString();
+
+// Get the last modified date from the file's mtime
+const getLastModified = () => {
+  try {
+    // Convert the current file's URL to a file path
+    const filePath = path.join(process.cwd(), 'src/content/blog', path.basename(Astro.url.pathname) + '.mdx');
+    const stats = fs.statSync(filePath);
+    return stats.mtime.toISOString();
+  } catch (e) {
+    console.warn(`Could not get last modified date for ${Astro.url.pathname}`, e);
+    return publishDate; // Fallback to publish date if we can't get mtime
+  }
+};
+
+const lastModified = getLastModified();
+const canonicalUrl = canonical || `https://takovibe.com${Astro.url.pathname}`;
+
+// Prepare structured data for the blog post
+const articleStructuredData = {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": title,
+  "datePublished": publishDate,
+  "dateModified": lastModified,
+  "author": {
+    "@type": "Person",
+    "name": author,
+    "url": "https://takovibe.com/about/"
+  },
+  "description": description,
+  "image": {
+    "@type": "ImageObject",
+    "url": image?.startsWith('http') ? image : `https://takovibe.com${image}`,
+    "height": "630",
+    "width": "1200"
+  },
+  "url": canonicalUrl,
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": canonicalUrl
+  },
+  "keywords": tags?.join(', '),
+  "publisher": {
+    "@type": "Organization",
+    "name": "TakoVibe",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://takovibe.com/images/logo.svg",
+      "width": "192",
+      "height": "192"
+    }
+  }
+};
+
+// Breadcrumb structured data
+const breadcrumbStructuredData = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://takovibe.com"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Blog",
+      "item": "https://takovibe.com/blog"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": title,
+      "item": canonicalUrl
+    }
+  ]
+};
 ---
-<Layout title={title} type={type} description={description} image={image} tags={tags} type={type} no_footer={true}>
-
-  {canonical && <link rel="canonical" href={canonical} slot="head" />}
+<Layout 
+  title={title}
+  type="article"
+  description={description}
+  image={image}
+  tags={tags}
+  published_date={publishDate}
+  modified_date={lastModified}
+  no_footer={true}
+>
+  <!-- Robots Meta -->
+  <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1" slot="head" />
+  
+  <!-- SEO Meta Tags -->
+  <link rel="canonical" href={canonicalUrl} slot="head" />
+  <meta property="article:published_time" content={publishDate} slot="head" />
+  <meta property="article:modified_time" content={lastModified} slot="head" />
+  <meta property="article:author" content={author} slot="head" />
+  {tags?.map(tag => (
+    <meta property="article:tag" content={tag} slot="head" />
+  ))}
+  
+  <!-- Structured Data -->
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(articleStructuredData)}></script>
+  
+  <!-- Breadcrumb Structured Data -->
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(breadcrumbStructuredData)}></script>
 
   <article>
     <div class="prose dark:prose-invert max-w-none">
