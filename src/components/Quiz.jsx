@@ -90,17 +90,17 @@ export default function Quiz({
           <div className="relative bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-2xl border border-gray-200 dark:border-gray-700">
             <div className="text-center mb-6">
               <div className="text-6xl mb-4">
-                {res.score === 3 ? '🎉' : res.score === 2 ? '👍' : '📚'}
+                {res.score === questions.length ? '🎉' : res.score >= Math.ceil(questions.length * 0.8) ? '👍' : '📚'}
               </div>
               <h3 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">
                 {title} Complete!
               </h3>
               <div className="text-5xl font-extrabold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                {res.score}/3
+                {res.score}/{questions.length}
               </div>
               <p className="text-gray-600 dark:text-gray-400 mt-2">
-                {res.score === 3 ? 'Perfect! You\'re a tokenization expert!' : 
-                 res.score === 2 ? 'Great job! Just one more to go!' : 
+                {res.score === questions.length ? 'Perfect! You\'re a quiz master!' : 
+                 res.score >= Math.ceil(questions.length * 0.8) ? 'Great job! Almost there!' : 
                  'Good effort! Review and try again!'}
               </p>
             </div>
