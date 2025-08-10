@@ -1,5 +1,6 @@
 ---
 import { Image } from 'astro:assets';
+import { optimizeImage, generateSrcset, generateSizes } from '../utils/imageOptimization';
 const SITE_URL = import.meta.env.SITE_URL;
 
 interface Props {
@@ -12,7 +13,15 @@ interface Props {
 }
 
 const { title, date, author, image, slug, tags = [] } = Astro.props;
-const optimizedImage = `${image}?&auto=format&fit=crop&w=800&h=400&q=80`;
+
+// Optimize images for different sizes
+const optimizedImage = optimizeImage(image, { width: 800, height: 400, quality: 80 });
+const srcset = generateSrcset(image, [400, 800, 1200]);
+const sizes = generateSizes({
+  '(max-width: 768px)': '100vw',
+  '(max-width: 1024px)': '50vw',
+  '': '400px'
+});
 ---
 
 <article 
@@ -25,12 +34,15 @@ const optimizedImage = `${image}?&auto=format&fit=crop&w=800&h=400&q=80`;
           <div class="relative h-48 overflow-hidden">
             <img
               src={optimizedImage}
+              srcset={srcset}
+              sizes={sizes}
               alt={title}
-              width={800}
-              height={400}
+              width="800"
+              height="400"
               class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
               loading="lazy"
               decoding="async"
+              fetchpriority="low"
             />
             <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
           </div>

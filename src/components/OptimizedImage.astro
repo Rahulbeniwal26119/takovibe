@@ -1,0 +1,48 @@
+---
+import { optimizeImage, generateSrcset, generateSizes } from '../utils/imageOptimization';
+
+interface Props {
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
+  quality?: number;
+  sizes?: Record<string, string>;
+  widths?: number[];
+  class?: string;
+  loading?: 'lazy' | 'eager';
+  fetchpriority?: 'high' | 'low' | 'auto';
+  decoding?: 'async' | 'sync' | 'auto';
+}
+
+const { 
+  src, 
+  alt, 
+  width = 800, 
+  height = 400, 
+  quality = 80,
+  sizes: customSizes,
+  widths = [400, 800, 1200],
+  class: className = '',
+  loading = 'lazy',
+  fetchpriority = 'auto',
+  decoding = 'async'
+} = Astro.props;
+
+const optimizedSrc = optimizeImage(src, { width, height, quality });
+const srcset = generateSrcset(src, widths);
+const sizes = generateSizes(customSizes);
+---
+
+<img 
+  src={optimizedSrc}
+  srcset={srcset}
+  sizes={sizes}
+  alt={alt}
+  width={width}
+  height={height}
+  class={className}
+  loading={loading}
+  fetchpriority={fetchpriority}
+  decoding={decoding}
+/>

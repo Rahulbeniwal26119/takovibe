@@ -9,7 +9,8 @@ const siteUrl = import.meta.env.SITE_URL;
 <button
   id="simple-search-btn"
   class="search-trigger flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-sm text-gray-600 dark:text-gray-400 transition-all duration-200"
-  aria-label="Open search"
+  aria-label="Open search (Press / key)"
+  title="Search posts (Press / to open quickly)"
 >
   <svg
     class="w-4 h-4"
@@ -28,10 +29,13 @@ const siteUrl = import.meta.env.SITE_URL;
     Search
     <span class="flex gap-1 ml-1 text-xs opacity-70">
       <kbd
-        class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono"
+        class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono border border-gray-200 dark:border-gray-600"
         >/</kbd
       >
     </span>
+  </span>
+  <span class="sm:hidden">
+    <span class="sr-only">Search (Press / to open)</span>
   </span>
 </button>
 
@@ -128,13 +132,20 @@ const siteUrl = import.meta.env.SITE_URL;
       $("#simple-search-input").focus();
     });
 
-    // Close on escape
+    // Close on escape and open on forward slash
     $(document).keydown(function (e) {
+      // Don't trigger if user is typing in an input, textarea, or contenteditable element
+      if ($(e.target).is('input, textarea, [contenteditable]')) {
+        return;
+      }
+      
       if (e.key === "Escape") {
         $("#simple-search-modal").hide();
       }
-      if (e.key === "/") {
+      
+      if (e.key === "/" && !e.ctrlKey && !e.metaKey && !e.altKey) {
         e.preventDefault();
+        console.log("Opening search with / key");
         $("#simple-search-modal").show();
         $("#simple-search-input").focus();
       }

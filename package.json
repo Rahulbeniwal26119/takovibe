@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build",
+    "build": "npm run clean && astro build",
+    "build:clean": "npm run clean && NODE_ENV=production astro build",
+    "clean": "rm -rf dist .astro node_modules/.vite",
     "preview": "astro preview",
     "astro": "astro"
   },

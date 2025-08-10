@@ -2,6 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import FloatingCard from "../components/FloatingCard.astro";
 import { getCollection } from "astro:content";
+import { optimizeImage, generateSrcset, generateSizes } from "../utils/imageOptimization";
 
 // Fetch all blog posts
 let blogEntries = [];
@@ -32,6 +33,16 @@ const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
   author="Rahul Beniwal"
   tags={["software engineering", "system design", "technology innovations"]}
 >
+  <!-- Preload the featured post image for better LCP -->
+  {sortedPosts[0] && (
+    <link 
+      slot="head"
+      rel="preload" 
+      as="image" 
+      href={optimizeImage(sortedPosts[0].data.image, { width: 800, height: 400, quality: 80 })}
+      fetchpriority="high"
+    />
+  )}
   <div class="relative min-h-screen">
     <!-- Hero Section -->
     <div class="relative min-h-[90vh] flex items-center justify-center overflow-hidden hero-section bg-gradient-to-b from-indigo-900/20 via-purple-900/10 to-transparent dark:from-indigo-950/40 dark:via-purple-950/20">
@@ -107,9 +118,16 @@ const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
             <div class="flex flex-col lg:flex-row">
               <div class="lg:w-1/2 relative h-64 lg:h-auto overflow-hidden">
                 <img 
-                  src={sortedPosts[0].data.image} 
+                  src={optimizeImage(sortedPosts[0].data.image, { width: 800, height: 400, quality: 80 })}
+                  srcset={generateSrcset(sortedPosts[0].data.image, [400, 800, 1200])}
+                  sizes={generateSizes({ '(max-width: 1024px)': '100vw', '': '50vw' })}
                   alt={sortedPosts[0].data.title}
+                  width="800"
+                  height="400"
                   class="w-full h-full object-cover"
+                  loading="eager"
+                  fetchpriority="high"
+                  decoding="async"
                 />
               </div>
               <div class="lg:w-1/2 p-8 lg:p-12 flex flex-col justify-center">

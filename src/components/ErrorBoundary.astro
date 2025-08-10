@@ -1,0 +1,39 @@
+---
+// Error boundary component to catch and handle any potential error messages
+interface Props {
+  fallback?: string;
+}
+
+const { fallback = "Something went wrong" } = Astro.props;
+---
+
+<div class="error-boundary">
+  <slot />
+</div>
+
+<script>
+  // Global error handler to prevent development error messages from showing
+  window.addEventListener('error', (event) => {
+    // Prevent any potential development error overlays in production
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+      event.preventDefault();
+      console.error('Caught error:', event.error);
+      return false;
+    }
+  });
+
+  // Handle unhandled promise rejections
+  window.addEventListener('unhandledrejection', (event) => {
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+      event.preventDefault();
+      console.error('Unhandled promise rejection:', event.reason);
+      return false;
+    }
+  });
+</script>
+
+<style>
+  .error-boundary {
+    position: relative;
+  }
+</style>

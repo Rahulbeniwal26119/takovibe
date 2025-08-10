@@ -7,6 +7,7 @@ import Footer from "../components/Footer.astro";
 import MusicPlayer from "../components/MusicPlayer.astro";
 import PomodoroTimer from "../components/PomodoroTimer.astro";
 import AnimatedBackground from "../components/AnimatedBackground.astro";
+import ErrorBoundary from "../components/ErrorBoundary.astro";
 
 interface Props {
   title: string;
@@ -149,7 +150,9 @@ const structuredData = {
       <!-- <EnhancedNotes /> -->
       <!-- <PomodoroTimer /> -->
       <div class="relative z-10 mx-auto">
-        <slot />
+        <ErrorBoundary>
+          <slot />
+        </ErrorBoundary>
       </div>
     </main>
     {!no_footer && <Footer />}

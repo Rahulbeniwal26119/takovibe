@@ -1,14 +1,16 @@
 ---
 import { Image } from "astro:assets";
 const apiUrl = import.meta.env.PUBLIC_API_URL;
-
+const googleClientId = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID;
 ---
 
+{googleClientId ? (
 <div class="auth-container">
   <div id="g_id_onload"
-    data-client_id={import.meta.env.PUBLIC_GOOGLE_CLIENT_ID}
+    data-client_id={googleClientId}
     data-context="signin"
     data-auto_select="false"
+    data-use_fedcm_for_prompt="false"
     data-callback="handleGoogleSignIn">
   </div>
   <!-- Option 1: Dark filled circle -->
@@ -36,15 +38,17 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
   </div> -->
 
   <!-- User info display when logged in -->
-  <div id="userInfo" class="hidden flex items-center space-x-2">
-    <img id="userAvatar" src="" alt="Profile" class="w-8 h-8 rounded-full">
-    <span id="userName" class="text-sm text-gray-200"></span>
-    <button 
-      onclick="handleLogout()"
-      class="text-sm text-red-500 hover:text-red-600"
-    >
-      Logout
-    </button>
+  <div id="userInfo" class="hidden">
+    <div class="flex items-center space-x-2">
+      <img id="userAvatar" src="" alt="Profile" class="w-8 h-8 rounded-full">
+      <span id="userName" class="text-sm text-gray-200"></span>
+      <button 
+        onclick="handleLogout()"
+        class="text-sm text-red-500 hover:text-red-600"
+      >
+        Logout
+      </button>
+    </div>
   </div>
 </div>
 
@@ -64,16 +68,29 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
   }
 
   function showUserInfo(user) {
-    document.querySelector('.g_id_signin').style.display = 'none';
+    const signInButton = document.querySelector('.g_id_signin');
+    if (signInButton) {
+      signInButton.style.display = 'none';
+    }
     const userInfo = document.getElementById('userInfo');
-    userInfo.classList.remove('hidden');
-    document.getElementById('userAvatar').src = user.image;
-    document.getElementById('userName').textContent = user.name;
+    if (userInfo) {
+      userInfo.classList.remove('hidden');
+      const avatar = document.getElementById('userAvatar');
+      const name = document.getElementById('userName');
+      if (avatar) avatar.src = user.image || '';
+      if (name) name.textContent = user.name || '';
+    }
   }
 
   function showLoginButton() {
-    document.querySelector('.g_id_signin').style.display = 'block';
-    document.getElementById('userInfo').classList.add('hidden');
+    const signInButton = document.querySelector('.g_id_signin');
+    if (signInButton) {
+      signInButton.style.display = 'block';
+    }
+    const userInfo = document.getElementById('userInfo');
+    if (userInfo) {
+      userInfo.classList.add('hidden');
+    }
   }
 
   window.handleGoogleSignIn = async (response) => {
@@ -143,7 +160,24 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
   };
 </script>
 
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+  // Load Google Sign-In script with error handling
+  (function() {
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onerror = function() {
+      console.warn('Google Sign-In script failed to load');
+      // Hide the sign-in button if script fails
+      const signInButton = document.querySelector('.g_id_signin');
+      if (signInButton) {
+        signInButton.style.display = 'none';
+      }
+    };
+    document.head.appendChild(script);
+  })();
+</script>
 
 <style>
   .auth-container {
@@ -155,3 +189,6 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
     display: none !important;
   }
 </style> 
+) : (
+  <div class="text-gray-500 text-sm">Auth unavailable</div>
+)}

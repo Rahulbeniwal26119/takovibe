@@ -11,6 +11,20 @@ import pwa from '@vite-pwa/astro';
 
 export default defineConfig({
   site: 'https://takovibe.com',
+  // Ensure clean production builds
+  output: 'static',
+  build: {
+    inlineStylesheets: 'auto',
+  },
+  vite: {
+    // Remove console.log and development code in production
+    define: {
+      __DEV__: process.env.NODE_ENV === 'development',
+    },
+    esbuild: {
+      drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
+    },
+  },
   integrations: [
     react(),
     mdx({

@@ -10,10 +10,10 @@ import LiveIndicator from "./LiveIndicator.astro";
   <nav
     class="h-14 max-w-6xl mx-auto px-4 flex justify-between items-center"
   >
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-3 min-w-0 flex-1">
       <a
         href="/"
-        class="hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+        class="hover:text-purple-600 dark:hover:text-purple-400 transition-colors flex-shrink-0"
       >
         <img 
           src="/images/logo.svg" 
@@ -23,20 +23,23 @@ import LiveIndicator from "./LiveIndicator.astro";
       </a>
       
       <!-- Live Indicator for RAG Series -->
-      <LiveIndicator 
-        seriesName="30-Days-to-RAG"
-        message="Series is LIVE! New posts every day"
-        href="/series/30-days-to-rag"
-      />
+      <div class="flex-shrink-0">
+        <LiveIndicator 
+          seriesName="30-Days-to-RAG"
+          message="Series is LIVE! New posts every day"
+          href="/series/30-days-to-rag"
+        />
+      </div>
     </div>
     <div class="flex items-center space-x-4">
       <Auth />
       <a
         href="/about"
         class="text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+        aria-label="About Rahul Beniwal - Software Developer and Blog Author"
       >
-        <span class="hidden md:inline">Learn More</span>
-        <svg class="w-6 h-6 md:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <span class="hidden md:inline">About</span>
+        <svg class="w-6 h-6 md:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
       </a>
