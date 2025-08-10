@@ -293,3 +293,4 @@ const CeleryArchitectureDemo = () => {
 };
 
 export default CeleryArchitectureDemo;
+  

@@ -129,7 +129,7 @@ const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
                 <div class="flex items-center text-sm text-gray-500 dark:text-gray-400">
                   <span>{new Date(sortedPosts[0].data.date).toLocaleDateString()}</span>
                   <span class="mx-2">•</span>
-                  <span>{sortedPosts[0].data.readingTime}</span>
+                  <span>{sortedPosts[0].data.author}</span>
                 </div>
               </div>
             </div>
