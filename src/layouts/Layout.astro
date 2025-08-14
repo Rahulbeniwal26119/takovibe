@@ -20,6 +20,7 @@ interface Props {
   published_date?: string;
   modified_date?: string;
   no_footer?: boolean;
+  no_header?: boolean;
 }
 
 const {
@@ -32,7 +33,8 @@ const {
   tags = [],
   published_date = new Date().toISOString(),
   modified_date,
-  no_footer = false
+  no_footer = false,
+  no_header = false
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
@@ -137,7 +139,7 @@ const structuredData = {
     )}
   </head>
   <body class="text-gray-100 min-h-screen overflow-x-hidden">
-    <Header />
+    {!no_header && <Header />}
     <ReadingProgress />
 
     <main

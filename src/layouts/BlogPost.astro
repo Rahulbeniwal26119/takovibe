@@ -1,5 +1,6 @@
 ---
 import Layout from './Layout.astro';
+import Header from '../components/Header.astro';
 
 interface Props {
   frontmatter: {
@@ -124,6 +125,7 @@ const breadcrumbStructuredData = {
   published_date={publishDate}
   modified_date={lastModified}
   no_footer={true}
+  no_header={true}
 >
   <!-- Robots Meta -->
   <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1" slot="head" />
