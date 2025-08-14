@@ -40,7 +40,9 @@ import LiveIndicator from "./LiveIndicator.astro";
         <div class="min-w-0">
           <Search />
         </div>
-        <Auth />
+        <div class="auth-wrapper" onclick="event.stopPropagation();">
+          <Auth />
+        </div>
       </div>
     </div>
   </div>
@@ -122,22 +124,57 @@ import LiveIndicator from "./LiveIndicator.astro";
 
 <!-- Drawer toggling -->
 <script is:inline>
-  const drawer = document.querySelector('#drawer');
-  const backdrop = document.querySelector('#drawerBackdrop');
-  const openBtn = document.querySelector('#openDrawerBtn');
-  const closeBtn = document.querySelector('#closeDrawerBtn');
+  document.addEventListener('DOMContentLoaded', () => {
+    const drawer = document.querySelector('#drawer');
+    const backdrop = document.querySelector('#drawerBackdrop');
+    const openBtn = document.querySelector('#openDrawerBtn');
+    const closeBtn = document.querySelector('#closeDrawerBtn');
 
-  function open() {
-    drawer?.classList.remove('-translate-x-full');
-    backdrop?.classList.remove('pointer-events-none','opacity-0');
-  }
-  function close() {
-    drawer?.classList.add('-translate-x-full');
-    backdrop?.classList.add('pointer-events-none','opacity-0');
-  }
+    function open() {
+      drawer?.classList.remove('-translate-x-full');
+      backdrop?.classList.remove('pointer-events-none','opacity-0');
+    }
+    
+    function close() {
+      drawer?.classList.add('-translate-x-full');
+      backdrop?.classList.add('pointer-events-none','opacity-0');
+    }
 
-  openBtn?.addEventListener('click', open);
-  closeBtn?.addEventListener('click', close);
-  backdrop?.addEventListener('click', close);
-  window.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+    // Only listen for clicks on the specific drawer buttons
+    openBtn?.addEventListener('click', (e) => {
+      console.log('Drawer open button clicked');
+      e.preventDefault();
+      e.stopPropagation();
+      open();
+    });
+    
+    closeBtn?.addEventListener('click', (e) => {
+      console.log('Drawer close button clicked');
+      e.preventDefault();
+      e.stopPropagation();
+      close();
+    });
+    
+    // Close drawer when clicking backdrop
+    backdrop?.addEventListener('click', (e) => {
+      if (e.target === backdrop) {
+        console.log('Backdrop clicked');
+        close();
+      }
+    });
+    
+    // Close drawer on Escape key
+    window.addEventListener('keydown', (e) => { 
+      if (e.key === 'Escape') close(); 
+    });
+
+    // Prevent header clicks from opening drawer
+    const header = document.querySelector('#site-header');
+    header?.addEventListener('click', (e) => {
+      // Only allow drawer opening from the specific button
+      if (!e.target?.closest('#openDrawerBtn')) {
+        e.stopPropagation();
+      }
+    });
+  });
 </script>
