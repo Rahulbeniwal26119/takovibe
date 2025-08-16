@@ -1,0 +1,152 @@
+---
+layout: ../../layouts/BlogPost.astro
+title: "Why Rust Won’t Let You Use Numbers in `if` Statements"
+date: "2025-08-16"
+author: "Rahul Beniwal"
+description: "A practical look at Rust’s strict boolean checks in conditionals—why only bool is allowed and how it prevents hidden bugs."
+image: "https://ik.imagekit.io/bhu1voux5/698472a6-dc2b-425d-9c92-b03d7bd0c174.png"
+readingTime: "4 min read"
+tags: ["rust", "booleans", "conditionals", "programming-languages", "rust-tips"]
+canonical: "https://takovibe.com/blog/why-rust-wont-let-you-use-numbers-in-if-statements"
+keywords: ["rust boolean checks", "rust if statements", "rust truthiness", "rust conditionals", "rust safety"]
+---
+
+import Quiz from '../../components/Quiz';
+
+# Why Rust Won’t Let You Use Numbers in `if` Statements
+
+Hi Everyone, 👋
+
+I’ve been grinding Rust for some time now, and one thing that surprised me early on was how **strict** Rust is about `if` conditions. Unlike C or C++, you **can’t** pass an integer or reference and expect it to be treated as `true`/`false`. Rust *complains* — on purpose.
+
+At first, this felt annoying. But digging into *why* Rust enforces strict boolean checks made me appreciate the design: it prevents hidden bugs, preserves type safety, and improves readability.
+
+## 🚫 No Implicit “Truthiness”
+
+If you’re coming from C/C++, this will look familiar:
+
+```c
+int x = 5;
+if (x) {                // non-zero is truthy
+    printf("x is non-zero!\n");
+}
+```
+
+Convenient? Sure. Dangerous? Also yes.
+
+Rust rejects that pattern:
+
+```rust
+let x = 5;
+
+// ❌ Will not compile
+if x {                  // error: expected `bool`, found integer
+    println!("x is non-zero!");
+}
+
+// ✅ Be explicit
+if x != 0 {
+    println!("x is non-zero!");
+}
+```
+
+Rust requires that the condition is explicitly a `bool`.
+
+## 🛡️ Why Rust Does This
+
+1. **Avoids subtle bugs**  
+   In C, this compiles but is often accidental:
+
+   ```c
+   int x = 0;
+   if (x = 5) {         // assignment, not comparison
+       printf("x is 5\n");
+   }
+   ```
+
+   By forcing boolean expressions, Rust eliminates this entire class of bugs.
+
+2. **Strong type guarantees**  
+   In Rust, if a value is an `i32`, it’s a number — not a boolean. Silent coercions weaken the type system and make intent ambiguous.
+
+3. **Readable, intentional code**  
+   `if x != 0` communicates intent better than `if x`. Less guessing for future readers (including you).
+
+## ⚖️ Philosophy Contrast
+
+- **C/C++**: Flexibility and minimal restrictions → treat many values as truthy/falsy.  
+- **Java & Rust**: Safety and clarity → only `bool` is allowed in conditionals.
+
+Rust’s approach fits its mission: *safe systems programming without sacrificing performance*.
+
+## ✅ Takeaway
+
+Rust might feel strict at first, but that strictness saves you from hidden pitfalls and makes your code clearer. The next time the compiler refuses a non-boolean `if` condition, remember — it’s doing you a favor. 🦀✨
+
+---
+
+### 💬 Discussion Prompt
+
+Have you been bitten by a “truthiness” bug in C/C++ or JS? What happened, and how would Rust have prevented it?
+
+---
+
+## Mini-Quiz: Booleans Only, Please 🦀
+
+<div className="my-8">
+<Quiz
+  title="Rust `if` Statements Quiz"
+  description="Check your understanding of Rust's strict boolean conditionals"
+  questions={[
+    {
+      id: 'q1',
+      question: 'What does Rust require in an `if` condition?',
+      options: [
+        { value: 'A', label: 'A. Any numeric type' },
+        { value: 'B', label: 'B. Any type that implements Display' },
+        { value: 'C', label: 'C. A value of type `bool`' },
+        { value: 'D', label: 'D. Any non-null pointer' }
+      ],
+      correct: 'C',
+      explanation: 'Rust requires the condition to be exactly `bool`. No implicit truthiness or coercions are allowed.'
+    },
+    {
+      id: 'q2',
+      question: 'Which snippet **will compile** in Rust?',
+      options: [
+        { value: 'A', label: 'A. `let x = 1; if x {}`' },
+        { value: 'B', label: 'B. `let x = 1; if x != 0 {}`' },
+        { value: 'C', label: 'C. `let s = "hi"; if s {}`' },
+        { value: 'D', label: 'D. `let p: *const i32 = core::ptr::null(); if p {}`' }
+      ],
+      correct: 'B',
+      explanation: '`x != 0` yields a `bool`. The other options attempt to use non-boolean types directly.'
+    },
+    {
+      id: 'q3',
+      question: 'Pick the **main reason** Rust disallows implicit truthiness:',
+      options: [
+        { value: 'A', label: 'A. To reduce binary size' },
+        { value: 'B', label: 'B. To avoid common bugs and preserve type safety' },
+        { value: 'C', label: 'C. To make code shorter' },
+        { value: 'D', label: 'D. Because the compiler cannot check integers' }
+      ],
+      correct: 'B',
+      explanation: 'Requiring `bool` conditions prevents accidental assignments and ambiguous intent, strengthening type safety and clarity.'
+    },
+    {
+      id: 'q4',
+      question: 'In C, `if (x = 5) { ... }` is a common bug. Why is this not an issue in Rust?',
+      options: [
+        { value: 'A', label: 'A. Rust has no assignments' },
+        { value: 'B', label: 'B. `=` in Rust returns `bool`' },
+        { value: 'C', label: 'C. Assignments are expressions but the condition must be `bool`' },
+        { value: 'D', label: 'D. The compiler automatically converts to comparison' }
+      ],
+      correct: 'C',
+      explanation: 'Assignments are expressions in Rust, but `if` demands a `bool`. `x = 5` has type `()` (unit), which is not `bool`, so it fails to compile.'
+    }
+  ]}
+  client:load
+/>
+</div>

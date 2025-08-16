@@ -31,14 +31,14 @@ export async function getStaticPaths() {
 function extractSeriesFromContent(content: string): string | null {
   // Look for series indicators in content
   const seriesPatterns = [
-    /30-Days-to-RAG/i,
-    /30 Days to RAG/i,
+    /RAG Mastery/i,
+    /RAG MASTERY/i,
     /RAG Series/i
   ];
   
   for (const pattern of seriesPatterns) {
     if (pattern.test(content)) {
-      return '30-Days-to-RAG';
+      return 'RAG Mastery';
     }
   }
   return null;
