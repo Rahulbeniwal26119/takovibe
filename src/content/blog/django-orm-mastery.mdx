@@ -1,0 +1,498 @@
+---
+layout: ../../layouts/BlogPost.astro
+title: "Let’s Make Django ORM 2x Efficient"
+date: "2025-08-19"
+author: "Rahul Beniwal"
+description: "Practical Django ORM performance tips: values/values_list, select_related vs prefetch_related, indexes, annotate/aggregate, exists/count, defer/only, and safe raw SQL."
+image: "https://images.unsplash.com/photo-1618477388954-7852f32655ec"
+readingTime: "7 min read"
+tags: ["Django", "ORM", "Performance", "Database", "Tutorial"]
+type: "article"
+canonical: "https://takovibe.com/blog/"
+---
+
+import Quiz from '../../components/Quiz.jsx'
+
+ORM is one of the great things that comes with Django. It frees us from writing complex, time‑consuming, and vulnerable raw SQL queries. So let’s find some ways I use at work to speed things up.
+
+We’ll use these three models to understand the ideas:
+
+```python
+# models.py
+from django.db import models
+
+class Country(models.Model):
+    name = models.CharField(max_length=50)
+    population = models.PositiveIntegerField()
+
+    def __str__(self):
+        return self.name
+
+class State(models.Model):
+    name = models.CharField(max_length=50)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+class City(models.Model):
+    name = models.CharField(max_length=50)
+    state = models.ForeignKey(State, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+```
+
+## 1) Utilize `values` and `values_list`
+
+Consider: I want all country names from `Country`. One way is:
+
+```python
+Country.objects.all()
+```
+
+This is similar to:
+
+```sql
+SELECT * FROM country;
+```
+
+But this retrieves **all** fields. Time will grow as the number of fields grows. A better alternative:
+
+```python
+Country.objects.values_list("name", flat=True)
+```
+
+Which is similar to:
+
+```sql
+SELECT name FROM country;
+```
+
+**Difference between `values` and `values_list`:**
+
+- `values()` returns a `QuerySet` of dicts where each dict represents a row. Dict keys are field names; values are the stored values.
+- `values_list()` returns a list of tuples (or a flat list if `flat=True` and a single field is requested).
+
+**Example:**
+
+```python
+list(Country.objects.values_list("name", flat=True))
+# ["Country A", "Country B", "Country C"]
+```
+
+## 2) Use `select_related` and `prefetch_related`
+
+These methods control how related objects are retrieved.
+
+- `select_related` retrieves related objects in a **single query** using SQL joins (good for FK/OneToOne).
+- `prefetch_related` performs **separate queries** and joins in Python (good for reverse FK/ManyToMany and to avoid N+1 across collections).
+
+### Without optimizations
+
+```python
+c = City.objects.first()
+```
+
+```sql
+SELECT "core_city"."id", "core_city"."name", "core_city"."state_id"
+FROM "core_city"
+ORDER BY "core_city"."id" ASC
+LIMIT 1;
+```
+
+Accessing related objects fires more queries:
+
+```python
+c.state
+```
+
+```sql
+SELECT "core_state"."id", "core_state"."name", "core_state"."country_id"
+FROM "core_state"
+WHERE "core_state"."id" = 1
+LIMIT 1;
+```
+
+```python
+c.state.country
+```
+
+```sql
+SELECT "core_country"."id", "core_country"."name", "core_country"."population"
+FROM "core_country"
+WHERE "core_country"."id" = 1
+LIMIT 1;
+```
+
+### With `select_related`
+
+```python
+c = City.objects.select_related("state", "state__country").first()
+```
+
+```sql
+SELECT
+  "core_city"."id", "core_city"."name", "core_city"."state_id",
+  "core_state"."id", "core_state"."name", "core_state"."country_id",
+  "core_country"."id", "core_country"."name", "core_country"."population"
+FROM "core_city"
+INNER JOIN "core_state" ON ("core_city"."state_id" = "core_state"."id")
+INNER JOIN "core_country" ON ("core_state"."country_id" = "core_country"."id")
+ORDER BY "core_city"."id" ASC
+LIMIT 1;
+```
+
+```python
+c.state.country  # <Country: India>
+```
+
+You can also project joined fields directly:
+
+```python
+City.objects.values_list("name", "state__name", "state__country__name")
+```
+
+### With `prefetch_related`
+
+```python
+c = City.objects.prefetch_related("state", "state__country").first()
+```
+
+This will run three small queries up front (city, state, country) and cache them, which shines when iterating over many cities.
+
+Consider building a city→country map across many rows:
+
+```python
+# Anti-pattern (N+1 queries)
+city_country_map = {}
+for city in City.objects.all():
+    city_country_map[city.name] = city.state.country.name
+```
+
+Use `prefetch_related` to cap DB hits:
+
+```python
+city_country_map = {}
+for city in City.objects.prefetch_related("state", "state__country"):
+    city_country_map[city.name] = city.state.country.name
+# 😎 Only ~3 queries regardless of number of cities (for this relation set)
+```
+
+**When to use what**
+
+- Use **`select_related`** when:
+  - You have one-to-one or many-to-one (e.g., `ForeignKey`).
+  - You know you’ll access the related object’s fields for most results.
+- Use **`prefetch_related`** when:
+  - You have many-to-many or one-to-many, or you’re iterating a collection.
+  - You want to avoid the N+1 problem across many rows.
+
+## 3) Add indexes to frequently accessed fields
+
+Indexing creates a data structure to locate rows efficiently.
+
+```python
+class City(models.Model):
+    name = models.CharField(max_length=50, db_index=True)
+    state = models.ForeignKey(State, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+```
+
+You can add multi-column indexes too—just be mindful that **too many indexes** can slow writes.
+
+```sql
+CREATE INDEX "core_city_state_id_9aa9e056" ON "core_city" ("state_id");
+```
+
+> Hope these simple tricks help you optimize queries. Let’s discuss more in Part 2.
+
+---
+
+# Let’s extend our example further for more Django ORM tricks
+
+We’ll extend the models slightly for examples:
+
+```python
+# models.py
+from django.db import models
+
+class Country(models.Model):
+    name = models.CharField(max_length=50)
+    population = models.PositiveIntegerField()
+
+    def __str__(self):
+        return self.name
+
+class State(models.Model):
+    name = models.CharField(max_length=50)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE)
+    population_factor = models.FloatField(default=1)
+
+    def __str__(self):
+        return self.name
+
+class City(models.Model):
+    name = models.CharField(max_length=50, db_index=True)
+    state = models.ForeignKey(State, on_delete=models.CASCADE)
+    population_factor = models.FloatField(default=1)
+
+    def __str__(self):
+        return self.name
+```
+
+## 1) Use `annotate()` and `aggregate()`
+
+Django can perform calculations in the database instead of post‑processing in Python.
+
+**`annotate()`** adds calculated fields to each row:
+
+```python
+from django.db.models import F
+
+res = (
+    City.objects
+    .annotate(
+        city=F("name"),
+        city_state=F("state__name"),
+        country=F("state__country__name"),
+        population=F("population_factor") * F("state__population_factor") * F("state__country__population"),
+    )
+    .values("name", "city_state", "country", "population")
+)
+
+# <QuerySet [
+#   {'name': 'Bangalore', 'city_state': 'Karnataka', 'country': 'India', 'population': 40000000.00000001},
+#   {'name': 'Mysore',     'city_state': 'Karnataka', 'country': 'India', 'population': 40000000.00000001},
+#   {'name': 'Chennai',    'city_state': 'Tamil Nadu','country': 'India', 'population': 40000000.00000001},
+# ]>
+```
+
+**`aggregate()`** computes values across the queryset:
+
+```python
+from django.db.models import Min, Max, Sum, Avg, ExpressionWrapper, FloatField, F
+
+City.objects.annotate(
+    population=ExpressionWrapper(
+        F("population_factor") * F("state__population_factor") * F("state__country__population"),
+        output_field=FloatField(),
+    )
+).aggregate(
+    max_population=Max("population"),
+    min_population=Min("population"),
+    avg_population=Avg("population"),
+    sum_population=Sum("population"),
+)
+
+# {
+#   'max_population': 40000000.00000001,
+#   'min_population': 40000000.00000001,
+#   'avg_population': 40000000.00000001,
+#   'sum_population': 120000000.00000003,
+# }
+```
+
+## 2) Use `exists()` and `count()` instead of built‑in `len()`
+
+- `exists()` → check if any record matches a condition.
+- `count()` → let the DB compute counts.
+
+```python
+State.objects.filter(country__name="India").count()
+# vs
+len(State.objects.filter(country__name="India"))  # expands the queryset in Python
+```
+
+The results are the same, but `count()` is more efficient and memory‑friendly for large result sets.
+
+```python
+State.objects.filter(country__name="India").exists()
+# True
+```
+
+## 3) Use `defer()` and `only()`
+
+`values()` returns dicts; `defer()`/`only()` return model instances with partial fields loaded. Deferred fields are fetched **lazily** when accessed.
+
+**`only()`**: load only specific fields eagerly; others are deferred.
+
+```python
+res = Country.objects.only("id")
+result = res[0]
+# SQL: SELECT "core_country"."id" FROM "core_country" LIMIT 1
+
+result.id      # no extra query
+result.name    # triggers a query for deferred field
+# SQL: SELECT "core_country"."id", "core_country"."name" FROM "core_country" WHERE "core_country"."id" = 1 LIMIT 1
+```
+
+**`defer()`**: eagerly load everything **except** specified fields.
+
+```python
+res = Country.objects.defer("name")
+result = res[0]
+# SQL: SELECT "core_country"."id", "core_country"."population" FROM "core_country" LIMIT 1
+
+result.population  # no extra query
+result.name        # triggers fetch of deferred field
+# SQL: SELECT "core_country"."id", "core_country"."name" FROM "core_country" WHERE "core_country"."id" = 1 LIMIT 1
+```
+
+> TL;DR: `only()` loads the listed fields now; `defer()` loads the listed fields later.
+
+## 4) Raw SQL or database‑specific queries (use sparingly)
+
+Caution: Raw SQL reduces portability and can hurt maintainability—prefer the ORM unless you **must** drop down.
+
+```python
+from django.db import connection
+
+query = "SELECT * FROM core_country;"
+
+with connection.cursor() as cursor:
+    res = cursor.execute(query)
+    columns = [col[0] for col in res.description]
+    rows = res.fetchall()
+    result = [dict(zip(columns, row)) for row in rows]
+    print(result)
+
+# Output -> [
+#   {'id': 1, 'name': 'India', 'population': 1000000000},
+#   {'id': 2, 'name': 'India', 'population': 1000000000},
+# ]
+```
+
+---
+
+<div className="my-8">
+<Quiz 
+  title="Django ORM Mastery Quiz"
+  description="Test your understanding of Django ORM performance and best practices"
+  questions={[
+    {
+      id: 'q1',
+      question: 'What is the main advantage of using select_related in Django ORM?',
+      options: [
+        { value: 'A', label: 'A. It reduces the number of database queries by performing joins' },
+        { value: 'B', label: 'B. It creates indexes automatically' },
+        { value: 'C', label: 'C. It caches all results in memory' },
+        { value: 'D', label: 'D. It disables lazy loading' }
+      ],
+      correct: 'A',
+      explanation: 'select_related performs SQL joins and fetches related objects in a single query, reducing the number of database hits.'
+    },
+    {
+      id: 'q2',
+      question: 'When should you use prefetch_related instead of select_related?',
+      options: [
+        { value: 'A', label: 'A. For ForeignKey relationships only' },
+        { value: 'B', label: 'B. For ManyToMany and reverse ForeignKey relationships' },
+        { value: 'C', label: 'C. When you want to use SQL joins' },
+        { value: 'D', label: 'D. Only for OneToOne relationships' }
+      ],
+      correct: 'B',
+      explanation: 'prefetch_related is ideal for ManyToMany and reverse ForeignKey relationships as it performs separate queries and joins in Python, avoiding complex joins.'
+    },
+    {
+      id: 'q3',
+      question: 'What does values_list("name", flat=True) return?',
+      options: [
+        { value: 'A', label: 'A. A list of dictionaries' },
+        { value: 'B', label: 'B. A flat list of values' },
+        { value: 'C', label: 'C. Model instances' },
+        { value: 'D', label: 'D. A list of tuples' }
+      ],
+      correct: 'B',
+      explanation: 'values_list with flat=True and a single field returns a flat list of values, not tuples or dictionaries.'
+    },
+    {
+      id: 'q4',
+      question: 'True/False: Using values_list() returns model instances.',
+      options: [
+        { value: 'True', label: 'True' },
+        { value: 'False', label: 'False' }
+      ],
+      correct: 'False',
+      explanation: 'values_list() returns tuples (or flat lists), not model instances.'
+    },
+    {
+      id: 'q5',
+      question: 'What is the difference between only() and defer()?',
+      options: [
+        { value: 'A', label: 'A. only() loads specified fields now, defer() loads them later' },
+        { value: 'B', label: 'B. only() is faster than defer()' },
+        { value: 'C', label: 'C. defer() loads specified fields now, only() loads them later' },
+        { value: 'D', label: 'D. They are identical methods' }
+      ],
+      correct: 'A',
+      explanation: 'only() loads the listed fields eagerly while deferring others. defer() loads everything except the specified fields, which are loaded lazily when accessed.'
+    },
+    {
+      id: 'q6',
+      question: 'Which method is best for efficiently counting objects in a queryset?',
+      options: [
+        { value: 'A', label: 'A. len(queryset)' },
+        { value: 'B', label: 'B. queryset.count()' },
+        { value: 'C', label: 'C. queryset.aggregate()' },
+        { value: 'D', label: 'D. queryset.exists()' }
+      ],
+      correct: 'B',
+      explanation: 'queryset.count() issues a SELECT COUNT(*) query, which is efficient for counting rows without loading data into Python.'
+    },
+    {
+      id: 'q7',
+      question: 'What does annotate() do in Django ORM?',
+      options: [
+        { value: 'A', label: 'A. Computes aggregate values across the entire queryset' },
+        { value: 'B', label: 'B. Adds calculated fields to each row in the queryset' },
+        { value: 'C', label: 'C. Creates database indexes' },
+        { value: 'D', label: 'D. Filters the queryset' }
+      ],
+      correct: 'B',
+      explanation: 'annotate() adds calculated fields to each row in the queryset, while aggregate() computes values across the entire queryset.'
+    },
+    {
+      id: 'q8',
+      question: 'In the blog example, what does F("state__country__name") represent?',
+      options: [
+        { value: 'A', label: 'A. A string literal' },
+        { value: 'B', label: 'B. A database field reference across relationships' },
+        { value: 'C', label: 'C. A Python function call' },
+        { value: 'D', label: 'D. An aggregation function' }
+      ],
+      correct: 'B',
+      explanation: 'F() objects represent database field references. The double underscore notation allows traversing relationships: state__country__name goes from the current model to state, then to country, then gets the name field.'
+    },
+    {
+      id: 'q9',
+      question: 'What is the main risk of using raw SQL in Django ORM?',
+      options: [
+        { value: 'A', label: 'A. Reduced portability and maintainability' },
+        { value: 'B', label: 'B. Automatic migrations stop working' },
+        { value: 'C', label: 'C. It disables the admin site' },
+        { value: 'D', label: 'D. It always runs slower' }
+      ],
+      correct: 'A',
+      explanation: 'Raw SQL can break portability and maintainability, and should be used only when necessary.'
+    },
+    {
+      id: 'q10',
+      question: 'When should you add db_index=True to a model field?',
+      options: [
+        { value: 'A', label: 'A. On every field to improve performance' },
+        { value: 'B', label: 'B. On fields that are frequently used in filters and lookups' },
+        { value: 'C', label: 'C. Only on primary key fields' },
+        { value: 'D', label: 'D. Never, Django handles this automatically' }
+      ],
+      correct: 'B',
+      explanation: 'Indexes should be added to fields that are frequently accessed in queries (WHERE clauses, ORDER BY, etc.), but too many indexes can slow down writes.'
+    }
+  ]}
+  client:load 
+/>
+</div>
+
+If you’ve scrolled to the end, it’s worth checking the first part too. Leave a 👏 if you found this helpful.
