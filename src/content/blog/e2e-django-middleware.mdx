@@ -1,0 +1,468 @@
+---
+layout: ../../layouts/BlogPost.astro
+title: "Protect and Serve, E2E Encryption with Django Middleware"
+date: "2025-08-20"
+slug: "django-middleware-e2e-encryption"
+description: "Learn how to build a secure Django middleware that implements end-to-end encryption (E2E) using 3DES and SHA512 for request/response integrity. Step-by-step guide with utilities, middleware, views, and testing."
+author: "Rahul Beniwal"
+tags: ["Django", "Middleware", "E2E Encryption", "Python Security", "Web Development"]
+readingTime: "6 min read"
+type: "article"
+image: "https://ik.imagekit.io/bhu1voux5/image(4).png"
+canonical: "https://takovibe.com/blog/e2e-django-middlware/"
+---
+import Quiz from '../../components/Quiz';
+
+
+Middlewares are the lightweight plugin system for globally altering Django’s input and output. Middleware sits between a web server and a view handler. They provide a way to process requests and responses globally, allowing for the following usages:
+
+- **Authentication**: Intercept requests to check if the user is authenticated or authorized to access certain views.
+- **Request/Response Processing**: Pre-process incoming requests or post-process outgoing responses, including modifying headers, encoding/decoding, or encrypting/decrypting.
+- **Logging**: Since each request passes through middleware, it’s a perfect place to log request-response cycles.
+- **Error Handling**: Middleware can catch errors or exceptions during request processing and return custom responses.
+- **Caching**: Middleware can intercept requests/responses to improve performance using caching (e.g., Django + Redis).
+- **Security**: Enforce XSS/CSRF protection, HTTPS-only rules, or custom encryption mechanisms.
+
+---
+
+## What We Are Going to Do
+
+We’ll build a **Django Middleware** that establishes **E2E encryption** using **3DES** and **SHA512** for integrity.
+
+1. **Create a sample Django app** (`gateway` as the main app, `proxy` as a custom app).
+2. **Implement cryptography utilities** (padding, encryption, decryption, checksum validation).
+3. **Build middleware** that applies encryption/decryption logic.
+4. **Test middleware with views and urls**.
+5. **Register middleware in `settings.py` with correct position**.
+6. **Generate encrypted payloads and checksum for testing**.
+
+---
+
+## Step 0 → Adding Helper Utils
+
+We’ll create a `cryptography_utils.py` under the `proxy` app.
+
+**Utilities description**:
+
+- `pad`: Ensures 3DES input payload length is multiple of 24 by repeating last character.
+- `encrypt`: Encrypts payload with 3DES.
+- `decrypt`: Decrypts payload with 3DES.
+- `parse_json`: Deserialize JSON after decryption.
+- `generate_hash`: Generate SHA512 digest.
+- `validate_hash`: Verify if request has been tampered with (escape MIM attacks).
+- `decrypt_payload`: Decrypts incoming request.
+- `encrypt_payload`: Encrypts outgoing response.
+- `generate_key`: Generates random 3DES key.
+
+---
+
+```python
+# response_helpers.py
+
+from django.http import HttpResponse
+import json
+
+
+def http_response(status_code, message, data={}) -> HttpResponse:
+    return HttpResponse(
+        json.dumps(
+            {
+                "status_code": status_code,
+                "message": message,
+                "data": data,
+            }
+        ),
+        content_type="application/json",
+        status=status_code,
+    )
+```
+
+```python
+# proxy/custom_exceptions.py
+
+class InvalidHashException(Exception):
+    pass
+
+
+class DecryptionFailure(Exception):
+    pass
+```
+
+## Step 1 → Creating Cryptography Utilities
+
+```python
+# proxy/cryptography_utils.py
+
+import json
+import typing
+import binascii
+import logging
+from hashlib import sha512
+
+from Crypto.Cipher import DES3
+from Crypto.Random import get_random_bytes
+
+from proxy import custom_exceptions
+
+# create a custom type for JSON
+JSON = typing.Union[dict, list]
+
+logger = logging.getLogger(__name__)
+
+
+def pad(data: str, block_size: int) -> str:
+    pad_len = block_size - len(data) % block_size
+    return data + pad_len * chr(pad_len)
+
+
+def encrypt(data: bytes, key: bytes) -> str:
+    cipher = DES3.new(key, DES3.MODE_ECB)
+    ct_bytes = cipher.encrypt(data)
+    return binascii.hexlify(ct_bytes).decode("utf-8")
+
+
+def decrypt(data: str, key: bytes) -> str:
+    cipher = DES3.new(key, DES3.MODE_ECB)
+
+    ct_bytes = binascii.unhexlify(data)
+    pt = cipher.decrypt(ct_bytes).decode("utf-8")
+    pad_len = ord(pt[-1])
+    return pt[:-pad_len]
+
+
+def parse_json(data: str | bytes) -> JSON:
+    if isinstance(data, bytes):
+        data = data.decode("utf-8")
+    return json.loads(data)
+
+
+def generate_hash(data: str) -> str:
+    return sha512(data.encode("utf-8")).hexdigest()
+
+
+def validate_hash(data: str, digest: str) -> bool:
+    return generate_hash(data) == digest
+
+
+def decrypt_payload(encrypted_data: str, digest: str, key: str | bytes) -> list | dict:
+    # verify the hash
+    if isinstance(key, str):
+        key = binascii.unhexlify(key)
+    try:
+        decrypted_data = decrypt(encrypted_data, key)
+    except custom_exceptions.DecryptionFailure:
+        raise custom_exceptions.DecryptionFailure()
+    except Exception as e:
+        logger.error(e)
+        raise custom_exceptions.DecryptionFailure()
+    if not validate_hash(decrypted_data, digest):
+        raise custom_exceptions.InvalidHashException()
+    try:
+        return parse_json(decrypted_data)
+    except json.JSONDecodeError as e:
+        raise json.JSONDecodeError() from e
+
+
+def encrypt_payload(data: list | dict, key: str | bytes) -> tuple[str, str]:
+    if not isinstance(key, bytes):
+        key = binascii.unhexlify(key)
+    if isinstance(data, (list, dict)):
+        data = json.dumps(data)
+    padded_input = pad(data, DES3.block_size)
+    encrypted_data = encrypt(padded_input.encode("utf-8"), key)
+    digest = generate_hash(data)
+    return encrypted_data, digest
+
+
+def generate_key() -> str:
+    key = binascii.hexlify(get_random_bytes(24)).decode("utf-8")
+    logger.info("Generated key: {}".format(key))
+    return key
+```
+
+---
+
+## Step 2 → Creating Middleware
+
+Middleware can be implemented as a function or class. Here’s a **class-based middleware**:
+
+```python
+# proxy/middlewares/e2e_middleware.py
+import json
+
+from django.urls import resolve
+from django.http import Http404
+
+from gateway.response_helpers import http_response
+import proxy.custom_exceptions as custom_exceptions
+from proxy.cryptography_utils import decrypt_payload, encrypt_payload
+
+
+class E2EMiddleware:
+    def __init__(self, get_response):
+        # This get_reponse may be the next middleware in the chain or the view
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # check if the request is a POST request
+        if request.method in ["GET", "DELETE"]:
+            return self.get_response(request)
+
+        # check if url present in system
+        try:
+            resolve(request.path)
+        except Http404:
+            return http_response(404, "Invalid request. URL not found")
+
+        # check if request has valid json data
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return http_response(400, "Invalid request. JSON data expected")
+
+        # check if the request has the required fields
+        payload = data.get("payload")
+        checksum = data.get("checksum")
+
+        if not all([payload, checksum]):
+            return http_response(400, "Invalid request. payload and checksum expected")
+
+        # get key from headers
+        key = request.headers.get("Encryption-Key")
+        if not key:
+            return http_response(400, "Invalid request. Encryption-Key header expected")
+
+        # decrypt the payload
+        try:
+            decrypted_payload = decrypt_payload(payload, checksum, key)
+        except custom_exceptions.InvalidHashException:
+            return http_response(400, "Invalid request. Invalid checksum")
+        except custom_exceptions.DecryptionFailure:
+            return http_response(400, "Invalid request. Decryption failed")
+        except json.JSONDecodeError:
+            return http_response(
+                400, "Invalid request. Invalid payload. JSON data expected"
+            )
+
+        # pass the decrypted payload to the next middleware or view
+        request._body = json.dumps(decrypted_payload)
+        response = self.get_response(request)
+
+        # in case of template response, we donot encrypt the response
+        if (
+            hasattr(response, "render") and callable(response.render)
+        ) or not response.headers.get("Content-Type", "").startswith(
+            "application/json"
+        ):
+            return response
+
+        # response is not OK then donot encrypt the response
+        if response.status_code not in [200, 201]:
+            return response
+        else:
+            # encrypt the response
+            response_data = json.loads(response.content.decode("utf-8"))
+            encrypted_data, digest = encrypt_payload(response_data, key)
+            return http_response(200, "Success", {"payload": encrypted_data, "checksum": digest})
+```
+`First Step` : If request method is either GET or DELETE then process request normally as we do because in this case we will get information in params only.
+
+`Next Step` : We are ensuring request body is valid json which contains both checksum and payload.
+
+`Next Step` : We are ensuring that API Key for cipher present in Encryption-KeyHeader. ( One more additional check also required if Encryption-Key is authorized by you or not. That up to readers.)
+
+`Next Step` : Decrypt the encrypted payload and verify its checksum.
+
+`Next Step` : Ensure Decrypted Payload is valid JSON other wise return 400.
+
+`Next Step` : As we have successfully decrypted incoming payload then pass it to incoming Middleware or View. ( get_response in __init__ indicate either next Middleware or View if middleware is at the end in middlware list.). body is a getter property only so we need to modify _body in case tempering request body.
+
+`Next Step` : Let get_response process the request.
+
+`Next Step` : If server is returning any other Content-Type other than JSON then return response as it is because encrypting HTML isn’t cool and worthy.
+
+`Next Step` : If response Content-Type is JSON but it is not successful then return response as it is because encrypting failure message is not our use case. But you can also do this for more security.
+
+`Last Step` : Create encrypted payload with digest of response and return to caller.
+
+⚠️ **Middleware order matters** → Django processes requests top-to-bottom, responses bottom-to-top.
+
+<img src="https://ik.imagekit.io/bhu1voux5/54e6aa3a-2701-49a8-83ec-d73c17d64f49.png" alt="Django Middleware Order" />
+---
+
+## Step 3 → Activating Middleware
+
+Add your middleware in `settings.py`:
+
+```python
+MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    # ... other middleware ...
+    "proxy.middlewares.e2e_middleware.E2EMiddleware",
+]
+```
+
+---
+
+## Step 4 → Adding Views for Testing
+
+```python
+# proxy/views.py
+from django.views.decorators.csrf import csrf_exempt
+from django.http.response import HttpResponse
+import json
+from gateway.response_helpers import http_response
+
+
+def index(request):
+    return HttpResponse("Hello, world. You're at the polls index.")
+
+
+@csrf_exempt
+def calculate(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        num1 = int(data.get("num1"))
+        num2 = int(data.get("num2"))
+        if not all([num1, num2]):
+            return http_response(400, "Invalid request. num1 and num2 expected")
+        result = num1 + num2
+        return http_response(200, "Success", {"result": result})
+    else:
+        return http_response(400, "Invalid request. POST request expected")
+
+
+@csrf_exempt
+def calculate_template(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        num1 = int(data.get("num1"))
+        num2 = int(data.get("num2"))
+        if not all([num1, num2]):
+            return HttpResponse(400, "Invalid request. num1 and num2 expected")
+        result = num1 + num2
+        return HttpResponse(f"<b> Sum : {result} </b>")
+    else:
+        return HttpResponse("Invalid request. POST request expected", status=400)
+```
+
+---
+
+## Step 5 → Adding URL Conf
+
+```python
+# gateway/urls.py
+
+from django.contrib import admin
+from django.urls import path
+import proxy.views as views
+
+urlpatterns = [
+    path("", views.index, name="home_page"),
+    path("calculate/", views.calculate, name="calculate"),
+    path("calculate-template/", views.calculate_template, name="calculate_template"),
+]
+```
+
+---
+
+## Step 6 → Creating Encrypted Payload for Testing
+
+```python
+# Encryption process
+
+body = {"num1": "10", "num2": "20"}
+
+from proxy.cryptography_utils import encrypt_payload, decrypt_payload
+
+encrypt_payload(body, "d1ac58881d60188f7ec65e4a8b43eff1ede175ae62a8a35e")
+
+# ('897afe5b8d5d60955221adfc243e94d2cf9fae5d9b23f4344930178d84748d99',
+#  'ade4b2e54e66e0ace0c800143f20095ec1411df65daf9a4699e799eb3f2739b3205b3c8b9469fc2b4f7dd4e16fb25707afed93333c0661a17e1f2e03a55e58c2')
+
+# Decryption Process
+
+encrypted_res = {
+    "payload": "f03217c5278baf57ccf0d6b7f8225d31",
+    "checksum": "8f8360acf8f45e9f22e516311187638f4d02a688360fb67c68cce38ae97fe5c094ef3627e96926a842afe635fa5d24312e06fda71f879359062b851b625b18c9",
+}
+
+decrypt_payload(
+    encrypted_res["payload"],
+    encrypted_res["checksum"],
+    "d1ac58881d60188f7ec65e4a8b43eff1ede175ae62a8a35e",
+)
+
+# {'result': 30}
+```
+
+Now send the encrypted request with `Encryption-Key` header.
+The middleware will decrypt it, process it, and encrypt the response.
+
+<img src="https://ik.imagekit.io/bhu1voux5/image(1).png" alt="Django Middleware Demo 1" />
+<img src="https://ik.imagekit.io/bhu1voux5/image(2).png" alt="Django Middleware Demo 2" />
+<img src="https://ik.imagekit.io/bhu1voux5/image(3).png" alt="Django Middleware Demo 3" />
+---
+
+## Misc: Other Middleware Hooks
+
+- `process_view`: Runs just before Django calls the view.
+- `process_exception`: Runs when a view raises an exception.
+- `process_template_response`: Runs after the view finishes executing (used for `TemplateResponse`).
+
+📖 Read more in [Django Middleware Documentation](https://docs.djangoproject.com/en/stable/topics/http/middleware/).
+
+---
+
+## 🔐 Mini-Quiz: Django Middleware & Encryption
+
+<div className="my-8">
+<Quiz
+  title="Django Middleware Security Quiz"
+  description="Check your understanding of Middleware and E2E Encryption in Django"
+  questions={[
+    {
+      id: 'q1',
+      question: 'What is the main purpose of Middleware in Django?',
+      options: [
+        { value: 'A', label: 'A. Only authentication' },
+        { value: 'B', label: 'B. Only database queries' },
+        { value: 'C', label: 'C. To globally process requests and responses' },
+        { value: 'D', label: 'D. To replace Django ORM' }
+      ],
+      correct: 'C',
+      explanation: 'Middleware globally processes requests and responses, enabling authentication, logging, security, etc.'
+    },
+    {
+      id: 'q2',
+      question: 'Which encryption algorithm is used in this example?',
+      options: [
+        { value: 'A', label: 'A. AES256' },
+        { value: 'B', label: 'B. 3DES with SHA512 for integrity' },
+        { value: 'C', label: 'C. RSA' },
+        { value: 'D', label: 'D. Blowfish' }
+      ],
+      correct: 'B',
+      explanation: 'We used 3DES for encryption and SHA512 for checksum verification.'
+    },
+    {
+      id: 'q3',
+      question: 'Where should Middleware be registered in Django?',
+      options: [
+        { value: 'A', label: 'A. In models.py' },
+        { value: 'B', label: 'B. In settings.py under MIDDLEWARE list' },
+        { value: 'C', label: 'C. In views.py' },
+        { value: 'D', label: 'D. In admin.py' }
+      ],
+      correct: 'B',
+      explanation: 'Middleware is added in settings.py under the MIDDLEWARE list.'
+    }
+  ]}
+  client:load
+/>
+</div>
+
+---
+
+✅ With this setup, you now have a **custom Django Middleware** providing **E2E encryption** and **integrity validation** for secure request-response cycles.
