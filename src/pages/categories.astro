@@ -1,0 +1,536 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { getCollection } from "astro:content";
+import BlogCard from "../components/BlogCard.astro";
+
+// Get all blog posts
+const allPosts = await getCollection("blog");
+
+// Extract all unique tags and count posts per tag
+const tagCounts = new Map();
+const tagPosts = new Map();
+
+allPosts.forEach(post => {
+    if (post.data.tags) {
+        post.data.tags.forEach(tag => {
+            const normalizedTag = tag.toLowerCase();
+            tagCounts.set(normalizedTag, (tagCounts.get(normalizedTag) || 0) + 1);
+
+            if (!tagPosts.has(normalizedTag)) {
+                tagPosts.set(normalizedTag, []);
+            }
+            tagPosts.get(normalizedTag).push(post);
+        });
+    }
+});
+
+// Sort tags by post count (descending) and then alphabetically, filter for 3+ articles
+const sortedTags = Array.from(tagCounts.entries())
+    .filter(([tag, count]) => count > 2) // Only show categories with more than 2 articles
+    .sort(([a, countA], [b, countB]) => {
+        if (countB !== countA) return countB - countA;
+        return a.localeCompare(b);
+    });
+
+// Sort posts within each category by date (newest first)
+tagPosts.forEach((posts, tag) => {
+    posts.sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime());
+});
+
+// Define category colors and gradients
+const categoryStyles = {
+    'python': 'from-green-400 to-blue-500',
+    'javascript': 'from-yellow-400 to-orange-500',
+    'typescript': 'from-blue-400 to-blue-600',
+    'react': 'from-cyan-400 to-blue-500',
+    'django': 'from-green-600 to-emerald-500',
+    'database': 'from-gray-600 to-gray-800',
+    'devops': 'from-purple-500 to-pink-500',
+    'nginx': 'from-green-500 to-teal-500',
+    'docker': 'from-blue-500 to-cyan-500',
+    'tutorial': 'from-indigo-500 to-purple-600',
+    'programming': 'from-purple-600 to-pink-600',
+    'web development': 'from-teal-400 to-blue-500',
+    'backend': 'from-gray-700 to-gray-900',
+    'frontend': 'from-pink-400 to-red-500',
+    'performance': 'from-yellow-500 to-red-500',
+    'security': 'from-red-600 to-pink-600',
+    'testing': 'from-green-400 to-emerald-500',
+    'api': 'from-blue-600 to-purple-600',
+    'microservices': 'from-indigo-600 to-purple-700',
+    'machine learning': 'from-purple-500 to-pink-500',
+    'data science': 'from-blue-500 to-indigo-600',
+    'algorithms': 'from-green-500 to-cyan-500',
+    'system design': 'from-gray-600 to-indigo-600'
+};
+
+const getCategoryGradient = (tag) => categoryStyles[tag.toLowerCase()] || 'from-gray-500 to-gray-700';
+
+// Define category icons
+const categoryIcons = {
+    'python': '🐍',
+    'javascript': '⚡',
+    'typescript': '�',
+    'react': '⚛️',
+    'django': '🎸',
+    'database': '🗄️',
+    'devops': '⚙️',
+    'nginx': '🌐',
+    'docker': '🐳',
+    'tutorial': '📚',
+    'programming': '💻',
+    'web development': '🌍',
+    'backend': '🔧',
+    'frontend': '🎨',
+    'performance': '⚡',
+    'security': '🔒',
+    'testing': '🧪',
+    'api': '🔌',
+    'microservices': '🏗️',
+    'machine learning': '🤖',
+    'data science': '📊',
+    'algorithms': '🧮',
+    'system design': '🏛️'
+};
+
+const getCategoryIcon = (tag) => categoryIcons[tag.toLowerCase()] || '📝';
+
+// Group categories by popularity
+const popularTags = sortedTags.slice(0, 6);
+const otherTags = sortedTags.slice(6);
+---
+
+<Layout
+    title="Categories | TakoVibe"
+    author="Rahul Beniwal"
+    description="Explore curated blog categories and topics on TakoVibe - from Python programming to system design and technology innovations."
+    tags={["categories", "blog topics", "programming", "technology", "software engineering"]}
+>
+    <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+        
+        <!-- Header Section -->
+        <section class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+                <div class="max-w-4xl">
+                    <!-- Meta Info -->
+                    <div class="flex flex-wrap items-center gap-4 sm:gap-8 text-sm text-gray-500 dark:text-gray-400 mb-6 sm:mb-8">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-medium tracking-wider uppercase">Categories</span>
+                            <span class="font-bold text-gray-900 dark:text-white">{sortedTags.length}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-medium tracking-wider uppercase">Articles</span>
+                            <span class="font-bold text-gray-900 dark:text-white">{allPosts.length}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-medium tracking-wider uppercase">Year</span>
+                            <span class="font-bold text-gray-900 dark:text-white">2024</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Main Title -->
+                    <h1 class="text-4xl sm:text-5xl md:text-7xl font-bold text-gray-900 dark:text-white mb-6 sm:mb-8 leading-tight">
+                        Topic
+                        <br/>
+                        <span class="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                            Collections
+                        </span>
+                    </h1>
+                    
+                    <!-- Description -->
+                    <div class="max-w-2xl">
+                        <p class="text-base sm:text-lg text-gray-600 dark:text-gray-400 leading-relaxed mb-4 sm:mb-6">
+                            Explore our curated collection of technical articles organized by topic. 
+                            Each category contains comprehensive guides, tutorials, and insights 
+                            designed to help you master modern software development.
+                        </p>
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                            <span class="px-3 sm:px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-sm font-medium">
+                                {sortedTags.length} Active Categories
+                            </span>
+                            <span class="px-3 sm:px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-sm font-medium">
+                                3+ Articles Each
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Categories Grid -->
+        <section class="py-12 sm:py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6">
+                
+                <!-- Categories Grid -->
+                <div class="grid gap-6 sm:gap-8 md:gap-12">
+                    {sortedTags.map(([tag, count], index) => (
+                        <article class="group cursor-pointer" onclick={`expandCategory('${tag}')`}>
+                            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-500 overflow-hidden hover:shadow-xl">
+                                
+                                <!-- Category Header -->
+                                <div class="p-4 md:p-8 lg:p-12">
+                                    <div class="flex flex-col md:flex-row md:items-start justify-between mb-6 md:mb-8">
+                                        <!-- Category Info -->
+                                        <div class="flex-1">
+                                            <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4">
+                                                <div class={`w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br ${getCategoryGradient(tag)} flex items-center justify-center text-xl sm:text-2xl shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                                                    {getCategoryIcon(tag)}
+                                                </div>
+                                                <div>
+                                                    <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white capitalize mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                                                        {tag}
+                                                    </h2>
+                                                    <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm text-gray-500 dark:text-gray-400">
+                                                        <span class="font-medium">{count} {count === 1 ? 'Article' : 'Articles'}</span>
+                                                        <span class="hidden sm:inline">•</span>
+                                                        <span>Updated {new Date(tagPosts.get(tag)?.[0]?.data.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Category Description -->
+                                            <p class="text-gray-600 dark:text-gray-400 leading-relaxed mb-4 md:mb-6 text-sm md:text-base max-w-2xl">
+                                                {tag === 'python' && 'Master Python programming with comprehensive tutorials covering everything from basics to advanced concepts like async programming, performance optimization, and best practices.'}
+                                                {tag === 'django' && 'Deep dive into Django web framework development, including ORM mastery, middleware, performance optimization, and building scalable web applications.'}
+                                                {tag === 'javascript' && 'Explore modern JavaScript development, ES6+ features, frameworks, and best practices for building interactive web applications.'}
+                                                {tag === 'programming' && 'General programming concepts, algorithms, data structures, and software engineering principles that apply across languages and technologies.'}
+                                                {tag === 'tutorial' && 'Step-by-step guides and hands-on tutorials for learning new technologies, tools, and development techniques.'}
+                                                {tag === 'web development' && 'Complete web development guides covering frontend, backend, APIs, and modern development workflows.'}
+                                                {tag === 'performance' && 'Optimization techniques, performance monitoring, and best practices for building fast, efficient applications.'}
+                                                {tag === 'devops' && 'Infrastructure, deployment, monitoring, and automation tools for modern software development workflows.'}
+                                                {!['python', 'django', 'javascript', 'programming', 'tutorial', 'web development', 'performance', 'devops'].includes(tag) && `Comprehensive articles and tutorials focused on ${tag} development, covering best practices, advanced techniques, and real-world applications.`}
+                                            </p>
+                                        </div>
+                                        
+                                        <!-- View Button -->
+                                        <div class="mt-4 md:mt-0 md:ml-6 flex justify-end">
+                                            <div class="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-gray-100 dark:bg-gray-700 group-hover:bg-purple-100 dark:group-hover:bg-purple-900/30 transition-colors">
+                                                <svg class="w-4 h-4 md:w-5 md:h-5 text-gray-600 dark:text-gray-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Recent Articles Preview -->
+                                    <div class="border-t border-gray-100 dark:border-gray-700 pt-6 md:pt-8">
+                                        <h3 class="text-xs md:text-sm font-semibold text-gray-900 dark:text-white mb-3 md:mb-4 uppercase tracking-wider">Recent Articles</h3>
+                                        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                                            {tagPosts.get(tag)?.slice(0, 3).map((post) => (
+                                                <a href={`/blog/${post.slug}`} class="group/article block p-3 md:p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all">
+                                                    <h4 class="font-medium text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover/article:text-purple-600 dark:group-hover/article:text-purple-400 transition-colors text-sm md:text-base leading-tight">
+                                                        {post.data.title}
+                                                    </h4>
+                                                    <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                                        <span>{new Date(post.data.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                                                        <span class="hidden sm:inline">•</span>
+                                                        <span>{post.data.readingTime || '5 min read'}</span>
+                                                    </div>
+                                                </a>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+                    ))}
+                </div>
+            </div>
+        </section>
+                </section>
+
+                <!-- All Categories Section -->
+                {otherTags.length > 0 && (
+                    <section class="mb-16">
+                        <div class="text-center mb-8">
+                            <h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4">
+                                More Topics
+                            </h2>
+                            <p class="text-gray-600 dark:text-gray-400">
+                                Explore additional specialized topics
+                            </p>
+                        </div>
+
+                        <!-- Compact Categories Grid -->
+                        <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                            {otherTags.map(([tag, count]) => (
+                                <div class="group bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 hover:shadow-md cursor-pointer"
+                                     onclick={`expandCategory('${tag}')`}>
+                                    <div class="flex items-center gap-3 mb-2">
+                                        <span class="text-xl">{getCategoryIcon(tag)}</span>
+                                        <div class="flex-1 min-w-0">
+                                            <h3 class="text-sm font-semibold text-gray-900 dark:text-white capitalize group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
+                                                {tag}
+                                            </h3>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                                                {count} {count === 1 ? 'article' : 'articles'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                <!-- Expanded Category Modal Container -->
+                <div id="category-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+                    <div class="bg-white dark:bg-gray-900 rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
+                        <!-- Modal Header -->
+                        <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center gap-4">
+                                <span id="modal-icon" class="text-3xl"></span>
+                                <div>
+                                    <h3 id="modal-title" class="text-2xl font-bold text-gray-900 dark:text-white capitalize"></h3>
+                                    <p id="modal-count" class="text-gray-500 dark:text-gray-400"></p>
+                                </div>
+                            </div>
+                            <button onclick="closeModal()" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                                <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Modal Content -->
+                        <div class="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+                            <div id="modal-posts" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                                <!-- Posts will be dynamically loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <section class="text-center bg-white/30 dark:bg-gray-800/30 backdrop-blur-sm rounded-2xl p-8 border border-gray-200 dark:border-gray-700">
+                    <div class="grid gap-8 md:grid-cols-3">
+                        <div>
+                            <div class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                                {allPosts.length}
+                            </div>
+                            <div class="text-gray-600 dark:text-gray-400">Total Articles</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
+                                {sortedTags.length}
+                            </div>
+                            <div class="text-gray-600 dark:text-gray-400">Categories</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
+                                {Math.round(allPosts.length / sortedTags.length)}
+                            </div>
+                            <div class="text-gray-600 dark:text-gray-400">Avg per Category</div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+</Layout>
+
+<style>
+    @keyframes blob {
+        0% { transform: translate(0px, 0px) scale(1); }
+        33% { transform: translate(30px, -50px) scale(1.1); }
+        66% { transform: translate(-20px, 20px) scale(0.9); }
+        100% { transform: translate(0px, 0px) scale(1); }
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-blob {
+        animation: blob 7s infinite;
+    }
+    
+    .animation-delay-2000 {
+        animation-delay: 2s;
+    }
+    
+    .animation-delay-4000 {
+        animation-delay: 4s;
+    }
+
+    .animate-fade-in-up {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+    /* Line clamp utility for text truncation */
+    .line-clamp-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Custom scrollbar for modal */
+    .overflow-y-auto::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .overflow-y-auto::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    .overflow-y-auto::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+    }
+    
+    .dark .overflow-y-auto::-webkit-scrollbar-thumb {
+        background: #64748b;
+    }
+
+    /* Mobile responsive improvements */
+    @media (max-width: 640px) {
+        .grid-responsive {
+            grid-template-columns: 1fr;
+        }
+        
+        .text-responsive {
+            font-size: 1.5rem;
+            line-height: 2rem;
+        }
+    }
+
+    /* Hover effects for better interaction */
+    .category-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .category-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Dark mode specific adjustments */
+    .dark .category-card:hover {
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+</style>
+
+<script define:vars={{categoryData: Object.fromEntries(sortedTags.map(([tag, count]) => [tag, {
+    icon: getCategoryIcon(tag),
+    count: count,
+    posts: tagPosts.get(tag)?.map(post => ({
+        title: post.data.title,
+        description: post.data.description,
+        date: post.data.date,
+        image: post.data.image,
+        slug: post.slug,
+        tags: post.data.tags,
+        readingTime: post.data.readingTime || "5 min read"
+    })) || []
+}]))}}>
+    function expandCategory(tag) {
+        const data = categoryData[tag];
+        if (!data) return;
+
+        // Update modal content
+        document.getElementById('modal-icon').textContent = data.icon;
+        document.getElementById('modal-title').textContent = tag;
+        document.getElementById('modal-count').textContent = `${data.count} ${data.count === 1 ? 'article' : 'articles'}`;
+
+        // Generate posts HTML
+        const postsContainer = document.getElementById('modal-posts');
+        postsContainer.innerHTML = data.posts.map(post => `
+            <article class="group bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                ${post.image ? `
+                    <div class="aspect-video overflow-hidden">
+                        <img src="${post.image}" alt="${post.title}" 
+                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    </div>
+                ` : ''}
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        <a href="/blog/${post.slug}" class="hover:underline">
+                            ${post.title}
+                        </a>
+                    </h3>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">
+                        ${post.description || ''}
+                    </p>
+                    <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                        <span>${new Date(post.date).toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'short', 
+                            day: 'numeric' 
+                        })}</span>
+                        <span>${post.readingTime}</span>
+                    </div>
+                    ${post.tags ? `
+                        <div class="flex flex-wrap gap-1 mt-3">
+                            ${post.tags.slice(0, 3).map(tag => `
+                                <span class="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded text-xs">
+                                    ${tag}
+                                </span>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            </article>
+        `).join('');
+
+        // Show modal
+        const modal = document.getElementById('category-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        
+        // Prevent body scroll
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('category-modal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        
+        // Restore body scroll
+        document.body.style.overflow = 'auto';
+    }
+
+    // Close modal on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeModal();
+        }
+    });
+
+    // Close modal on backdrop click
+    document.getElementById('category-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeModal();
+        }
+    });
+
+    // Add smooth animations
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate category cards on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-in-up');
+                }
+            });
+        }, observerOptions);
+
+        // Observe all category cards
+        document.querySelectorAll('[onclick*="expandCategory"]').forEach(card => {
+            observer.observe(card);
+        });
+    });
+</script>

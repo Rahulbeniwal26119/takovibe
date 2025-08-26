@@ -138,12 +138,17 @@ const structuredData = {
       ></script>
     )}
   </head>
-  <body class="text-gray-100 min-h-screen overflow-x-hidden">
+  <body class="text-gray-900 dark:text-gray-100 min-h-screen overflow-x-hidden zen-body">
     {!no_header && <Header />}
     <ReadingProgress />
 
+    <!-- Floating Cherry Blossoms -->
+    <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+      <div class="sakura-petals"></div>
+    </div>
+
     <main
-      class="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 pt-0"
+      class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 pt-[104px] md:pt-[112px] relative z-10"
     >
       <AnimatedBackground />
       <FloatingElements />
@@ -151,7 +156,7 @@ const structuredData = {
       <!-- <MusicPlayer /> -->
       <!-- <EnhancedNotes /> -->
       <!-- <PomodoroTimer /> -->
-      <div class="relative z-10 mx-auto">
+      <div class="relative z-20 mx-auto">
         <ErrorBoundary>
           <slot />
         </ErrorBoundary>
@@ -184,31 +189,151 @@ const structuredData = {
 
 <style is:global>
   :root {
-    --background: #ffffff;
-    --text: #1a1a1a;
+    --cherry-light: #f8faff;
+    --cherry-medium: #e0f2fe; 
+    --cherry-accent: #3b82f6;
+    --cherry-dark: #1e40af;
+    --zen-text: #374151;
+    --zen-light: #f8fafc;
+    --zen-shadow: rgba(30, 64, 175, 0.1);
   }
 
   :root.dark {
-    --background: #1a1a1a;
-    --text: #ffffff;
+    --cherry-light: #0f172a;
+    --cherry-medium: #1e293b;
+    --cherry-accent: #3b82f6;
+    --cherry-dark: #60a5fa;
+    --zen-text: #e5e7eb;
+    --zen-light: #0f172a;
+    --zen-shadow: rgba(59, 130, 246, 0.15);
   }
 
   html {
-    background-color: var(--background);
-    color: var(--text);
+    background: linear-gradient(135deg, var(--cherry-light) 0%, var(--cherry-medium) 100%);
+    color: var(--zen-text);
+    font-family: 'Space Grotesk', sans-serif;
+    scroll-behavior: smooth;
   }
 
   body {
     margin: 0;
     padding: 0;
-    transition:
-      background-color 0.3s ease,
-      color 0.3s ease;
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    background: transparent;
+  }
+
+  .zen-body {
+    background: linear-gradient(
+      135deg,
+      rgba(248, 250, 255, 0.9) 0%,
+      rgba(224, 242, 254, 0.8) 25%,
+      rgba(240, 249, 255, 0.9) 50%,
+      rgba(186, 230, 253, 0.8) 75%,
+      rgba(224, 242, 254, 0.9) 100%
+    );
+  }
+
+  .dark .zen-body {
+    background: linear-gradient(
+      135deg,
+      rgba(15, 23, 42, 0.95) 0%,
+      rgba(30, 41, 59, 0.9) 25%,
+      rgba(51, 65, 85, 0.95) 50%,
+      rgba(30, 58, 138, 0.9) 75%,
+      rgba(30, 41, 59, 0.95) 100%
+    );
+  }
+
+  /* Floating Cherry Blossoms Animation */
+  .sakura-petals::before,
+  .sakura-petals::after {
+    content: '💎';
+    position: absolute;
+    font-size: 14px;
+    color: rgba(59, 130, 246, 0.6);
+    animation: float 15s infinite linear;
+    pointer-events: none;
+  }
+
+  .sakura-petals::before {
+    left: 10%;
+    animation-delay: 0s;
+    animation-duration: 20s;
+  }
+
+  .sakura-petals::after {
+    left: 80%;
+    animation-delay: 7s;
+    animation-duration: 18s;
+  }
+
+  @keyframes float {
+    0% {
+      transform: translateY(-100vh) rotate(0deg);
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    90% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(100vh) rotate(360deg);
+      opacity: 0;
+    }
+  }
+
+  /* Zen-inspired scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--cherry-light);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, var(--cherry-accent), var(--cherry-dark));
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--cherry-dark);
+  }
+
+  /* Breathing effect for cards */
+  .zen-breathing {
+    animation: breathe 4s ease-in-out infinite;
+  }
+
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+  }
+
+  /* Zen text selection */
+  ::selection {
+    background: var(--cherry-accent);
+    color: white;
   }
 
   html, body {
     overflow-x: hidden;
     width: 100%;
     position: relative;
+  }
+
+  /* Additional zen elements */
+  .zen-gradient {
+    background: linear-gradient(135deg, var(--cherry-light), var(--cherry-medium));
+  }
+
+  .zen-shadow {
+    box-shadow: 0 4px 20px var(--zen-shadow);
+  }
+
+  .zen-border {
+    border: 1px solid rgba(59, 130, 246, 0.2);
   }
 </style>

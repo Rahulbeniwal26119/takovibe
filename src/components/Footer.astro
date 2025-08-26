@@ -5,29 +5,41 @@ const currentYear = new Date().getFullYear();
 const apiUrl = import.meta.env.PUBLIC_API_URL;
 ---
 
-<footer class="bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+<footer class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-t border-blue-200/50 dark:border-blue-700/30">
+  <!-- Brand Section -->
+  <div class="bg-blue-600 dark:bg-blue-800 text-white">
+    <div class="max-w-7xl mx-auto px-6 py-8">
+      <div class="text-center">
+        <h2 class="text-2xl sm:text-3xl font-light mb-3">Stay Connected with <span class="font-medium text-blue-200">TakoVibe</span></h2>
+        <p class="text-blue-100 text-sm sm:text-base max-w-2xl mx-auto">
+          Join our community of developers, designers, and tech enthusiasts. Get the latest insights, tutorials, and updates delivered to your inbox.
+        </p>
+      </div>
+    </div>
+  </div>
+
   <div class="max-w-6xl mx-auto px-4 py-12">
     <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
       <!-- Brand Section -->
       <div class="col-span-1 md:col-span-4">
-        <div class="bg-white/5 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-200/10 dark:border-gray-700/10">
+        <div class="bg-white/80 dark:bg-blue-900/50 backdrop-blur-sm rounded-xl p-6 border border-blue-200/50 dark:border-blue-700/30">
           <div class="flex items-center gap-3 mb-4">
-            <div class="p-2 bg-gradient-to-br from-purple-600/10 to-indigo-600/10 dark:from-purple-500/20 dark:to-indigo-500/20 rounded-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="p-2 bg-gradient-to-br from-blue-600/10 to-indigo-600/10 dark:from-blue-500/20 dark:to-indigo-500/20 rounded-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
               </svg>
             </div>
-            <h2 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-400 dark:to-indigo-400">
+            <h2 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
               TakoVibe
             </h2>
           </div>
-          <p class="text-gray-600 dark:text-gray-400 mb-6 text-sm leading-relaxed">
+          <p class="text-blue-700 dark:text-blue-300 mb-6 text-sm leading-relaxed">
             Exploring the depths of software engineering, system design, and technology innovations. Join me on this journey of continuous learning and discovery.
           </p>
           <div class="flex items-center gap-4">
             <a 
               href="https://linkedin.com/in/rahulbeniwal26119" 
-              class="group flex items-center gap-2 text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 transition-colors duration-200"
+              class="group flex items-center gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
             >
               <span class="sr-only">LinkedIn</span>
               <svg class="h-5 w-5 transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
@@ -37,7 +49,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
             </a>
             <a 
               href="https://github.com/Rahulbeniwal26119" 
-              class="group flex items-center gap-2 text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 transition-colors duration-200"
+              class="group flex items-center gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
             >
               <span class="sr-only">GitHub</span>
               <svg class="h-5 w-5 transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
@@ -63,17 +75,17 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
 
       <!-- Newsletter Section -->
       <div class="col-span-1 md:col-span-8">
-        <div id="newsletter-wrapper" class="bg-gradient-to-br from-purple-900/10 to-indigo-900/10 dark:from-purple-800/20 dark:to-indigo-800/20 backdrop-blur-sm rounded-xl p-8 border border-purple-200/20 dark:border-purple-700/20 shadow-xl">
+        <div id="newsletter-wrapper" class="bg-gradient-to-br from-blue-100/50 to-indigo-100/50 dark:from-blue-800/20 dark:to-indigo-800/20 backdrop-blur-sm rounded-xl p-8 border border-blue-200/50 dark:border-blue-700/30 shadow-xl">
           <div id="subscribe-form">
             <div class="flex items-center gap-3 mb-4">
-              <div class="p-2 bg-purple-600/10 dark:bg-purple-500/20 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div class="p-2 bg-blue-600/10 dark:bg-blue-500/20 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
               </div>
               <div>
-                <h3 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-400 dark:to-indigo-400">Join the Upcoming Newsletter</h3>
-                <p class="text-sm text-gray-600 dark:text-gray-400">Get weekly insights and tutorials</p>
+                <h3 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">Join the Upcoming Newsletter</h3>
+                <p class="text-sm text-blue-700 dark:text-blue-300">Get weekly insights and tutorials</p>
               </div>
             </div>
             
@@ -86,13 +98,13 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
                   type="email"
                   autocomplete="email"
                   required
-                  class="flex-1 px-4 py-2.5 bg-white dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all duration-200"
+                  class="flex-1 px-4 py-2.5 bg-white dark:bg-blue-900/50 border border-blue-200/50 dark:border-blue-700/50 rounded-lg shadow-sm placeholder-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
                   placeholder="Enter your email address"
                 />
                 <button
                   type="submit" 
                   onclick="toggle_newsletter_subscription(event)"
-                  class="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all duration-200 font-medium shadow-lg shadow-purple-500/25 hover:shadow-purple-500/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+                  class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 font-medium shadow-lg shadow-blue-500/25 hover:shadow-blue-500/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-blue-900"
                 >
                   Subscribe
                 </button>
@@ -108,7 +120,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
             </div>
             <button 
               id="unsubscribe-button" 
-              class="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium hover:underline transition-colors duration-200"
+              class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium hover:underline transition-colors duration-200"
             >
               Unsubscribe
             </button>
@@ -118,22 +130,22 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
     </div>
 
     <!-- Bottom Bar -->
-    <div class="mt-12 pt-8 border-t border-gray-200/10 dark:border-gray-800/50">
+    <div class="mt-12 pt-8 border-t border-blue-200/50 dark:border-blue-800/50">
       <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
         <div class="flex items-center gap-2">
-          <div class="h-8 w-8 rounded-full bg-gradient-to-br from-purple-600/20 to-indigo-600/20 flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div class="h-8 w-8 rounded-full bg-gradient-to-br from-blue-600/20 to-indigo-600/20 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
             </svg>
           </div>
-          <p class="text-sm text-gray-600 dark:text-gray-400">
-            © {currentYear} <span class="font-medium bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-400 dark:to-indigo-400">TakoVibe</span>
+          <p class="text-sm text-blue-700 dark:text-blue-300">
+            © {currentYear} <span class="font-medium bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">TakoVibe</span>
           </p>
         </div>
         <div class="flex items-center gap-6">
-          <a href="/privacy" class="text-sm text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 transition-colors">Privacy Policy</a>
-          <a href="/terms" class="text-sm text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 transition-colors">Terms of Service</a>
-          <span class="text-sm text-gray-500 dark:text-gray-400">Made with ❤️ in India</span>
+          <a href="/privacy" class="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">Privacy Policy</a>
+          <a href="/terms" class="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">Terms of Service</a>
+          <span class="text-sm text-blue-600 dark:text-blue-400">Made with ❤️ in India</span>
         </div>
       </div>
     </div>

@@ -60,7 +60,7 @@ import LiveIndicator from "./LiveIndicator.astro";
            class="px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-black/[.04] dark:hover:bg-white/5">Categories</a>
 
         <!-- Library dropdown -->
-        <details class="relative">
+        <!-- <details class="relative">
           <summary
             class="list-none cursor-pointer px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-black/[.04] dark:hover:bg-white/5">
             Library
@@ -73,7 +73,7 @@ import LiveIndicator from "./LiveIndicator.astro";
             <a href="/me/comments" class="block px-3 py-2 rounded-xl text-sm text-gray-700 dark:text-gray-300 hover:bg-black/[.04] dark:hover:bg-white/5">Commented</a>
             <a href="/bookmarks" class="block px-3 py-2 rounded-xl text-sm text-gray-700 dark:text-gray-300 hover:bg-black/[.04] dark:hover:bg-white/5">Bookmarks</a>
           </div>
-        </details>
+        </details> -->
       </nav>
 
       <!-- <div class="lg:block shrink-0">
@@ -109,7 +109,7 @@ import LiveIndicator from "./LiveIndicator.astro";
       <a href="/about" class="block px-3 py-2 rounded-xl hover:bg-black/[.04] dark:hover:bg-white/5">About</a>
       <a href="/categories" class="block px-3 py-2 rounded-xl hover:bg-black/[.04] dark:hover:bg-white/5">Categories</a>
 
-      <details class="group">
+      <!-- <details class="group">
         <summary class="cursor-pointer px-3 py-2 rounded-xl hover:bg-black/[.04] dark:hover:bg-white/5">Library</summary>
         <div class="pl-4 mt-1 space-y-1">
           <a href="/me/recent" class="block px-3 py-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-inherit hover:bg-black/[.04] dark:hover:bg-white/5">Recently read</a>
@@ -117,7 +117,7 @@ import LiveIndicator from "./LiveIndicator.astro";
           <a href="/me/comments" class="block px-3 py-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-inherit hover:bg-black/[.04] dark:hover:bg-white/5">Commented</a>
           <a href="/bookmarks" class="block px-3 py-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-inherit hover:bg-black/[.04] dark:hover:bg-white/5">Bookmarks</a>
         </div>
-      </details>
+      </details> -->
     </nav>
   </aside>
 </header>
@@ -178,3 +178,27 @@ import LiveIndicator from "./LiveIndicator.astro";
     });
   });
 </script>
+
+<style>
+  /* Add body padding to account for fixed header */
+  :global(body) {
+    padding-top: calc(56px + 48px); /* Mobile: 56px (h-14) + 48px (navigation row) */
+  }
+  
+  @media (min-width: 768px) {
+    :global(body) {
+      padding-top: calc(64px + 48px); /* Desktop: 64px (h-16) + 48px (navigation row) */
+    }
+  }
+  
+  /* Ensure header has consistent height */
+  #site-header {
+    height: calc(56px + 48px); /* Mobile total height */
+  }
+  
+  @media (min-width: 768px) {
+    #site-header {
+      height: calc(64px + 48px); /* Desktop total height */
+    }
+  }
+</style>
