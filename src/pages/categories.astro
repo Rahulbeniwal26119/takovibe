@@ -3,14 +3,16 @@ import Layout from "../layouts/Layout.astro";
 import { getCollection } from "astro:content";
 import BlogCard from "../components/BlogCard.astro";
 
-// Get all blog posts
+// Get all blog posts and filter out future posts
 const allPosts = await getCollection("blog");
+const currentDate = new Date();
+const publishedPosts = allPosts.filter(post => new Date(post.data.date) <= currentDate);
 
 // Extract all unique tags and count posts per tag
 const tagCounts = new Map();
 const tagPosts = new Map();
 
-allPosts.forEach(post => {
+publishedPosts.forEach(post => {
     if (post.data.tags) {
         post.data.tags.forEach(tag => {
             const normalizedTag = tag.toLowerCase();
@@ -32,7 +34,7 @@ const sortedTags = Array.from(tagCounts.entries())
         return a.localeCompare(b);
     });
 
-// Sort posts within each category by date (newest first)
+// Sort posts by date within each tag
 tagPosts.forEach((posts, tag) => {
     posts.sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime());
 });
@@ -120,7 +122,7 @@ const otherTags = sortedTags.slice(6);
                         </div>
                         <div class="flex items-center gap-2">
                             <span class="text-xs font-medium tracking-wider uppercase">Articles</span>
-                            <span class="font-bold text-gray-900 dark:text-white">{allPosts.length}</span>
+                            <span class="font-bold text-gray-900 dark:text-white">{publishedPosts.length}</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <span class="text-xs font-medium tracking-wider uppercase">Year</span>
@@ -164,8 +166,8 @@ const otherTags = sortedTags.slice(6);
                 <!-- Categories Grid -->
                 <div class="grid gap-6 sm:gap-8 md:gap-12">
                     {sortedTags.map(([tag, count], index) => (
-                        <article class="group cursor-pointer" onclick={`expandCategory('${tag}')`}>
-                            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-500 overflow-hidden hover:shadow-xl">
+                        <a href={`/blog?category=${encodeURIComponent(tag)}`} class="block group">
+                            <article class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-500 overflow-hidden hover:shadow-xl cursor-pointer">
                                 
                                 <!-- Category Header -->
                                 <div class="p-4 md:p-8 lg:p-12">
@@ -215,24 +217,41 @@ const otherTags = sortedTags.slice(6);
                                     <!-- Recent Articles Preview -->
                                     <div class="border-t border-gray-100 dark:border-gray-700 pt-6 md:pt-8">
                                         <h3 class="text-xs md:text-sm font-semibold text-gray-900 dark:text-white mb-3 md:mb-4 uppercase tracking-wider">Recent Articles</h3>
-                                        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                                        <div class="grid gap-3 grid-cols-1">
                                             {tagPosts.get(tag)?.slice(0, 3).map((post) => (
-                                                <a href={`/blog/${post.slug}`} class="group/article block p-3 md:p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all">
-                                                    <h4 class="font-medium text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover/article:text-purple-600 dark:group-hover/article:text-purple-400 transition-colors text-sm md:text-base leading-tight">
-                                                        {post.data.title}
-                                                    </h4>
-                                                    <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-xs text-gray-500 dark:text-gray-400">
-                                                        <span>{new Date(post.data.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-                                                        <span class="hidden sm:inline">•</span>
-                                                        <span>{post.data.readingTime || '5 min read'}</span>
+                                                <a href={`/blog/${post.slug}`} class="group/article block p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all">
+                                                    <div class="flex items-start gap-4">
+                                                        {post.data.image ? (
+                                                            <div class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                                                                <img 
+                                                                    src={post.data.image} 
+                                                                    alt={post.data.title}
+                                                                    class="w-full h-full object-cover group-hover/article:scale-110 transition-transform duration-500"
+                                                                />
+                                                            </div>
+                                                        ) : (
+                                                            <div class="w-16 h-16 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex-shrink-0 flex items-center justify-center text-white text-xl">
+                                                                📝
+                                                            </div>
+                                                        )}
+                                                        <div class="flex-1 min-w-0">
+                                                            <h4 class="font-medium text-gray-900 dark:text-white mb-1 line-clamp-2 group-hover/article:text-purple-600 dark:group-hover/article:text-purple-400 transition-colors text-sm leading-tight">
+                                                                {post.data.title}
+                                                            </h4>
+                                                            <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                                                <span>{new Date(post.data.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                                                                <span>•</span>
+                                                                <span>{post.data.readingTime || '5 min read'}</span>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </a>
                                             ))}
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </article>
+                            </article>
+                        </a>
                     ))}
                 </div>
             </div>
@@ -306,7 +325,7 @@ const otherTags = sortedTags.slice(6);
                     <div class="grid gap-8 md:grid-cols-3">
                         <div>
                             <div class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-                                {allPosts.length}
+                                {publishedPosts.length}
                             </div>
                             <div class="text-gray-600 dark:text-gray-400">Total Articles</div>
                         </div>
@@ -318,7 +337,8 @@ const otherTags = sortedTags.slice(6);
                         </div>
                         <div>
                             <div class="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
-                                {Math.round(allPosts.length / sortedTags.length)}
+                                                            <div class="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
+                                {Math.round(publishedPosts.length / sortedTags.length)}
                             </div>
                             <div class="text-gray-600 dark:text-gray-400">Avg per Category</div>
                         </div>

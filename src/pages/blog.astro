@@ -81,7 +81,7 @@ const regularPosts = sortedPosts.slice(3);
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto px-6 py-8">
       <!-- Search and Filters -->
-      <div class="mb-8">
+      <div class="mb-8 text-gray-900 dark:text-white">
         <div class="grid lg:grid-cols-4 gap-6">
           <!-- Search -->
           <div class="lg:col-span-2">
@@ -100,7 +100,7 @@ const regularPosts = sortedPosts.slice(3);
 
           <!-- Sort Dropdown -->
           <div class="relative">
-            <select id="sort-select" class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors appearance-none cursor-pointer">
+            <select id="sort-select" class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors appearance-none cursor-pointer text-gray-900 dark:text-white">
               <option value="date-desc">Latest First</option>
               <option value="date-asc">Oldest First</option>
               <option value="title-asc">Title A-Z</option>
@@ -231,7 +231,7 @@ const regularPosts = sortedPosts.slice(3);
           {regularPosts.map((post) => (
             <article class="article-card group" data-title={post.data.title.toLowerCase()} data-tags={JSON.stringify(post.data.tags || [])} data-date={post.data.date}>
               <a href={`/blog/${post.slug}`} class="block">
-                <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 border border-gray-100 dark:border-gray-700 hover:border-purple-200 dark:hover:border-purple-700 transform hover:-translate-y-2">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 border border-gray-100 dark:border-gray-700 hover:border-purple-200 dark:hover:border-purple-700 transform hover:-translate-y-2 text-gray-900 dark:text-white">
                   {post.data.image ? (
                     <div class="aspect-video overflow-hidden">
                       <img 
@@ -330,7 +330,7 @@ const regularPosts = sortedPosts.slice(3);
 
   /* Tag filter styles */
   .tag-filter {
-    @apply px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:border-indigo-300 dark:hover:border-indigo-600 transition-all duration-200 flex items-center gap-2;
+    @apply px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-900 dark:text-white hover:border-indigo-300 dark:hover:border-indigo-600 transition-all duration-200 flex items-center gap-2;
   }
 
   .tag-filter.active {
@@ -482,9 +482,9 @@ const regularPosts = sortedPosts.slice(3);
   listViewBtn?.addEventListener('click', () => toggleView('list'));
 
   // Search functionality
-  function performSearch() {
-    currentSearchTerm = searchInput?.value.toLowerCase() || '';
-    filterAndDisplayArticles();
+  function performSearch(e: Event) {
+    const searchTerm = (e.target as HTMLInputElement)?.value.toLowerCase() || '';
+    filterArticles(searchTerm, currentTag);
   }
 
   // Function to normalize tags (same as server-side)
@@ -496,8 +496,6 @@ const regularPosts = sortedPosts.slice(3);
 
   // Tag filtering
   function filterByTag(tag: string) {
-    currentTag = tag;
-    
     // Update active tag button
     document.querySelectorAll('.tag-filter').forEach(btn => {
       btn.classList.remove('active');
@@ -505,13 +503,14 @@ const regularPosts = sortedPosts.slice(3);
     document.querySelector(`[data-tag="${tag}"]`)?.classList.add('active');
     
     // Show/hide clear filters button
-    if (tag !== 'all' || currentSearchTerm) {
+    const searchTerm = searchInput?.value.toLowerCase() || '';
+    if (tag !== 'all' || searchTerm) {
       clearFilters?.classList.remove('hidden');
     } else {
       clearFilters?.classList.add('hidden');
     }
     
-    filterAndDisplayArticles();
+    filterArticles(searchTerm, tag);
   }
 
   // Sort functionality
@@ -535,23 +534,33 @@ const regularPosts = sortedPosts.slice(3);
     });
   }
 
-  // Main filter and display function
-  function filterAndDisplayArticles() {
+  // Filter articles based on search term and tag
+  function filterArticles(searchTerm: string, tag: string) {
+    // Reset current page when filters change
+    currentPage = 1;
+    currentTag = tag;
+    currentSearchTerm = searchTerm;
+
     // Filter articles
     filteredArticles = articles.filter(article => {
       // Search filter
-      const matchesSearch = !currentSearchTerm || 
-        article.title.includes(currentSearchTerm) ||
-        article.tags.some(tag => tag.toLowerCase().includes(currentSearchTerm));
+      const matchesSearch = !searchTerm || 
+        article.title.includes(searchTerm) ||
+        article.tags.some(t => t.toLowerCase().includes(searchTerm));
       
       // Tag filter
-      const matchesTag = currentTag === 'all' || 
-        article.tags.some(t => normalizeTag(t) === normalizeTag(currentTag));
+      const matchesTag = tag === 'all' || 
+        article.tags.some(t => normalizeTag(t) === normalizeTag(tag));
       
       return matchesSearch && matchesTag;
     });
 
-    // Sort articles
+    displayFilteredArticles();
+  }
+
+  // Display filtered and paginated articles
+  function displayFilteredArticles() {
+    // Sort the filtered articles first
     filteredArticles = sortArticles(filteredArticles);
 
     // Update results count
@@ -561,41 +570,42 @@ const regularPosts = sortedPosts.slice(3);
 
     // Show/hide articles and featured section
     const shouldShowFeatured = currentTag === 'all' && !currentSearchTerm;
-    
     featuredArticles.forEach(card => {
       (card as HTMLElement).style.display = shouldShowFeatured ? 'block' : 'none';
     });
+
+    // Calculate pagination
+    const totalPages = Math.max(1, Math.ceil(filteredArticles.length / ARTICLES_PER_PAGE));
+    currentPage = Math.min(currentPage, totalPages);
 
     // Hide all articles first
     articles.forEach(article => {
       (article.element as HTMLElement).style.display = 'none';
     });
 
-    // Show/hide no results
+    // Show articles for current page
+    const startPos = (currentPage - 1) * ARTICLES_PER_PAGE;
+    const endPos = startPos + ARTICLES_PER_PAGE;
+    
+    filteredArticles.slice(startPos, endPos).forEach((article, index) => {
+      (article.element as HTMLElement).style.display = 'block';
+      // Reset animation
+      (article.element as HTMLElement).style.animation = 'none';
+      (article.element as HTMLElement).offsetHeight; // Trigger reflow
+      (article.element as HTMLElement).style.animation = '';
+      // Stagger animation
+      (article.element as HTMLElement).style.animationDelay = `${index * 0.05}s`;
+    });
+
+    // Show/hide no results message
     if (filteredArticles.length === 0) {
       noResults?.classList.remove('hidden');
       pagination?.classList.add('hidden');
     } else {
       noResults?.classList.add('hidden');
       pagination?.classList.remove('hidden');
+      updatePagination(totalPages);
     }
-
-    // Calculate pagination
-    const totalPages = Math.ceil(filteredArticles.length / ARTICLES_PER_PAGE);
-    currentPage = Math.min(currentPage, totalPages || 1);
-
-    // Show articles for current page
-    const startIndex = (currentPage - 1) * ARTICLES_PER_PAGE;
-    const endIndex = startIndex + ARTICLES_PER_PAGE;
-    
-    filteredArticles.slice(startIndex, endIndex).forEach((article, index) => {
-      (article.element as HTMLElement).style.display = 'block';
-      // Stagger animation
-      (article.element as HTMLElement).style.animationDelay = `${index * 0.05}s`;
-    });
-
-    // Update pagination
-    updatePagination(totalPages);
   }
 
   // Pagination
@@ -676,7 +686,7 @@ const regularPosts = sortedPosts.slice(3);
   // Global function for pagination buttons
   (window as any).changePage = function(page: number) {
     currentPage = page;
-    filterAndDisplayArticles();
+    displayFilteredArticles();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -685,7 +695,7 @@ const regularPosts = sortedPosts.slice(3);
   
   sortSelect?.addEventListener('change', (e) => {
     currentSort = (e.target as HTMLSelectElement).value;
-    filterAndDisplayArticles();
+    filterArticles(currentSearchTerm, currentTag);
   });
 
   // Tag filter event listeners
@@ -710,7 +720,7 @@ const regularPosts = sortedPosts.slice(3);
     document.querySelector('[data-tag="all"]')?.classList.add('active');
     
     clearFilters.classList.add('hidden');
-    filterAndDisplayArticles();
+    filterArticles('', 'all');
   });
 
   // Keyboard shortcuts
@@ -731,7 +741,51 @@ const regularPosts = sortedPosts.slice(3);
 
   // Initialize
   document.addEventListener('DOMContentLoaded', () => {
-    filterAndDisplayArticles();
+    // Check for category parameter in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const categoryParam = urlParams.get('category');
+    
+    if (categoryParam) {
+      // Find the tag button with matching normalized category name
+      const normalizedCategory = normalizeTag(categoryParam);
+      const tagButton = Array.from(document.querySelectorAll('.tag-filter')).find(btn => {
+        const tag = (btn as HTMLElement).dataset.tag;
+        return tag && normalizeTag(tag) === normalizedCategory;
+      });
+
+      if (tagButton) {
+        // Reset other filters
+        currentSearchTerm = '';
+        if (searchInput) searchInput.value = '';
+        if (sortSelect) sortSelect.value = 'date-desc';
+        currentSort = 'date-desc';
+        currentPage = 1;
+
+        // Apply the category filter
+        const tag = (tagButton as HTMLElement).dataset.tag || 'all';
+        filterByTag(tag);
+      }
+    } else {
+      filterArticles('', 'all');
+    }
+    
+    // Update URL when changing categories
+    document.querySelectorAll('.tag-filter').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const tag = (e.currentTarget as HTMLElement).dataset.tag || 'all';
+        if (tag === 'all') {
+          // Remove category parameter if selecting 'all'
+          const url = new URL(window.location.href);
+          url.searchParams.delete('category');
+          window.history.pushState({}, '', url);
+        } else {
+          // Update URL with new category
+          const url = new URL(window.location.href);
+          url.searchParams.set('category', tag);
+          window.history.pushState({}, '', url);
+        }
+      });
+    });
     
     // Add keyboard shortcut hint
     if (searchInput) {

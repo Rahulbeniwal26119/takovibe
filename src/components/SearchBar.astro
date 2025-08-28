@@ -1,6 +1,12 @@
 ---
 import { searchArticles, type SearchResult } from '../utils/search';
 
+interface Props {
+  variant?: 'header' | 'blog';
+}
+
+const { variant = 'header' } = Astro.props;
+
 // Make searchArticles available to client-side script
 const searchEndpoint = 'https://backend.takovibe.com/api/blogs/blogs/';
 ---
@@ -27,9 +33,14 @@ const searchEndpoint = 'https://backend.takovibe.com/api/blogs/blogs/';
       </div>
       <input
         type="text"
-        id="search-input"
-        placeholder="Search posts, topics, or keywords..."
-        class="w-full pl-9 pr-16 py-2 bg-[#171923] hover:bg-[#1A202C] focus:bg-[#1A202C] text-white/90 placeholder-white/40 rounded-lg border border-purple-500/30 focus:border-purple-500/50 outline-none transition-all"
+        id={variant === 'blog' ? 'blog-search-input' : 'header-search-input'}
+        placeholder={variant === 'blog' ? 'Search blog articles...' : 'Search posts, topics, or keywords...'}
+        class={`w-full pl-9 pr-4 py-2 rounded-lg border transition-all ${
+          variant === 'blog' 
+            ? 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 hover:border-purple-500/50 focus:border-purple-500' 
+            : 'bg-[#171923] hover:bg-[#1A202C] focus:bg-[#1A202C] text-white/90 placeholder-white/40 border-purple-500/30 focus:border-purple-500/50'
+        }`}
+        data-variant={variant}
       />
     </div>
   </div>
@@ -145,39 +156,54 @@ const searchEndpoint = 'https://backend.takovibe.com/api/blogs/blogs/';
   }
 
   function initSearch() {
-    const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
-    if (!searchInput) return;
+    const headerSearchInput = document.getElementById('header-search-input') as HTMLInputElement | null;
+    const blogSearchInput = document.getElementById('blog-search-input') as HTMLInputElement | null;
+    
+    if (!headerSearchInput && !blogSearchInput) return;
 
     createSearchResults();
     
-    // Handle input with debounce
-    searchInput.addEventListener('input', (e) => {
-      const query = (e.target as HTMLInputElement).value;
-      
-      if (searchTimeout) {
-        clearTimeout(searchTimeout);
-      }
+    const setupSearchInput = (searchInput: HTMLInputElement) => {
+      // Handle input with debounce
+      searchInput.addEventListener('input', (e) => {
+        const query = (e.target as HTMLInputElement).value;
+        
+        if (searchTimeout) {
+          clearTimeout(searchTimeout);
+        }
 
-      searchTimeout = setTimeout(() => {
-        handleSearch(query);
-      }, 300) as unknown as number;
-    });
-    
-    // Open search on '/' key press
-    document.addEventListener('keydown', (e) => {
-      if (e.key === '/' && document.activeElement !== searchInput) {
-        e.preventDefault();
-        searchInput.focus();
-      }
-    });
+        searchTimeout = setTimeout(() => {
+          handleSearch(query);
+        }, 300) as unknown as number;
+      });
 
-    // Close search on Escape key press
-    searchInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        searchInput.blur();
-        hideSearchResults();
-      }
-    });
+      // Close search on Escape key press
+      searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          searchInput.blur();
+          hideSearchResults();
+        }
+      });
+    };
+
+    // Set up header search
+    if (headerSearchInput) {
+      setupSearchInput(headerSearchInput);
+      // Only add '/' shortcut for header search
+      document.addEventListener('keydown', (e) => {
+        if (e.key === '/' && document.activeElement !== headerSearchInput && !document.activeElement?.closest('.blog-search')) {
+          e.preventDefault();
+          headerSearchInput.focus();
+        }
+      });
+    }
+
+    // Set up blog search
+    if (blogSearchInput) {
+      setupSearchInput(blogSearchInput);
+      // Blog search specific handling if needed
+      blogSearchInput.classList.add('blog-search');
+    }
 
     // Close search results when clicking outside
     document.addEventListener('click', (e) => {
@@ -205,12 +231,38 @@ const searchEndpoint = 'https://backend.takovibe.com/api/blogs/blogs/';
     color: rgba(255, 255, 255, 0.3);
   }
 
+  /* Custom styles for blog search */
+  .blog-search input {
+    @apply bg-white dark:bg-gray-800 text-gray-900 dark:text-white;
+  }
+
+  .blog-search .search-results {
+    @apply bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700;
+  }
+
+  /* Custom styles for header search */
+  .header-search input {
+    @apply bg-[#171923] text-white/90;
+  }
+
+  .header-search .search-results {
+    @apply bg-[#1A202C] border-purple-500/30;
+  }
+
   /* Custom autofill styles */
-  #search-input:-webkit-autofill,
-  #search-input:-webkit-autofill:hover,
-  #search-input:-webkit-autofill:focus {
+  .header-search input:-webkit-autofill,
+  .header-search input:-webkit-autofill:hover,
+  .header-search input:-webkit-autofill:focus {
     -webkit-text-fill-color: white;
     -webkit-box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.05) inset;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
+  .blog-search input:-webkit-autofill,
+  .blog-search input:-webkit-autofill:hover,
+  .blog-search input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--tw-text-opacity);
+    -webkit-box-shadow: 0 0 0px 1000px var(--tw-bg-opacity) inset;
     transition: background-color 5000s ease-in-out 0s;
   }
 </style>

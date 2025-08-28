@@ -37,8 +37,8 @@ import LiveIndicator from "./LiveIndicator.astro";
 
       <!-- Right cluster: search + auth (never shrinks on desktop) -->
       <div class="flex items-center gap-3">
-        <div class="w-[340px] hidden sm:block">
-          <Search />
+        <div class="w-[340px] hidden sm:block" id="header-search-container">
+          {!Astro.url.pathname.startsWith('/blog') && <Search variant="header" />}
         </div>
         <div class="auth-wrapper" onclick="event.stopPropagation();">
           <Auth />
