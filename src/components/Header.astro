@@ -1,5 +1,5 @@
 ---
-import Search from "./Search.astro";
+import Search from "./SearchBar.astro";
 import Auth from "./Auth.astro";
 import LiveIndicator from "./LiveIndicator.astro";
 ---
@@ -36,8 +36,8 @@ import LiveIndicator from "./LiveIndicator.astro";
       <div class="min-w-0"></div>
 
       <!-- Right cluster: search + auth (never shrinks on desktop) -->
-      <div class="flex items-center gap-3 shrink-0">
-        <div class="min-w-0">
+      <div class="flex items-center gap-3">
+        <div class="w-[340px] hidden sm:block">
           <Search />
         </div>
         <div class="auth-wrapper" onclick="event.stopPropagation();">

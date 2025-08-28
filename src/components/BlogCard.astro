@@ -1,25 +1,85 @@
 ---
-const { title, date, author, image, url } = Astro.props;
+interface Props {
+  post: {
+    data: {
+      title: string;
+      description: string;
+      date: string;
+      tags?: string[];
+      image?: string;
+      readingTime?: string;
+      author?: string;
+    };
+    slug: string;
+  };
+  index?: number;
+}
+
+const { post, index } = Astro.props;
+const {
+  title,
+  description,
+  date,
+  tags = [],
+  image,
+  readingTime = "5 min read",
+  author = "TakoVibe Team"
+} = post.data;
+
+const formattedDate = new Date(date);
 ---
 
-<article class="bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
-  {image && (
-    <img 
-      src={image} 
-      alt={title}
-      class="w-full h-48 object-cover"
-    />
-  )}
-  <div class="p-6">
-    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-      <a href={url} class="hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
-        {title}
-      </a>
-    </h2>
-    <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-      <span>{date}</span>
-      <span class="mx-2">•</span>
-      <span>{author}</span>
+<a href={`/blog/${post.slug}`} class="group block p-6 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors duration-200">
+  <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
+    <!-- Left side: Date and Index -->
+    <div class="flex items-center sm:flex-col sm:items-center gap-3 sm:gap-1">
+      <span class="text-2xl sm:text-lg font-light text-black/40 dark:text-white/40">
+        {String(index + 1).padStart(2, '0')}
+      </span>
+      <div class="flex flex-col items-center">
+        <span class="text-sm text-black/60 dark:text-white/60">
+          {formattedDate.toLocaleString('en-US', { month: 'short' })}
+        </span>
+        <span class="text-2xl font-semibold text-black/80 dark:text-white/80">
+          {formattedDate.getDate()}
+        </span>
+      </div>
     </div>
+
+    <!-- Middle: Content -->
+    <div class="flex-1 min-w-0">
+      <div class="flex gap-2 mb-3">
+        {tags.slice(0, 2).map(tag => (
+          <span class="px-2 py-1 bg-black/5 dark:bg-white/5 text-black/60 dark:text-white/60 rounded text-xs">
+            {tag}
+          </span>
+        ))}
+      </div>
+      
+      <h3 class="text-xl font-medium text-black dark:text-white mb-2 group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-colors">
+        {title}
+      </h3>
+      
+      <p class="text-black/60 dark:text-white/60 text-base line-clamp-2 mb-4">
+        {description}
+      </p>
+
+      <div class="flex items-center gap-3 text-sm text-black/40 dark:text-white/40">
+        <span>{readingTime}</span>
+        <span>•</span>
+        <span>by {author}</span>
+      </div>
+    </div>
+
+    <!-- Right side: Image -->
+    {image && (
+      <div class="sm:w-48 sm:h-32 rounded-lg overflow-hidden">
+        <img 
+          src={image} 
+          alt={title}
+          class="w-full h-full object-cover"
+        />
+      </div>
+    )}
   </div>
-</article>
+</a>

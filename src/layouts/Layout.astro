@@ -142,20 +142,14 @@ const structuredData = {
     {!no_header && <Header />}
     <ReadingProgress />
 
-    <!-- Floating Cherry Blossoms -->
-    <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-      <div class="sakura-petals"></div>
-    </div>
-
     <main
-      class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 pt-[104px] md:pt-[112px] relative z-10"
+      class="bg-white dark:bg-[#171923] text-black dark:text-white pt-[104px] md:pt-[112px] relative z-10"
     >
-      <AnimatedBackground />
-      <FloatingElements />
-      <CursorEffect />
-      <!-- <MusicPlayer /> -->
-      <!-- <EnhancedNotes /> -->
-      <!-- <PomodoroTimer /> -->
+      <!-- Gradient Overlay -->
+      <div class="fixed inset-0 pointer-events-none opacity-50 dark:opacity-30">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(159,122,234,0.15),transparent_50%)]"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_100%_100%,rgba(183,148,244,0.15),transparent_50%)]"></div>
+      </div>
       <div class="relative z-20 mx-auto">
         <ErrorBoundary>
           <slot />
@@ -189,23 +183,23 @@ const structuredData = {
 
 <style is:global>
   :root {
-    --cherry-light: #f8faff;
-    --cherry-medium: #e0f2fe; 
-    --cherry-accent: #3b82f6;
-    --cherry-dark: #1e40af;
-    --zen-text: #374151;
-    --zen-light: #f8fafc;
-    --zen-shadow: rgba(30, 64, 175, 0.1);
+    --cherry-light: #ffffff;
+    --cherry-medium: #f8fafc;
+    --cherry-accent: #9F7AEA;
+    --cherry-dark: #6B46C1;
+    --zen-text: #1a1a1a;
+    --zen-light: #ffffff;
+    --zen-shadow: rgba(111, 63, 231, 0.08);
   }
 
   :root.dark {
-    --cherry-light: #0f172a;
-    --cherry-medium: #1e293b;
-    --cherry-accent: #3b82f6;
-    --cherry-dark: #60a5fa;
-    --zen-text: #e5e7eb;
-    --zen-light: #0f172a;
-    --zen-shadow: rgba(59, 130, 246, 0.15);
+    --cherry-light: #171923;
+    --cherry-medium: #1A202C;
+    --cherry-accent: #9F7AEA;
+    --cherry-dark: #B794F4;
+    --zen-text: #f8fafc;
+    --zen-light: #171923;
+    --zen-shadow: rgba(159, 122, 234, 0.15);
   }
 
   html {
@@ -225,91 +219,59 @@ const structuredData = {
   .zen-body {
     background: linear-gradient(
       135deg,
-      rgba(248, 250, 255, 0.9) 0%,
-      rgba(224, 242, 254, 0.8) 25%,
-      rgba(240, 249, 255, 0.9) 50%,
-      rgba(186, 230, 253, 0.8) 75%,
-      rgba(224, 242, 254, 0.9) 100%
+      rgba(255, 255, 255, 1) 0%,
+      rgba(248, 250, 252, 0.95) 100%
     );
   }
 
   .dark .zen-body {
     background: linear-gradient(
       135deg,
-      rgba(15, 23, 42, 0.95) 0%,
-      rgba(30, 41, 59, 0.9) 25%,
-      rgba(51, 65, 85, 0.95) 50%,
-      rgba(30, 58, 138, 0.9) 75%,
-      rgba(30, 41, 59, 0.95) 100%
+      rgba(17, 17, 17, 1) 0%,
+      rgba(26, 26, 26, 0.98) 100%
     );
   }
 
-  /* Floating Cherry Blossoms Animation */
-  .sakura-petals::before,
-  .sakura-petals::after {
-    content: '💎';
-    position: absolute;
-    font-size: 14px;
-    color: rgba(59, 130, 246, 0.6);
-    animation: float 15s infinite linear;
-    pointer-events: none;
-  }
-
-  .sakura-petals::before {
-    left: 10%;
-    animation-delay: 0s;
-    animation-duration: 20s;
-  }
-
-  .sakura-petals::after {
-    left: 80%;
-    animation-delay: 7s;
-    animation-duration: 18s;
-  }
-
-  @keyframes float {
-    0% {
-      transform: translateY(-100vh) rotate(0deg);
-      opacity: 0;
-    }
-    10% {
-      opacity: 1;
-    }
-    90% {
-      opacity: 1;
-    }
-    100% {
-      transform: translateY(100vh) rotate(360deg);
-      opacity: 0;
-    }
-  }
-
-  /* Zen-inspired scrollbar */
+  /* Minimal scrollbar */
   ::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
   }
 
   ::-webkit-scrollbar-track {
-    background: var(--cherry-light);
+    background: transparent;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: linear-gradient(to bottom, var(--cherry-accent), var(--cherry-dark));
-    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--cherry-dark);
+    background: rgba(0, 0, 0, 0.3);
   }
 
-  /* Breathing effect for cards */
-  .zen-breathing {
-    animation: breathe 4s ease-in-out infinite;
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
   }
 
-  @keyframes breathe {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.02); }
+  /* Smooth transitions */
+  * {
+    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
+  }
+
+  /* Purple glow effect on hover */
+  .hover-glow:hover {
+    box-shadow: 0 0 20px rgba(159, 122, 234, 0.2);
+  }
+  
+  .dark .hover-glow:hover {
+    box-shadow: 0 0 20px rgba(183, 148, 244, 0.2);
   }
 
   /* Zen text selection */

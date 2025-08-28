@@ -33,86 +33,84 @@ const popularTags = allTags.slice(0, 8);
   author="TakoVibe Team"
   tags={["software engineering", "system design", "technology", "programming", "web development", "tech community"]}
 >
-  <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-blue-950 dark:to-indigo-950 sakura-petals">
+  <div class="min-h-screen bg-white dark:bg-[#171923]">
     
     <!-- Hero Section -->
-    <section class="py-16 sm:py-24 px-4 sm:px-6" id="about">
-      <div class="max-w-7xl mx-auto">
+    <section class="pt-32 pb-20 px-4 sm:px-6" id="about">
+      <div class="max-w-5xl mx-auto">
         <div class="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-          <!-- Main Content - Full width on mobile, left on desktop -->
-          <div class="lg:col-span-12 xl:col-span-7 order-1">
-            <div class="text-center lg:text-left">
-              <div class="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-100/80 to-indigo-100/80 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-700 dark:text-blue-300 rounded-full text-sm font-medium mb-8 sm:mb-10 zen-shadow zen-breathing">
-                <span class="text-xl">💎</span>
+          <!-- Main Content -->
+          <div class="lg:col-span-12 order-1">
+            <div class="text-center">
+              <div class="inline-flex items-center gap-2 px-4 py-2 bg-black/5 dark:bg-white/5 text-black/80 dark:text-white/80 rounded-full text-sm font-normal mb-8">
+                <span class="text-base">💎</span>
                 Modern Platform for Developers
               </div>
-              <h1 class="text-5xl sm:text-6xl lg:text-7xl font-light text-blue-900 dark:text-blue-100 mb-6 sm:mb-8 leading-tight zen-breathing">
+              <h1 class="text-4xl sm:text-5xl lg:text-6xl font-light text-black dark:text-white mb-6 sm:mb-8 leading-tight">
                 Welcome to
                 <br/>
-                <span class="bg-gradient-to-r from-blue-400 via-indigo-400 to-blue-500 bg-clip-text text-transparent font-medium">
+                <span class="bg-gradient-to-r from-purple-500 via-purple-400 to-purple-600 bg-clip-text text-transparent font-medium">
                   TakoVibe
                 </span>
               </h1>
-              <p class="text-xl sm:text-2xl text-blue-700 dark:text-blue-300 mb-8 sm:mb-10 leading-relaxed max-w-3xl mx-auto lg:mx-0 font-light">
-                A modern platform where developers and tech writers share insights on 
-                <span class="text-blue-600 dark:text-blue-400 font-normal">software engineering</span>, 
-                system design, and cutting-edge technologies. Join our community of innovative creators.
+              <p class="text-lg sm:text-xl text-black/70 dark:text-white/70 mb-10 leading-relaxed max-w-2xl mx-auto font-light">
+                A modern platform where developers share insights on 
+                <span class="text-blue-600 dark:text-blue-400 font-normal">software engineering</span> 
+                and cutting-edge technologies.
               </p>
-              <div class="flex flex-col sm:flex-row gap-5 justify-center lg:justify-start">
-                <a href="#articles" class="group inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-medium rounded-2xl transition-all duration-300 transform hover:scale-105 zen-shadow">
-                  <span>📚</span>
-                  <span class="ml-2">Explore Articles</span>
-                  <svg class="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="#articles" class="group inline-flex items-center justify-center px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-all duration-200">
+                  <span>Explore Articles</span>
+                  <svg class="ml-2 w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
                 </a>
-                <a href="/categories" class="group inline-flex items-center justify-center px-8 py-4 bg-white/80 dark:bg-blue-900/30 border-2 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/50 font-medium rounded-2xl transition-all duration-300 transform hover:scale-105 zen-shadow">
-                  <span>🔍</span>
-                  <span class="ml-2">Browse Topics</span>
+                <a href="/categories" class="group inline-flex items-center justify-center px-6 py-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-black dark:text-white font-medium rounded-lg transition-all duration-200">
+                  Browse Topics
                 </a>
               </div>
             </div>
           </div>
 
-          <!-- Stats Grid - Hidden on mobile, visible on xl screens -->
-          <div class="xl:col-span-5 order-2 hidden xl:block">
-            <div class="grid grid-cols-2 gap-6 stats-grid">
+          <!-- Stats Grid - Minimal Version -->
+          <div class="lg:col-span-12 order-2 mt-16">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-3xl mx-auto stats-grid">
               <!-- Articles Count -->
-              <div class="bg-white/90 dark:bg-blue-900/20 rounded-3xl p-6 border border-blue-200/50 dark:border-blue-700/30 zen-shadow zen-breathing backdrop-blur-sm">
-                <div class="text-3xl font-light text-blue-900 dark:text-blue-100 mb-3">
+              <div class="bg-black/5 dark:bg-white/5 rounded-lg p-4 text-center transition-colors duration-200 hover:bg-black/10 dark:hover:bg-white/10">
+                <div class="text-2xl font-light text-black dark:text-white mb-1">
                   {sortedPosts.length || 26}
                 </div>
-                <div class="text-blue-600 dark:text-blue-400 text-sm font-light">
+                <div class="text-black/60 dark:text-white/60 text-sm">
                   Articles
                 </div>
               </div>
 
               <!-- Categories -->
-              <div class="bg-white/90 dark:bg-blue-900/20 rounded-3xl p-6 border border-blue-200/50 dark:border-blue-700/30 zen-shadow zen-breathing backdrop-blur-sm">
-                <div class="text-3xl font-light text-blue-900 dark:text-blue-100 mb-3">
+              <div class="bg-black/5 dark:bg-white/5 rounded-lg p-4 text-center transition-colors duration-200 hover:bg-black/10 dark:hover:bg-white/10">
+                <div class="text-2xl font-light text-black dark:text-white mb-1">
                   6+
                 </div>
-                <div class="text-blue-600 dark:text-blue-400 text-sm font-light">
+                <div class="text-black/60 dark:text-white/60 text-sm">
                   Categories
                 </div>
               </div>
 
               <!-- Contributors -->
-              <div class="bg-white/90 dark:bg-blue-900/20 rounded-3xl p-6 border border-blue-200/50 dark:border-blue-700/30 text-center zen-shadow zen-breathing backdrop-blur-sm">
-                <div class="text-3xl font-light text-blue-900 dark:text-blue-100 mb-3">
+              <div class="bg-black/5 dark:bg-white/5 rounded-lg p-4 text-center transition-colors duration-200 hover:bg-black/10 dark:hover:bg-white/10">
+                <div class="text-2xl font-light text-black dark:text-white mb-1">
                   5+
                 </div>
-                <div class="text-blue-600 dark:text-blue-400 text-sm font-light">
+                <div class="text-black/60 dark:text-white/60 text-sm">
                   Contributors
                 </div>
               </div>
 
               <!-- Readers -->
-              <div class="bg-white/90 dark:bg-blue-900/20 rounded-3xl p-6 border border-blue-200/50 dark:border-blue-700/30 text-center zen-shadow zen-breathing backdrop-blur-sm">
-                <div class="text-3xl font-light text-blue-900 dark:text-blue-100 mb-3">
+              <div class="bg-black/5 dark:bg-white/5 rounded-lg p-4 text-center transition-colors duration-200 hover:bg-black/10 dark:hover:bg-white/10">
+                <div class="text-2xl font-light text-black dark:text-white mb-1">
                   1K+
                 </div>
-                <div class="text-blue-600 dark:text-blue-400 text-sm font-light">
+                <div class="text-black/60 dark:text-white/60 text-sm">
                   Readers
                 </div>
               </div>
@@ -120,125 +118,32 @@ const popularTags = allTags.slice(0, 8);
           </div>
         </div>
         
-        <!-- Mobile Stats Section - Visible only on mobile/tablet -->
-        <div class="xl:hidden mt-12 sm:mt-16">
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 stats-grid-mobile">
-            <!-- Articles Count -->
-            <div class="bg-white/90 dark:bg-blue-900/20 rounded-2xl p-4 sm:p-6 border border-blue-200/50 dark:border-blue-700/30 text-center zen-shadow backdrop-blur-sm">
-              <div class="text-xl sm:text-2xl font-light text-blue-900 dark:text-blue-100 mb-2">
-                {sortedPosts.length || 26}
-              </div>
-              <div class="text-blue-600 dark:text-blue-400 text-xs sm:text-sm font-light">
-                Articles
-              </div>
-            </div>
-
-            <!-- Categories Count -->
-            <div class="bg-white/90 dark:bg-blue-900/20 rounded-2xl p-4 sm:p-6 border border-blue-200/50 dark:border-blue-700/30 text-center zen-shadow backdrop-blur-sm">
-              <div class="text-xl sm:text-2xl font-light text-blue-900 dark:text-blue-100 mb-2">
-                6+
-              </div>
-              <div class="text-blue-600 dark:text-blue-400 text-xs sm:text-sm font-light">
-                Categories
-              </div>
-            </div>
-
-            <!-- Contributors -->
-            <div class="bg-white/90 dark:bg-blue-900/20 rounded-2xl p-4 sm:p-6 border border-blue-200/50 dark:border-blue-700/30 text-center zen-shadow backdrop-blur-sm">
-              <div class="text-xl sm:text-2xl font-light text-blue-900 dark:text-blue-100 mb-2">
-                5+
-              </div>
-              <div class="text-blue-600 dark:text-blue-400 text-xs sm:text-sm font-light">
-                Contributors
-              </div>
-            </div>
-
-            <!-- Readers -->
-            <div class="bg-white/90 dark:bg-blue-900/20 rounded-2xl p-4 sm:p-6 border border-blue-200/50 dark:border-blue-700/30 text-center zen-shadow backdrop-blur-sm">
-              <div class="text-xl sm:text-2xl font-light text-blue-900 dark:text-blue-100 mb-2">
-                1K+
-              </div>
-              <div class="text-blue-600 dark:text-blue-400 text-xs sm:text-sm font-light">
-                Readers
-              </div>
-            </div>
-          </div>
-        </div>
-              <div class="text-blue-600 dark:text-blue-400 text-xs sm:text-sm font-light">
-                Contributors
-              </div>
-            </div>
-
-            <!-- Community -->
-            <div class="bg-white/90 dark:bg-blue-900/20 rounded-2xl p-4 sm:p-6 border border-blue-200/50 dark:border-blue-700/30 text-center zen-shadow backdrop-blur-sm">
-              <div class="text-xl sm:text-2xl font-light text-blue-900 dark:text-blue-100 mb-2">
-                1K+
-              </div>
-              <div class="text-blue-600 dark:text-blue-400 text-xs sm:text-sm font-light">
-                Readers
-              </div>
-            </div>
-          </div>
-        </div>
+        <!-- No duplicate mobile section needed as we have responsive grid already -->
       </div>
     </section>
 
     <!-- Latest Articles Section -->
-    <section class="py-12 sm:py-20 px-4 sm:px-6 zen-gradient" id="articles">
-      <div class="max-w-7xl mx-auto">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 sm:mb-12">
-          <div class="mb-4 sm:mb-0">
-            <h2 class="text-2xl sm:text-3xl font-light text-blue-900 dark:text-blue-100 mb-2 sm:mb-4">Latest <span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent font-medium">Insights</span></h2>
-            <p class="text-blue-700 dark:text-blue-300 text-sm sm:text-base font-light">
-              Fresh perspectives and timeless wisdom from our mindful community of creators.
+    <section class="py-20 px-4 sm:px-6 border-t border-black/10 dark:border-white/10" id="articles">
+      <div class="max-w-5xl mx-auto">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-12">
+          <div class="mb-6 sm:mb-0">
+            <h2 class="text-2xl sm:text-3xl font-light text-black dark:text-white mb-2">Latest <span class="text-purple-500">Articles</span></h2>
+            <p class="text-black/60 dark:text-white/60 text-base">
+              Fresh perspectives from our developer community.
             </p>
           </div>
-          <a href="/blog" class="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium group text-sm sm:text-base">
-            All articles
-            <svg class="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <a href="/blog" class="inline-flex items-center text-purple-500 hover:text-purple-600 font-medium group text-base">
+            View all
+            <svg class="ml-1 w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
           </a>
         </div>
 
         <!-- Articles List -->
-        <div class="space-y-1 articles-list">
+        <div class="space-y-6 articles-list">
           {featuredPosts.slice(0, 5).map((post, index) => (
-            <a href={`/blog/${(post as any).slug}`} class="group block p-4 sm:p-6 rounded-xl hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-all duration-300 article-item zen-breathing">
-              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-center space-x-3 sm:space-x-4 mb-2">
-                    <span class="text-xs sm:text-sm text-blue-500 dark:text-blue-400 font-medium">
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
-                    <div class="flex gap-1 sm:gap-2">
-                      {((post.data as any).tags || []).slice(0, 2).map((tag: string) => (
-                        <span class="px-2 py-1 bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 rounded-full text-xs font-medium">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <h3 class="text-lg sm:text-xl font-light text-blue-900 dark:text-blue-100 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                    {(post.data as any).title}
-                  </h3>
-                  <p class="text-blue-700 dark:text-blue-300 text-sm sm:text-base line-clamp-2 font-light">
-                    {(post.data as any).description}
-                  </p>
-                </div>
-                <div class="flex items-center gap-4 mt-3 sm:mt-0 sm:ml-6">
-                  <span class="text-xs sm:text-sm text-blue-500 dark:text-blue-400 font-light">
-                    {new Date((post.data as any).date).toLocaleDateString('en-US', { 
-                      month: 'short', 
-                      day: 'numeric' 
-                    })}
-                  </span>
-                  <span class="text-xs sm:text-sm text-blue-500 dark:text-blue-400 font-light">
-                    {(post.data as any).readingTime || "5 min read"}
-                  </span>
-                </div>
-              </div>
-            </a>
+            <BlogCard post={post} index={index} />
           ))}
         </div>
       </div>
@@ -282,46 +187,32 @@ const popularTags = allTags.slice(0, 8);
             };
             
             return (
-              <div class="group bg-white/80 dark:bg-blue-900/20 rounded-2xl p-6 sm:p-8 border border-blue-200/50 dark:border-blue-700/30 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 hover-lift zen-shadow zen-breathing backdrop-blur-sm">
-                <div class="flex items-center justify-between mb-4 sm:mb-6">
-                  <div class={`w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r ${colors[index]} rounded-xl flex items-center justify-center text-white text-lg sm:text-xl zen-shadow`}>
+              <div class="group bg-black/5 dark:bg-white/5 rounded-lg p-6 transition-colors duration-200 hover:bg-black/10 dark:hover:bg-white/10">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="text-2xl">
                     {icons[tag.toLowerCase()] || '📝'}
                   </div>
-                  <button 
-                    class="category-modal-btn flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-800 hover:bg-blue-200 dark:hover:bg-blue-700 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 rounded-lg text-xs sm:text-sm transition-colors"
-                    data-category={tag}
-                    data-articles={JSON.stringify(tagPosts.map(post => ({
-                      title: (post.data as any).title,
-                      description: (post.data as any).description,
-                      date: (post.data as any).date,
-                      slug: (post as any).slug,
-                      tags: (post.data as any).tags || [],
-                      readingTime: (post.data as any).readingTime || "5 min read"
-                    })))}
-                  >
-                    <span>{tagPosts.length} articles</span>
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
+                  <span class="text-sm text-black/40 dark:text-white/40">
+                    {tagPosts.length} articles
+                  </span>
                 </div>
                 
-                <h3 class="text-lg sm:text-xl font-light text-blue-900 dark:text-blue-100 mb-3 capitalize group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                <h3 class="text-xl font-normal text-black dark:text-white mb-2 capitalize group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                   {tag}
                 </h3>
                 
-                <p class="text-blue-700 dark:text-blue-300 text-sm sm:text-base mb-4 line-clamp-2 font-light">
-                  {tag === 'python' && 'Learn Python programming from basics to advanced concepts, including frameworks and best practices.'}
-                  {tag === 'javascript' && 'Modern JavaScript development, ES6+ features, and popular frameworks like React and Node.js.'}
-                  {tag === 'django' && 'Django web framework tutorials, from basic concepts to advanced deployment strategies.'}
-                  {tag === 'programming' && 'General programming concepts, algorithms, and software engineering best practices.'}
-                  {tag === 'devops' && 'DevOps practices, containerization, CI/CD pipelines, and infrastructure automation.'}
-                  {tag === 'database' && 'Database design, optimization, and management for modern web applications.'}
-                  {!['python', 'javascript', 'django', 'programming', 'devops', 'database'].includes(tag) && `Comprehensive guides and tutorials about ${tag} development and best practices.`}
+                <p class="text-black/60 dark:text-white/60 text-base mb-4 line-clamp-2">
+                  {tag === 'python' && 'Python programming from basics to advanced, with practical examples and best practices.'}
+                  {tag === 'javascript' && 'Modern JavaScript, ES6+, and popular frameworks like React and Node.js.'}
+                  {tag === 'django' && 'Django web framework tutorials and deployment strategies.'}
+                  {tag === 'programming' && 'Programming concepts, algorithms, and software engineering.'}
+                  {tag === 'devops' && 'DevOps, containerization, CI/CD, and infrastructure automation.'}
+                  {tag === 'database' && 'Database design, optimization, and management for web apps.'}
+                  {!['python', 'javascript', 'django', 'programming', 'devops', 'database'].includes(tag) && `Guides and tutorials about ${tag}.`}
                 </p>
                 
                 <button 
-                  class="category-modal-btn inline-flex items-center text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium text-sm group-hover:underline"
+                  class="category-modal-btn inline-flex items-center text-purple-500 hover:text-purple-600 font-medium text-sm"
                   data-category={tag}
                   data-articles={JSON.stringify(tagPosts.map(post => ({
                     title: (post.data as any).title,
@@ -332,8 +223,8 @@ const popularTags = allTags.slice(0, 8);
                     readingTime: (post.data as any).readingTime || "5 min read"
                   })))}
                 >
-                  Explore {tag}
-                  <svg class="ml-1 w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  View articles
+                  <svg class="ml-1 w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
@@ -590,11 +481,11 @@ const popularTags = allTags.slice(0, 8);
 </script>
 
 <style>
-  /* Animations */
-  @keyframes fadeInUp {
+  /* Subtle fade-in animation */
+  @keyframes fadeIn {
     from {
       opacity: 0;
-      transform: translateY(30px);
+      transform: translateY(10px);
     }
     to {
       opacity: 1;
@@ -602,45 +493,27 @@ const popularTags = allTags.slice(0, 8);
     }
   }
 
-  .stats-grid > div,
-  .stats-grid-mobile > div {
-    animation: fadeInUp 0.6s ease-out forwards;
+  .stats-grid > div {
+    animation: fadeIn 0.4s ease-out forwards;
+    animation-delay: calc(var(--animation-order, 0) * 0.1s);
     opacity: 0;
   }
 
-  .stats-grid > div:nth-child(1),
-  .stats-grid-mobile > div:nth-child(1) { animation-delay: 0.1s; }
-  .stats-grid > div:nth-child(2),
-  .stats-grid-mobile > div:nth-child(2) { animation-delay: 0.2s; }
-  .stats-grid > div:nth-child(3),
-  .stats-grid-mobile > div:nth-child(3) { animation-delay: 0.3s; }
-  .stats-grid > div:nth-child(4),
-  .stats-grid-mobile > div:nth-child(4) { animation-delay: 0.4s; }
+  .stats-grid > div:nth-child(1) { --animation-order: 1; }
+  .stats-grid > div:nth-child(2) { --animation-order: 2; }
+  .stats-grid > div:nth-child(3) { --animation-order: 3; }
+  .stats-grid > div:nth-child(4) { --animation-order: 4; }
 
   .projects-grid > div {
-    animation: fadeInUp 0.6s ease-out forwards;
+    animation: fadeIn 0.4s ease-out forwards;
+    animation-delay: calc(var(--animation-order, 0) * 0.1s);
     opacity: 0;
   }
 
-  .projects-grid > div:nth-child(1) { animation-delay: 0.1s; }
-  .projects-grid > div:nth-child(2) { animation-delay: 0.2s; }
-  .projects-grid > div:nth-child(3) { animation-delay: 0.3s; }
-  .projects-grid > div:nth-child(4) { animation-delay: 0.4s; }
-  .projects-grid > div:nth-child(5) { animation-delay: 0.5s; }
-  .projects-grid > div:nth-child(6) { animation-delay: 0.6s; }
-
-  .article-item {
-    animation: fadeInUp 0.6s ease-out forwards;
-    opacity: 0;
-  }
-
-  .article-item:nth-child(1) { animation-delay: 0.1s; }
-  .article-item:nth-child(2) { animation-delay: 0.2s; }
-  .article-item:nth-child(3) { animation-delay: 0.3s; }
-  .article-item:nth-child(4) { animation-delay: 0.4s; }
-  .article-item:nth-child(5) { animation-delay: 0.5s; }
-
-  .hover-lift:hover {
-    transform: translateY(-4px);
-  }
+  .projects-grid > div:nth-child(1) { --animation-order: 1; }
+  .projects-grid > div:nth-child(2) { --animation-order: 2; }
+  .projects-grid > div:nth-child(3) { --animation-order: 3; }
+  .projects-grid > div:nth-child(4) { --animation-order: 4; }
+  .projects-grid > div:nth-child(5) { --animation-order: 5; }
+  .projects-grid > div:nth-child(6) { --animation-order: 6; }
 </style>
