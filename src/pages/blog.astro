@@ -12,15 +12,46 @@ const sortedPosts = publishedPosts.sort(
   (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime(),
 );
 
-// Extract all unique tags
-const allTags = Array.from(new Set(sortedPosts.flatMap(post => post.data.tags || [])));
+// Function to normalize tags
+function normalizeTag(tag: string) {
+  return tag.toLowerCase()
+    .replace(/['"]/g, '') // Remove quotes
+    .trim(); // Remove extra spaces
+}
 
-// Get popular tags (tags with most articles)
+// Function to find similar tags
+function findSimilarTags(tags: string[]) {
+  const similarTags = new Map<string, string[]>();
+  
+  tags.forEach(tag => {
+    const normalizedTag = normalizeTag(tag);
+    const existing = Array.from(similarTags.entries()).find(([key, group]) => 
+      group.some(t => normalizeTag(t) === normalizedTag)
+    );
+    
+    if (existing) {
+      existing[1].push(tag);
+    } else {
+      similarTags.set(tag, [tag]);
+    }
+  });
+  
+  return similarTags;
+}
+
+// Extract all tags and normalize them
+const rawTags = sortedPosts.flatMap(post => post.data.tags || []);
+const similarTagGroups = findSimilarTags(rawTags);
+
+// Count combined tags
 const tagCounts = new Map();
 sortedPosts.forEach(post => {
   if (post.data.tags) {
     post.data.tags.forEach(tag => {
-      tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+      const normalizedTag = normalizeTag(tag);
+      const mainTag = Array.from(similarTagGroups.entries())
+        .find(([, group]) => group.some(t => normalizeTag(t) === normalizedTag))?.[0] || tag;
+      tagCounts.set(mainTag, (tagCounts.get(mainTag) || 0) + 1);
     });
   }
 });
@@ -31,7 +62,7 @@ const popularTags = Array.from(tagCounts.entries())
   .map(([tag]) => tag);
 
 // Pagination
-const POSTS_PER_PAGE = 12;
+const POSTS_PER_PAGE = 9;
 const totalPages = Math.ceil(sortedPosts.length / POSTS_PER_PAGE);
 
 // Featured posts (latest 3)
@@ -46,38 +77,6 @@ const regularPosts = sortedPosts.slice(3);
   tags={["blog", "articles", "software engineering", "tutorials", "programming"]}
 >
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-    <!-- Header -->
-    <div class="border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm sticky top-0 z-50">
-      <div class="max-w-7xl mx-auto px-6 py-4">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center">
-              <span class="text-white font-bold text-sm">TB</span>
-            </div>
-            <div>
-              <h1 class="text-xl font-semibold text-gray-900 dark:text-white">All Articles</h1>
-              <p class="text-sm text-gray-500 dark:text-gray-400">{sortedPosts.length} articles published</p>
-            </div>
-          </div>
-          
-          <!-- View Toggle -->
-          <div class="hidden md:flex items-center space-x-4">
-            <div class="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
-              <button id="grid-view" class="view-toggle active px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                </svg>
-              </button>
-              <button id="list-view" class="view-toggle px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto px-6 py-8">
@@ -148,7 +147,7 @@ const regularPosts = sortedPosts.slice(3);
       </div>
 
       <!-- Featured Articles Section -->
-      <div class="mb-20">
+      <!-- <div class="mb-20">
         <div class="text-center mb-12">
           <h2 class="text-4xl font-bold text-gray-900 dark:text-white mb-4 flex items-center justify-center">
             <svg class="w-8 h-8 mr-3 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
@@ -223,7 +222,7 @@ const regularPosts = sortedPosts.slice(3);
             </article>
           ))}
         </div>
-      </div>
+      </div> -->
 
       <!-- All Articles -->
       <div class="mt-12">
@@ -306,7 +305,7 @@ const regularPosts = sortedPosts.slice(3);
       </div>
 
       <!-- Pagination -->
-      <div id="pagination" class="flex items-center justify-center space-x-2">
+      <div id="pagination" class="flex items-center justify-center space-x-2 mt-12">
         <!-- Pagination will be generated by JavaScript -->
       </div>
     </div>
@@ -442,7 +441,7 @@ const regularPosts = sortedPosts.slice(3);
   const featuredArticles = Array.from(document.querySelectorAll('.featured-card'));
   
   let currentPage = 1;
-  const ARTICLES_PER_PAGE = 12;
+  const ARTICLES_PER_PAGE = 9;
   let filteredArticles = [...articles];
   let currentSearchTerm = '';
   let currentTag = 'all';
@@ -486,6 +485,13 @@ const regularPosts = sortedPosts.slice(3);
   function performSearch() {
     currentSearchTerm = searchInput?.value.toLowerCase() || '';
     filterAndDisplayArticles();
+  }
+
+  // Function to normalize tags (same as server-side)
+  function normalizeTag(tag: string) {
+    return tag.toLowerCase()
+      .replace(/['"]/g, '')
+      .trim();
   }
 
   // Tag filtering
@@ -539,7 +545,8 @@ const regularPosts = sortedPosts.slice(3);
         article.tags.some(tag => tag.toLowerCase().includes(currentSearchTerm));
       
       // Tag filter
-      const matchesTag = currentTag === 'all' || article.tags.includes(currentTag);
+      const matchesTag = currentTag === 'all' || 
+        article.tags.some(t => normalizeTag(t) === normalizeTag(currentTag));
       
       return matchesSearch && matchesTag;
     });
