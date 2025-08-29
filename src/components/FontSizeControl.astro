@@ -2,7 +2,10 @@
 // Font Size Control Component - Redesigned & Fixed
 ---
 
-<div id="fontSizeController" class="font-size-control fixed right-4 top-20 z-40" role="toolbar" aria-label="Font size control">
+<div id="fontSizeController" class="font-size-control fixed right-4 top-32 z-40" role="toolbar" aria-label="Font size control">
+  <!-- Mobile Backdrop (only visible when panel is expanded) -->
+  <div id="mobileBackdrop" class="mobile-backdrop fixed inset-0 bg-black/20 backdrop-blur-sm z-50 hidden" aria-hidden="true"></div>
+  
   <!-- Mobile Collapsed Button -->
   <button 
     id="mobileToggleBtn" 
@@ -10,11 +13,11 @@
     aria-label="Open font size controls"
     aria-expanded="false"
   >
-    <div class="flex flex-col items-center justify-center">
-      <div class="font-bold text-lg text-gray-700 dark:text-gray-300" style="font-family: serif;" aria-hidden="true">
+    <div class="flex flex-col items-center justify-center min-h-[20px]">
+      <div class="font-bold text-current leading-none" style="font-family: serif; font-size: inherit;" aria-hidden="true">
         Aa
       </div>
-      <div id="mobileSizeDisplay" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+      <div id="mobileSizeDisplay" class="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-none">
         18px
       </div>
     </div>
@@ -206,35 +209,58 @@
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   }
   
-  /* Clean responsive design - Collapse for screens <= 1024px */
+  /* Backdrop for mobile */
+  .mobile-backdrop {
+    transition: opacity 0.3s ease;
+  }
+  
+  .mobile-backdrop.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  
+  /* Clean responsive design - Tablet and mobile (1024px and below) */
   @media (max-width: 1024px) {
     .font-size-control {
       right: 1rem;
-      top: 4rem;
+      top: 8rem; /* Increased spacing from header and other elements */
       width: auto;
+      z-index: 45; /* Higher z-index for mobile */
     }
     
     /* Show mobile toggle button, hide full panel by default */
     .mobile-toggle-btn {
       display: flex !important;
-      width: 60px;
-      height: 70px;
-      margin: 0 auto; /* Center the button */
+      width: 48px;
+      height: 48px;
+      margin: 0;
+      padding: 0.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .mobile-toggle-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
     }
     
     .control-panel {
       display: none;
-      position: absolute;
-      right: 0;
-      top: 0;
+      position: fixed; /* Fixed positioning for better mobile experience */
+      right: 1rem;
+      top: 2rem; /* More space from top */
       width: 280px;
+      max-width: calc(100vw - 2rem); /* Prevent overflow */
       padding: 1.25rem;
-      z-index: 50;
+      z-index: 60;
       transform-origin: top right;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      border-radius: 16px;
     }
     
     .control-panel.expanded {
       display: flex !important;
+      animation: mobileSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     
     /* Hide keyboard shortcuts on smaller screens */
@@ -247,45 +273,166 @@
       display: flex !important;
       align-items: center;
       justify-content: center;
+      width: 28px;
+      height: 28px;
     }
     
-    /* Adjust slider for mobile - ensure centering */
+    /* Adjust slider for mobile */
     .font-size-control .h-20 {
       height: 4rem;
-      padding: 0 8px;
+      padding: 0 12px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
+    
+    /* Bigger touch targets for mobile */
+    #decreaseBtn, #increaseBtn, #resetBtn {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+    }
+    
+    /* Better slider handle for mobile */
+    #sliderHandle {
+      width: 24px;
+      height: 24px;
+      border-width: 3px;
+    }
   }
   
-  /* More compact for small screens */
+  /* Mobile phones (640px and below) */
   @media (max-width: 640px) {
     .font-size-control {
-      right: 0.5rem;
-      top: 3rem;
+      right: 1rem; /* Keep some distance from edge */
+      top: 7rem; /* More spacing from header */
     }
     
     .mobile-toggle-btn {
-      width: 55px;
-      height: 65px;
-      padding: 0.5rem;
-      margin: 0 auto; /* Center the button */
+      width: 44px;
+      height: 44px;
+      padding: 0.375rem;
+      border-radius: 10px;
     }
     
     .control-panel {
       width: 260px;
+      max-width: calc(100vw - 2rem); /* Keep margin from edges */
       padding: 1rem;
-      right: -200px; /* Offset to prevent going off-screen */
-      left: auto;
-      transform-origin: top right;
+      right: 1rem; /* Keep distance from edge */
+      top: 2rem;
+      border-radius: 14px;
     }
     
     .font-size-control .h-20 {
       height: 3.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    }
+    
+    /* Slightly smaller buttons for small screens */
+    #decreaseBtn, #increaseBtn, #resetBtn {
+      width: 32px;
+      height: 32px;
+    }
+    
+    /* Adjust slider handle */
+    #sliderHandle {
+      width: 20px;
+      height: 20px;
+      border-width: 2px;
+    }
+  }
+  
+  /* Very small screens (480px and below) */
+  @media (max-width: 480px) {
+    .font-size-control {
+      right: 1rem; /* Keep consistent distance */
+      top: 6.5rem; /* Balanced spacing */
+    }
+    
+    .mobile-toggle-btn {
+      width: 40px;
+      height: 40px;
+      padding: 0.25rem;
+      border-radius: 8px;
+    }
+    
+    .mobile-toggle-btn .text-lg {
+      font-size: 0.875rem;
+    }
+    
+    .mobile-toggle-btn .text-xs {
+      font-size: 0.625rem;
+    }
+    
+    .control-panel {
+      width: 240px;
+      max-width: calc(100vw - 2rem); /* Maintain margin */
+      padding: 0.875rem;
+      right: 1rem; /* Consistent positioning */
+      top: 2rem;
+      border-radius: 12px;
+    }
+    
+    .font-size-control .h-20 {
+      height: 3rem;
+    }
+    
+    /* Compact buttons for very small screens */
+    #decreaseBtn, #increaseBtn, #resetBtn {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+    }
+    
+    /* Smaller slider handle */
+    #sliderHandle {
+      width: 18px;
+      height: 18px;
+      border-width: 2px;
+    }
+    
+    /* Smaller spacing */
+    .control-panel .space-y-4 > * + * {
+      margin-top: 0.75rem;
+    }
+    
+    .control-panel .space-y-1 > * + * {
+      margin-top: 0.5rem;
+    }
+  }
+  
+  /* Ultra small screens (360px and below) - minimal design */
+  @media (max-width: 360px) {
+    .font-size-control {
+      right: 0.75rem; /* Slight adjustment for very small screens */
+      top: 6rem;
+    }
+    
+    .mobile-toggle-btn {
+      width: 36px;
+      height: 36px;
+      padding: 0.125rem;
+    }
+    
+    .control-panel {
+      width: 220px;
+      padding: 0.75rem;
+      right: 0.75rem;
+      top: 1.5rem; /* Adjust for very small screens */
+    }
+    
+    #decreaseBtn, #increaseBtn, #resetBtn {
+      width: 24px;
+      height: 24px;
+    }
+    
+    #sliderHandle {
+      width: 16px;
+      height: 16px;
+    }
+    
+    .font-size-control .h-20 {
+      height: 2.5rem;
     }
   }
   
@@ -368,6 +515,17 @@
       transform: translateX(0);
     }
   }
+  
+  @keyframes mobileSlideIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9) translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
 </style>
 
 <script is:inline>
@@ -383,6 +541,7 @@
     const mobileToggleBtn = document.getElementById('mobileToggleBtn');
     const fullControlPanel = document.getElementById('fullControlPanel');
     const mobileCloseBtn = document.getElementById('mobileCloseBtn');
+    const mobileBackdrop = document.getElementById('mobileBackdrop');
     const decreaseBtn = document.getElementById('decreaseBtn');
     const increaseBtn = document.getElementById('increaseBtn');
     const resetBtn = document.getElementById('resetBtn');
@@ -396,26 +555,45 @@
     
     // Mobile toggle functionality
     if (mobileToggleBtn && fullControlPanel && mobileCloseBtn) {
-      mobileToggleBtn.addEventListener('click', () => {
+      const showPanel = () => {
         fullControlPanel.classList.add('expanded');
         mobileToggleBtn.style.display = 'none';
         mobileToggleBtn.setAttribute('aria-expanded', 'true');
-      });
+        if (mobileBackdrop && window.innerWidth <= 1024) {
+          mobileBackdrop.classList.remove('hidden');
+        }
+      };
       
-      mobileCloseBtn.addEventListener('click', () => {
+      const hidePanel = () => {
         fullControlPanel.classList.remove('expanded');
         mobileToggleBtn.style.display = 'flex';
         mobileToggleBtn.setAttribute('aria-expanded', 'false');
-      });
+        if (mobileBackdrop) {
+          mobileBackdrop.classList.add('hidden');
+        }
+      };
       
-      // Close when clicking outside on smaller screens
+      mobileToggleBtn.addEventListener('click', showPanel);
+      mobileCloseBtn.addEventListener('click', hidePanel);
+      
+      // Close when clicking backdrop
+      if (mobileBackdrop) {
+        mobileBackdrop.addEventListener('click', hidePanel);
+      }
+      
+      // Close when clicking outside on smaller screens (fallback)
       document.addEventListener('click', (e) => {
         if (window.innerWidth <= 1024 && 
             !controller.contains(e.target) && 
             fullControlPanel.classList.contains('expanded')) {
-          fullControlPanel.classList.remove('expanded');
-          mobileToggleBtn.style.display = 'flex';
-          mobileToggleBtn.setAttribute('aria-expanded', 'false');
+          hidePanel();
+        }
+      });
+      
+      // Close on escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && fullControlPanel.classList.contains('expanded')) {
+          hidePanel();
         }
       });
     }

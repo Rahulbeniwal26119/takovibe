@@ -37,9 +37,21 @@ import LiveIndicator from "./LiveIndicator.astro";
 
       <!-- Right cluster: search + auth (never shrinks on desktop) -->
       <div class="flex items-center gap-3">
-        <div class="w-[340px] hidden sm:block" id="header-search-container">
-          {!Astro.url.pathname.startsWith('/blog') && <Search variant="header" />}
+        <!-- Desktop search bar -->
+        <div class="w-[340px] hidden lg:block" id="header-search-container">
+          {Astro.url.pathname !== '/blog' && <Search variant="header" />}
         </div>
+        
+        <!-- Mobile search icon -->
+        <button id="mobileSearchBtn" 
+                class="lg:hidden w-10 h-10 grid place-items-center rounded-xl border border-black/10 dark:border-white/10 text-gray-800 dark:text-gray-200 hover:bg-black/[.04] dark:hover:bg-white/5 transition"
+                aria-label="Open search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="21 21l-4.35-4.35"/>
+          </svg>
+        </button>
+        
         <div class="auth-wrapper" onclick="event.stopPropagation();">
           <Auth />
         </div>
@@ -106,75 +118,142 @@ import LiveIndicator from "./LiveIndicator.astro";
       <strong class="ml-2">Menu</strong>
     </div>
 
+    <!-- Mobile Search Section -->
+    <div class="mt-4 mb-4" id="mobile-search-section">
+      {Astro.url.pathname !== '/blog' && (
+        <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
+          <Search variant="mobile" />
+        </div>
+      )}
+    </div>
+
     <nav class="mt-2 space-y-1 text-gray-800 dark:text-gray-200">
       <a href="/" class="block px-3 py-2 rounded-xl hover:bg-black/[.04] dark:hover:bg-white/5">Home</a>
       <a href="/blog" class="block px-3 py-2 rounded-xl hover:bg-black/[.04] dark:hover:bg-white/5">Blog</a>
       <a href="/about" class="block px-3 py-2 rounded-xl hover:bg-black/[.04] dark:hover:bg-white/5">About</a>
       <a href="/categories" class="block px-3 py-2 rounded-xl hover:bg-black/[.04] dark:hover:bg-white/5">Categories</a>
-
-      <!-- <details class="group">
-        <summary class="cursor-pointer px-3 py-2 rounded-xl hover:bg-black/[.04] dark:hover:bg-white/5">Library</summary>
-        <div class="pl-4 mt-1 space-y-1">
-          <a href="/me/recent" class="block px-3 py-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-inherit hover:bg-black/[.04] dark:hover:bg-white/5">Recently read</a>
-          <a href="/me/likes" class="block px-3 py-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-inherit hover:bg-black/[.04] dark:hover:bg-white/5">Liked</a>
-          <a href="/me/comments" class="block px-3 py-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-inherit hover:bg-black/[.04] dark:hover:bg-white/5">Commented</a>
-          <a href="/bookmarks" class="block px-3 py-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-inherit hover:bg-black/[.04] dark:hover:bg-white/5">Bookmarks</a>
-        </div>
-      </details> -->
     </nav>
   </aside>
+
+  <!-- MOBILE SEARCH OVERLAY -->
+  <div id="mobileSearchOverlay"
+       class="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300 lg:hidden">
+    <div class="flex items-start justify-center pt-20 px-4">
+      <div id="mobileSearchModal" 
+           class="w-full max-w-lg bg-white dark:bg-gray-900 rounded-2xl shadow-2xl transform scale-95 transition-transform duration-300">
+        <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Search</h3>
+            <button id="closeMobileSearchBtn" 
+                    class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                    aria-label="Close search">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6L6 18M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="p-4">
+          {Astro.url.pathname !== '/blog' && <Search variant="modal" />}
+        </div>
+      </div>
+    </div>
+  </div>
 </header>
 
-<!-- Drawer toggling -->
+<!-- Drawer toggling and mobile search -->
 <script is:inline>
   document.addEventListener('DOMContentLoaded', () => {
     const drawer = document.querySelector('#drawer');
     const backdrop = document.querySelector('#drawerBackdrop');
     const openBtn = document.querySelector('#openDrawerBtn');
     const closeBtn = document.querySelector('#closeDrawerBtn');
+    
+    // Mobile search elements
+    const mobileSearchBtn = document.querySelector('#mobileSearchBtn');
+    const mobileSearchOverlay = document.querySelector('#mobileSearchOverlay');
+    const mobileSearchModal = document.querySelector('#mobileSearchModal');
+    const closeMobileSearchBtn = document.querySelector('#closeMobileSearchBtn');
 
-    function open() {
+    function openDrawer() {
       drawer?.classList.remove('-translate-x-full');
       backdrop?.classList.remove('pointer-events-none','opacity-0');
     }
     
-    function close() {
+    function closeDrawer() {
       drawer?.classList.add('-translate-x-full');
       backdrop?.classList.add('pointer-events-none','opacity-0');
     }
 
-    // Only listen for clicks on the specific drawer buttons
+    function openMobileSearch() {
+      mobileSearchOverlay?.classList.remove('pointer-events-none', 'opacity-0');
+      mobileSearchModal?.classList.remove('scale-95');
+      mobileSearchModal?.classList.add('scale-100');
+      
+      // Focus the search input after animation
+      setTimeout(() => {
+        const searchInput = document.querySelector('#modal-search-input');
+        if (searchInput) {
+          searchInput.focus();
+        }
+      }, 300);
+    }
+
+    function closeMobileSearch() {
+      mobileSearchOverlay?.classList.add('pointer-events-none', 'opacity-0');
+      mobileSearchModal?.classList.remove('scale-100');
+      mobileSearchModal?.classList.add('scale-95');
+    }
+
+    // Drawer functionality
     openBtn?.addEventListener('click', (e) => {
-      console.log('Drawer open button clicked');
       e.preventDefault();
       e.stopPropagation();
-      open();
+      openDrawer();
     });
     
     closeBtn?.addEventListener('click', (e) => {
-      console.log('Drawer close button clicked');
       e.preventDefault();
       e.stopPropagation();
-      close();
+      closeDrawer();
     });
     
-    // Close drawer when clicking backdrop
     backdrop?.addEventListener('click', (e) => {
       if (e.target === backdrop) {
-        console.log('Backdrop clicked');
-        close();
+        closeDrawer();
+      }
+    });
+
+    // Mobile search functionality
+    mobileSearchBtn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openMobileSearch();
+    });
+
+    closeMobileSearchBtn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeMobileSearch();
+    });
+
+    mobileSearchOverlay?.addEventListener('click', (e) => {
+      if (e.target === mobileSearchOverlay) {
+        closeMobileSearch();
       }
     });
     
-    // Close drawer on Escape key
+    // Close on Escape key
     window.addEventListener('keydown', (e) => { 
-      if (e.key === 'Escape') close(); 
+      if (e.key === 'Escape') {
+        closeDrawer();
+        closeMobileSearch();
+      }
     });
 
     // Prevent header clicks from opening drawer
     const header = document.querySelector('#site-header');
     header?.addEventListener('click', (e) => {
-      // Only allow drawer opening from the specific button
       if (!e.target?.closest('#openDrawerBtn')) {
         e.stopPropagation();
       }

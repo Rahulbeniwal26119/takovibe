@@ -1,16 +1,73 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import type { APIResponse } from '../types/api';
+import type { BlogPost, TagCount } from '../types/blog';
 import { getCollection } from "astro:content";
 
-// Get all blog posts
-const allPosts = await getCollection("blog");
+const searchEndpoint = 'https://backend.takovibe.com/api/blogs/blogs/';
+const tagsEndpoint = 'https://backend.takovibe.com/api/blogs/tags/';
 
-// Filter out unpublished posts and sort by date
-const currentDate = new Date();
-const publishedPosts = allPosts.filter(post => new Date(post.data.date) <= currentDate);
-const sortedPosts = publishedPosts.sort(
-  (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime(),
-);
+interface TagData {
+  tag: string;
+  count: number;
+}
+
+let posts: BlogPost[] = [];
+let totalCount = 0;
+let popularTags: TagData[] = [];
+
+// Fetch blog posts
+try {
+  const response = await fetch(`${searchEndpoint}?paginate=1&page_size=9`);
+  if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+  
+  const data = await response.json() as APIResponse<BlogPost>;
+  posts = data.results || [];
+  totalCount = data.count || 0;
+} catch (err) {
+  posts = null;
+  console.error('Failed to fetch posts:', err);
+}
+
+// Fetch popular tags
+try {
+  const tagsResponse = await fetch(tagsEndpoint);
+  if (tagsResponse.ok) {
+    const tagsData = await tagsResponse.json() as { data: Record<string, number> };
+    if (tagsData.data) {
+      popularTags = Object.entries(tagsData.data)
+        .map(([tag, count]) => ({ tag, count: Number(count) }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 15);
+    }
+  }
+} catch (err) {
+  console.error('Failed to fetch tags:', err);
+}
+
+if (posts === null) {
+  console.error('Failed to fetch from API, falling back to local content:', error);
+  // Fallback to local content
+  const allPosts = await getCollection("blog");
+  totalCount = allPosts.length;
+
+  // Filter out unpublished posts and sort by date
+  const currentDate = new Date();
+  const publishedPosts = allPosts.filter(post => new Date(post.data.date) <= currentDate);
+  posts = publishedPosts.map(post => ({
+    title: post.data.title,
+    description: post.data.description,
+    uri: `/blog/${post.slug}`,
+    slug: post.slug,
+    tags: post.data.tags,
+    image_url: post.data.image,
+    created_at: post.data.date,
+    author: {
+      name: "Rahul Beniwal",
+      username: "rahulbeniwal26119"
+    }
+  }));
+}
 
 // Function to normalize tags
 function normalizeTag(tag: string) {
@@ -39,35 +96,11 @@ function findSimilarTags(tags: string[]) {
   return similarTags;
 }
 
-// Extract all tags and normalize them
-const rawTags = sortedPosts.flatMap(post => post.data.tags || []);
-const similarTagGroups = findSimilarTags(rawTags);
-
-// Count combined tags
-const tagCounts = new Map();
-sortedPosts.forEach(post => {
-  if (post.data.tags) {
-    post.data.tags.forEach(tag => {
-      const normalizedTag = normalizeTag(tag);
-      const mainTag = Array.from(similarTagGroups.entries())
-        .find(([, group]) => group.some(t => normalizeTag(t) === normalizedTag))?.[0] || tag;
-      tagCounts.set(mainTag, (tagCounts.get(mainTag) || 0) + 1);
-    });
-  }
-});
-
-const popularTags = Array.from(tagCounts.entries())
-  .sort(([,a], [,b]) => b - a)
-  .slice(0, 10)
-  .map(([tag]) => tag);
-
 // Pagination
 const POSTS_PER_PAGE = 9;
-const totalPages = Math.ceil(sortedPosts.length / POSTS_PER_PAGE);
+const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
 
-// Featured posts (latest 3)
-const featuredPosts = sortedPosts.slice(0, 3);
-const regularPosts = sortedPosts.slice(3);
+const regularPosts = posts;
 ---
 
 <Layout
@@ -99,7 +132,7 @@ const regularPosts = sortedPosts.slice(3);
           </div>
 
           <!-- Sort Dropdown -->
-          <div class="relative">
+          <!-- <div class="relative">
             <select id="sort-select" class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors appearance-none cursor-pointer text-gray-900 dark:text-white">
               <option value="date-desc">Latest First</option>
               <option value="date-asc">Oldest First</option>
@@ -110,12 +143,12 @@ const regularPosts = sortedPosts.slice(3);
             <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
-          </div>
+          </div> -->
 
           <!-- Results Info -->
           <div class="flex items-center justify-between lg:justify-end">
             <span id="results-count" class="text-sm text-gray-600 dark:text-gray-400">
-              Showing {sortedPosts.length} articles
+              Loading articles...
             </span>
           </div>
         </div>
@@ -131,17 +164,15 @@ const regularPosts = sortedPosts.slice(3);
           <div class="flex flex-wrap gap-2">
             <button class="tag-filter active" data-tag="all">
               All Articles
-              <span class="tag-count">{sortedPosts.length}</span>
+              <span class="tag-count">{totalCount}</span>
             </button>
-            {popularTags.map((tag) => {
-              const count = tagCounts.get(tag);
-              return (
+            {popularTags.map(({ tag, count }) => (
                 <button class="tag-filter" data-tag={tag}>
                   {tag}
                   <span class="tag-count">{count}</span>
                 </button>
-              );
-            })}
+            ))
+            }
           </div>
         </div>
       </div>
@@ -228,68 +259,8 @@ const regularPosts = sortedPosts.slice(3);
       <div class="mt-12">
         <!-- Articles Grid/List -->
         <div id="articles-container" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {regularPosts.map((post) => (
-            <article class="article-card group" data-title={post.data.title.toLowerCase()} data-tags={JSON.stringify(post.data.tags || [])} data-date={post.data.date}>
-              <a href={`/blog/${post.slug}`} class="block">
-                <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 border border-gray-100 dark:border-gray-700 hover:border-purple-200 dark:hover:border-purple-700 transform hover:-translate-y-2 text-gray-900 dark:text-white">
-                  {post.data.image ? (
-                    <div class="aspect-video overflow-hidden">
-                      <img 
-                        src={post.data.image} 
-                        alt={post.data.title}
-                        class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        loading="lazy"
-                      />
-                    </div>
-                  ) : (
-                    <div class="aspect-video bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 relative overflow-hidden">
-                      <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent"></div>
-                      <div class="absolute inset-0 flex items-center justify-center p-6">
-                        <div class="text-center text-white">
-                          <h3 class="text-lg font-bold mb-3 line-clamp-2">{post.data.title}</h3>
-                          <div class="flex flex-wrap gap-2 justify-center">
-                            {post.data.tags?.slice(0, 2).map((tag) => (
-                              <span class="px-2 py-1 bg-white/25 backdrop-blur-md text-white text-xs font-medium rounded-full border border-white/20">
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  <div class="p-6">
-                    <div class="flex flex-wrap gap-2 mb-4">
-                      {post.data.tags?.slice(0, 3).map((tag) => (
-                        <span class="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-xs font-medium hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors line-clamp-2 leading-tight">
-                      {post.data.title}
-                    </h3>
-                    <p class="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">
-                      {post.data.description}
-                    </p>
-                    <div class="flex items-center justify-between">
-                      <div class="flex items-center text-xs text-gray-500 dark:text-gray-400">
-                        <span>{new Date(post.data.date).toLocaleDateString('en-US', { 
-                          month: 'short', 
-                          day: 'numeric' 
-                        })}</span>
-                        <span class="mx-2">•</span>
-                        <span>{(post.data as any).readingTime || '5 min read'}</span>
-                      </div>
-                      <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </a>
-            </article>
-          ))}
+          <!-- Articles will be loaded dynamically via JavaScript -->
+        </div>
         </div>
 
         <!-- No Results -->
@@ -305,7 +276,7 @@ const regularPosts = sortedPosts.slice(3);
       </div>
 
       <!-- Pagination -->
-      <div id="pagination" class="flex items-center justify-center space-x-2 mt-12">
+      <div id="pagination" class="flex items-center justify-center space-x-2 mt-20 mb-16">
         <!-- Pagination will be generated by JavaScript -->
       </div>
     </div>
@@ -427,25 +398,16 @@ const regularPosts = sortedPosts.slice(3);
 </style>
 
 <script>
-  // Get all articles data for filtering
-  const articles = Array.from(document.querySelectorAll('.article-card')).map(card => {
-    const htmlCard = card as HTMLElement;
-    return {
-      element: card,
-      title: htmlCard.dataset.title || '',
-      tags: JSON.parse(htmlCard.dataset.tags || '[]'),
-      date: new Date(htmlCard.dataset.date || ''),
-    };
-  });
-
-  const featuredArticles = Array.from(document.querySelectorAll('.featured-card'));
+  // API endpoints
+  const API_BASE = 'https://backend.takovibe.com/api/blogs/blogs/';
   
   let currentPage = 1;
   const ARTICLES_PER_PAGE = 9;
-  let filteredArticles = [...articles];
   let currentSearchTerm = '';
   let currentTag = 'all';
   let currentSort = 'date-desc';
+  let totalCount = 0;
+  let allArticles = [];
 
   // DOM elements
   const searchInput = document.getElementById('search-input') as HTMLInputElement;
@@ -455,161 +417,201 @@ const regularPosts = sortedPosts.slice(3);
   const noResults = document.getElementById('no-results');
   const pagination = document.getElementById('pagination');
   const clearFilters = document.getElementById('clear-filters');
-  const gridViewBtn = document.getElementById('grid-view');
-  const listViewBtn = document.getElementById('list-view');
 
-  // View mode management
-  let currentView = 'grid';
-
-  function toggleView(view: string) {
-    currentView = view;
-    
-    if (view === 'list') {
-      articlesContainer?.classList.add('list-view');
-      articlesContainer?.classList.remove('grid', 'md:grid-cols-2', 'lg:grid-cols-3');
-      listViewBtn?.classList.add('active');
-      gridViewBtn?.classList.remove('active');
-    } else {
-      articlesContainer?.classList.remove('list-view');
-      articlesContainer?.classList.add('grid', 'md:grid-cols-2', 'lg:grid-cols-3');
-      gridViewBtn?.classList.add('active');
-      listViewBtn?.classList.remove('active');
-    }
-  }
-
-  // Event listeners for view toggle
-  gridViewBtn?.addEventListener('click', () => toggleView('grid'));
-  listViewBtn?.addEventListener('click', () => toggleView('list'));
-
-  // Search functionality
-  function performSearch(e: Event) {
-    const searchTerm = (e.target as HTMLInputElement)?.value.toLowerCase() || '';
-    filterArticles(searchTerm, currentTag);
-  }
-
-  // Function to normalize tags (same as server-side)
-  function normalizeTag(tag: string) {
-    return tag.toLowerCase()
-      .replace(/['"]/g, '')
-      .trim();
-  }
-
-  // Tag filtering
-  function filterByTag(tag: string) {
-    // Update active tag button
-    document.querySelectorAll('.tag-filter').forEach(btn => {
-      btn.classList.remove('active');
-    });
-    document.querySelector(`[data-tag="${tag}"]`)?.classList.add('active');
-    
-    // Show/hide clear filters button
-    const searchTerm = searchInput?.value.toLowerCase() || '';
-    if (tag !== 'all' || searchTerm) {
-      clearFilters?.classList.remove('hidden');
-    } else {
-      clearFilters?.classList.add('hidden');
-    }
-    
-    filterArticles(searchTerm, tag);
-  }
-
-  // Sort functionality
-  function sortArticles(articles: typeof filteredArticles) {
-    return articles.sort((a, b) => {
-      switch (currentSort) {
-        case 'date-desc':
-          return b.date.getTime() - a.date.getTime();
-        case 'date-asc':
-          return a.date.getTime() - b.date.getTime();
-        case 'title-asc':
-          return a.title.localeCompare(b.title);
-        case 'title-desc':
-          return b.title.localeCompare(a.title);
-        case 'popular':
-          // Could be based on views, likes, etc. For now, use date
-          return b.date.getTime() - a.date.getTime();
-        default:
-          return 0;
+  // Fetch articles from backend with current filters
+  async function fetchAndDisplayArticles() {
+    try {
+      // Show loading state
+      if (articlesContainer) {
+        articlesContainer.innerHTML = '<div class="col-span-full flex justify-center items-center py-12"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>';
       }
-    });
-  }
-
-  // Filter articles based on search term and tag
-  function filterArticles(searchTerm: string, tag: string) {
-    // Reset current page when filters change
-    currentPage = 1;
-    currentTag = tag;
-    currentSearchTerm = searchTerm;
-
-    // Filter articles
-    filteredArticles = articles.filter(article => {
-      // Search filter
-      const matchesSearch = !searchTerm || 
-        article.title.includes(searchTerm) ||
-        article.tags.some(t => t.toLowerCase().includes(searchTerm));
       
-      // Tag filter
-      const matchesTag = tag === 'all' || 
-        article.tags.some(t => normalizeTag(t) === normalizeTag(tag));
+      // Build API URL with current filters
+      const params = new URLSearchParams({
+        paginate: '1',
+        page_size: ARTICLES_PER_PAGE.toString(),
+        page: currentPage.toString()
+      });
       
-      return matchesSearch && matchesTag;
-    });
-
-    displayFilteredArticles();
-  }
-
-  // Display filtered and paginated articles
-  function displayFilteredArticles() {
-    // Sort the filtered articles first
-    filteredArticles = sortArticles(filteredArticles);
-
-    // Update results count
-    if (resultsCount) {
-      resultsCount.textContent = `Showing ${filteredArticles.length} article${filteredArticles.length === 1 ? '' : 's'}`;
+      // Add search query if present
+      if (currentSearchTerm) {
+        params.set('q', currentSearchTerm);
+      }
+      
+      // Add tag filter if not 'all'
+      if (currentTag !== 'all') {
+        params.set('tags', currentTag);
+      }
+      
+      const response = await fetch(`${API_BASE}?${params}`);
+      if (!response.ok) throw new Error('Failed to fetch articles');
+      
+      const data = await response.json();
+      allArticles = data.results || [];
+      totalCount = data.count || 0;
+      
+      displayArticles();
+      updateResultsCount();
+      updatePagination();
+      
+    } catch (error) {
+      console.error('Error fetching articles:', error);
+      showNoResults();
     }
+  }
 
-    // Show/hide articles and featured section
-    const shouldShowFeatured = currentTag === 'all' && !currentSearchTerm;
-    featuredArticles.forEach(card => {
-      (card as HTMLElement).style.display = shouldShowFeatured ? 'block' : 'none';
-    });
-
-    // Calculate pagination
-    const totalPages = Math.max(1, Math.ceil(filteredArticles.length / ARTICLES_PER_PAGE));
-    currentPage = Math.min(currentPage, totalPages);
-
-    // Hide all articles first
-    articles.forEach(article => {
-      (article.element as HTMLElement).style.display = 'none';
-    });
-
-    // Show articles for current page
-    const startPos = (currentPage - 1) * ARTICLES_PER_PAGE;
-    const endPos = startPos + ARTICLES_PER_PAGE;
+  // Display articles from backend response
+  function displayArticles() {
+    // Clear current articles
+    if (articlesContainer) {
+      articlesContainer.innerHTML = '';
+    }
     
-    filteredArticles.slice(startPos, endPos).forEach((article, index) => {
-      (article.element as HTMLElement).style.display = 'block';
-      // Reset animation
-      (article.element as HTMLElement).style.animation = 'none';
-      (article.element as HTMLElement).offsetHeight; // Trigger reflow
-      (article.element as HTMLElement).style.animation = '';
-      // Stagger animation
-      (article.element as HTMLElement).style.animationDelay = `${index * 0.05}s`;
+    if (allArticles.length === 0) {
+      showNoResults();
+      return;
+    }
+    
+    // Create article elements from backend data
+    allArticles.forEach((post, index) => {
+      const article = createArticleElement(post, index);
+      articlesContainer?.appendChild(article);
     });
+    
+    // Hide no results
+    noResults?.classList.add('hidden');
+    pagination?.classList.remove('hidden');
+  }
+  
+  // Create article element from post data
+  function createArticleElement(post: any, index: number) {
+    const article = document.createElement('article');
+    article.className = 'article-card group';
+    article.style.animationDelay = `${index * 0.05}s`;
+    
+    const postTags = post.tags || [];
+    
+    article.innerHTML = `
+      <a href="/blog/${post.slug}" class="block">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 border border-gray-100 dark:border-gray-700 hover:border-purple-200 dark:hover:border-purple-700 transform hover:-translate-y-2 text-gray-900 dark:text-white">
+          ${post.image_url ? `
+            <div class="aspect-video overflow-hidden">
+              <img 
+                src="${post.image_url}" 
+                alt="${post.title}"
+                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                loading="lazy"
+              />
+            </div>
+          ` : `
+            <div class="aspect-video bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 relative overflow-hidden">
+              <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent"></div>
+              <div class="absolute inset-0 flex items-center justify-center p-6">
+                <div class="text-center text-white">
+                  <h3 class="text-lg font-bold mb-3 line-clamp-2">${post.title}</h3>
+                  <div class="flex flex-wrap gap-2 justify-center">
+                    ${postTags.slice(0, 2).map(tag => `
+                      <span class="px-2 py-1 bg-white/25 backdrop-blur-md text-white text-xs font-medium rounded-full border border-white/20">
+                        ${tag}
+                      </span>
+                    `).join('')}
+                  </div>
+                </div>
+              </div>
+            </div>
+          `}
+          <div class="p-6">
+            <div class="flex flex-wrap gap-2 mb-4">
+              ${postTags.slice(0, 3).map(tag => `
+                <span class="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-xs font-medium hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors">
+                  ${tag}
+                </span>
+              `).join('')}
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors line-clamp-2 leading-tight">
+              ${post.title}
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">
+              ${post.description}
+            </p>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                <span>${new Date(post.created_at).toLocaleDateString('en-US', { 
+                  month: 'short', 
+                  day: 'numeric' 
+                })}</span>
+                <span class="mx-2">•</span>
+                <span>5 min read</span>
+              </div>
+              <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </a>
+    `;
+    
+    return article;
+  }
+  
+  // Show no results message
+  function showNoResults() {
+    noResults?.classList.remove('hidden');
+    pagination?.classList.add('hidden');
+  }
+  
+  // Update results count
+  function updateResultsCount() {
+    if (resultsCount) {
+      resultsCount.textContent = `Showing ${totalCount} article${totalCount === 1 ? '' : 's'}`;
+    }
+    
+    // Update the "All Articles" button count
+    const allButton = document.querySelector('[data-tag="all"] .tag-count');
+    if (allButton && currentTag === 'all') {
+      allButton.textContent = totalCount.toString();
+    }
+  }
 
-    // Show/hide no results message
-    if (filteredArticles.length === 0) {
-      noResults?.classList.remove('hidden');
-      pagination?.classList.add('hidden');
-    } else {
-      noResults?.classList.add('hidden');
-      pagination?.classList.remove('hidden');
-      updatePagination(totalPages);
+  // Search functionality using backend API
+  async function performSearch(e: Event) {
+    const searchTerm = (e.target as HTMLInputElement)?.value || '';
+    if (currentSearchTerm !== searchTerm) {
+      currentSearchTerm = searchTerm;
+      currentPage = 1; // Reset to first page on new search
+      await fetchAndDisplayArticles();
+    }
+  }
+
+  // Tag filtering using backend API
+  async function filterByTag(tag: string) {
+    if (currentTag !== tag) {
+      // Update active tag button
+      document.querySelectorAll('.tag-filter').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      document.querySelector(`[data-tag="${tag}"]`)?.classList.add('active');
+      
+      currentTag = tag;
+      currentPage = 1; // Reset to first page on new filter
+      
+      // Show/hide clear filters button
+      const searchTerm = searchInput?.value || '';
+      if (tag !== 'all' || searchTerm) {
+        clearFilters?.classList.remove('hidden');
+      } else {
+        clearFilters?.classList.add('hidden');
+      }
+      
+      await fetchAndDisplayArticles();
     }
   }
 
   // Pagination
-  function updatePagination(totalPages: number) {
+  function updatePagination() {
+    const totalPages = Math.max(1, Math.ceil(totalCount / ARTICLES_PER_PAGE));
+    
     if (!pagination || totalPages <= 1) {
       if (pagination) pagination.innerHTML = '';
       return;
@@ -622,7 +624,7 @@ const regularPosts = sortedPosts.slice(3);
       <button 
         onclick="changePage(${currentPage - 1})" 
         ${currentPage === 1 ? 'disabled' : ''}
-        class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+        class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white transition-colors"
       >
         Previous
       </button>
@@ -632,38 +634,49 @@ const regularPosts = sortedPosts.slice(3);
     const startPage = Math.max(1, currentPage - 2);
     const endPage = Math.min(totalPages, currentPage + 2);
 
+    // First page button (if not in range)
     if (startPage > 1) {
       paginationHTML += `
-        <button onclick="changePage(1)" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+        <button 
+          onclick="changePage(1)" 
+          class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white transition-colors"
+        >
           1
         </button>
       `;
       if (startPage > 2) {
-        paginationHTML += `<span class="px-3 py-2 text-sm font-medium text-gray-500">...</span>`;
+        paginationHTML += `<span class="px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400">...</span>`;
       }
     }
 
+    // Page number buttons
     for (let i = startPage; i <= endPage; i++) {
+      const isCurrentPage = i === currentPage;
       paginationHTML += `
         <button 
           onclick="changePage(${i})" 
-          class="px-3 py-2 text-sm font-medium ${
-            i === currentPage 
-              ? 'text-indigo-600 bg-indigo-50 border-indigo-500 dark:text-indigo-400 dark:bg-indigo-900/30 dark:border-indigo-400' 
+          class="px-3 py-2 text-sm font-medium border transition-colors ${
+            isCurrentPage 
+              ? 'text-white bg-indigo-600 border-indigo-600 shadow-sm cursor-default dark:bg-indigo-500 dark:border-indigo-500' 
               : 'text-gray-500 bg-white border-gray-300 hover:bg-gray-50 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'
-          } border"
+          }"
+          ${isCurrentPage ? 'aria-current="page"' : ''}
         >
           ${i}
         </button>
       `;
     }
 
+    // Last page button (if not in range)
     if (endPage < totalPages) {
       if (endPage < totalPages - 1) {
-        paginationHTML += `<span class="px-3 py-2 text-sm font-medium text-gray-500">...</span>`;
+        paginationHTML += `<span class="px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400">...</span>`;
       }
       paginationHTML += `
-        <button onclick="changePage(${totalPages})" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+        <button 
+          onclick="changePage(${totalPages})" 
+          class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white transition-colors"
+        >
           ${totalPages}
         </button>
       `;
@@ -674,7 +687,7 @@ const regularPosts = sortedPosts.slice(3);
       <button 
         onclick="changePage(${currentPage + 1})" 
         ${currentPage === totalPages ? 'disabled' : ''}
-        class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+        class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white transition-colors"
       >
         Next
       </button>
@@ -684,18 +697,24 @@ const regularPosts = sortedPosts.slice(3);
   }
 
   // Global function for pagination buttons
-  (window as any).changePage = function(page: number) {
+  (window as any).changePage = async function(page: number) {
+    // Validate page number
+    const totalPages = Math.max(1, Math.ceil(totalCount / ARTICLES_PER_PAGE));
+    if (page < 1 || page > totalPages || page === currentPage) {
+      return;
+    }
+    
     currentPage = page;
-    displayFilteredArticles();
+    await fetchAndDisplayArticles();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Event listeners
   searchInput?.addEventListener('input', performSearch);
   
-  sortSelect?.addEventListener('change', (e) => {
+  sortSelect?.addEventListener('change', async (e) => {
     currentSort = (e.target as HTMLSelectElement).value;
-    filterArticles(currentSearchTerm, currentTag);
+    await fetchAndDisplayArticles();
   });
 
   // Tag filter event listeners
@@ -707,12 +726,13 @@ const regularPosts = sortedPosts.slice(3);
   });
 
   // Clear filters
-  clearFilters?.addEventListener('click', () => {
+  clearFilters?.addEventListener('click', async () => {
     currentSearchTerm = '';
     currentTag = 'all';
     currentPage = 1;
     if (searchInput) searchInput.value = '';
     if (sortSelect) sortSelect.value = 'date-desc';
+    currentSort = 'date-desc';
     
     document.querySelectorAll('.tag-filter').forEach(btn => {
       btn.classList.remove('active');
@@ -720,7 +740,7 @@ const regularPosts = sortedPosts.slice(3);
     document.querySelector('[data-tag="all"]')?.classList.add('active');
     
     clearFilters.classList.add('hidden');
-    filterArticles('', 'all');
+    await fetchAndDisplayArticles();
   });
 
   // Keyboard shortcuts
@@ -740,34 +760,23 @@ const regularPosts = sortedPosts.slice(3);
   });
 
   // Initialize
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
     // Check for category parameter in URL
     const urlParams = new URLSearchParams(window.location.search);
     const categoryParam = urlParams.get('category');
     
     if (categoryParam) {
-      // Find the tag button with matching normalized category name
-      const normalizedCategory = normalizeTag(categoryParam);
-      const tagButton = Array.from(document.querySelectorAll('.tag-filter')).find(btn => {
-        const tag = (btn as HTMLElement).dataset.tag;
-        return tag && normalizeTag(tag) === normalizedCategory;
-      });
-
+      // Apply the category filter
+      currentTag = categoryParam;
+      const tagButton = document.querySelector(`[data-tag="${categoryParam}"]`);
       if (tagButton) {
-        // Reset other filters
-        currentSearchTerm = '';
-        if (searchInput) searchInput.value = '';
-        if (sortSelect) sortSelect.value = 'date-desc';
-        currentSort = 'date-desc';
-        currentPage = 1;
-
-        // Apply the category filter
-        const tag = (tagButton as HTMLElement).dataset.tag || 'all';
-        filterByTag(tag);
+        tagButton.classList.add('active');
+        document.querySelector('[data-tag="all"]')?.classList.remove('active');
       }
-    } else {
-      filterArticles('', 'all');
     }
+    
+    // Initial load
+    await fetchAndDisplayArticles();
     
     // Update URL when changing categories
     document.querySelectorAll('.tag-filter').forEach(btn => {
