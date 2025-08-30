@@ -222,15 +222,16 @@ const otherTags = sortedTags.slice(6);
                                                 <a href={`/blog/${post.slug}`} class="group/article block p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all">
                                                     <div class="flex items-start gap-4">
                                                         {post.data.image ? (
-                                                            <div class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                                                            <div class="hidden md:block w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
                                                                 <img 
                                                                     src={post.data.image} 
                                                                     alt={post.data.title}
                                                                     class="w-full h-full object-cover group-hover/article:scale-110 transition-transform duration-500"
+                                                                    loading="lazy"
                                                                 />
                                                             </div>
                                                         ) : (
-                                                            <div class="w-16 h-16 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex-shrink-0 flex items-center justify-center text-white text-xl">
+                                                            <div class="hidden md:flex w-16 h-16 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex-shrink-0 items-center justify-center text-white text-xl">
                                                                 📝
                                                             </div>
                                                         )}
@@ -465,9 +466,10 @@ const otherTags = sortedTags.slice(6);
         postsContainer.innerHTML = data.posts.map(post => `
             <article class="group bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                 ${post.image ? `
-                    <div class="aspect-video overflow-hidden">
+                    <div class="aspect-video overflow-hidden hidden md:block">
                         <img src="${post.image}" alt="${post.title}" 
-                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                             loading="lazy" />
                     </div>
                 ` : ''}
                 <div class="p-6">

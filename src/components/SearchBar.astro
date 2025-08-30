@@ -199,7 +199,7 @@ const searchEndpoint = 'https://backend.takovibe.com/api/blogs/blogs/';
               <p class="text-sm ${mutedTextClass} line-clamp-2">${result.description}</p>
             </div>
             ${result.image_url ? `
-              <div class="w-16 h-16 flex-shrink-0">
+              <div class="w-16 h-16 flex-shrink-0 hidden md:block">
                 <img src="${result.image_url}" alt="${result.title}" class="w-full h-full object-cover rounded-lg"/>
               </div>
             ` : ''}
