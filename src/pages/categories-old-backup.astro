@@ -1,0 +1,426 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { getCollection } from "astro:content";
+
+// Get all blog posts and filter out future posts
+const allPosts = await getCollection("blog");
+const currentDate = new Date();
+const publishedPosts = allPosts.filter(post => new Date(post.data.date) <= currentDate);
+
+// Extract all unique tags and count posts per tag
+const tagCounts = new Map();
+const tagPosts = new Map();
+
+publishedPosts.forEach(post => {
+    if (post.data.tags) {
+        post.data.tags.forEach(tag => {
+            const normalizedTag = tag.toLowerCase();
+            tagCounts.set(normalizedTag, (tagCounts.get(normalizedTag) || 0) + 1);
+
+            if (!tagPosts.has(normalizedTag)) {
+                tagPosts.set(normalizedTag, []);
+            }
+            tagPosts.get(normalizedTag).push(post);
+        });
+    }
+});
+
+// Sort tags by post count (descending) and then alphabetically, filter for 2+ articles
+const sortedTags = Array.from(tagCounts.entries())
+    .filter(([tag, count]) => count >= 2) // Show categories with 2+ articles
+    .sort(([a, countA], [b, countB]) => {
+        if (countB !== countA) return countB - countA;
+        return a.localeCompare(b);
+    });
+
+// Sort posts by date within each tag
+tagPosts.forEach((posts, tag) => {
+    posts.sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime());
+});
+
+// Define category icons
+const categoryIcons = {
+    'python': '🐍',
+    'javascript': '⚡',
+    'typescript': '🔷',
+    'react': '⚛️',
+    'django': '🎸',
+    'database': '🗄️',
+    'devops': '⚙️',
+    'nginx': '🌐',
+    'docker': '🐳',
+    'tutorial': '📚',
+    'programming': '💻',
+    'web development': '🌍',
+    'backend': '🔧',
+    'frontend': '🎨',
+    'performance': '⚡',
+    'security': '🔒',
+    'testing': '🧪',
+    'api': '🔌',
+    'microservices': '🏗️',
+    'machine learning': '🤖',
+    'data science': '📊',
+    'algorithms': '🧮',
+    'system design': '🏛️',
+    'celery': '🌿',
+    'redis': '🔴',
+    'mongodb': '🍃',
+    'rabbitmq': '🐰',
+    'middleware': '⚡',
+    'encryption': '🔐',
+    'debugging': '🐛',
+    'monitoring': '📊',
+    'logging': '📝',
+    'tempfile': '📁',
+    'decorators': '🎨',
+    'async': '⚡',
+    'requests': '📡',
+    'http': '🌐',
+    'socket programming': '🔌',
+    'web server': '�️',
+    'ipdb': '🔍',
+    'development tools': '🛠️',
+    'coding tips': '💡',
+    'optimization': '�',
+    'lists': '�',
+    'temporary files': '�',
+    'developer guide': '📖',
+    'asynchronous tasks': '⚡',
+    'background processing': '⚙️',
+    'celery beat': '⏰',
+    'e2e encryption': '�',
+    '3des': '🔒',
+    'sha512': '�',
+    'prompt injection': '⚠️',
+    'llm security': '🛡️',
+    'ai safety': '🤖',
+    'large language models': '🧠',
+    'nginx server': '🌐',
+    'web frameworks': '�️'
+};
+
+const getCategoryIcon = (tag) => categoryIcons[tag.toLowerCase()] || '📝';
+
+// Group categories by popularity
+const featuredTags = sortedTags.slice(0, 6);
+const popularTags = sortedTags.slice(6, 15);
+const allOtherTags = sortedTags.slice(15);
+
+// Define category colors for lightweight styling
+const categoryColors = {
+    'python': 'text-green-600 bg-green-50 border-green-200',
+    'javascript': 'text-yellow-600 bg-yellow-50 border-yellow-200',
+    'typescript': 'text-blue-600 bg-blue-50 border-blue-200',
+    'react': 'text-cyan-600 bg-cyan-50 border-cyan-200',
+    'django': 'text-emerald-600 bg-emerald-50 border-emerald-200',
+    'database': 'text-gray-600 bg-gray-50 border-gray-200',
+    'devops': 'text-purple-600 bg-purple-50 border-purple-200',
+    'nginx': 'text-teal-600 bg-teal-50 border-teal-200',
+    'docker': 'text-blue-600 bg-blue-50 border-blue-200',
+    'tutorial': 'text-indigo-600 bg-indigo-50 border-indigo-200',
+    'programming': 'text-purple-600 bg-purple-50 border-purple-200',
+    'web development': 'text-teal-600 bg-teal-50 border-teal-200',
+    'backend': 'text-gray-600 bg-gray-50 border-gray-200',
+    'frontend': 'text-pink-600 bg-pink-50 border-pink-200',
+    'performance': 'text-red-600 bg-red-50 border-red-200',
+    'security': 'text-red-600 bg-red-50 border-red-200',
+    'testing': 'text-green-600 bg-green-50 border-green-200',
+    'api': 'text-blue-600 bg-blue-50 border-blue-200',
+    'microservices': 'text-indigo-600 bg-indigo-50 border-indigo-200',
+    'machine learning': 'text-purple-600 bg-purple-50 border-purple-200',
+    'data science': 'text-blue-600 bg-blue-50 border-blue-200',
+    'algorithms': 'text-green-600 bg-green-50 border-green-200',
+    'system design': 'text-gray-600 bg-gray-50 border-gray-200'
+};
+
+const getCategoryColor = (tag) => categoryColors[tag.toLowerCase()] || 'text-gray-600 bg-gray-50 border-gray-200';
+---
+---
+
+<Layout
+    title="Categories | TakoVibe"
+    author="Rahul Beniwal"
+    description="Explore curated blog categories and topics on TakoVibe - from Python programming to system design and technology innovations."
+    tags={["categories", "blog topics", "programming", "technology", "software engineering"]}
+>
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Hero Section -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Explore by Category
+            </h1>
+            <p class="text-gray-600 text-lg max-w-2xl mx-auto">
+                Discover articles organized by topics. Each category contains at least 2 articles.
+            </p>
+            <div class="mt-4 text-sm text-gray-500">
+                {sortedTags.length} categories • {publishedPosts.length} total articles
+            </div>
+        </div>
+
+        <!-- Featured Categories -->
+        {featuredTags.length > 0 && (
+            <section class="mb-12">
+                <h2 class="text-2xl font-semibold mb-6 flex items-center gap-2">
+                    <span>🌟</span> Featured Categories
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {featuredTags.map(([tag, count]) => (
+                        <a href={`/blog?category=${encodeURIComponent(tag)}`} 
+                           class={`block p-6 rounded-xl border-2 transition-all duration-300 hover:shadow-lg hover:scale-105 ${getCategoryColor(tag)}`}>
+                            <div class="flex items-center gap-4 mb-3">
+                                <span class="text-3xl">{getCategoryIcon(tag)}</span>
+                                <div>
+                                    <h3 class="font-semibold text-lg capitalize">{tag}</h3>
+                                    <p class="text-sm opacity-70">{count} article{count !== 1 ? 's' : ''}</p>
+                                </div>
+                            </div>
+                            <div class="text-sm opacity-80">
+                                Latest: {tagPosts.get(tag)[0].data.title.length > 40 
+                                    ? tagPosts.get(tag)[0].data.title.substring(0, 40) + '...' 
+                                    : tagPosts.get(tag)[0].data.title}
+                            </div>
+                        </a>
+                    ))}
+                </div>
+            </section>
+        )}
+
+        <!-- Popular Categories -->
+        {popularTags.length > 0 && (
+            <section class="mb-12">
+                <h2 class="text-2xl font-semibold mb-6 flex items-center gap-2">
+                    <span>🔥</span> Popular Categories
+                </h2>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    {popularTags.map(([tag, count]) => (
+                        <a href={`/blog?category=${encodeURIComponent(tag)}`} 
+                           class={`block p-4 rounded-lg border transition-all duration-200 hover:shadow-md hover:scale-105 ${getCategoryColor(tag)}`}>
+                            <div class="text-center">
+                                <div class="text-2xl mb-2">{getCategoryIcon(tag)}</div>
+                                <h3 class="font-medium text-sm capitalize leading-tight">{tag}</h3>
+                                <p class="text-xs opacity-70 mt-1">{count} article{count !== 1 ? 's' : ''}</p>
+                            </div>
+                        </a>
+                    ))}
+                </div>
+            </section>
+        )}
+
+        <!-- All Other Categories -->
+        {allOtherTags.length > 0 && (
+            <section>
+                <h2 class="text-2xl font-semibold mb-6 flex items-center gap-2">
+                    <span>📚</span> All Categories
+                </h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                    {allOtherTags.map(([tag, count]) => (
+                        <a href={`/blog?category=${encodeURIComponent(tag)}`} 
+                           class={`block p-3 rounded-lg border text-center transition-all duration-200 hover:shadow-md hover:scale-105 ${getCategoryColor(tag)}`}>
+                            <div class="text-lg mb-1">{getCategoryIcon(tag)}</div>
+                            <h3 class="font-medium text-xs capitalize leading-tight">{tag}</h3>
+                            <p class="text-xs opacity-70">{count}</p>
+                        </a>
+                    ))}
+                </div>
+            </section>
+        )}
+
+        <!-- Quick Search -->
+        <div class="mt-16 text-center">
+            <div class="inline-block p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border">
+                <h3 class="text-lg font-semibold mb-2">Looking for something specific?</h3>
+                <p class="text-gray-600 mb-4">Use our search to find articles across all categories</p>
+                <a href="/blog" class="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    <span>🔍</span> Browse All Articles
+                </a>
+            </div>
+        </div>
+    </main>
+</Layout>
+
+    }
+    
+    .animation-delay-2000 {
+        animation-delay: 2s;
+    }
+    
+    .animation-delay-4000 {
+        animation-delay: 4s;
+    }
+
+    .animate-fade-in-up {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+    /* Line clamp utility for text truncation */
+    .line-clamp-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Custom scrollbar for modal */
+    .overflow-y-auto::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .overflow-y-auto::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    .overflow-y-auto::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+    }
+    
+    .dark .overflow-y-auto::-webkit-scrollbar-thumb {
+        background: #64748b;
+    }
+
+    /* Mobile responsive improvements */
+    @media (max-width: 640px) {
+        .grid-responsive {
+            grid-template-columns: 1fr;
+        }
+        
+        .text-responsive {
+            font-size: 1.5rem;
+            line-height: 2rem;
+        }
+    }
+
+    /* Hover effects for better interaction */
+    .category-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .category-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Dark mode specific adjustments */
+    .dark .category-card:hover {
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+</style>
+
+<script define:vars={{categoryData: Object.fromEntries(sortedTags.map(([tag, count]) => [tag, {
+    icon: getCategoryIcon(tag),
+    count: count,
+    posts: tagPosts.get(tag)?.map(post => ({
+        title: post.data.title,
+        description: post.data.description,
+        date: post.data.date,
+        image: post.data.image,
+        slug: post.slug,
+        tags: post.data.tags,
+        readingTime: post.data.readingTime || "5 min read"
+    })) || []
+}]))}}>
+    function expandCategory(tag) {
+        const data = categoryData[tag];
+        if (!data) return;
+
+        // Update modal content
+        document.getElementById('modal-icon').textContent = data.icon;
+        document.getElementById('modal-title').textContent = tag;
+        document.getElementById('modal-count').textContent = `${data.count} ${data.count === 1 ? 'article' : 'articles'}`;
+
+        // Generate posts HTML
+        const postsContainer = document.getElementById('modal-posts');
+        postsContainer.innerHTML = data.posts.map(post => `
+            <article class="group bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                ${post.image ? `
+                    <div class="aspect-video overflow-hidden hidden md:block">
+                        <img src="${post.image}" alt="${post.title}" 
+                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                             loading="lazy" />
+                    </div>
+                ` : ''}
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        <a href="/blog/${post.slug}" class="hover:underline">
+                            ${post.title}
+                        </a>
+                    </h3>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">
+                        ${post.description || ''}
+                    </p>
+                    <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                        <span>${new Date(post.date).toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'short', 
+                            day: 'numeric' 
+                        })}</span>
+                        <span>${post.readingTime}</span>
+                    </div>
+                    ${post.tags ? `
+                        <div class="flex flex-wrap gap-1 mt-3">
+                            ${post.tags.slice(0, 3).map(tag => `
+                                <span class="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded text-xs">
+                                    ${tag}
+                                </span>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            </article>
+        `).join('');
+
+        // Show modal
+        const modal = document.getElementById('category-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        
+        // Prevent body scroll
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('category-modal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        
+        // Restore body scroll
+        document.body.style.overflow = 'auto';
+    }
+
+    // Close modal on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeModal();
+        }
+    });
+
+    // Close modal on backdrop click
+    document.getElementById('category-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeModal();
+        }
+    });
+
+    // Add smooth animations
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate category cards on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-in-up');
+                }
+            });
+        }, observerOptions);
+
+        // Observe all category cards
+        document.querySelectorAll('[onclick*="expandCategory"]').forEach(card => {
+            observer.observe(card);
+        });
+    });
+</script>

@@ -1,7 +1,7 @@
 ---
 interface Props {
   post: {
-    data: {
+    data?: {
       title: string;
       description: string;
       date: string;
@@ -11,11 +11,38 @@ interface Props {
       author?: string;
     };
     slug: string;
+    // API structure properties
+    title?: string;
+    description?: string;
+    created_at?: string;
+    tags?: string[];
+    image_url?: string;
+    author?: {
+      id: number;
+      name: string;
+      email: string;
+      username: string;
+    };
   };
   index?: number;
 }
 
 const { post, index } = Astro.props;
+
+// Handle both API and content collection structures
+const isApiPost = !post.data && post.title;
+const postData = isApiPost 
+  ? {
+      title: post.title!,
+      description: post.description!,
+      date: post.created_at!,
+      tags: post.tags || [],
+      image: post.image_url,
+      readingTime: "5 min read", // Default for API posts
+      author: post.author?.name || post.author?.username || "TakoVibe Team"
+    }
+  : post.data!;
+
 const {
   title,
   description,
@@ -24,7 +51,7 @@ const {
   image,
   readingTime = "5 min read",
   author = "TakoVibe Team"
-} = post.data;
+} = postData;
 
 const formattedDate = new Date(date);
 ---
