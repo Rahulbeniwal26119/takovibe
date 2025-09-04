@@ -690,179 +690,108 @@ try {
       const displaySeries = ongoingSeries.slice(0, 3);
       
       container.innerHTML = `
-        <!-- Mobile: List Layout -->
-        <div class="md:hidden space-y-2">
+        <!-- Series Layout -->
+        <div class="grid gap-6">
           ${displaySeries.map((series, index) => {
-            const icon = getSeriesIcon(series.topic_covered || []);
-            const colorGradient = getDifficultyColor(series.start_level, series.end_level);
-            const progressPercent = series.planned_articles && series.planned_articles > 0 
-              ? Math.min(((series.latest_article ? 1 : 0) / series.planned_articles) * 100, 100) 
-              : 0;
-            
-            return `
-              <div class="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-lg p-3 border border-purple-200/50 dark:border-purple-700/30 hover:border-purple-300 dark:hover:border-purple-400/50 hover:shadow-md transition-all duration-200 animate-slide-up" style="animation-delay: ${index * 0.1}s">
-                <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 bg-gradient-to-r ${colorGradient} rounded-lg flex items-center justify-center text-sm flex-shrink-0">
-                    ${icon}
-                  </div>
-                  <div class="min-w-0 flex-1">
-                    <div class="flex items-start justify-between mb-1">
-                      <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100 line-clamp-1">
-                        ${series.title}
-                      </h3>
-                      <div class="flex items-center gap-1 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 px-1.5 py-0.5 rounded-full text-xs font-medium ml-2">
-                        <div class="w-1 h-1 bg-purple-500 rounded-full animate-pulse"></div>
-                        Live
-                      </div>
-                    </div>
-                    <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-2">
-                      <span class="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">
-                        ${capitalize(series.start_level)} → ${capitalize(series.end_level)}
-                      </span>
-                      ${series.topic_covered && series.topic_covered.length > 0 ? `
-                        <span>${series.topic_covered.slice(0, 2).join(', ')}</span>
-                      ` : ''}
-                    </div>
-                    <div class="flex items-center justify-between">
-                      <p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-1 flex-1">
-                        ${series.description}
-                      </p>
-                      ${series.latest_article ? `
-                        <a 
-                          href="/blog/${series.latest_article.slug}"
-                          class="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium mx-2 whitespace-nowrap transition-colors"
-                          title="Read: ${series.latest_article.title}"
-                        >
-                          Latest →
-                        </a>
-                      ` : ''}
-                      <a 
-                        href="/series/${series.slug}"
-                        class="inline-flex items-center px-2 py-1 bg-gradient-to-r ${colorGradient} text-white rounded-md font-medium hover:shadow-md transition-all duration-200 text-xs ml-2"
-                      >
-                        View
-                        <svg class="ml-1 w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                        </svg>
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-
-        <!-- Desktop: Card Layout -->
-        <div class="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          ${displaySeries.map((series, index) => {
-            const icon = getSeriesIcon(series.topic_covered || []);
-            const colorGradient = getDifficultyColor(series.start_level, series.end_level);
             const isOngoing = !series.planned_articles || series.planned_articles === 0;
-            const progressPercent = series.planned_articles && series.planned_articles > 0 
-              ? Math.min(((series.latest_article ? 1 : 0) / series.planned_articles) * 100, 100) 
-              : 0;
+            const articlesCount = series.articles_count || 1;
+            const plannedArticles = series.planned_articles || 31;
+            const progressPercent = Math.round((articlesCount / plannedArticles) * 100);
+            const icon = getSeriesIcon(series.topic_covered || []);
             
             return `
               <article class="group relative animate-slide-up" style="animation-delay: ${index * 0.1}s">
-                <div class="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-xl p-5 border border-purple-200/50 dark:border-purple-700/30 hover:border-purple-300 dark:hover:border-purple-400/50 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300 hover:transform hover:-translate-y-1 h-full flex flex-col">
-                  
-                  <!-- Header -->
-                  <div class="flex items-start justify-between mb-4">
-                    <div class="flex items-center gap-3">
-                      <div class="w-12 h-12 bg-gradient-to-r ${colorGradient} rounded-xl flex items-center justify-center text-lg shadow-sm">
-                        ${icon}
-                      </div>
-                      <div class="min-w-0 flex-1">
-                        <h3 class="text-base font-bold text-gray-900 dark:text-gray-100 mb-1 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors line-clamp-2">
+                <!-- Mobile view -->
+                <div class=" bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-lg p-3 border border-purple-200/50 dark:border-purple-700/30 hover:border-purple-300 dark:hover:border-purple-400/50 hover:shadow-md transition-all duration-200">
+                  <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center text-lg flex-shrink-0">
+                      ${icon}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <div class="flex items-start justify-between mb-1">
+                        <h3 class="text-base font-bold text-gray-900 dark:text-gray-100 line-clamp-1">
                           ${series.title}
                         </h3>
-                        <div class="flex items-center gap-2 text-xs">
-                          <span class="font-medium text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full">
-                            ${capitalize(series.start_level)} → ${capitalize(series.end_level)}
-                          </span>
+                        <div class="flex items-center gap-1 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 px-2 py-1 rounded-full text-sm font-medium ml-2">
+                          <div class="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse"></div>
+                          Live
                         </div>
                       </div>
-                    </div>
-                    <div class="flex items-center gap-1 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 px-2 py-1 rounded-full text-xs font-medium">
-                      <div class="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse"></div>
-                      Live
+                      <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-2">
+                        ${series.topic_covered && series.topic_covered.length > 0 ? `
+                          <span>${series.topic_covered.slice(0, 2).join(', ')}</span>
+                        ` : ''}
+                      </div>
+                      <a href="/series/${series.slug}" class="text-purple-600 dark:text-purple-400 text-sm font-medium hover:underline">View Series →</a>
                     </div>
                   </div>
-
-                  <!-- Description -->
-                  <p class="text-gray-600 dark:text-gray-400 mb-4 text-sm leading-relaxed line-clamp-3 flex-1">
-                    ${series.description}
-                  </p>
-
-                  <!-- Topics -->
-                  ${series.topic_covered && series.topic_covered.length > 0 ? `
-                    <div class="mb-4">
-                      <div class="flex flex-wrap gap-1">
-                        ${series.topic_covered.slice(0, 4).map(topic => `
-                          <span class="text-xs px-2 py-1 bg-gradient-to-r ${colorGradient} bg-opacity-10 text-gray-700 dark:text-gray-300 rounded-full border border-purple-200/50 dark:border-purple-700/30">
-                            ${topic}
-                          </span>
-                        `).join('')}
-                        ${series.topic_covered.length > 4 ? `
-                          <span class="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-full">
-                            +${series.topic_covered.length - 4}
-                          </span>
+                </div>
+                
+                <!-- Desktop view with gradient -->
+                <div class="hidden lg:block">
+                  <div class="bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl p-6 text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:transform hover:-translate-y-1 h-full flex flex-col">
+                    <!-- Header -->
+                    <div class="flex items-start gap-4 mb-6">
+                      <div class="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center text-xl">
+                        ${icon}
+                      </div>
+                      <div class="flex-1">
+                        <h3 class="text-xl font-bold text-white mb-2">
+                          ${series.title}
+                        </h3>
+                        ${series.topic_covered && series.topic_covered.length > 0 ? `
+                          <div class="flex flex-wrap gap-2">
+                            ${series.topic_covered.slice(0, 3).map(topic => `
+                              <span class="px-3 py-1.5 bg-white/10 text-white/90 rounded-full text-sm">
+                                ${topic}
+                              </span>
+                            `).join('')}
+                          </div>
                         ` : ''}
                       </div>
                     </div>
-                  ` : ''}
 
-                  <!-- Progress Bar (for planned series) -->
-                  ${!isOngoing && series.planned_articles > 0 ? `
-                    <div class="mb-4">
+                    <!-- Stats Grid -->
+                    <div class="grid grid-cols-2 gap-6 mb-6">
+                      <div class="text-center">
+                        <div class="text-4xl font-bold mb-1 text-white">${articlesCount}</div>
+                        <div class="text-white/80 text-sm uppercase tracking-wide">Articles Live</div>
+                      </div>
+                      <div class="text-center">
+                        <div class="text-4xl font-bold mb-1 text-white">${plannedArticles}</div>
+                        <div class="text-white/80 text-sm uppercase tracking-wide">Total Planned</div>
+                      </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="mb-6">
                       <div class="flex justify-between items-center mb-2">
-                        <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Progress</span>
-                        <span class="text-xs text-gray-500 dark:text-gray-400">
-                          ${series.latest_article ? '1' : '0'}/${series.planned_articles} articles
-                        </span>
+                        <span class="text-sm text-white/90 font-medium">Completion Progress</span>
+                        <span class="text-sm text-white/90 font-medium">${progressPercent}%</span>
                       </div>
-                      <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                        <div 
-                          class="bg-gradient-to-r ${colorGradient} h-2 rounded-full transition-all duration-300"
-                          style="width: ${progressPercent}%"
-                        ></div>
+                      <div class="w-full bg-white/20 rounded-full h-2 overflow-hidden">
+                        <div class="bg-white h-2 rounded-full transition-all duration-500" style="width: ${progressPercent}%"></div>
                       </div>
                     </div>
-                  ` : ''}
 
-                  <!-- Latest Article -->
-                  ${series.latest_article ? `
-                    <div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 mb-4 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800/70 transition-colors">
-                      <div class="flex items-start justify-between gap-2">
-                        <div class="min-w-0 flex-1">
-                          <div class="text-xs font-medium text-purple-600 dark:text-purple-400 uppercase tracking-wide mb-1">Latest Article</div>
-                          <a 
-                            href="/blog/${series.latest_article.slug}"
-                            class="font-medium text-gray-900 dark:text-gray-100 text-sm line-clamp-2 hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer block"
-                            title="Read: ${series.latest_article.title}"
-                          >
-                            ${series.latest_article.title}
-                          </a>
-                        </div>
-                        <span class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap ml-2">
-                          ${formatDate(series.latest_article.created_at).replace(', 2025', '')}
-                        </span>
-                      </div>
+                    <!-- Description -->
+                    <p class="text-white/90 text-base leading-relaxed mb-6 flex-1">
+                      ${series.description}
+                    </p>
+
+                    <!-- Action Buttons -->
+                    <div class="flex items-center gap-3 mt-auto">
+                      <a href="/series/${series.slug}"
+                         class="flex-1 text-center px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-medium transition-all duration-200">
+                        🚀 Explore Series
+                      </a>
+                      ${series.latest_article ? `
+                        <a href="/blog/${series.latest_article.slug}"
+                           class="flex-1 text-center px-6 py-3 bg-white text-purple-600 rounded-xl font-medium hover:bg-white/90 transition-all duration-200">
+                          📖 Latest Article
+                        </a>
+                      ` : ''}
                     </div>
-                  ` : ''}
-
-                  <!-- Action Button -->
-                  <div class="mt-auto">
-                    <a 
-                      href="/series/${series.slug}"
-                      class="w-full inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r ${colorGradient} text-white rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200 text-sm"
-                    >
-                      <span>Explore Series</span>
-                      <svg class="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                      </svg>
-                    </a>
                   </div>
                 </div>
               </article>
@@ -870,7 +799,6 @@ try {
           }).join('')}
         </div>
       `;
-
     } catch (error) {
       console.error('Failed to load ongoing series:', error);
       container.innerHTML = `

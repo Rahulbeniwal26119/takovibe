@@ -23,7 +23,7 @@ import LiveIndicator from "./LiveIndicator.astro";
         <a href="/" class="shrink-0 hover:opacity-90 transition" aria-label="TakoVibe home">
           <img src="/images/logo.svg" alt="TakoVibe logo" class="w-10 h-10 rounded-full" />
         </a>
-      <div class="lg:block shrink-0">
+      <div class="block shrink-0">
         <LiveIndicator
           seriesName="Rag Mastery"
           message="Series is LIVE! New posts every day"
@@ -38,8 +38,8 @@ import LiveIndicator from "./LiveIndicator.astro";
       <!-- Right cluster: search + auth (never shrinks on desktop) -->
       <div class="flex items-center gap-3">
         <!-- Desktop search bar -->
-        <div class="w-[340px] hidden lg:block" id="header-search-container">
-          {Astro.url.pathname !== '/blog' && <Search variant="header" />}
+        <div class="w-[340px] xs:hidden lg:block" id="header-search-container">
+          <Search variant="header" />
         </div>
         
         <!-- Mobile search icon -->
@@ -60,7 +60,7 @@ import LiveIndicator from "./LiveIndicator.astro";
   </div>
 
   <!-- ROW 2: primary navigation -->
-  <div class="hidden md:block bg-white/75 dark:bg-gray-900/75 backdrop-blur border-b border-gray-200/60 dark:border-gray-800/60">
+  <div class="block bg-white/75 dark:bg-gray-900/75 backdrop-blur border-b border-gray-200/60 dark:border-gray-800/60">
     <div class="max-w-screen-2xl mx-auto px-3 md:px-6 flex items-center justify-between gap-3">
       <!-- Primary links (scroll if ever needed; never clipped) -->
       <nav class="flex items-center gap-1 overflow-x-auto overflow-y-visible" aria-label="Primary">
@@ -263,6 +263,37 @@ import LiveIndicator from "./LiveIndicator.astro";
       if (!e.target?.closest('#openDrawerBtn')) {
         e.stopPropagation();
       }
+    });
+  });
+
+  // Handle mobile navigation visibility
+  document.addEventListener('DOMContentLoaded', () => {
+    const openDrawerBtn = document.getElementById('openDrawerBtn');
+    const navSection = document.querySelector('nav[aria-label="Primary"]').parentElement;
+    
+    let isNavVisible = window.innerWidth >= 768;
+    
+    function updateNavVisibility() {
+      if (window.innerWidth >= 768) {
+        navSection.style.display = 'block';
+        isNavVisible = true;
+      } else {
+        navSection.style.display = isNavVisible ? 'block' : 'none';
+      }
+    }
+
+    // Initial visibility
+    updateNavVisibility();
+
+    // Toggle nav on mobile
+    openDrawerBtn?.addEventListener('click', () => {
+      isNavVisible = !isNavVisible;
+      updateNavVisibility();
+    });
+
+    // Update on resize
+    window.addEventListener('resize', () => {
+      updateNavVisibility();
     });
   });
 </script>
