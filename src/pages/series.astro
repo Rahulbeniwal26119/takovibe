@@ -22,10 +22,11 @@ try {
     seriesData = [];
 }
 
+
 // Separate active and planned series
 const activeSeries = seriesData.filter(series => series.is_live);
 const plannedSeries = seriesData.filter(series => !series.is_live);
-
+console.log(`active ${seriesData}`)
 // Calculate stats for the template
 const totalActiveSeries = activeSeries.length;
 const totalPlannedSeries = plannedSeries.length;
