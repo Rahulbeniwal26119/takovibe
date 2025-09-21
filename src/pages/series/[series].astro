@@ -2,6 +2,24 @@
 import Layout from '../../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
 
+const SERIES_DETAILS = {
+  "SOLID Principles": {
+    "Description": "Explore one of the most Essential LLD Topics in easy way with Python and Rust",
+    "Level": "Beginner to Intermediate",
+    "TotalArticle": "5"
+  },
+  "Think Different": {
+    "Description": "Unconventional approaches to problem-solving in programming and beyond, Let's Dig Deeper",
+    "Level": "Beginner to Advance",
+    "TotalArticle": "Inf"
+  },
+  "RAG Mastery": {
+    "Description": "A comprehensive journey from tokenization to production-ready RAG systems. Master Retrieval-Augmented Generation with hands-on tutorials, code examples, and real-world applications.",
+    "Level": "Intermediate to Advance",
+    "TotalArticle": "31"
+  }
+}
+
 export async function getStaticPaths() {
   const blogEntries = await getCollection('blog');
   
@@ -28,24 +46,16 @@ export async function getStaticPaths() {
   }));
 }
 
-function extractSeriesFromContent(content: string): string | null {
-  // Look for series indicators in content
-  const seriesPatterns = [
-    /RAG Mastery/i,
-    /RAG MASTERY/i,
-    /RAG Series/i
-  ];
-  
-  for (const pattern of seriesPatterns) {
-    if (pattern.test(content)) {
-      return 'RAG Mastery';
-    }
-  }
-  return null;
-}
-
 const { seriesName, posts } = Astro.props;
+const series_details = SERIES_DETAILS[seriesName] || {};
+console.log(series_details)
 const currentPost = posts.find(post => post.slug === Astro.url.pathname.split('/').pop());
+
+// Calculate series completion status
+const publishedArticlesCount = posts.filter(post => new Date(post.data.date) <= new Date()).length;
+const totalArticleValue = series_details?.TotalArticle;
+const plannedArticlesCount = totalArticleValue === "Inf" ? Infinity : (parseInt(totalArticleValue) || posts.length);
+const isSeriesComplete = plannedArticlesCount !== Infinity && plannedArticlesCount > 0 && publishedArticlesCount >= plannedArticlesCount;
 
 // Prepare article data
 const articlesData = posts.map((post, index) => {
@@ -85,12 +95,28 @@ const articlesData = posts.map((post, index) => {
   <main class="max-w-4xl mx-auto px-4 py-8 mt-16">
     <!-- Series Header -->
     <div class="text-center mb-12">
-      <div class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-orange-500 text-white text-sm font-medium rounded-full mb-4">
-        <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-        <span class="font-bold">LIVE SERIES</span>
-        <svg class="w-4 h-4 text-yellow-300 animate-bounce" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clip-rule="evenodd"/>
-        </svg>
+      <div class={`inline-flex items-center gap-2 px-4 py-2 text-white text-sm font-medium rounded-full mb-4 ${
+        isSeriesComplete 
+          ? 'bg-gradient-to-r from-green-500 to-emerald-500' 
+          : 'bg-gradient-to-r from-red-500 to-orange-500'
+      }`}>
+        {isSeriesComplete ? (
+          <>
+            <div class="w-2 h-2 bg-white rounded-full"></div>
+            <span class="font-bold">COMPLETED SERIES</span>
+            <svg class="w-4 h-4 text-green-200" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+          </>
+        ) : (
+          <>
+            <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+            <span class="font-bold">LIVE SERIES</span>
+            <svg class="w-4 h-4 text-yellow-300 animate-bounce" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clip-rule="evenodd"/>
+            </svg>
+          </>
+        )}
       </div>
       
       <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
@@ -98,8 +124,9 @@ const articlesData = posts.map((post, index) => {
       </h1>
       
       <p class="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-6">
-        A comprehensive journey from tokenization to production-ready RAG systems. 
-        Master Retrieval-Augmented Generation with hands-on tutorials, code examples, and real-world applications.
+        {
+          series_details?.Description || "Explore this comprehensive series covering essential topics with in-depth articles and practical insights."
+        }
       </p>
       
       <div class="flex items-center justify-center gap-6 text-sm text-gray-500 dark:text-gray-400">
@@ -129,13 +156,17 @@ const articlesData = posts.map((post, index) => {
       <div class="flex items-center justify-between mb-2">
         <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Series Progress</span>
         <span class="text-sm text-gray-500 dark:text-gray-400">
-          {posts.filter(post => new Date(post.data.date) <= new Date()).length}/{posts.length} Published
+          {posts.filter(post => new Date(post.data.date) <= new Date()).length}/{series_details?.TotalArticle||posts.length} Published
         </span>
       </div>
       <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
         <div 
           class="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
-          style={`width: ${(posts.filter(post => new Date(post.data.date) <= new Date()).length / posts.length) * 100}%`}
+          style={`width: ${
+            totalArticleValue === "Inf" 
+              ? "0%" 
+              : `${(publishedArticlesCount / plannedArticlesCount) * 100}%`
+          }`}
         ></div>
       </div>
     </div>

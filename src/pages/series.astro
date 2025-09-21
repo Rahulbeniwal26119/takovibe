@@ -770,16 +770,20 @@ const capitalize = (text) => {
                             
                             <!-- Description & Learning Path -->
                             <div class="mb-6 flex-1">
-                                <p class="text-sm leading-relaxed mb-4 font-medium opacity-90">
+                                <p class="text-sm leading-relaxed mb-4 font-medium opacity-90 line-clamp-2">
                                     ${series.description}
                                 </p>
                                 
                                 ${series.topic_covered && series.topic_covered.length > 0 ? `
                                     <div class="space-y-3">
-                                        <div class="flex flex-wrap gap-2">
-                                            ${series.topic_covered.map(topic => 
-                                                `<span class="text-xs px-3 py-2 ${isActive ? 'bg-purple-500/15 border-purple-400/30' : 'bg-gray-600/15 border-gray-500/30'} rounded-xl font-bold border">${topic}</span>`
+                                        <div class="flex flex-nowrap gap-2 overflow-hidden">
+                                            ${series.topic_covered.slice(0, 2).map(topic => 
+                                                `<span class="text-xs px-3 py-2 ${isActive ? 'bg-purple-500/15 border-purple-400/30' : 'bg-gray-600/15 border-gray-500/30'} rounded-xl font-bold border whitespace-nowrap flex-shrink-0">${topic}</span>`
                                             ).join('')}
+                                            ${series.topic_covered.length > 2 ? 
+                                                `<span class="text-xs px-3 py-2 ${isActive ? 'bg-purple-500/15 border-purple-400/30' : 'bg-gray-600/15 border-gray-500/30'} rounded-xl font-bold border whitespace-nowrap flex-shrink-0 opacity-75">+${series.topic_covered.length - 2} more</span>`
+                                                : ''
+                                            }
                                         </div>
                                     </div>
                                 ` : ''}

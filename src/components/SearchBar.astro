@@ -13,7 +13,7 @@ const searchEndpoint = 'https://backend.takovibe.com/api/blogs/blogs/';
 
 <div class="space-y-1">
   <!-- Pro tip (only show for header variant) -->
-  {variant === 'header' && (
+  <!-- {variant === 'header' && (
     <div class="px-1 text-xs text-white/60 flex items-center gap-1">
       <span class="inline-flex items-center">
         <span class="w-4 h-4 mr-0.5 inline-flex items-center justify-center">💡</span>
@@ -23,7 +23,7 @@ const searchEndpoint = 'https://backend.takovibe.com/api/blogs/blogs/';
       <span class="font-mono">/</span>
       anytime to open search quickly
     </div>
-  )}
+  )} -->
 
   <!-- Search Input -->
   <div class="search-container relative">
@@ -34,7 +34,7 @@ const searchEndpoint = 'https://backend.takovibe.com/api/blogs/blogs/';
       <input
         type="text"
         id={`${variant}-search-input`}
-        placeholder={variant === 'blog' ? 'Search blog articles...' : 'Search posts, topics, or keywords...'}
+        placeholder={variant === 'blog' ? 'Press / anytime to search blogs': 'Press / to search blogs'}
         class={`w-full pl-9 pr-4 py-2 rounded-lg border transition-all ${
           variant === 'header' 
             ? 'bg-[#171923] hover:bg-[#1A202C] focus:bg-[#1A202C] text-white/90 placeholder-white/40 border-purple-500/30 focus:border-purple-500/50'
