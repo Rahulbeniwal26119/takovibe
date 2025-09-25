@@ -139,9 +139,6 @@ const { variant = 'default', class: className = '' } = Astro.props;
     const form = event.target;
     const email = form.querySelector('input[type="email"]').value;
     
-    // TODO: Add your newsletter signup logic here
-    console.log('Newsletter signup:', email);
-    
     // Show success message
     const button = form.querySelector('button');
     const originalText = button.textContent;

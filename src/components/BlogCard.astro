@@ -17,6 +17,7 @@ interface Props {
     created_at?: string;
     tags?: string[];
     image_url?: string;
+    readingTime?: string;
     author?: {
       id: number;
       name: string;
@@ -38,8 +39,8 @@ const postData = isApiPost
       date: post.created_at!,
       tags: post.tags || [],
       image: post.image_url,
-      readingTime: "5 min read", // Default for API posts
-      author: post.author?.name || post.author?.username || "TakoVibe Team"
+      readingTime: post.readingTime || "5 min read",
+      author: post.author?.name || post.author?.email || "TakoVibe Team"
     }
   : post.data!;
 

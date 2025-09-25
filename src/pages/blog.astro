@@ -886,8 +886,6 @@ const regularPosts = posts;
         img.style.opacity = '1';
       });
     } catch (error) {
-      console.log('Color extraction failed, using default background');
-      // Fallback: just show the image
       const container = img.closest('[data-image-container]') as HTMLElement;
       const placeholder = container?.querySelector('[data-image-placeholder]') as HTMLElement;
       
