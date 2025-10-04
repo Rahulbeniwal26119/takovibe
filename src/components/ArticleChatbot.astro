@@ -566,36 +566,23 @@ const { articleTitle, articleContent } = Astro.props;
       const message = this.input?.value.trim();
       if (!message || this.isTyping) return;
 
-      // Input validation and sanitization
       if (message.length > 500) {
         this.addMessage('Message too long. Please keep it under 500 characters.', 'bot');
         return;
       }
 
-      // Basic sanitization - remove potential script tags
       const sanitizedMessage = message.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
       
-      // Add user message
       this.addMessage(sanitizedMessage, 'user');
       if (this.input) {
         this.input.value = '';
       }
       this.updateCharCount();
 
-      // Show typing indicator
       this.showTyping();
 
       try {
-        // Simulate API call with realistic delay
-        await this.simulateThinking();
-        
-        // Generate response
-        const response = await this.generateResponse(sanitizedMessage);
-        
-        // Hide typing and show response
-        this.hideTyping();
-        this.addMessage(response, 'bot');
-        
+        await this.generateResponseStreaming(sanitizedMessage);
       } catch (error) {
         this.hideTyping();
         this.addMessage("I'm sorry, I encountered an error. Please try again.", 'bot');
@@ -765,7 +752,7 @@ const { articleTitle, articleContent } = Astro.props;
       return new Promise(resolve => setTimeout(resolve, delay));
     }
 
-    private async generateResponse(message: string): Promise<string> {
+    private async generateResponseStreaming(message: string): Promise<void> {
       try {
         const articleElement = document.querySelector('#Article, article, .prose, .mdx-content');
         const articleContent = articleElement ? articleElement.textContent : '';
@@ -786,6 +773,11 @@ const { articleTitle, articleContent } = Astro.props;
           throw new Error(`API request failed: ${response.status}`);
         }
 
+        this.hideTyping();
+        
+        const messageDiv = this.createBotMessageContainer();
+        const contentDiv = messageDiv.querySelector('.prose-chatbot') as HTMLElement;
+        
         const reader = response.body?.getReader();
         const decoder = new TextDecoder();
         let fullResponse = '';
@@ -806,22 +798,44 @@ const { articleTitle, articleContent } = Astro.props;
               const json = JSON.parse(line);
               if (json.response) {
                 fullResponse += json.response;
+                contentDiv.innerHTML = this.parseMarkdown(fullResponse);
+                this.renderMath(messageDiv);
+                this.scrollToBottom();
               }
               if (json.error) {
-                return json.fallback || this.getFallbackResponse(message);
+                contentDiv.innerHTML = this.parseMarkdown(json.fallback || this.getFallbackResponse(message));
+                return;
               }
             } catch (e) {
-              console.warn('Failed to parse chunk:', line);
+              // Ignore parse errors for incomplete chunks
             }
           }
         }
 
-        return fullResponse || this.getFallbackResponse(message);
+        if (!fullResponse) {
+          contentDiv.innerHTML = this.parseMarkdown(this.getFallbackResponse(message));
+        }
         
       } catch (error) {
         console.error('Error calling chatbot API:', error);
-        return this.getFallbackResponse(message);
+        this.hideTyping();
+        this.addMessage(this.getFallbackResponse(message), 'bot');
       }
+    }
+
+    private createBotMessageContainer(): HTMLElement {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'flex items-start gap-3';
+      messageDiv.innerHTML = `
+        <div class="w-7 h-7 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0">
+          <span class="text-white text-xs">🤖</span>
+        </div>
+        <div class="bg-white dark:bg-slate-700 rounded-lg px-3 py-2 shadow-sm border border-slate-200 dark:border-slate-600 max-w-xs">
+          <div class="text-sm text-slate-700 dark:text-slate-300 prose-chatbot"></div>
+        </div>
+      `;
+      this.messages?.appendChild(messageDiv);
+      return messageDiv;
     }
 
     private getFallbackResponse(message: string): string {
