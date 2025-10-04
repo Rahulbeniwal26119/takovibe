@@ -8,11 +8,15 @@ import rehypeKatex from 'rehype-katex';
 import sitemap from '@astrojs/sitemap';
 import compress from 'astro-compress';
 import pwa from '@vite-pwa/astro';
+import node from '@astrojs/node';
 
 export default defineConfig({
   site: 'https://takovibe.com',
-  // Ensure clean production builds
-  output: 'static',
+  // Enable hybrid mode for API endpoints while keeping static pages
+  output: 'hybrid',
+  adapter: node(
+    { mode: "standalone"}
+  ),
   build: {
     inlineStylesheets: 'auto',
   },
@@ -224,6 +228,5 @@ export default defineConfig({
       }
     }
   },
-  base: '/',
-  output: 'static'
+  base: '/'
 });

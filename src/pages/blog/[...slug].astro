@@ -9,6 +9,7 @@ import { Image } from 'astro:assets';
 import SocialShare from '../../components/SocialShare.astro';
 import RelatedPosts from '../../components/RelatedPosts.astro';
 import FontSizeControl from '../../components/FontSizeControl.astro';
+import ArticleChatbot from '../../components/ArticleChatbot.astro';
 
 // Add this function to sanitize the HTML content
 const removeTabIndex = (content: string) => {
@@ -134,6 +135,9 @@ const { Content } = await post.render();
         <Footer />
       </div>
     </footer>
+
+    <!-- Article Chatbot -->
+    <ArticleChatbot articleTitle={post.data.title} />
   </div>
 </Layout>
 
