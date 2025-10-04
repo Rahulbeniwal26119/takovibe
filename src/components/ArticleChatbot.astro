@@ -767,11 +767,9 @@ const { articleTitle, articleContent } = Astro.props;
 
     private async generateResponse(message: string): Promise<string> {
       try {
-        // Get article content for context
         const articleElement = document.querySelector('#Article, article, .prose, .mdx-content');
         const articleContent = articleElement ? articleElement.textContent : '';
         
-        // Call the API endpoint
         const response = await fetch('/api/chatbot', {
           method: 'POST',
           headers: {
@@ -780,7 +778,7 @@ const { articleTitle, articleContent } = Astro.props;
           body: JSON.stringify({
             message: message,
             articleTitle: this.articleTitle,
-            articleContent: articleContent ? articleContent.substring(0, 4000) : '' // Limit content length
+            articleContent: articleContent ? articleContent.substring(0, 4000) : ''
           }),
         });
 
@@ -788,13 +786,37 @@ const { articleTitle, articleContent } = Astro.props;
           throw new Error(`API request failed: ${response.status}`);
         }
 
-        const data = await response.json();
-        
-        if (data.error) {
-          return data.fallback || this.getFallbackResponse(message);
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+        let fullResponse = '';
+
+        if (!reader) {
+          throw new Error('No response body');
         }
 
-        return data.response || this.getFallbackResponse(message);
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n').filter(line => line.trim());
+
+          for (const line of lines) {
+            try {
+              const json = JSON.parse(line);
+              if (json.response) {
+                fullResponse += json.response;
+              }
+              if (json.error) {
+                return json.fallback || this.getFallbackResponse(message);
+              }
+            } catch (e) {
+              console.warn('Failed to parse chunk:', line);
+            }
+          }
+        }
+
+        return fullResponse || this.getFallbackResponse(message);
         
       } catch (error) {
         console.error('Error calling chatbot API:', error);
