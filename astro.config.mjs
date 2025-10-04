@@ -11,8 +11,8 @@ import pwa from '@vite-pwa/astro';
 
 export default defineConfig({
   site: 'https://takovibe.com',
-  // Ensure clean production builds
-  output: 'static',
+  // Enable hybrid mode for API endpoints while keeping static pages
+  output: 'hybrid',
   build: {
     inlineStylesheets: 'auto',
   },
@@ -224,6 +224,5 @@ export default defineConfig({
       }
     }
   },
-  base: '/',
-  output: 'static'
+  base: '/'
 });
