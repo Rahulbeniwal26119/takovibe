@@ -752,11 +752,17 @@ const { articleTitle, articleContent } = Astro.props;
       return new Promise(resolve => setTimeout(resolve, delay));
     }
 
-    private async generateResponseStreaming(message: string): Promise<void> {
+    private async generateResponseStreaming(message: string, retryCount = 0): Promise<void> {
+      const MAX_RETRIES = 2;
+      const RETRY_DELAY = 2000;
+
       try {
         const articleElement = document.querySelector('#Article, article, .prose, .mdx-content');
         const articleContent = articleElement ? articleElement.textContent : '';
         
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
+
         const response = await fetch('/api/chatbot', {
           method: 'POST',
           headers: {
@@ -767,9 +773,17 @@ const { articleTitle, articleContent } = Astro.props;
             articleTitle: this.articleTitle,
             articleContent: articleContent ? articleContent.substring(0, 4000) : ''
           }),
+          signal: controller.signal
         });
 
+        clearTimeout(timeoutId);
+
         if (!response.ok) {
+          if (response.status === 429) {
+            throw new Error('RATE_LIMIT');
+          } else if (response.status >= 500) {
+            throw new Error('SERVER_ERROR');
+          }
           throw new Error(`API request failed: ${response.status}`);
         }
 
@@ -789,10 +803,23 @@ const { articleTitle, articleContent } = Astro.props;
           throw new Error('No response body');
         }
 
+        let lastChunkTime = Date.now();
+        const STREAM_TIMEOUT = 30000;
+
         while (true) {
+          const streamTimeoutId = setTimeout(() => {
+            if (Date.now() - lastChunkTime > STREAM_TIMEOUT) {
+              reader.cancel();
+              throw new Error('STREAM_TIMEOUT');
+            }
+          }, 1000);
+
           const { done, value } = await reader.read();
+          clearTimeout(streamTimeoutId);
+          
           if (done) break;
 
+          lastChunkTime = Date.now();
           const chunk = decoder.decode(value, { stream: true });
           const lines = chunk.split('\n').filter(line => line.trim());
 
@@ -815,11 +842,16 @@ const { articleTitle, articleContent } = Astro.props;
                 }
               }
               if (json.error) {
+                if (json.error.includes('rate limit') || json.error.includes('Too many')) {
+                  throw new Error('RATE_LIMIT');
+                }
                 contentDiv.innerHTML = this.parseMarkdown(json.fallback || this.getFallbackResponse(message));
                 return;
               }
             } catch (e) {
-              // Ignore parse errors for incomplete chunks
+              if (e instanceof Error && (e.message === 'RATE_LIMIT' || e.message === 'SERVER_ERROR' || e.message === 'STREAM_TIMEOUT')) {
+                throw e;
+              }
             }
           }
         }
@@ -839,8 +871,121 @@ const { articleTitle, articleContent } = Astro.props;
       } catch (error) {
         console.error('Error calling chatbot API:', error);
         this.hideTyping();
-        this.addMessage(this.getFallbackResponse(message), 'bot');
+
+        if (error instanceof Error) {
+          if (error.name === 'AbortError') {
+            this.addErrorMessage(message, 'timeout', retryCount, MAX_RETRIES);
+            return;
+          }
+
+          if ((error.message === 'RATE_LIMIT' || error.message === 'SERVER_ERROR' || error.message === 'STREAM_TIMEOUT') && retryCount < MAX_RETRIES) {
+            this.addRetryMessage(message, retryCount + 1, MAX_RETRIES, error.message);
+            await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (retryCount + 1)));
+            this.showTyping();
+            await this.generateResponseStreaming(message, retryCount + 1);
+            return;
+          }
+
+          if (error.message === 'RATE_LIMIT') {
+            this.addErrorMessage(message, 'rate_limit', retryCount, MAX_RETRIES);
+            return;
+          }
+        }
+
+        this.addErrorMessage(message, 'generic', retryCount, MAX_RETRIES);
       }
+    }
+
+    private addErrorMessage(originalMessage: string, errorType: string, retryCount: number, maxRetries: number) {
+      let errorText = '';
+      let showRetry = retryCount < maxRetries;
+
+      switch (errorType) {
+        case 'timeout':
+          errorText = '⏱️ **Request Timeout**\n\nThe request took too long to complete. This might be due to:\n- High server load\n- Network connectivity issues\n- Large article content';
+          break;
+        case 'rate_limit':
+          errorText = '🚦 **Rate Limit Reached**\n\nToo many requests in a short time. Please wait a moment before trying again.';
+          showRetry = false;
+          break;
+        case 'generic':
+        default:
+          errorText = '❌ **Connection Error**\n\nI\'m having trouble connecting to the AI service. This could be due to:\n- Temporary server issues\n- Network connectivity problems\n- Service maintenance';
+          break;
+      }
+
+      if (showRetry) {
+        errorText += '\n\n*Click the retry button below to try again.*';
+      } else if (retryCount >= maxRetries) {
+        errorText += '\n\n*Maximum retry attempts reached. Please try again later.*';
+      }
+
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'flex flex-col gap-2';
+      
+      const errorMessageDiv = document.createElement('div');
+      errorMessageDiv.className = 'flex items-start gap-3';
+      errorMessageDiv.innerHTML = `
+        <div class="w-7 h-7 bg-gradient-to-r from-red-500 to-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
+          <span class="text-white text-xs">⚠️</span>
+        </div>
+        <div class="bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2 shadow-sm border border-red-200 dark:border-red-800 max-w-xs">
+          <div class="text-sm text-red-800 dark:text-red-200 prose-chatbot">${this.parseMarkdown(errorText)}</div>
+        </div>
+      `;
+
+      if (showRetry) {
+        const retryButton = document.createElement('button');
+        retryButton.className = 'ml-10 px-3 py-1.5 text-xs bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors flex items-center gap-1.5';
+        retryButton.innerHTML = `
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+          Retry
+        `;
+        retryButton.onclick = async () => {
+          retryButton.disabled = true;
+          retryButton.innerHTML = 'Retrying...';
+          messageDiv.remove();
+          this.showTyping();
+          await this.generateResponseStreaming(originalMessage, retryCount);
+        };
+        messageDiv.appendChild(errorMessageDiv);
+        messageDiv.appendChild(retryButton);
+      } else {
+        messageDiv.appendChild(errorMessageDiv);
+      }
+
+      this.messages?.appendChild(messageDiv);
+      this.scrollToBottom();
+    }
+
+    private addRetryMessage(message: string, retryAttempt: number, maxRetries: number, errorType: string) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'flex items-start gap-3 retry-message';
+      
+      let retryReason = 'Connection issue';
+      if (errorType === 'RATE_LIMIT') retryReason = 'Rate limit';
+      else if (errorType === 'STREAM_TIMEOUT') retryReason = 'Stream timeout';
+      else if (errorType === 'SERVER_ERROR') retryReason = 'Server error';
+
+      messageDiv.innerHTML = `
+        <div class="w-7 h-7 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
+          <span class="text-white text-xs">🔄</span>
+        </div>
+        <div class="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg px-3 py-2 shadow-sm border border-yellow-200 dark:border-yellow-800 max-w-xs">
+          <div class="text-sm text-yellow-800 dark:text-yellow-200">
+            <strong>${retryReason} detected.</strong> Retrying... (Attempt ${retryAttempt}/${maxRetries})
+          </div>
+        </div>
+      `;
+
+      this.messages?.appendChild(messageDiv);
+      this.scrollToBottom();
+
+      setTimeout(() => {
+        messageDiv.remove();
+      }, 3000);
     }
 
     private createBotMessageContainer(): HTMLElement {
