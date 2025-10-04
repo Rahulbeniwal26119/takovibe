@@ -781,6 +781,9 @@ const { articleTitle, articleContent } = Astro.props;
         const reader = response.body?.getReader();
         const decoder = new TextDecoder();
         let fullResponse = '';
+        let buffer = '';
+        let wordCount = 0;
+        const WORDS_PER_BATCH = 10;
 
         if (!reader) {
           throw new Error('No response body');
@@ -797,10 +800,19 @@ const { articleTitle, articleContent } = Astro.props;
             try {
               const json = JSON.parse(line);
               if (json.response) {
-                fullResponse += json.response;
-                contentDiv.innerHTML = this.parseMarkdown(fullResponse);
-                this.renderMath(messageDiv);
-                this.scrollToBottom();
+                buffer += json.response;
+                
+                const words = buffer.split(/(\s+)/);
+                wordCount += words.filter(w => w.trim()).length;
+                
+                if (wordCount >= WORDS_PER_BATCH) {
+                  fullResponse += buffer;
+                  buffer = '';
+                  wordCount = 0;
+                  contentDiv.innerHTML = this.parseMarkdown(fullResponse);
+                  this.renderMath(messageDiv);
+                  this.scrollToBottom();
+                }
               }
               if (json.error) {
                 contentDiv.innerHTML = this.parseMarkdown(json.fallback || this.getFallbackResponse(message));
@@ -811,6 +823,14 @@ const { articleTitle, articleContent } = Astro.props;
             }
           }
         }
+
+        if (buffer) {
+          fullResponse += buffer;
+        }
+        
+        contentDiv.innerHTML = this.parseMarkdown(fullResponse);
+        this.renderMath(messageDiv);
+        this.scrollToBottom();
 
         if (!fullResponse) {
           contentDiv.innerHTML = this.parseMarkdown(this.getFallbackResponse(message));
