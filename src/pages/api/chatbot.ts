@@ -110,6 +110,9 @@ export const POST: APIRoute = async ({ request }) => {
 };
 
 async function streamHostedLLM(message: string, articleTitle: string, articleContent: string, controller: ReadableStreamDefaultController) {
+  const startTime = Date.now();
+  console.log('[API] 🚀 Starting LLM request at', new Date().toISOString());
+  
   const prompt = `You are a helpful assistant for the blog article "${articleTitle}". Your role is to help readers understand the article content better by answering questions, explaining concepts, and providing clarifications.
 
 Article content context:
@@ -126,6 +129,9 @@ User question: ${message}
 
 Answer:`;
 
+  console.log('[API] 📤 Sending request to LLM API...');
+  const fetchStartTime = Date.now();
+  
   const response = await fetch('https://chat.takovibe.com/api/generate', {
     method: 'POST',
     headers: {
@@ -138,6 +144,9 @@ Answer:`;
     }),
   });
 
+  const fetchDuration = Date.now() - fetchStartTime;
+  console.log(`[API] ✅ Got response headers in ${fetchDuration}ms`);
+
   if (!response.ok) {
     throw new Error(`Hosted LLM API error: ${response.status}`);
   }
@@ -149,9 +158,26 @@ Answer:`;
     throw new Error('No response body');
   }
 
+  console.log('[API] 📥 Starting to read stream...');
+  let chunkCount = 0;
+  let firstChunkTime: number | null = null;
+
   while (true) {
+    const chunkStartTime = Date.now();
     const { done, value } = await reader.read();
-    if (done) break;
+    
+    if (done) {
+      const totalDuration = Date.now() - startTime;
+      console.log(`[API] ✨ Stream complete. Total chunks: ${chunkCount}, Total time: ${totalDuration}ms`);
+      break;
+    }
+
+    chunkCount++;
+    if (firstChunkTime === null) {
+      firstChunkTime = Date.now();
+      const timeToFirstChunk = firstChunkTime - startTime;
+      console.log(`[API] ⚡ First chunk received in ${timeToFirstChunk}ms`);
+    }
 
     const chunk = decoder.decode(value, { stream: true });
     const lines = chunk.split('\n').filter(line => line.trim());
@@ -160,14 +186,25 @@ Answer:`;
       try {
         const json = JSON.parse(line);
         if (json.response) {
+          const encodeStartTime = Date.now();
           controller.enqueue(new TextEncoder().encode(JSON.stringify({ 
             response: json.response, 
             done: json.done || false 
           }) + '\n'));
+          const encodeDuration = Date.now() - encodeStartTime;
+          
+          if (chunkCount <= 3 || chunkCount % 10 === 0) {
+            console.log(`[API] 📦 Chunk ${chunkCount}: ${json.response.length} chars, encode: ${encodeDuration}ms`);
+          }
         }
       } catch (e) {
-        console.error('Failed to parse JSON line:', line);
+        console.error('[API] ❌ Failed to parse JSON line:', line);
       }
+    }
+    
+    const chunkDuration = Date.now() - chunkStartTime;
+    if (chunkCount <= 3 || chunkCount % 10 === 0) {
+      console.log(`[API] ⏱️  Chunk ${chunkCount} total processing: ${chunkDuration}ms`);
     }
   }
 }

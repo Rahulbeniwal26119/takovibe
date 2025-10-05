@@ -756,12 +756,18 @@ const { articleTitle, articleContent } = Astro.props;
       const MAX_RETRIES = 2;
       const RETRY_DELAY = 2000;
 
+      const startTime = Date.now();
+      console.log('[Client] 🚀 Starting request at', new Date().toISOString());
+
       try {
         const articleElement = document.querySelector('#Article, article, .prose, .mdx-content');
         const articleContent = articleElement ? articleElement.textContent : '';
         
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+        console.log('[Client] 📤 Sending fetch request...');
+        const fetchStartTime = Date.now();
 
         const response = await fetch('/api/chatbot', {
           method: 'POST',
@@ -775,6 +781,9 @@ const { articleTitle, articleContent } = Astro.props;
           }),
           signal: controller.signal
         });
+
+        const fetchDuration = Date.now() - fetchStartTime;
+        console.log(`[Client] ✅ Got response headers in ${fetchDuration}ms`);
 
         clearTimeout(timeoutId);
 
@@ -800,6 +809,9 @@ const { articleTitle, articleContent } = Astro.props;
           throw new Error('No response body');
         }
 
+        console.log('[Client] 📥 Starting to read stream...');
+        let chunkCount = 0;
+        let firstChunkTime: number | null = null;
         let lastChunkTime = Date.now();
         const STREAM_TIMEOUT = 30000;
 
@@ -811,10 +823,22 @@ const { articleTitle, articleContent } = Astro.props;
             }
           }, 1000);
 
+          const chunkStartTime = Date.now();
           const { done, value } = await reader.read();
           clearTimeout(streamTimeoutId);
           
-          if (done) break;
+          if (done) {
+            const totalDuration = Date.now() - startTime;
+            console.log(`[Client] ✨ Stream complete. Total chunks: ${chunkCount}, Total time: ${totalDuration}ms`);
+            break;
+          }
+
+          chunkCount++;
+          if (firstChunkTime === null) {
+            firstChunkTime = Date.now();
+            const timeToFirstChunk = firstChunkTime - startTime;
+            console.log(`[Client] ⚡ First chunk received in ${timeToFirstChunk}ms`);
+          }
 
           lastChunkTime = Date.now();
           const chunk = decoder.decode(value, { stream: true });
@@ -824,10 +848,16 @@ const { articleTitle, articleContent } = Astro.props;
             try {
               const json = JSON.parse(line);
               if (json.response) {
+                const renderStartTime = Date.now();
                 fullResponse += json.response;
                 contentDiv.innerHTML = this.parseMarkdown(fullResponse);
                 this.renderMath(messageDiv);
                 this.scrollToBottom();
+                const renderDuration = Date.now() - renderStartTime;
+                
+                if (chunkCount <= 3 || chunkCount % 10 === 0) {
+                  console.log(`[Client] 🎨 Chunk ${chunkCount}: ${json.response.length} chars, render: ${renderDuration}ms`);
+                }
               }
               if (json.error) {
                 if (json.error.includes('rate limit') || json.error.includes('Too many')) {
@@ -841,6 +871,11 @@ const { articleTitle, articleContent } = Astro.props;
                 throw e;
               }
             }
+          }
+
+          const chunkDuration = Date.now() - chunkStartTime;
+          if (chunkCount <= 3 || chunkCount % 10 === 0) {
+            console.log(`[Client] ⏱️  Chunk ${chunkCount} total processing: ${chunkDuration}ms`);
           }
         }
 
