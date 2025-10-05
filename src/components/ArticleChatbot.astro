@@ -327,7 +327,6 @@ const { articleTitle, articleContent } = Astro.props;
       `;
       
       document.head.appendChild(style);
-      console.log(`🤖 Chatbot: Updated font size to ${savedSize}px`);
     }
 
     private bindEvents() {
@@ -757,7 +756,6 @@ const { articleTitle, articleContent } = Astro.props;
       const RETRY_DELAY = 2000;
 
       const startTime = Date.now();
-      console.log('[Client] 🚀 Starting request at', new Date().toISOString());
 
       try {
         const articleElement = document.querySelector('#Article, article, .prose, .mdx-content');
@@ -766,7 +764,6 @@ const { articleTitle, articleContent } = Astro.props;
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 60000);
 
-        console.log('[Client] 📤 Sending fetch request...');
         const fetchStartTime = Date.now();
 
         const response = await fetch('/api/chatbot', {
@@ -783,7 +780,6 @@ const { articleTitle, articleContent } = Astro.props;
         });
 
         const fetchDuration = Date.now() - fetchStartTime;
-        console.log(`[Client] ✅ Got response headers in ${fetchDuration}ms`);
 
         clearTimeout(timeoutId);
 
@@ -809,7 +805,6 @@ const { articleTitle, articleContent } = Astro.props;
           throw new Error('No response body');
         }
 
-        console.log('[Client] 📥 Starting to read stream...');
         let chunkCount = 0;
         let firstChunkTime: number | null = null;
         let lastChunkTime = Date.now();
@@ -829,7 +824,6 @@ const { articleTitle, articleContent } = Astro.props;
           
           if (done) {
             const totalDuration = Date.now() - startTime;
-            console.log(`[Client] ✨ Stream complete. Total chunks: ${chunkCount}, Total time: ${totalDuration}ms`);
             break;
           }
 
@@ -837,7 +831,6 @@ const { articleTitle, articleContent } = Astro.props;
           if (firstChunkTime === null) {
             firstChunkTime = Date.now();
             const timeToFirstChunk = firstChunkTime - startTime;
-            console.log(`[Client] ⚡ First chunk received in ${timeToFirstChunk}ms`);
           }
 
           lastChunkTime = Date.now();
@@ -854,10 +847,6 @@ const { articleTitle, articleContent } = Astro.props;
                 this.renderMath(messageDiv);
                 this.scrollToBottom();
                 const renderDuration = Date.now() - renderStartTime;
-                
-                if (chunkCount <= 3 || chunkCount % 10 === 0) {
-                  console.log(`[Client] 🎨 Chunk ${chunkCount}: ${json.response.length} chars, render: ${renderDuration}ms`);
-                }
               }
               if (json.error) {
                 if (json.error.includes('rate limit') || json.error.includes('Too many')) {
@@ -871,11 +860,6 @@ const { articleTitle, articleContent } = Astro.props;
                 throw e;
               }
             }
-          }
-
-          const chunkDuration = Date.now() - chunkStartTime;
-          if (chunkCount <= 3 || chunkCount % 10 === 0) {
-            console.log(`[Client] ⏱️  Chunk ${chunkCount} total processing: ${chunkDuration}ms`);
           }
         }
 
