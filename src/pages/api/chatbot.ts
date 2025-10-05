@@ -126,7 +126,7 @@ User question: ${message}
 
 Answer:`;
 
-  const response = await fetch('http://54.38.65.238:1234/api/generate', {
+  const response = await fetch('https://chat.takovibe.com/api/generate', {
     method: 'POST',
     headers: {
       'Authorization': 'Basic YXBpdXNlcjpteWFwaWtleW15YXBpa2V5bXlhcGlrZXlteWFwaWtleW15YXBpa2V5bXlhcGlrZXlteWFwaWtleW15YXBpa2V5bXlhcGlrZXlteWFwaWtleW15YXBpa2V5bXlhcGlrZXlteWFwaWtleW15YXBpa2V5bXlhcGlrZXk=',
