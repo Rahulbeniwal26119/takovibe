@@ -1,0 +1,255 @@
+---
+layout: ../../layouts/BlogPost.astro
+title: "Interface Segregation Principle (ISP) in Python and Rust"
+date: "2025-09-21"
+author: "Rahul Beniwal"
+description: "Master the Interface Segregation Principle (ISP) with Python and Rust. Learn how to avoid fat interfaces, design focused abstractions, and write cleaner, maintainable code."
+image: "https://ik.imagekit.io/bhu1voux5/image(2).png"
+readingTime: "10 min read"
+tags: ["low-level-design", "solid", "software-architecture", "clean-code"]
+keywords: ["interface segregation principle python", "isp rust example", "solid principles python", "fat interface problem", "clean code ISP", "low level design python rust"]
+type: "article"
+canonical: "https://takovibe.com/blog/interface-segregation-principle-lld"
+series: "SOLID Principles"
+---
+
+import Quiz from '../../components/Quiz.jsx'
+
+Welcome back, everyone! 🎉  
+
+This article continues my *SOLID principles* series. Today, we’ll cover the **Interface Segregation Principle (ISP)** — one of the most practical design rules for keeping software clean and maintainable.  
+
+👉 Definition:  
+> **Clients should not be forced to depend on interfaces they do not use.**  
+
+---
+
+## 🔹 Recap of SOLID Principles
+
+Before diving into ISP, let’s recall the principles we’ve already discussed:  
+
+- **SRP**: A class should have one reason to change.  
+- **OCP**: Code should be open for extension but closed for modification.  
+- **LSP**: Subtypes should be substitutable for their base types without breaking expectations.  
+
+ISP builds on these by focusing on **how we design interfaces/abstractions**.  
+
+---
+
+## 🔹 What is the Interface Segregation Principle?
+
+The ISP warns against creating **fat interfaces** — broad interfaces that force classes to implement methods they don’t actually need.  
+
+Instead, design **small, specific interfaces** so that each client only implements the functionality it truly requires.  
+
+👉 In short:  
+**Many client-specific interfaces are better than one general-purpose interface.**  
+
+---
+
+## ❌ The Fat Interface Problem
+
+A **fat interface** occurs when an abstraction tries to do too much.  
+
+Example: A `MultiFunctionDevice` interface with methods for printing, scanning, and faxing.  
+
+```python
+from abc import ABC, abstractmethod
+
+class MultiFunctionDevice(ABC):
+    @abstractmethod
+    def print(self, document): ...
+    @abstractmethod
+    def scan(self, document): ...
+    @abstractmethod
+    def fax(self, document): ...
+
+class OldPrinter(MultiFunctionDevice):
+    def print(self, document):
+        print(f"Printing document: {document}")
+    def scan(self, document):
+        raise NotImplementedError("Not supported.")
+    def fax(self, document):
+        raise NotImplementedError("Not supported.")
+```
+
+⚠ Problem: `OldPrinter` is forced to implement `scan()` and `fax()` even though it doesn’t support them. This violates ISP.  
+
+---
+
+## ✅ ISP in Python (Refactored)
+
+We break the fat interface into multiple smaller ones.  
+
+```python
+from abc import ABC, abstractmethod
+
+class Printable(ABC):
+    @abstractmethod
+    def print(self, document): ...
+
+class Scannable(ABC):
+    @abstractmethod
+    def scan(self, document): ...
+
+class Faxable(ABC):
+    @abstractmethod
+    def fax(self, document): ...
+
+class OldPrinter(Printable):
+    def print(self, document):
+        print(f"Printing: {document}")
+
+class ModernPrinter(Printable, Scannable, Faxable):
+    def print(self, document):
+        print(f"Printing: {document}")
+    def scan(self, document):
+        print(f"Scanning: {document}")
+    def fax(self, document):
+        print(f"Faxing: {document}")
+```
+
+✔ Each class only implements the interfaces it needs.  
+
+---
+
+## ❌ ISP Violation in Rust
+
+```rust
+trait MultiFunctionDevice {
+    fn print(&self, document: &str);
+    fn scan(&self, document: &str);
+    fn fax(&self, document: &str);
+}
+
+struct OldPrinter;
+
+impl MultiFunctionDevice for OldPrinter {
+    fn print(&self, document: &str) {
+        println!("Printing: {}", document);
+    }
+    fn scan(&self, _document: &str) {
+        panic!("Scan not supported.");
+    }
+    fn fax(&self, _document: &str) {
+        panic!("Fax not supported.");
+    }
+}
+```
+
+⚠ Again, `OldPrinter` is burdened with methods it doesn’t support.  
+
+---
+
+## ✅ ISP in Rust (Refactored)
+
+```rust
+trait Printer {
+    fn print(&self, document: &str);
+}
+trait Scanner {
+    fn scan(&self, document: &str);
+}
+trait Fax {
+    fn fax(&self, document: &str);
+}
+
+struct OldPrinter;
+impl Printer for OldPrinter {
+    fn print(&self, document: &str) {
+        println!("Printing: {}", document);
+    }
+}
+
+struct ModernPrinter;
+impl Printer for ModernPrinter {
+    fn print(&self, document: &str) {
+        println!("Printing: {}", document);
+    }
+}
+impl Scanner for ModernPrinter {
+    fn scan(&self, document: &str) {
+        println!("Scanning: {}", document);
+    }
+}
+impl Fax for ModernPrinter {
+    fn fax(&self, document: &str) {
+        println!("Faxing: {}", document);
+    }
+}
+```
+
+✔ Each struct implements only what it supports.  
+
+---
+
+## 🔹 ISP Compared to Other SOLID Principles
+
+- **ISP & SRP** → Both encourage focus. SRP applies to classes, ISP applies to interfaces.  
+- **ISP & OCP** → Instead of bloating an old interface, ISP suggests adding a new one, aligning with OCP.  
+- **ISP & LSP** → ISP prevents LSP violations (e.g., a `Penguin` shouldn’t be forced to implement `fly()`).  
+
+---
+
+## 🙋 FAQ
+
+**Q1: Does ISP mean interfaces should have only one method?**  
+No. Interfaces can have multiple methods as long as they are cohesive.  
+
+**Q2: What’s a sign of ISP violation?**  
+If you see classes with unused or dummy methods, you likely have a fat interface.  
+
+**Q3: How does ISP help maintainability?**  
+Changes to one interface affect only the classes that truly depend on it, reducing ripple effects.  
+
+---
+
+## 🙏 Conclusion
+
+The **Interface Segregation Principle (ISP)** helps us avoid fat interfaces and ensures each client only depends on what it needs.  
+
+- No unused methods 🚫  
+- Many small, focused interfaces ✅  
+- High cohesion, low coupling 🎯  
+
+By applying ISP, you’ll make your code cleaner, more modular, and easier to maintain.  
+
+---
+
+<Quiz
+  title="Interface Segregation Principle Quiz"
+  description="Test your understanding of ISP with Python and Rust examples."
+  questions={[
+    {
+      id: 'q1',
+      question: 'What is the main idea of ISP?',
+      options: [
+        { value: 'A', label: 'A. Clients should not depend on interfaces they don’t use' },
+        { value: 'B', label: 'B. Every class must implement all methods of the base interface' },
+      ],
+      correct: 'A',
+      explanation: 'ISP ensures classes only implement what they need.'
+    },
+    {
+      id: 'q2',
+      question: 'What problem does ISP solve?',
+      options: [
+        { value: 'A', label: 'A. Fat interfaces that force dummy implementations' },
+        { value: 'B', label: 'B. Slow runtime performance' },
+      ],
+      correct: 'A',
+      explanation: 'ISP avoids fat interfaces by splitting them into smaller ones.'
+    },
+    {
+      id: 'q3',
+      question: 'How is ISP related to SRP?',
+      options: [
+        { value: 'A', label: 'A. ISP applies SRP at the interface level' },
+        { value: 'B', label: 'B. They are unrelated' },
+      ],
+      correct: 'A',
+      explanation: 'Both encourage cohesion — SRP for classes, ISP for interfaces.'
+    }
+  ]}
+  client:load
+/>

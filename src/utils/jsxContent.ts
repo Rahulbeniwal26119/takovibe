@@ -31,9 +31,6 @@ export async function getJSXPosts(): Promise<JSXPost[]> {
       const filePath = path.join(contentDir, file);
       const fileContent = fs.readFileSync(filePath, 'utf-8');
       
-      // Parse frontmatter from JSX comments
-      console.log('File content for', file, ':', fileContent.substring(0, 100));
-      
       // Try multiple regex patterns
       let frontmatterMatch = fileContent.match(/\/\*\s*---\s*([\s\S]*?)\s*---\s*\*\//);
       

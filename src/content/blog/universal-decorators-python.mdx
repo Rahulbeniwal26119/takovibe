@@ -1,0 +1,314 @@
+---
+title: "Universal Decorators in Python: Handle Sync & Async Functions with One Trick"
+description: "Master Python decorators with a universal approach that works for both sync and async functions. Learn retry logic, timing, logging, and stacking decorators seamlessly."
+author: "Rahul Beniwal"
+date: "2025-08-24"
+tags: ["Python", "Decorators", "Async", "Backend Development", "Best Practices"]
+readingTime: "9 min read"
+type: "article"
+image: "https://ik.imagekit.io/bhu1voux5/universal%20decorators%20Python?updatedAt=1756008810709"
+canonical: "https://takovibe.com/blog/universal-decorators/"
+---
+
+import Quiz from '../../components/Quiz';
+
+# Universal Decorators in Python: One Trick That Will Change the Way You Code Forever
+
+Decorators are one of Python’s most powerful features — yet also one of the most misunderstood.  
+Most tutorials stop at `@mydecorator` for synchronous functions. Maybe they mention `functools.wraps`.  
+But in the real world, we deal with both sync and async functions — and things get tricky:
+
+- “Do I need two different decorators?”  
+- “Why does my decorator not work with async functions?”  
+- “How do I stack multiple decorators without breaking them?”  
+
+This article solves all those problems by building a universal decorator system. By the end, you’ll have a reusable tool that makes your decorators bulletproof.
+
+---
+
+## 🔍 What is a Decorator?
+
+At its core, a decorator is just a function that takes another function and returns a new one.
+
+```python
+def simple_decorator(func):
+    def wrapper(*a, **k):
+        print("Before call")
+        result = func(*a, **k)
+        print("After call")
+        return result
+    return wrapper
+
+@simple_decorator
+def greet(name):
+    print(f"Hello {name}")
+
+greet("HELLO")
+```
+
+✅ This works for synchronous functions.  
+⚠️ But for async functions, it fails — the wrapper itself must be `async`.
+
+---
+
+## ⚠️ The Problem with Async Decorators
+
+```python
+import asyncio
+
+def bad_decorator(func):
+    def wrapper(*a, **k):
+        print("Before")
+        result = func(*a, **k)
+        print("After")
+        return result
+    return wrapper
+
+@bad_decorator
+async def hello():
+    print("Hello async")
+
+asyncio.run(hello())
+```
+
+**Output:**  
+```
+Before
+After
+Hello async
+```
+
+It seems to work, but the decorator cannot **await** the function or control execution properly.
+
+---
+
+## ✅ The Universal Wrapper
+
+```python
+import asyncio, functools, inspect
+
+def universal(dec_logic):
+    def decorate(func):
+        if asyncio.iscoroutinefunction(func):
+            # For async functions
+            @functools.wraps(func)
+            async def async_wraps(*a, **b):
+                out = dec_logic(func, *a, **b)
+                return await out if inspect.isawaitable(out) else out
+            return async_wraps
+        else:
+            @functools.wraps(func)
+            def sync_wrapper(*a, **b):
+                return dec_logic(func, *a, **b)
+            return sync_wrapper
+    return decorate
+```
+
+- `asyncio.iscoroutinefunction(func)` → checks if `func` is async.  
+- `functools.wraps` → preserves name & docstring.  
+- `inspect.isawaitable(out)` → ensures coroutine results are awaited.  
+
+This single function is the skeleton. Now let’s plug in logic.
+
+---
+
+## 🔁 Adding Retry Logic
+
+```python
+import time, inspect, asyncio, random
+
+def retry_logic(func, *a, **k):
+    attempts = k.pop("attempts", 3)
+    delay = k.pop("delay", 1)
+
+    def run_sync():
+        for i in range(1, attempts+1):
+            try:
+                return func(*a, **k)
+            except Exception:
+                if i >= attempts:
+                    raise
+                time.sleep(delay)
+
+    async def run_async():
+        trail = 1
+        while True:
+            try:
+                res = func(*a, **k)
+                return await res if inspect.isawaitable(res) else res
+            except Exception:
+                if trail >= attempts:
+                    raise
+                await asyncio.sleep(delay)
+                trail += 1
+
+    return run_async() if inspect.iscoroutinefunction(func) else run_sync
+
+retry = universal(retry_logic)
+
+@retry
+def flaky_sync():
+    if random.random() < 0.5:
+        raise RuntimeError("boom")
+    return "OK"
+
+@retry
+async def flaky_async():
+    await asyncio.sleep(1)
+    if random.random() < 0.5:
+        raise RuntimeError("boom")
+    return "OK"
+
+print(flaky_sync())
+asyncio.run(flaky_async())
+```
+
+---
+
+## ⏱ Timing & Logging
+
+```python
+import time, inspect
+
+def time_and_log(func, *a, **k):
+    t0 = time.perf_counter()
+    try:
+        res = func(*a, **k)
+        if inspect.isawaitable(res):
+            async def _await_and_log():
+                try:
+                    return await res
+                finally:
+                    dt = time.perf_counter() - t0
+                    print(f"{func.__name__} took {dt*1000:.2f} ms (async)")
+            return _await_and_log()
+        else:
+            return res
+    finally:
+        if not inspect.isawaitable(locals().get("res")):
+            dt = (time.perf_counter() - t0) * 1000
+            print(f"{func.__name__} took {dt:.2f} ms (sync)")
+
+timeit = universal(time_and_log)
+
+@timeit
+def add(a, b):
+    return a + b
+
+@timeit
+async def aadd(a, b):
+    await asyncio.sleep(1)
+    return a + b
+
+print(add(100, 11))
+asyncio.run(aadd(10, 11))
+```
+
+**Output:**  
+```
+add took 0.02 ms (sync)
+aadd took 1001.00 ms (async)
+```
+
+---
+
+## 🔗 Stacking Decorators
+
+```python
+@timeit
+@retry
+def flaky_sync():
+    if random.random() < 0.5:
+        raise RuntimeError("boom")
+    return "OK"
+
+@timeit
+@retry
+async def flaky_async():
+    await asyncio.sleep(1)
+    if random.random() < 0.5:
+        raise RuntimeError("boom")
+    return "OK"
+
+flaky_sync()
+asyncio.run(flaky_async())
+```
+
+✔️ Universal decorators can be stacked seamlessly!
+
+---
+
+## ⚡ Common Pitfalls Explained
+- ❌ Why not just `await func(*a, **k)`? → Breaks for sync functions.  
+- ✅ Why `functools.wraps`? → Preserves metadata for debugging.  
+- ✅ Why `return run_async()` instead of `run_async`? → We want a coroutine object.  
+- ❌ Why use `asyncio.run` inside retry? → Causes nested event loops.  
+
+---
+
+## 🎯 Final Words
+Most people think decorators are “that cool @syntax in Python.” But with this universal approach, they become a toolbox for resilient, production-ready code.  
+
+Next time you write a decorator, don’t ask “sync or async?” — just make it universal.
+
+---
+
+## 🧑‍💻 Mini-Quiz: Universal Decorators
+
+<div className="my-8">
+<Quiz
+  title="Universal Decorators Quiz"
+  description="Test your knowledge of Python decorators that work for both sync and async functions."
+  questions={[
+    {
+      id: 'q1',
+      question: 'Why do we need to check if a function is a coroutine?',
+      options: [
+        { value: 'A', label: 'A. To decide whether to build an async or sync wrapper' },
+        { value: 'B', label: 'B. To speed up sync functions' },
+        { value: 'C', label: 'C. To avoid using functools.wraps' },
+        { value: 'D', label: 'D. To disable retry logic' }
+      ],
+      correct: 'A',
+      explanation: 'We must know if the function is async so we can build an async wrapper that awaits correctly.'
+    },
+    {
+      id: 'q2',
+      question: 'Which utility ensures function names and docstrings are preserved in decorators?',
+      options: [
+        { value: 'A', label: 'A. inspect.isawaitable' },
+        { value: 'B', label: 'B. asyncio.run' },
+        { value: 'C', label: 'C. functools.wraps' },
+        { value: 'D', label: 'D. decorator.preserve' }
+      ],
+      correct: 'C',
+      explanation: 'functools.wraps preserves metadata such as __name__ and __doc__.'
+    },
+    {
+      id: 'q3',
+      question: 'Why do we return run_async() instead of run_async?',
+      options: [
+        { value: 'A', label: 'A. To immediately create a coroutine object for awaiting' },
+        { value: 'B', label: 'B. To save memory' },
+        { value: 'C', label: 'C. To avoid recursion' },
+        { value: 'D', label: 'D. To improve retry speed' }
+      ],
+      correct: 'A',
+      explanation: 'Returning run_async() produces a coroutine that can be awaited by the async wrapper.'
+    },
+    {
+      id: 'q4',
+      question: 'What is the main advantage of the universal decorator pattern?',
+      options: [
+        { value: 'A', label: 'A. It only works with async functions' },
+        { value: 'B', label: 'B. It eliminates the need for any decorators' },
+        { value: 'C', label: 'C. It handles both sync and async seamlessly' },
+        { value: 'D', label: 'D. It automatically retries failed imports' }
+      ],
+      correct: 'C',
+      explanation: 'The universal decorator handles both sync and async functions with one unified system.'
+    }
+  ]}
+  client:load
+/>
+</div>

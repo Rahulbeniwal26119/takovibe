@@ -1,0 +1,278 @@
+---
+layout: ../../layouts/BlogPost.astro
+title: "Dependency Inversion Principle (DIP) in SOLID with Python & Rust Examples"
+date: "2025-09-21"
+author: "Rahul Beniwal"
+image: "https://ik.imagekit.io/bhu1voux5/image(4).png"
+readingTime: "10 min read"
+tags: ["low-level-design", "solid", "software-architecture", "clean-code"]
+description: "Master the Dependency Inversion Principle (DIP) in SOLID design with Python and Rust examples. Learn how to decouple high-level and low-level modules using abstractions."
+canonicalUrl: "https://takovibe.com/blog/dependency-inversion-principle-lld"
+type: "article"
+series: "SOLID Principles"
+---
+
+import Quiz from '../../components/Quiz.jsx'
+
+Welcome Everyone 👋, today I’m covering the **last article in the SOLID principles series**.  
+We’ve gone through SRP, OCP, LSP, and ISP — now let’s complete the set with the **Dependency Inversion Principle (DIP)**.
+
+---
+
+## What is the Dependency Inversion Principle?
+
+The Dependency Inversion Principle (DIP) states:
+
+> **High-level modules should not depend on low-level modules. Both should depend on abstractions.**  
+> **Abstractions should not depend on details; details should depend on abstractions.**
+
+✅ In simple terms: insert an abstraction layer between **business logic** (high-level) and **implementation details** (low-level).
+
+---
+
+## Why DIP Matters?
+
+- 🔌 **Looser Coupling** → Business logic isn’t tied to one implementation.  
+- 🧪 **Improved Testability** → Easy to mock dependencies.  
+- 🚀 **Flexibility & Extensibility** → Swap out details (e.g., Email → SMS → Push notifications) without touching the core logic.  
+
+---
+
+## Without DIP ❌
+
+### Python
+
+```python
+class SendEmail:
+    def send(self, message):
+        print(f"Sending email: {message}")
+
+class NotificationService:
+    def __init__(self, email_sender):
+        # tightly coupled with Email
+        self.email_sender = email_sender
+
+    def notify(self, message):
+        self.email_sender.send(message)
+
+service = NotificationService(SendEmail())
+service.notify("Welcome to SOLID!")
+```
+
+⚠️ Problems:  
+- Hard to extend (SMS, push, etc.).  
+- Violates OCP.  
+- Difficult to test without a real email sender.  
+
+### Rust
+
+```rust
+struct SendEmail;
+
+impl SendEmail {
+    fn send(&self, message: &str) {
+        println!("Sending email: {}", message);
+    }
+}
+
+struct NotificationService {
+    email_sender: SendEmail,
+}
+
+impl NotificationService {
+    fn new(email_sender: SendEmail) -> Self {
+        NotificationService { email_sender }
+    }
+
+    fn notify(&self, message: &str) {
+        self.email_sender.send(message);
+    }
+}
+
+fn main() {
+    let service = NotificationService::new(SendEmail);
+    service.notify("Welcome to SOLID series!");
+}
+```
+
+---
+
+## With DIP ✅
+
+### Python
+
+```python
+from abc import ABC, abstractmethod
+
+class Notifier(ABC):
+    @abstractmethod
+    def send(self, message): ...
+
+class SendEmail(Notifier):
+    def send(self, message):
+        print(f"Sending email: {message}")
+
+class SendSMS(Notifier):
+    def send(self, message):
+        print(f"Sending SMS: {message}")
+
+class NotificationService:
+    def __init__(self, notifier: Notifier):
+        self.notifier = notifier
+
+    def notify(self, message):
+        self.notifier.send(message)
+
+# Plug-and-play implementations
+NotificationService(SendEmail()).notify("Hello via Email!")
+NotificationService(SendSMS()).notify("Hello via SMS!")
+```
+
+### Rust
+
+```rust
+trait Notifier {
+    fn send(&self, message: &str);
+}
+
+struct SendEmail;
+struct SendSMS;
+
+impl Notifier for SendEmail {
+    fn send(&self, message: &str) {
+        println!("Sending Email: {}", message);
+    }
+}
+
+impl Notifier for SendSMS {
+    fn send(&self, message: &str) {
+        println!("Sending SMS: {}", message);
+    }
+}
+
+struct NotificationService<T: Notifier> {
+    notifier: T,
+}
+
+impl<T: Notifier> NotificationService<T> {
+    fn new(notifier: T) -> Self {
+        NotificationService { notifier }
+    }
+
+    fn notify(&self, message: &str) {
+        self.notifier.send(message);
+    }
+}
+
+fn main() {
+    let email_service = NotificationService::new(SendEmail);
+    email_service.notify("Hello via Email!");
+
+    let sms_service = NotificationService::new(SendSMS);
+    sms_service.notify("Hello via SMS!");
+}
+```
+
+---
+
+## DIP and Other SOLID Principles
+
+- **DIP + OCP** → Extend via new implementations, no need to modify core logic.  
+- **DIP + ISP** → Interfaces should be small & focused, keeping dependencies clean.  
+- **DIP + LSP** → Abstractions must be substitutable for correctness.  
+- **DIP + SRP** → Classes stay focused, dependencies inverted for flexibility.  
+
+---
+
+## 📌 SOLID Recap (Cheat Sheet)
+
+Here’s a quick recap of all five principles with links:
+
+1. **SRP – Single Responsibility Principle** → [Read SRP Guide](./single-responsibility-principle-lld)  
+   *One class = one reason to change.*  
+
+2. **OCP – Open/Closed Principle** → [Read OCP Guide](./open-closed-principle-lld)  
+   *Open for extension, closed for modification.*  
+
+3. **LSP – Liskov Substitution Principle** → [Read LSP Guide](./liskov-substitution-principle-lld)  
+   *Subtypes must be substitutable for their base types.*  
+
+4. **ISP – Interface Segregation Principle** → [Read ISP Guide](./interface-segregation-principle-lld)  
+   *Many small, specific interfaces > one fat interface.*  
+
+5. **DIP – Dependency Inversion Principle** (this article)  
+   *High-level & low-level depend on abstractions.*  
+
+💡 Save this cheat sheet! It’s your quick reference for mastering SOLID.
+
+---
+
+## Conclusion 🎯
+
+The **Dependency Inversion Principle** makes your software:  
+✔️ Easier to extend  
+✔️ Easier to test  
+✔️ Less fragile against change  
+
+With this, you’ve mastered all **five SOLID principles** 🎉.  
+
+Together, they help us build software that is **modular, maintainable, and future-proof**.  
+
+---
+
+## ❓ FAQ
+
+**Q: Is DIP the same as Dependency Injection?**  
+A: Not exactly. DIP is the principle; dependency injection is one way to implement it.  
+
+**Q: Do I always need interfaces for DIP?**  
+A: Not always — but whenever high-level depends directly on low-level, DIP is likely being violated.  
+
+---
+<Quiz
+  title="Dependency Inversion Principle Quiz"
+  description="Test your understanding of DIP with Python and Rust examples."
+  questions={[
+    {
+      id: 'q1',
+      question: 'What does the Dependency Inversion Principle (DIP) state?',
+      options: [
+        { value: 'A', label: 'A. High-level modules should depend on low-level modules' },
+        { value: 'B', label: 'B. High-level and low-level modules should both depend on abstractions' },
+        { value: 'C', label: 'C. Abstractions must always depend on details' },
+        { value: 'D', label: 'D. Low-level modules should never be replaced' },
+      ],
+      correct: 'B',
+      explanation: 'DIP says both high-level and low-level modules should rely on abstractions, not on each other directly.'
+    },
+    {
+      id: 'q2',
+      question: 'How does DIP improve testability?',
+      options: [
+        { value: 'A', label: 'A. By forcing inheritance in all modules' },
+        { value: 'B', label: 'B. By allowing mocks or stubs to replace real implementations' },
+        { value: 'C', label: 'C. By requiring direct coupling between modules' },
+        { value: 'D', label: 'D. By reducing the number of tests needed' },
+      ],
+      correct: 'B',
+      explanation: 'Because high-level code depends on abstractions, we can inject mocks or stubs to test in isolation.'
+    },
+    {
+      id: 'q3',
+      question: 'What’s the difference between DIP and Dependency Injection?',
+      options: [
+        { value: 'A', label: 'A. They are the same thing' },
+        { value: 'B', label: 'B. DIP is a principle; Dependency Injection is a way to implement it' },
+        { value: 'C', label: 'C. Dependency Injection is a principle; DIP is a design pattern' },
+        { value: 'D', label: 'D. DIP only applies to databases' },
+      ],
+      correct: 'B',
+      explanation: 'DIP is the principle (depend on abstractions), while Dependency Injection is one technique to implement it.'
+    }
+  ]}
+  client:load
+/>
+
+---
+
+**Thank you for reading 🙌. If you enjoyed this series, make sure to follow and share it with your peers.**  

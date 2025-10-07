@@ -34,19 +34,12 @@ const CeleryArchitectureDemo = () => {
     e.preventDefault();
     e.stopPropagation();
     
-    console.log('🔥 BUTTON CLICKED! Current state:', {
-      isSimulating,
-      messagesLength: messages.length,
-      currentStep
-    });
-    
     if (isSimulating) {
       console.log('⚠️ Already simulating, blocking...');
       return;
     }
     
     // Immediately show that something is happening
-    console.log('✅ Starting simulation NOW...');
     setIsSimulating(true);
     setCurrentStep(0);
     setMessages([{ 

@@ -1,0 +1,285 @@
+---
+layout: ../../layouts/BlogPost.astro
+title: "Single Responsibility Principle (SRP) in Python and Rust"
+date: "2025-09-21"
+author: "Rahul Beniwal"
+description: "Master the Single Responsibility Principle (SRP) with Python and Rust. Understand its importance, common mistakes, real-world applications, and see practical code examples."
+image: "https://ik.imagekit.io/bhu1voux5/SPR.png"
+readingTime: "10 min read"
+tags: ["low-level-design", "solid", "software-architecture", "clean-code"]
+keywords: ["single responsibility principle python", "srp rust example", "solid principles python", "god class python", "clean code SRP", "low level design python rust"]
+type: "article"
+canonical: "https://takovibe.com/blog/single-responsibility-principle-lld"
+series: "SOLID Principles"
+---
+
+import Quiz from '../../components/Quiz.jsx'
+
+Welcome back, everyone! 🎉  
+
+This article is part of my *Low Level Design* series, where we explore the **SOLID principles** of clean code. Today, we’ll cover the **Single Responsibility Principle (SRP)** — the first principle in SOLID.  
+
+👉 In short:  
+> A class, function, or module should have **only one reason to change**.  
+
+---
+
+## 🔹 What is SRP?
+
+The Single Responsibility Principle (SRP) was introduced by **Robert C. Martin (Uncle Bob)**.  
+
+It means:  
+- Each class should handle **one responsibility**.  
+- A class that does multiple unrelated things becomes hard to test, maintain, and extend.  
+
+---
+
+## 🔹 Why SRP is Important?
+
+- **Isolation of Changes** – Changes to one responsibility won’t break unrelated parts.  
+- **Improved Clarity** – Each part of the system has a clear and well-defined purpose.  
+- **Better Testability** – Focused components are easier to test.  
+- **Maintainability** – Adding new features or fixing bugs becomes easier.  
+
+---
+
+## ❌ Common Mistakes
+
+1. **God Classes** – A single class that does everything.  
+2. **Overloaded Functions** – Functions doing multiple unrelated steps.  
+3. **Over-separation** – Creating too many tiny classes for trivial responsibilities.  
+
+👉 Rule of thumb: If you can describe a class with “and” (“This class does X and Y”), it likely violates SRP.  
+
+---
+
+## ❌ Example of a God Class (Python)
+
+```python
+from dataclasses import dataclass
+
+@dataclass
+class BadUser:
+    first_name: str
+    last_name: str
+    email: str
+
+    @classmethod
+    def create_user(cls, first_name, last_name, email):
+        print(f"saving user to database: {email}")
+        user = cls(first_name, last_name, email)
+        print(f"sending welcome email to {user.email}")
+        return user
+    
+    def generate_order_report(self):
+        print(f'generating order report for {self.email}')
+```
+
+⚠ Problems:  
+- `BadUser` is doing **user data management**, **persistence**, **email sending**, and **report generation**.  
+- One change (like database logic) could break others (email sending).  
+
+---
+
+## ✅ SRP Example in Python
+
+Let’s refactor:  
+
+```python
+class User:
+    def __init__(self, name: str, email: str):
+        self.name = name
+        self.email = email
+
+class UserRepository:
+    def __init__(self):
+        self.users = []
+
+    def add_user(self, user: User):
+        self.users.append(user)
+
+    def list_users(self):
+        return self.users
+
+class NotificationService:
+    def send_welcome_email(self, user: User):
+        print(f"Notification: Sending welcome email to {user.email}")
+
+class UserService:
+    def __init__(self, repository: UserRepository, notifier: NotificationService):
+        self.repository = repository
+        self.notifier = notifier
+
+    def register_user(self, name: str, email: str):
+        user = User(name, email)
+        self.repository.add_user(user)
+        self.notifier.send_welcome_email(user)
+        return user
+```
+
+✔ Each class now has a **single responsibility**.  
+
+---
+
+## ✅ SRP Example in Rust
+
+```rust
+struct User {
+    name: String,
+    email: String,
+}
+
+impl User {
+    fn new(name: &str, email: &str) -> Self {
+        Self {
+            name: name.to_string(),
+            email: email.to_string(),
+        }
+    }
+}
+
+struct UserRepository {
+    users: Vec<User>,
+}
+
+impl UserRepository {
+    fn new() -> Self {
+        Self { users: vec![] }
+    }
+
+    fn add_user(&mut self, user: User) {
+        self.users.push(user)
+    }
+
+    fn list_users(&self) -> &Vec<User> {
+        &self.users
+    }
+}
+
+struct NotificationService;
+
+impl NotificationService {
+    fn send_welcome_email(&self, user: &User) {
+        println!("Notification: Sending welcome email to {}", user.email)
+    }
+}
+
+struct UserService {
+    repository: UserRepository,
+    notifier: NotificationService,
+}
+
+impl UserService {
+    fn new(repository: UserRepository, notifier: NotificationService) -> Self {
+        Self { repository, notifier }
+    }
+
+    fn register_user(&mut self, name: &str, email: &str) {
+        let user = User::new(name, email);
+        self.repository.add_user(user);
+        if let Some(last_user) = self.repository.list_users().last() {
+            self.notifier.send_welcome_email(last_user);
+        }
+    }
+}
+```
+
+✔ Same design principle applied in Rust.  
+
+---
+
+## 🔹 Benefits of SRP
+
+- **Easier Maintenance** – Modify one class without affecting others.  
+- **Improved Readability** – Classes are smaller and easier to understand.  
+- **Simpler Testing** – Each component can be tested independently.  
+- **Reusability** – Components with clear boundaries can be reused elsewhere.  
+
+---
+
+## 🔹 Real-World Applications
+
+- **Web Frameworks (MVC/MVT)** – Models, Views, and Controllers each have distinct roles.  
+- **E-commerce Systems** – Order validation, payment, inventory, and notifications are handled separately.  
+- **Microservices** – Each service focuses on a single business capability.  
+
+---
+
+## 🙋 FAQ
+
+**Q1: Does SRP mean only one method per class?**  
+No. A class can have multiple methods as long as they relate to the same responsibility.  
+
+**Q2: Can SRP apply outside OOP?**  
+Yes! Functions, modules, and even services in microservice architecture can follow SRP.  
+
+**Q3: How do I know if a class violates SRP?**  
+If changing one functionality forces unrelated changes, it’s violating SRP.  
+
+**Q4: Does function length matter in SRP?**  
+No. A function can be long but still follow SRP if it does one logical thing.  
+
+---
+
+## 🙏 Conclusion
+
+The **Single Responsibility Principle (SRP)** ensures your code is:  
+- Clean 🧹  
+- Modular 🧩  
+- Testable ✅  
+- Maintainable 🔧  
+
+Whether in Python, Rust, or any other language, SRP helps you design software that is easier to evolve and less prone to bugs.  
+
+---
+
+<Quiz
+  title="Single Responsibility Principle Quiz"
+  description="Test your understanding of SRP with Python and Rust examples."
+  questions={[
+    {
+      id: 'q1',
+      question: 'What is the main idea of SRP?',
+      options: [
+        { value: 'A', label: 'A. A class should only have one reason to change' },
+        { value: 'B', label: 'B. A class should contain only one method' },
+        { value: 'C', label: 'C. A class must always be under 50 lines' },
+      ],
+      correct: 'A',
+      explanation: 'SRP is about responsibility, not method count or length.'
+    },
+    {
+      id: 'q2',
+      question: 'What is a God Class?',
+      options: [
+        { value: 'A', label: 'A. A class with divine performance' },
+        { value: 'B', label: 'B. A class that has too many unrelated responsibilities' },
+        { value: 'C', label: 'C. A base class for all objects' },
+      ],
+      correct: 'B',
+      explanation: 'A God Class does too much and violates SRP.'
+    },
+    {
+      id: 'q3',
+      question: 'Which real-world design follows SRP?',
+      options: [
+        { value: 'A', label: 'A. MVC in web frameworks' },
+        { value: 'B', label: 'B. Microservices' },
+        { value: 'C', label: 'C. Both A and B' },
+      ],
+      correct: 'C',
+      explanation: 'Both MVC and microservices separate responsibilities.'
+    },
+    {
+      id: 'q4',
+      question: 'Does SRP apply only in OOP?',
+      options: [
+        { value: 'A', label: 'A. Yes, only classes' },
+        { value: 'B', label: 'B. No, it applies to functions and modules too' },
+      ],
+      correct: 'B',
+      explanation: 'SRP applies across paradigms, not just classes.'
+    }
+  ]}
+  client:load
+/>

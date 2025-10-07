@@ -26,56 +26,84 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props;
 const { Content } = await post.render();
-console.log(Content)
 ---
 <Layout title={post.data.title} description={post.data.description} type="article" author={post.data.author} tags={post.data.tags} published_date={post.data.date} no_footer={true}>
   <!-- <PomodoroTimer /> -->
     <CopyButton />
     <FontSizeControl />
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-4 pb-8">
 
-    
-    <header class="my-8">
-      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">{post.data.title}</h1>
-      <div class="flex items-center text-base sm:text-lg text-gray-600 dark:text-gray-400 mb-8">
-        <span>{post.data.date}</span>
-        <span class="mx-3">•</span>
-        <span>{post.data.author}</span>
-      </div>
-      
-      <div class="flex items-center justify-center space-x-2 sm:space-x-4 my-6">
-        <div class="h-px bg-gradient-to-r from-transparent via-purple-500 to-transparent w-16 sm:w-32"></div>
-        <div class="flex space-x-1 sm:space-x-2">
-          <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-purple-500"></span>
-          <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-purple-400"></span>
-          <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-purple-300"></span>
+    <!-- Modern Hero Section with Interactive Elements -->
+    <div class="relative -mx-4 md:mx-0">
+      <!-- Animated Gradient Background -->
+      <div class="relative overflow-hidden bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 rounded-none md:rounded-2xl">
+        <!-- Animated Background Pattern -->
+        <div class="absolute inset-0 opacity-20">
+          <div class="absolute inset-0 bg-grid-white/10 bg-grid-16"></div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
         </div>
-        <div class="h-px bg-gradient-to-r from-transparent via-purple-500 to-transparent w-16 sm:w-32"></div>
+        
+        <!-- Floating Elements -->
+        <div class="absolute top-4 right-4 w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full opacity-20 animate-pulse"></div>
+        <div class="absolute bottom-6 left-6 w-12 h-12 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full opacity-15 animate-bounce"></div>
+        
+        <!-- Content -->
+        <div class="relative z-10 px-6 py-8 md:px-12 md:py-16">
+          <!-- Article Metadata Bar -->
+          <div class="flex flex-wrap items-center gap-3 mb-6">
+            <div class="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-3 py-1.5">
+              <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span class="text-white text-xs font-medium">Published</span>
+            </div>
+            <div class="bg-gradient-to-r from-purple-500 to-pink-500 rounded-full px-3 py-1.5">
+              <span class="text-white text-xs font-bold">5 min read</span>
+            </div>
+            {post.data.tags?.slice(0, 2).map((tag) => (
+              <a 
+                href={`/blog?tag=${encodeURIComponent(tag.toLowerCase())}`}
+                class="bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs font-medium px-3 py-1.5 rounded-full hover:bg-white/20 hover:scale-105 transition-all duration-200 cursor-pointer group"
+              >
+                <span class="group-hover:text-purple-200">#{tag}</span>
+              </a>
+            ))}
+          </div>
+          
+          <!-- Dynamic Title with Typing Effect -->
+          <div class="mb-4">
+            <h1 class="text-2xl md:text-4xl lg:text-5xl font-bold text-white leading-tight tracking-tight">
+              <span class="bg-gradient-to-r from-white via-purple-100 to-white bg-clip-text text-transparent animate-gradient bg-300%">
+                {post.data.title}
+              </span>
+            </h1>
+          </div>
+          
+          <!-- Author & Date with Interactive Elements -->
+          <div class="flex items-center justify-between flex-wrap gap-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+                <span class="text-white font-bold text-sm">{post.data.author.charAt(0)}</span>
+              </div>
+              <div>
+                <p class="text-white font-medium text-sm md:text-base">{post.data.author}</p>
+                <p class="text-purple-200 text-xs md:text-sm">{post.data.date}</p>
+              </div>
+            </div>
+            
+            <!-- Interactive Reading Stats -->
+            <div class="flex items-center gap-4">
+              <div class="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg px-3 py-2">
+                <svg class="w-4 h-4 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+                <span class="text-purple-200 text-xs font-medium">Start Reading</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </header>
+    </div>
 
-    {post.data.image && (
-      <div class="relative mb-8 -mx-4 md:mx-0">
-        <div class="aspect-[16/10] md:aspect-[16/9] overflow-hidden rounded-none md:rounded-2xl">
-          <Image 
-            src={post.data.image} 
-            alt={post.data.title}
-            width={1200}
-            height={675}
-            class="w-full h-full object-cover transition-transform duration-700 hover:scale-[1.02]"
-            loading="eager"
-            format="webp"
-            quality={85}
-          />
-        </div>
-        <div class="text-sm text-gray-500 dark:text-gray-400 text-center mt-4 italic">
-          Photo by 
-          <a href={post.data.image} class="text-purple-500 hover:text-purple-600 transition-colors duration-200">Unsplash</a>
-        </div>
-      </div>
-    )}
-
-    <article class="prose prose-lg lg:prose-xl dark:prose-invert max-w-none prose-headings:text-purple-900 dark:prose-headings:text-purple-300 prose-a:text-purple-600 dark:prose-a:text-purple-400" id="Article">
+    <article class="prose prose-lg lg:prose-xl dark:prose-invert max-w-none prose-headings:text-purple-900 dark:prose-headings:text-purple-300 prose-a:text-purple-600 dark:prose-a:text-purple-400 mt-6" id="Article">
       <div class="mdx-content">
         <Content />
       </div>
@@ -112,6 +140,34 @@ console.log(Content)
     <ArticleChatbot articleTitle={post.data.title} />
   </div>
 </Layout>
+
+<style>
+  @keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  
+  .animate-gradient {
+    animation: gradient 8s ease infinite;
+  }
+  
+  .bg-300\% {
+    background-size: 300% 300%;
+  }
+  
+  .bg-grid-16 {
+    background-image: url("data:image/svg+xml,%3csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M0 0h16v16H0z' fill='none'/%3e%3cpath d='M0 0h1v16H0zM15 0h1v16h-1z' fill='currentColor' opacity='0.1'/%3e%3cpath d='M0 0h16v1H0zM0 15h16v1H0z' fill='currentColor' opacity='0.1'/%3e%3c/svg%3e");
+  }
+</style>
+
+<script>
+  // Simple scroll enhancement
+  document.addEventListener('DOMContentLoaded', () => {
+    // Add smooth scrolling behavior
+    document.documentElement.style.scrollBehavior = 'smooth';
+  });
+</script>
 
 <style is:global>
   .prose {

@@ -1,0 +1,1096 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+// Get API URL from environment
+const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
+
+// Fetch series data from API
+let seriesData = [];
+let error = null;
+
+try {
+    const response = await fetch(`${API_URL}/api/blogs/series/`);
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    seriesData = data.results || [];
+} catch (e) {
+    console.error('Failed to fetch series data:', e);
+    error = e.message;
+    // Fallback to empty array if API fails
+    seriesData = [];
+}
+
+// Separate active and planned series
+const activeSeries = seriesData.filter(series => series.is_live);
+const plannedSeries = seriesData.filter(series => !series.is_live);
+
+// Calculate stats for the template
+const totalActiveSeries = activeSeries.length;
+const totalPlannedSeries = plannedSeries.length;
+
+// Pagination constants
+const CARDS_PER_PAGE = 8;
+const activePages = Math.ceil(activeSeries.length / CARDS_PER_PAGE);
+const plannedPages = Math.ceil(plannedSeries.length / CARDS_PER_PAGE);
+
+// Helper function to get difficulty color schemes for 3D cubes
+const getDifficultyColorScheme = (startLevel, endLevel) => {
+    const levels = { beginner: 1, intermediate: 2, advanced: 3 };
+    const start = levels[startLevel] || 1;
+    const end = levels[endLevel] || 1;
+    const avg = (start + end) / 2;
+    
+    if (avg <= 1.5) {
+        return {
+            gradient: 'from-amber-400 via-orange-500 to-red-500',
+            bg: 'from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30',
+            shadow: 'shadow-amber-500/25',
+            glow: 'shadow-amber-500/40',
+            accent: 'bg-amber-500',
+            text: 'text-amber-700 dark:text-amber-300'
+        };
+    }
+    if (avg <= 2.5) {
+        return {
+            gradient: 'from-rose-400 via-pink-500 to-purple-600',
+            bg: 'from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30',
+            shadow: 'shadow-rose-500/25',
+            glow: 'shadow-rose-500/40',
+            accent: 'bg-rose-500',
+            text: 'text-rose-700 dark:text-rose-300'
+        };
+    }
+    return {
+        gradient: 'from-orange-500 via-red-500 to-pink-600',
+        bg: 'from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30',
+        shadow: 'shadow-orange-500/25',
+        glow: 'shadow-orange-500/40',
+        accent: 'bg-orange-500',
+        text: 'text-orange-700 dark:text-orange-300'
+    };
+};
+
+// Enhanced series icons based on topics
+const getSeriesIcon = (topics = []) => {
+    const topicLower = topics.join(' ').toLowerCase();
+    if (topicLower.includes('ai') || topicLower.includes('machine learning') || topicLower.includes('rag')) return "🤖";
+    if (topicLower.includes('django') || topicLower.includes('web')) return "🌐";
+    if (topicLower.includes('system') || topicLower.includes('design')) return "🏗️";
+    if (topicLower.includes('algorithm') || topicLower.includes('dsa')) return "🧠";
+    if (topicLower.includes('python')) return "🐍";
+    if (topicLower.includes('javascript') || topicLower.includes('react')) return "⚛️";
+    if (topicLower.includes('devops') || topicLower.includes('docker')) return "⚙️";
+    if (topicLower.includes('database') || topicLower.includes('sql')) return "🗄️";
+    if (topicLower.includes('security')) return "🔒";
+    if (topicLower.includes('performance')) return "⚡";
+    return "📚";
+};
+
+// Additional vibrant color schemes for variety
+const additionalColorSchemes = [
+    {
+        gradient: 'from-amber-400 via-orange-500 to-red-600',
+        bg: 'from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30',
+        shadow: 'shadow-amber-500/25',
+        glow: 'shadow-amber-500/40',
+        accent: 'bg-amber-500',
+        text: 'text-amber-700 dark:text-amber-300'
+    },
+    {
+        gradient: 'from-rose-400 via-pink-500 to-purple-600',
+        bg: 'from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30',
+        shadow: 'shadow-rose-500/25',
+        glow: 'shadow-rose-500/40',
+        accent: 'bg-rose-500',
+        text: 'text-rose-700 dark:text-rose-300'
+    },
+    {
+        gradient: 'from-orange-400 via-red-500 to-rose-500',
+        bg: 'from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30',
+        shadow: 'shadow-orange-500/25',
+        glow: 'shadow-orange-500/40',
+        accent: 'bg-orange-500',
+        text: 'text-orange-700 dark:text-orange-300'
+    },
+    {
+        gradient: 'from-red-400 via-rose-500 to-pink-600',
+        bg: 'from-red-50 to-rose-50 dark:from-red-950/30 dark:to-rose-950/30',
+        shadow: 'shadow-red-500/25',
+        glow: 'shadow-red-500/40',
+        accent: 'bg-red-500',
+        text: 'text-red-700 dark:text-red-300'
+    },
+    {
+        gradient: 'from-pink-400 via-rose-500 to-purple-600',
+        bg: 'from-pink-50 to-rose-50 dark:from-pink-950/30 dark:to-rose-950/30',
+        shadow: 'shadow-pink-500/25',
+        glow: 'shadow-pink-500/40',
+        accent: 'bg-pink-500',
+        text: 'text-pink-700 dark:text-pink-300'
+    },
+    {
+        gradient: 'from-yellow-400 via-orange-500 to-red-600',
+        bg: 'from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30',
+        shadow: 'shadow-yellow-500/25',
+        glow: 'shadow-yellow-500/40',
+        accent: 'bg-yellow-500',
+        text: 'text-yellow-700 dark:text-yellow-300'
+    }
+];
+
+// Function to get color scheme (difficulty-based or cycling through additional ones)
+const getSeriesColorScheme = (series, index) => {
+    const difficultyScheme = getDifficultyColorScheme(series.start_level, series.end_level);
+    // For variety, sometimes use additional color schemes
+    if (series.topic_covered?.length > 3 || index % 3 === 0) {
+        return additionalColorSchemes[index % additionalColorSchemes.length];
+    }
+    return difficultyScheme;
+};
+
+// Helper function to format date
+const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', { 
+        month: 'long', 
+        day: 'numeric', 
+        year: 'numeric' 
+    });
+};
+
+// Helper function to capitalize text
+const capitalize = (text) => {
+    return text.charAt(0).toUpperCase() + text.slice(1);
+};
+---
+
+<Layout
+    title="Series Collection | TakoVibe - Learning Journeys"
+    author="TakoVibe Team"
+    description="Explore our comprehensive content series covering AI, system design, problem-solving, and more. Structured learning paths for developers with interactive 3D exploration."
+    tags={["series", "tutorials", "learning paths", "programming", "AI", "system design"]}
+>
+    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/30 to-purple-50/30 dark:from-slate-900 dark:via-indigo-950/30 dark:to-purple-950/30">
+        
+        <!-- Enhanced Hero Section -->
+        <section class="relative overflow-hidden pt-24 pb-16 px-4 sm:px-6">
+            <!-- Background effects -->
+            <div class="absolute inset-0">
+                <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-indigo-400/8 to-purple-400/8 rounded-full blur-3xl animate-pulse"></div>
+                <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-r from-purple-400/8 to-pink-400/8 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s"></div>
+                <div class="absolute top-1/2 left-1/2 w-64 h-64 bg-gradient-to-r from-blue-400/8 to-cyan-400/8 rounded-full blur-3xl animate-pulse" style="animation-delay: 4s"></div>
+            </div>
+            
+            <div class="max-w-6xl mx-auto text-center relative z-10">
+                <!-- Header badge -->
+                <div class="inline-flex items-center gap-3 px-6 py-3 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm text-slate-700 dark:text-slate-300 rounded-full text-sm font-medium mb-8 border border-slate-200/80 dark:border-slate-700/80 shadow-sm">
+                    <div class="relative">
+                        <span class="text-lg">📚</span>
+                        <div class="absolute -inset-1 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-full blur-sm"></div>
+                    </div>
+                    <span class="font-semibold">Learning Journeys</span>
+                </div>
+                
+                <!-- Main heading -->
+                <h1 class="text-5xl sm:text-6xl lg:text-7xl font-bold text-slate-900 dark:text-slate-100 mb-6 leading-tight">
+                    <span class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                        Series
+                    </span>
+                    <br class="hidden sm:block" />
+                    <span class="text-slate-800 dark:text-slate-200 font-light">Collection</span>
+                </h1>
+                
+                <!-- Description -->
+                <p class="text-xl sm:text-2xl text-slate-600 dark:text-slate-400 max-w-4xl mx-auto leading-relaxed font-light mb-8">
+                    Structured learning paths designed to take you from fundamentals to mastery. 
+                    Follow comprehensive series that build knowledge progressively through interactive exploration.
+                </p>
+                
+                <!-- Stats -->
+                <div class="flex flex-wrap items-center justify-center gap-6 text-slate-500 dark:text-slate-400">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span class="font-medium">{totalActiveSeries}</span>
+                        <span>active series</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                        <span class="font-medium">{totalPlannedSeries}</span>
+                        <span>coming soon</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                        <span class="font-medium">{seriesData.length}</span>
+                        <span>total series</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Error Message (if API fails) -->
+        {error && (
+            <section class="px-4 sm:px-6 mb-8">
+                <div class="max-w-4xl mx-auto p-6 bg-red-50/90 dark:bg-red-900/20 backdrop-blur-sm border border-red-200 dark:border-red-800 rounded-2xl">
+                    <div class="flex items-center gap-3 text-red-700 dark:text-red-400 mb-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                        </svg>
+                        <span class="font-bold text-lg">Unable to load series data</span>
+                    </div>
+                    <p class="text-red-600 dark:text-red-300">
+                        Failed to connect to the API. Please try again later or contact support if the issue persists.
+                    </p>
+                </div>
+            </section>
+        )}
+
+        <!-- Active Series Section -->
+        {activeSeries.length > 0 && (
+            <section class="relative px-4 sm:px-6 pb-20">
+                <div class="max-w-7xl mx-auto">
+                    
+                    <!-- Section Header -->
+                    <div class="text-center mb-12">
+                        <div class="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 rounded-full mb-6">
+                            <span class="text-2xl animate-bounce">🔥</span>
+                            <span class="font-bold text-green-700 dark:text-green-300">Active Series</span>
+                        </div>
+                        <p class="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+                            Click on any cube to dive into an active learning series. Each cube shows progress and latest updates!
+                        </p>
+                    </div>
+                    
+                    <!-- 3D Series Grid -->
+                    <div id="active-series-container" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Active series cubes will be populated here -->
+                    </div>
+                    
+                    <!-- Active Pagination Controls -->
+                    <div id="active-pagination-controls" class="flex items-center justify-center gap-4 mt-16" style="display: none;">
+                        <button id="active-prev-btn" class="group relative inline-flex items-center px-8 py-4 bg-gradient-to-r from-amber-500 via-orange-500 to-red-600 text-white font-semibold rounded-xl hover:from-amber-600 hover:via-orange-600 hover:to-red-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 shadow-lg hover:shadow-xl">
+                            <svg class="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                            </svg>
+                            Previous
+                        </button>
+                        
+                        <div class="flex items-center gap-3 px-6 py-3 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg">
+                            <span class="text-slate-600 dark:text-slate-400">Page</span>
+                            <span id="active-current-page" class="px-3 py-2 bg-gradient-to-r from-amber-500 via-orange-500 to-red-600 text-white rounded-lg font-bold min-w-[2rem] text-center">1</span>
+                            <span class="text-slate-600 dark:text-slate-400">of</span>
+                            <span id="active-total-pages" class="font-bold text-slate-900 dark:text-slate-100">{activePages}</span>
+                        </div>
+                        
+                        <button id="active-next-btn" class="group relative inline-flex items-center px-8 py-4 bg-gradient-to-r from-rose-500 via-pink-500 to-purple-600 text-white font-semibold rounded-xl hover:from-rose-600 hover:via-pink-600 hover:to-purple-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 shadow-lg hover:shadow-xl">
+                            Next
+                            <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        )}
+
+        <!-- Planned Series Section -->
+        {plannedSeries.length > 0 && (
+            <section class="relative px-4 sm:px-6 pb-20">
+                <div class="max-w-7xl mx-auto">
+                    
+                    <!-- Section Header -->
+                    <div class="text-center mb-12">
+                        <div class="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-purple-100 to-violet-100 dark:from-purple-900/30 dark:to-violet-900/30 rounded-full mb-6">
+                            <span class="text-2xl animate-bounce">🚀</span>
+                            <span class="font-bold text-purple-700 dark:text-purple-300">Coming Soon</span>
+                        </div>
+                        <p class="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+                            Get a preview of upcoming series and subscribe for notifications when they launch!
+                        </p>
+                    </div>
+                    
+                    <!-- 3D Planned Series Grid -->
+                    <div id="planned-series-container" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Planned series cubes will be populated here -->
+                    </div>
+                    
+                    <!-- Planned Pagination Controls -->
+                    <div id="planned-pagination-controls" class="flex items-center justify-center gap-4 mt-16" style="display: none;">
+                        <button id="planned-prev-btn" class="group relative inline-flex items-center px-8 py-4 bg-gradient-to-r from-amber-400 via-orange-500 to-red-600 text-white font-semibold rounded-xl hover:from-amber-500 hover:via-orange-600 hover:to-red-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 shadow-lg hover:shadow-xl">
+                            <svg class="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                            </svg>
+                            Previous
+                        </button>
+                        
+                        <div class="flex items-center gap-3 px-6 py-3 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg">
+                            <span class="text-slate-600 dark:text-slate-400">Page</span>
+                            <span id="planned-current-page" class="px-3 py-2 bg-gradient-to-r from-orange-500 via-red-500 to-pink-600 text-white rounded-lg font-bold min-w-[2rem] text-center">1</span>
+                            <span class="text-slate-600 dark:text-slate-400">of</span>
+                            <span id="planned-total-pages" class="font-bold text-slate-900 dark:text-slate-100">{plannedPages}</span>
+                        </div>
+                        
+                        <button id="planned-next-btn" class="group relative inline-flex items-center px-8 py-4 bg-gradient-to-r from-pink-500 via-rose-500 to-purple-600 text-white font-semibold rounded-xl hover:from-pink-600 hover:via-rose-600 hover:to-purple-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 shadow-lg hover:shadow-xl">
+                            Next
+                            <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        )}
+
+        <!-- Empty State -->
+        {seriesData.length === 0 && !error && (
+            <section class="relative px-4 sm:px-6 pb-20">
+                <div class="max-w-4xl mx-auto text-center py-20">
+                    <div class="inline-block">
+                        <div class="text-8xl mb-6 animate-bounce">📚</div>
+                        <h3 class="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-4">No Series Available Yet!</h3>
+                        <p class="text-xl text-slate-600 dark:text-slate-400 max-w-md mx-auto mb-8">
+                            We're working on creating amazing learning series for you. Check back soon for structured content!
+                        </p>
+                        <a href="/blog" class="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                            <span>Browse All Articles</span>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </section>
+        )}
+
+        <!-- Fun CTA Section -->
+        <section class="relative px-4 sm:px-6 pb-20">
+            <div class="max-w-4xl mx-auto">
+                <div class="relative inline-block w-full">
+                    <!-- Animated background -->
+                    <div class="absolute -inset-4 bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 opacity-20 blur-xl rounded-3xl animate-pulse"></div>
+                    
+                    <div class="relative p-10 bg-gradient-to-br from-white/95 to-slate-50/95 dark:from-slate-800/95 dark:to-slate-900/95 backdrop-blur-sm rounded-3xl border border-slate-200/50 dark:border-slate-700/50 shadow-2xl text-center">
+                        <div class="flex items-center justify-center gap-3 mb-6">
+                            <span class="text-4xl animate-bounce" style="animation-delay: 0s">💡</span>
+                            <span class="text-4xl animate-bounce" style="animation-delay: 0.2s">🎯</span>
+                            <span class="text-4xl animate-bounce" style="animation-delay: 0.4s">🚀</span>
+                        </div>
+                        
+                        <h3 class="text-3xl font-bold mb-4 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                            Want to suggest a series topic?
+                        </h3>
+                        <p class="text-slate-600 dark:text-slate-400 mb-8 max-w-2xl mx-auto text-lg">
+                            Have an idea for a comprehensive series you'd like to see? We're always looking for topics that would benefit the developer community.
+                        </p>
+                        
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                            <a href="/contact" class="group relative inline-flex items-center gap-4 px-8 py-4 bg-gradient-to-r from-amber-500 via-orange-500 to-red-600 hover:from-amber-600 hover:via-orange-600 hover:to-red-700 text-white font-bold text-lg rounded-2xl shadow-2xl hover:shadow-orange-500/25 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1">
+                                <span>Contact Us</span>
+                                <div class="relative">
+                                    <svg class="w-6 h-6 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                    </svg>
+                                    <div class="absolute -inset-2 bg-white/20 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping"></div>
+                                </div>
+                            </a>
+                            <a href="/blog" class="px-8 py-4 border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-2xl font-bold hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 transition-all duration-300 transform hover:scale-105">
+                                Browse All Articles
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</Layout>
+
+<script>
+    // Series data and pagination configuration
+    let activeSeries = [];
+    let plannedSeries = [];
+    
+    // Safely parse JSON data
+    try {
+        const activeDataElement = document.querySelector('#active-series-data');
+        if (activeDataElement && activeDataElement.textContent) {
+            activeSeries = JSON.parse(activeDataElement.textContent);
+        }
+    } catch (error) {
+        console.error('Failed to parse active series data:', error);
+        activeSeries = [];
+    }
+    
+    try {
+        const plannedDataElement = document.querySelector('#planned-series-data');
+        if (plannedDataElement && plannedDataElement.textContent) {
+            plannedSeries = JSON.parse(plannedDataElement.textContent);
+        }
+    } catch (error) {
+        console.error('Failed to parse planned series data:', error);
+        plannedSeries = [];
+    }
+    
+    const CARDS_PER_PAGE = 8;
+    
+    // State management
+    let activeCurrentPage = 1;
+    let plannedCurrentPage = 1;
+    
+    const activeTotalPages = Math.ceil(activeSeries.length / CARDS_PER_PAGE);
+    const plannedTotalPages = Math.ceil(plannedSeries.length / CARDS_PER_PAGE);
+
+    // Utility functions for client-side rendering
+    function getDifficultyColorScheme(startLevel, endLevel) {
+        const colorSchemes = {
+            'beginner': 'from-amber-400 via-orange-500 to-red-500',
+            'intermediate': 'from-rose-400 via-pink-500 to-purple-600', 
+            'advanced': 'from-orange-500 via-red-500 to-pink-600',
+            'expert': 'from-red-500 via-rose-500 to-pink-600'
+        };
+        
+        if (startLevel === endLevel) {
+            return colorSchemes[startLevel] || 'from-slate-400 to-slate-500';
+        }
+        
+        const levels = ['beginner', 'intermediate', 'advanced', 'expert'];
+        const startIndex = levels.indexOf(startLevel);
+        const endIndex = levels.indexOf(endLevel);
+        
+        if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+            if (startIndex === 0 && endIndex === levels.length - 1) {
+                return 'from-blue-500 via-purple-500 via-pink-500 to-red-600';
+            } else if (endIndex - startIndex === 2) {
+                return colorSchemes[levels[Math.floor((startIndex + endIndex) / 2)]] || 'from-slate-400 to-slate-500';
+            } else {
+                return `${colorSchemes[startLevel]?.split(' ')[0]} ${colorSchemes[endLevel]?.split(' ')[2]}` || 'from-slate-400 to-slate-500';
+            }
+        }
+        
+        return 'from-slate-400 to-slate-500';
+    }
+
+    function getSeriesColorScheme(topicsCovered) {
+        const topicColorMap = {
+            'ai': 'from-rose-400 via-pink-500 to-purple-600',
+            'machine learning': 'from-rose-400 via-pink-500 to-purple-600',
+            'deep learning': 'from-rose-400 via-pink-500 to-purple-600',
+            'react': 'from-amber-400 via-orange-500 to-red-500',
+            'javascript': 'from-amber-400 via-orange-500 to-red-600',
+            'python': 'from-orange-400 via-red-500 to-rose-500',
+            'django': 'from-red-400 via-rose-500 to-pink-500',
+            'system design': 'from-orange-500 via-red-500 to-pink-600',
+            'algorithms': 'from-rose-400 via-pink-500 to-purple-600',
+            'data structures': 'from-purple-500 via-pink-500 to-rose-500'
+        };
+        
+        if (!topicsCovered || topicsCovered.length === 0) {
+            return 'from-slate-400 to-slate-500';
+        }
+        
+        const mainTopic = topicsCovered[0].toLowerCase();
+        for (const [key, gradient] of Object.entries(topicColorMap)) {
+            if (mainTopic.includes(key)) {
+                return gradient;
+            }
+        }
+        
+        return 'from-orange-400 via-red-500 to-pink-500';
+    }
+
+    function getSeriesIcon(topicsCovered) {
+        if (!topicsCovered || topicsCovered.length === 0) return '📚';
+        
+        const iconMap = {
+            'ai': '🤖',
+            'machine learning': '🧠', 
+            'deep learning': '🔮',
+            'react': '⚛️',
+            'javascript': '⚡',
+            'python': '🐍',
+            'django': '🌿',
+            'system design': '🏗️',
+            'algorithms': '🧮',
+            'data structures': '📊',
+            'backend': '⚙️',
+            'frontend': '🎨',
+            'database': '🗄️'
+        };
+        
+        const mainTopic = topicsCovered[0].toLowerCase();
+        for (const [key, icon] of Object.entries(iconMap)) {
+            if (mainTopic.includes(key)) return icon;
+        }
+        
+        return '📚';
+    }
+
+    function capitalize(str) {
+        return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) return 'TBD';
+        
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffTime = date.getTime() - now.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays < 0) {
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        } else if (diffDays === 0) {
+            return 'Today';
+        } else if (diffDays === 1) {
+            return 'Tomorrow';
+        } else if (diffDays <= 7) {
+            return `In ${diffDays} days`;
+        } else if (diffDays <= 30) {
+            return `In ${Math.ceil(diffDays / 7)} weeks`;
+        } else if (diffDays <= 365) {
+            return `In ${Math.ceil(diffDays / 30)} months`;
+        } else {
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short'
+            });
+        }
+    }
+
+    // Create 3D series cube
+    function createSeriesCube(series, isActive = true) {
+        const icon = getSeriesIcon(series.topic_covered);
+        const colorGradient = getDifficultyColorScheme(series.start_level, series.end_level);
+        const seriesColorGradient = getSeriesColorScheme(series.topic_covered);
+        const releaseDate = formatDate(series.release_date);
+        const totalArticles = series.planned_articles || 0;
+        const publishedArticles = series.total_published_articles || 0;
+        const progress = totalArticles > 0 ? (publishedArticles / totalArticles) * 100 : 0;
+        const isOngoingSeries = totalArticles === 0 || totalArticles === null;
+        
+        return `
+            <div class="perspective-1000 group">
+                <div class="relative w-full h-[32rem] preserve-3d cursor-pointer transition-all duration-700 transform group-hover:rotate-y-8 group-hover:rotate-x-4 group-hover:scale-[1.02] group-hover:z-10">
+                    
+                    <!-- Front Face - Meta Design -->
+                    <div class="absolute inset-0 backface-hidden ${isActive ? 'bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800' : 'bg-gradient-to-br from-gray-700 via-gray-800 to-gray-900'} rounded-3xl shadow-2xl border ${isActive ? 'border-blue-400/30' : 'border-gray-600/30'} backdrop-blur-sm overflow-hidden group-hover:shadow-3xl transition-all duration-700">
+                        
+                        <!-- Meta-style gradient overlay -->
+                        <div class="absolute inset-0 ${isActive ? 'bg-gradient-to-tr from-blue-500/20 via-transparent to-cyan-400/10' : 'bg-gradient-to-tr from-gray-600/20 via-transparent to-gray-400/10'} opacity-60"></div>
+                        
+                        <!-- Animated particles background -->
+                        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+                            <div class="absolute top-1/4 left-1/4 w-1 h-1 ${isActive ? 'bg-blue-300' : 'bg-gray-400'} rounded-full animate-pulse" style="animation-delay: 0s;"></div>
+                            <div class="absolute top-3/4 right-1/3 w-2 h-2 ${isActive ? 'bg-cyan-400' : 'bg-gray-500'} rounded-full animate-pulse" style="animation-delay: 1s;"></div>
+                            <div class="absolute bottom-1/3 left-1/2 w-1.5 h-1.5 ${isActive ? 'bg-blue-400' : 'bg-gray-400'} rounded-full animate-pulse" style="animation-delay: 2s;"></div>
+                        </div>
+                        
+                        <!-- Content -->
+                        <div class="relative z-10 p-6 h-full flex flex-col text-white">
+                            <!-- Header with Icon and Premium Status -->
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="w-16 h-16 ${isActive ? 'bg-blue-500/30' : 'bg-gray-600/40'} backdrop-blur-md rounded-3xl flex items-center justify-center text-2xl transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-500 shadow-xl border ${isActive ? 'border-blue-400/40' : 'border-gray-500/40'}">
+                                    ${icon}
+                                </div>
+                                <div class="flex flex-col items-end gap-2">
+                                    <div class="flex items-center gap-2 px-3 py-1.5 ${isActive ? 'bg-gradient-to-r from-green-500/80 to-emerald-600/80' : 'bg-gradient-to-r from-amber-500/80 to-orange-600/80'} backdrop-blur-md rounded-full text-xs font-bold border ${isActive ? 'border-green-400/50' : 'border-amber-400/50'} shadow-lg">
+                                        <div class="w-2 h-2 ${isActive ? 'bg-green-300' : 'bg-amber-300'} rounded-full animate-pulse shadow-sm"></div>
+                                        ${isActive ? 'Live Series' : 'Coming Soon'}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Series Title & Level -->
+                            <div class="mb-4">
+                                <h3 class="text-xl font-black leading-tight text-white drop-shadow-lg group-hover:text-blue-100 transition-colors duration-500 mb-2">
+                                    ${series.title}
+                                </h3>
+                                <div class="flex items-center gap-3">
+                                    <span class="px-3 py-1.5 ${isActive ? 'bg-blue-500/30' : 'bg-gray-600/40'} backdrop-blur-sm rounded-full font-bold text-xs border ${isActive ? 'border-blue-400/40' : 'border-gray-500/40'}">
+                                        ${capitalize(series.start_level)} → ${capitalize(series.end_level)}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <!-- Article Count Showcase -->
+                            <div class="mb-4">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="${isActive ? 'bg-gradient-to-br from-green-500/20 to-emerald-600/20 border-green-400/30' : 'bg-gradient-to-br from-gray-600/20 to-gray-700/20 border-gray-500/30'} backdrop-blur-md rounded-xl p-3 border">
+                                        <div class="text-2xl font-black ${isActive ? 'text-green-400' : 'text-gray-300'}">${publishedArticles}</div>
+                                    </div>
+                                    <div class="${isActive ? 'bg-gradient-to-br from-blue-500/20 to-indigo-600/20 border-blue-400/30' : 'bg-gradient-to-br from-amber-500/20 to-orange-600/20 border-amber-400/30'} backdrop-blur-md rounded-xl p-3 border">
+                                        <div class="text-2xl font-black ${isActive ? 'text-blue-400' : 'text-amber-400'}">${totalArticles}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Description Preview -->
+                            <div class="mb-3 flex-1 min-h-0">
+                                <p class="text-sm leading-relaxed opacity-90 font-medium line-clamp-2">
+                                    ${series.description || 'Comprehensive learning path designed to build your expertise step by step with hands-on projects and real-world applications.'}
+                                </p>
+                            </div>
+                            
+                            <!-- Progress Visualization -->
+                            <div class="mb-3">
+                                ${isActive ? `
+                                    <div>
+                                        <div class="flex justify-between items-center mb-2">
+                                            <span class="text-sm font-bold opacity-90">Progress</span>
+                                            <span class="text-lg font-black ${isActive ? 'text-green-400' : 'text-amber-400'}">
+                                                ${isOngoingSeries ? 'Live' : `${publishedArticles}/${totalArticles}`}
+                                            </span>
+                                        </div>
+                                        ${!isOngoingSeries ? `
+                                            <div class="w-full bg-white/20 rounded-full h-3 shadow-inner">
+                                                <div class="bg-gradient-to-r from-green-400 via-emerald-500 to-green-600 h-3 rounded-full transition-all duration-1000 shadow-lg relative overflow-hidden" style="width: ${Math.min(progress, 100)}%">
+                                                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse"></div>
+                                                </div>
+                                            </div>
+                                        ` : `
+                                            <div class="${isActive ? 'bg-gradient-to-r from-green-500/20 to-emerald-600/20 border-green-400/40' : 'bg-gradient-to-r from-gray-600/20 to-gray-700/20 border-gray-500/40'} backdrop-blur-sm rounded-lg p-3 border">
+                                                <div class="flex items-center gap-3">
+                                                    <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                                    </svg>
+                                                    <span class="text-xs font-bold">Active • <span class="text-green-400">${publishedArticles} articles</span></span>
+                                                </div>
+                                            </div>
+                                        `}
+                                    </div>
+                                ` : `
+                                    <div>
+                                        <div class="flex justify-between items-center mb-2">
+                                            <span class="text-sm font-bold opacity-90">Planned</span>
+                                            <span class="text-lg font-black text-amber-400">${totalArticles} Articles</span>
+                                        </div>
+                                        <div class="bg-gradient-to-r from-amber-500/20 to-orange-600/20 backdrop-blur-sm rounded-lg p-3 border border-amber-400/40">
+                                            <div class="flex items-center gap-3">
+                                                <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2z"/>
+                                                </svg>
+                                                <span class="text-xs font-bold">Launch: <span class="text-amber-300">${releaseDate}</span></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `}
+                            </div>
+                            
+                            <!-- Topics Preview (Compact) -->
+                            ${series.topic_covered && series.topic_covered.length > 0 ? `
+                                <div class="mb-3">
+                                    <div class="flex flex-wrap gap-1">
+                                        ${series.topic_covered.slice(0, 3).map(topic => 
+                                            `<span class="text-xs px-2 py-1 bg-white/20 rounded-full font-medium border border-white/20">${topic}</span>`
+                                        ).join('')}
+                                        ${series.topic_covered.length > 3 ? 
+                                            `<span class="text-xs px-2 py-1 bg-white/30 rounded-full font-medium border border-white/30">+${series.topic_covered.length - 3}</span>` : 
+                                            ''
+                                        }
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            <!-- Quick Action Buttons - Always at Bottom -->
+                            <div class="flex gap-3 mt-auto pt-2">
+                                <a href="/series/${series.slug}" class="flex-1 text-center py-3 ${isActive ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-600 hover:bg-gray-700'} backdrop-blur-sm rounded-xl font-bold text-sm transition-all duration-300 border ${isActive ? 'border-blue-400/50' : 'border-gray-400/50'} text-white shadow-lg">
+                                    🚀 View Series
+                                </a>
+                                ${isActive ? `
+                                    ${series.latest_article ? `
+                                        <a href="/blog/${series.latest_article.slug}" class="flex-1 text-center py-3 bg-green-600 hover:bg-green-700 backdrop-blur-sm rounded-xl font-bold text-sm transition-all duration-300 border border-green-400/50 text-white shadow-lg">
+                                            📖 Latest
+                                        </a>
+                                    ` : ''}
+                                ` : `
+                                    <button class="flex-1 text-center py-3 bg-amber-600 hover:bg-amber-700 backdrop-blur-sm rounded-xl font-bold text-sm transition-all duration-300 border border-amber-400/50 text-white shadow-lg">
+                                        🔔 Notify Me
+                                    </button>
+                                `}
+                            </div>
+                        </div>
+                        
+                        <!-- Meta-style shine effect -->
+                        <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-700 transform -skew-y-12 translate-x-full group-hover:translate-x-[-100%] transition-transform duration-1000"></div>
+                    </div>
+                    
+                    <!-- Back Face - Enhanced Layout -->
+                    <div class="absolute inset-0 backface-hidden rotate-y-180 ${isActive ? 'bg-gradient-to-br from-indigo-700 via-purple-800 to-blue-900' : 'bg-gradient-to-br from-gray-800 via-gray-900 to-black'} rounded-3xl shadow-2xl border ${isActive ? 'border-purple-400/30' : 'border-gray-600/30'} backdrop-blur-sm overflow-hidden">
+                        
+                        <!-- Meta gradient overlay -->
+                        <div class="absolute inset-0 ${isActive ? 'bg-gradient-to-tr from-purple-500/20 via-transparent to-blue-400/10' : 'bg-gradient-to-tr from-gray-600/20 via-transparent to-gray-400/10'} opacity-70"></div>
+                        
+                        <div class="relative z-10 p-8 h-full flex flex-col text-white">
+                            <!-- Compact Header -->
+                            <div class="flex items-center justify-between mb-6">
+                                <div class="flex items-center gap-3">
+                                    <div class="text-2xl transform group-hover:scale-110 transition-transform duration-500">${icon}</div>
+                                    <div>
+                                        <h4 class="font-black text-lg mb-1 leading-tight">${series.title}</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <div class="${isActive ? 'bg-gradient-to-br from-purple-500/10 to-blue-600/10 border-purple-400/30' : 'bg-gradient-to-br from-gray-700/20 to-gray-800/20 border-gray-600/30'} backdrop-blur-md rounded-2xl p-6 border">
+                                    
+                                    <!-- Large Number Display -->
+                                    <div class="grid grid-cols-2 gap-6 mb-6">
+                                        <div class="text-center">
+                                            <div class="text-4xl font-black ${isActive ? 'text-green-400' : 'text-gray-300'} mb-1">${publishedArticles}</div>
+                                            <div class="text-xs font-bold uppercase tracking-wider opacity-80">Articles Live</div>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class="text-4xl font-black ${isActive ? 'text-blue-400' : 'text-amber-400'} mb-1">${totalArticles}</div>
+                                            <div class="text-xs font-bold uppercase tracking-wider opacity-80">Total Planned</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Progress Section -->
+                                    ${totalArticles > 0 ? `
+                                        <div class="space-y-4">
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-sm font-bold opacity-90">Completion Progress</span>
+                                                <span class="text-xl font-black ${isActive ? 'text-purple-400' : 'text-amber-400'}">${Math.round(progress)}%</span>
+                                            </div>
+                                            <div class="relative">
+                                                <div class="w-full bg-white/20 rounded-full h-4 shadow-inner">
+                                                    <div class="${isActive ? 'bg-gradient-to-r from-green-400 via-blue-500 to-purple-600' : 'bg-gradient-to-r from-amber-400 to-orange-500'} h-4 rounded-full transition-all duration-1000 shadow-lg relative overflow-hidden" style="width: ${Math.min(progress, 100)}%">
+                                                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-pulse"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            
+                            <!-- Description & Learning Path -->
+                            <div class="mb-6 flex-1">
+                                <p class="text-sm leading-relaxed mb-4 font-medium opacity-90 line-clamp-2">
+                                    ${series.description}
+                                </p>
+                                
+                                ${series.topic_covered && series.topic_covered.length > 0 ? `
+                                    <div class="space-y-3">
+                                        <div class="flex flex-nowrap gap-2 overflow-hidden">
+                                            ${series.topic_covered.slice(0, 2).map(topic => 
+                                                `<span class="text-xs px-3 py-2 ${isActive ? 'bg-purple-500/15 border-purple-400/30' : 'bg-gray-600/15 border-gray-500/30'} rounded-xl font-bold border whitespace-nowrap flex-shrink-0">${topic}</span>`
+                                            ).join('')}
+                                            ${series.topic_covered.length > 2 ? 
+                                                `<span class="text-xs px-3 py-2 ${isActive ? 'bg-purple-500/15 border-purple-400/30' : 'bg-gray-600/15 border-gray-500/30'} rounded-xl font-bold border whitespace-nowrap flex-shrink-0 opacity-75">+${series.topic_covered.length - 2} more</span>`
+                                                : ''
+                                            }
+                                        </div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="flex gap-3">
+                                ${isActive ? `
+                                    <a href="/series/${series.slug}" class="flex-1 text-center py-4 ${isActive ? 'bg-gradient-to-r from-purple-600 to-blue-700 hover:from-purple-700 hover:to-blue-800' : 'bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900'} rounded-2xl font-black text-sm transition-all duration-500 transform hover:scale-[1.02] shadow-xl border ${isActive ? 'border-purple-400/30' : 'border-gray-600/30'}">
+                                        🚀 Explore Series
+                                    </a>
+                                    ${series.latest_article ? `
+                                        <a href="/blog/${series.latest_article.slug}" class="flex-1 text-center py-4 border-2 ${isActive ? 'border-purple-400/50 hover:bg-purple-500/10' : 'border-gray-600/50 hover:bg-gray-700/10'} rounded-2xl font-bold text-sm transition-all duration-500 transform hover:scale-[1.01]">
+                                            📖 Latest Article
+                                        </a>
+                                    ` : ''}
+                                ` : `
+                                    <button class="flex-1 py-4 bg-gradient-to-r from-amber-600 to-orange-700 hover:from-amber-700 hover:to-orange-800 rounded-2xl font-black text-sm transition-all duration-500 transform hover:scale-[1.02] shadow-xl border border-amber-400/30">
+                                        Coming Soon!
+                                    </button>
+                                    <div class="flex-1 text-center ${isActive ? 'bg-purple-500/10 border-purple-400/20' : 'bg-amber-500/10 border-amber-400/20'} rounded-xl py-3 px-2 border">
+                                        <div class="text-xs font-bold opacity-80 mb-1">Launch Date</div>
+                                        <div class="text-sm font-black ${isActive ? 'text-purple-400' : 'text-amber-400'}">${releaseDate}</div>
+                                    </div>
+                                `}
+                            </div>
+                        </div>
+                        
+                        <!-- Enhanced floating particles -->
+                        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+                            <div class="absolute top-1/4 left-1/4 w-2 h-2 ${isActive ? 'bg-purple-300' : 'bg-gray-400'} rounded-full animate-float opacity-60"></div>
+                            <div class="absolute top-3/4 right-1/4 w-1 h-1 ${isActive ? 'bg-blue-400' : 'bg-gray-500'} rounded-full animate-float-delayed opacity-80"></div>
+                            <div class="absolute bottom-1/4 left-1/3 w-3 h-3 ${isActive ? 'bg-purple-400' : 'bg-gray-400'} rounded-full animate-float opacity-40" style="animation-delay: 1s"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Render series cubes for a specific page
+    function renderSeriesCubes(seriesArray, containerId, page) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
+        const startIndex = (page - 1) * CARDS_PER_PAGE;
+        const endIndex = startIndex + CARDS_PER_PAGE;
+        const pageData = seriesArray.slice(startIndex, endIndex);
+        
+        if (pageData.length === 0) {
+            container.innerHTML = '<div class="col-span-full text-center py-20 text-slate-500 dark:text-slate-400">No series found for this page.</div>';
+            return;
+        }
+        
+        container.innerHTML = pageData
+            .map(series => createSeriesCube(series, containerId.includes('active')))
+            .join('');
+    }
+
+    // Update pagination controls
+    function updatePaginationControls(type, currentPage, totalPages) {
+        const prevBtn = document.getElementById(`${type}-prev-btn`) as HTMLButtonElement;
+        const nextBtn = document.getElementById(`${type}-next-btn`) as HTMLButtonElement;
+        const currentPageEl = document.getElementById(`${type}-current-page`);
+        const totalPagesEl = document.getElementById(`${type}-total-pages`);
+        const controlsContainer = document.getElementById(`${type}-pagination-controls`);
+        
+        if (!controlsContainer) return;
+        
+        // Show/hide controls based on whether pagination is needed
+        if (totalPages <= 1) {
+            controlsContainer.style.display = 'none';
+            return;
+        } else {
+            controlsContainer.style.display = 'flex';
+        }
+        
+        // Update button states
+        if (prevBtn) {
+            prevBtn.disabled = currentPage <= 1;
+            prevBtn.classList.toggle('opacity-50', currentPage <= 1);
+            prevBtn.classList.toggle('cursor-not-allowed', currentPage <= 1);
+        }
+        
+        if (nextBtn) {
+            nextBtn.disabled = currentPage >= totalPages;
+            nextBtn.classList.toggle('opacity-50', currentPage >= totalPages);
+            nextBtn.classList.toggle('cursor-not-allowed', currentPage >= totalPages);
+        }
+        
+        // Update page numbers
+        if (currentPageEl) currentPageEl.textContent = currentPage;
+        if (totalPagesEl) totalPagesEl.textContent = totalPages;
+    }
+
+    // Initialize pagination event listeners
+    function initializePagination() {
+        // Active series pagination
+        const activePrevBtn = document.getElementById('active-prev-btn');
+        const activeNextBtn = document.getElementById('active-next-btn');
+        
+        if (activePrevBtn) {
+            activePrevBtn.addEventListener('click', () => {
+                if (activeCurrentPage > 1) {
+                    activeCurrentPage--;
+                    renderSeriesCubes(activeSeries, 'active-series-container', activeCurrentPage);
+                    updatePaginationControls('active', activeCurrentPage, activeTotalPages);
+                }
+            });
+        }
+        
+        if (activeNextBtn) {
+            activeNextBtn.addEventListener('click', () => {
+                if (activeCurrentPage < activeTotalPages) {
+                    activeCurrentPage++;
+                    renderSeriesCubes(activeSeries, 'active-series-container', activeCurrentPage);
+                    updatePaginationControls('active', activeCurrentPage, activeTotalPages);
+                }
+            });
+        }
+        
+        // Planned series pagination
+        const plannedPrevBtn = document.getElementById('planned-prev-btn');
+        const plannedNextBtn = document.getElementById('planned-next-btn');
+        
+        if (plannedPrevBtn) {
+            plannedPrevBtn.addEventListener('click', () => {
+                if (plannedCurrentPage > 1) {
+                    plannedCurrentPage--;
+                    renderSeriesCubes(plannedSeries, 'planned-series-container', plannedCurrentPage);
+                    updatePaginationControls('planned', plannedCurrentPage, plannedTotalPages);
+                }
+            });
+        }
+        
+        if (plannedNextBtn) {
+            plannedNextBtn.addEventListener('click', () => {
+                if (plannedCurrentPage < plannedTotalPages) {
+                    plannedCurrentPage++;
+                    renderSeriesCubes(plannedSeries, 'planned-series-container', plannedCurrentPage);
+                    updatePaginationControls('planned', plannedCurrentPage, plannedTotalPages);
+                }
+            });
+        }
+    }
+
+    // Initialize the page
+    function initializePage() {
+        // Render initial content
+        if (activeSeries.length > 0) {
+            renderSeriesCubes(activeSeries, 'active-series-container', activeCurrentPage);
+            updatePaginationControls('active', activeCurrentPage, activeTotalPages);
+        }
+        
+        if (plannedSeries.length > 0) {
+            renderSeriesCubes(plannedSeries, 'planned-series-container', plannedCurrentPage);
+            updatePaginationControls('planned', plannedCurrentPage, plannedTotalPages);
+        }
+        
+        // Initialize pagination
+        initializePagination();
+        
+        // Add keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                // Previous page for currently visible section
+                if (activeSeries.length > 0 && activeCurrentPage > 1) {
+                    document.getElementById('active-prev-btn')?.click();
+                } else if (plannedSeries.length > 0 && plannedCurrentPage > 1) {
+                    document.getElementById('planned-prev-btn')?.click();
+                }
+            } else if (e.key === 'ArrowRight') {
+                // Next page for currently visible section
+                if (activeSeries.length > 0 && activeCurrentPage < activeTotalPages) {
+                    document.getElementById('active-next-btn')?.click();
+                } else if (plannedSeries.length > 0 && plannedCurrentPage < plannedTotalPages) {
+                    document.getElementById('planned-next-btn')?.click();
+                }
+            }
+        });
+    }
+
+    // Start when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializePage);
+    } else {
+        initializePage();
+    }
+</script>
+
+<!-- Hidden data for JavaScript -->
+<script type="application/json" id="active-series-data" set:html={JSON.stringify(activeSeries)}></script>
+<script type="application/json" id="planned-series-data" set:html={JSON.stringify(plannedSeries)}></script>
+
+<style>
+    /* 3D and animation utilities */
+    .perspective-1000 { perspective: 1000px; }
+    .preserve-3d { transform-style: preserve-3d; }
+    .backface-hidden { backface-visibility: hidden; }
+    .rotate-y-180 { transform: rotateY(180deg); }
+    .rotate-y-12 { transform: rotateY(12deg); }
+    .rotate-x-12 { transform: rotateX(12deg); }
+    
+    /* Grid pattern */
+    .bg-grid-pattern {
+        background-image: 
+            linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+        background-size: 20px 20px;
+    }
+    
+    /* Float animations */
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-10px) rotate(180deg); }
+    }
+    
+    @keyframes float-delayed {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-15px) rotate(-180deg); }
+    }
+    
+    .animate-float {
+        animation: float 3s ease-in-out infinite;
+    }
+    
+    .animate-float-delayed {
+        animation: float-delayed 4s ease-in-out infinite;
+    }
+    
+    /* Line clamp utility */
+    .line-clamp-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .line-clamp-4 {
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    /* Enhance existing hover effects */
+    .group:hover .group-hover\:scale-110 {
+        transform: scale(1.1);
+    }
+    
+    .group:hover .group-hover\:text-yellow-200 {
+        color: #fef08a;
+    }
+    
+    .group:hover .group-hover\:-translate-x-1 {
+        transform: translateX(-0.25rem);
+    }
+    
+    .group:hover .group-hover\:translate-x-1 {
+        transform: translateX(0.25rem);
+    }
+    
+    /* Custom scrollbar for better UX */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: rgba(99, 102, 241, 0.5);
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(99, 102, 241, 0.7);
+    }
+    
+    /* Dark mode scrollbar */
+    .dark ::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .dark ::-webkit-scrollbar-thumb {
+        background: rgba(139, 92, 246, 0.5);
+    }
+    
+    .dark ::-webkit-scrollbar-thumb:hover {
+        background: rgba(139, 92, 246, 0.7);
+    }
+</style>
+
+<style>
+    .line-clamp-1 {
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>
