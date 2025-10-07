@@ -9,6 +9,9 @@ local_backend: true
 media_folder: "public/images"
 public_folder: "/images"
 
+# Ensure proper YAML formatting with quotes
+yaml_quote: true
+
 collections:
   - name: "blog"
     label: "Blog Posts"
@@ -18,12 +21,15 @@ collections:
     format: "frontmatter"
     extension: "mdx"
     fields:
+      - { label: "Layout", name: "layout", widget: "hidden", default: "../../layouts/BlogPost.astro" }
       - { label: "Title", name: "title", widget: "string", required: true }
-      - { label: "Date", name: "date", widget: "string", required: true }
+      - { label: "Date", name: "date", widget: "datetime", format: "YYYY-MM-DD", date_format: "YYYY-MM-DD", time_format: false, required: true }
       - { label: "Author", name: "author", widget: "string", required: true }
       - { label: "Description", name: "description", widget: "text", required: true }
       - { label: "Featured Image", name: "image", widget: "string", required: true }
+      - { label: "Reading Time", name: "readingTime", widget: "string", required: false }
       - { label: "Tags", name: "tags", widget: "list", required: true }
+      - { label: "Keywords", name: "keywords", widget: "list", required: false }
       - { label: "Canonical URL", name: "canonical", widget: "string", required: false }
       - { label: "Type", name: "type", widget: "string", required: false }
       - { label: "Series", name: "series", widget: "string", required: false }
