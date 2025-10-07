@@ -9,9 +9,6 @@ local_backend: true
 media_folder: "public/images"
 public_folder: "/images"
 
-# Ensure proper YAML formatting with quotes
-yaml_quote: true
-
 collections:
   - name: "blog"
     label: "Blog Posts"
@@ -23,7 +20,7 @@ collections:
     fields:
       - { label: "Layout", name: "layout", widget: "hidden", default: "../../layouts/BlogPost.astro" }
       - { label: "Title", name: "title", widget: "string", required: true }
-      - { label: "Date", name: "date", widget: "datetime", format: "YYYY-MM-DD", date_format: "YYYY-MM-DD", time_format: false, required: true }
+      - { label: "Date", name: "date", widget: "string", required: true, pattern: ['\d{4}-\d{2}-\d{2}', "Must be YYYY-MM-DD format"] }
       - { label: "Author", name: "author", widget: "string", required: true }
       - { label: "Description", name: "description", widget: "text", required: true }
       - { label: "Featured Image", name: "image", widget: "string", required: true }
