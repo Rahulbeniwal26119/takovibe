@@ -35,4 +35,4 @@ collections:
       - { label: "Type", name: "type", widget: "string", required: false }
       - { label: "Series", name: "series", widget: "string", required: false }
       - { label: "Series Order", name: "seriesOrder", widget: "number", required: false }
-      - { label: "Body", name: "body", widget: "markdown", required: true, modes: ['raw'] }
+      - { label: "Body", name: "body", widget: "markdown", required: true, sanitize_preview: false }
