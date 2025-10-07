@@ -9,6 +9,9 @@ local_backend: true
 media_folder: "public/images"
 public_folder: "/images"
 
+# Force all YAML values to be quoted
+yaml_quote: all
+
 collections:
   - name: "blog"
     label: "Blog Posts"
@@ -17,6 +20,7 @@ collections:
     slug: "{{slug}}"
     format: "frontmatter"
     extension: "mdx"
+    yaml_quote: all
     fields:
       - { label: "Layout", name: "layout", widget: "hidden", default: "../../layouts/BlogPost.astro" }
       - { label: "Title", name: "title", widget: "string", required: true }
