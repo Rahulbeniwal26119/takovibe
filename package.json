@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev": "astro dev",
+    "dev": "npx decap-server & astro dev --host 0.0.0.0",
     "start": "astro dev",
     "build": "npm run clean && astro build",
     "build:clean": "npm run clean && NODE_ENV=production astro build",

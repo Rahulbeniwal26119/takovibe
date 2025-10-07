@@ -1,0 +1,30 @@
+backend:
+  name: git-gateway
+  branch: main
+
+# For local development/testing without authentication
+local_backend: true
+
+media_folder: "public/images"
+public_folder: "/images"
+
+collections:
+  - name: "blog"
+    label: "Blog Posts"
+    folder: "src/content/blog"
+    create: true
+    slug: "{{slug}}"
+    format: "frontmatter"
+    extension: "mdx"
+    fields:
+      - { label: "Title", name: "title", widget: "string", required: true }
+      - { label: "Date", name: "date", widget: "string", required: true }
+      - { label: "Author", name: "author", widget: "string", required: true }
+      - { label: "Description", name: "description", widget: "text", required: true }
+      - { label: "Featured Image", name: "image", widget: "string", required: true }
+      - { label: "Tags", name: "tags", widget: "list", required: true }
+      - { label: "Canonical URL", name: "canonical", widget: "string", required: false }
+      - { label: "Type", name: "type", widget: "string", required: false }
+      - { label: "Series", name: "series", widget: "string", required: false }
+      - { label: "Series Order", name: "seriesOrder", widget: "number", required: false }
+      - { label: "Body", name: "body", widget: "markdown", required: true }
