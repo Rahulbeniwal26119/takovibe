@@ -5,7 +5,8 @@ const googleClientId = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID;
 ---
 
 {googleClientId ? (
-<div class="auth-container">
+{/* Commented out to prevent Google Sign-In script loading (57.1 KiB savings) */}
+{/* <div class="auth-container">
   <div id="g_id_onload"
     data-client_id={googleClientId}
     data-context="signin"
@@ -13,31 +14,13 @@ const googleClientId = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID;
     data-use_fedcm_for_prompt="false"
     data-callback="handleGoogleSignIn">
   </div>
-  <!-- Option 1: Dark filled circle -->
   <div class="g_id_signin"
     data-type="icon"
     data-shape="circle"
     data-theme="filled_black"
     data-size="large">
   </div>
-  
-  <!-- Option 2: Outline circle -->
-  <!-- <div class="g_id_signin"
-    data-type="icon"
-    data-shape="circle"
-    data-theme="outline"
-    data-size="large">
-  </div> -->
-  
-  <!-- Option 3: Dark filled square -->
-  <!-- <div class="g_id_signin"
-    data-type="icon"
-    data-shape="square"
-    data-theme="filled_black"
-    data-size="large">
-  </div> -->
 
-  <!-- User info display when logged in -->
   <div id="userInfo" class="hidden">
     <div class="flex items-center space-x-2">
       <img id="userAvatar" src="" alt="Profile" class="w-8 h-8 rounded-full">
@@ -50,9 +33,11 @@ const googleClientId = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID;
       </button>
     </div>
   </div>
-</div>
+</div> */}
+<div class="text-gray-500 text-sm">Auth temporarily disabled</div>
 
-<script define:vars={{ apiUrl }}>
+{/* Commented out to prevent script execution */}
+{/* <script define:vars={{ apiUrl }}>
   // Check authentication status on page load
   document.addEventListener('DOMContentLoaded', checkAuthStatus);
 
@@ -158,7 +143,7 @@ const googleClientId = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID;
       console.error('Logout error:', error);
     }
   };
-</script>
+</script> */}
 
 {/* Commented out to reduce unused JavaScript (57.1 KiB savings) */}
 {/* <script>
