@@ -109,22 +109,54 @@ const structuredData = {
       </>
     )}
     
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
-    />
-    
-    <!-- Font preconnect for performance -->
+    <!-- Preconnect to external domains (reduce DNS lookup time) -->
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- Defer non-critical CSS with fallback -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
+      rel="preload"
+      as="style"
+      href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+      onload="this.onload=null;this.rel='stylesheet'"
+      fetchpriority="low"
     />
+    <noscript>
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+    </noscript>
+    
+    <!-- Preload critical font with optimal loading strategy -->
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'"
+      fetchpriority="high"
+    />
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    </noscript>
+    
+    <!-- Inline critical font loading script -->
+    <script>
+      (function(){
+        var l=document.createElement('link');
+        l.rel='stylesheet';
+        l.href='https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap';
+        document.head.appendChild(l);
+      })();
+    </script>
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
     
     <slot name="head" />
+    
+    <!-- Preload critical scripts to reduce waterfall -->
+    <link rel="modulepreload" href="/_astro/hoisted.DE9rOMHF.js" as="script" />
 
     <!-- Schema.org markup for Google -->
     <script type="application/ld+json" set:html={JSON.stringify(structuredData)}></script>

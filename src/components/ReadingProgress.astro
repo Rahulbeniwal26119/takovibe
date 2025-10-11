@@ -16,11 +16,29 @@
 </style>
 
 <script>
-  const progressBar = document.getElementById('reading-progress');
-  window.addEventListener('scroll', () => {
-    const winScroll = document.documentElement.scrollTop;
-    const height = document.documentElement.scrollHeight - window.innerHeight;
-    const scrolled = (winScroll / height) * 100;
-    if (progressBar) progressBar.style.width = `${scrolled}%`;
-  });
+  function initReadingProgress() {
+    const progressBar = document.getElementById('reading-progress');
+    if (!progressBar) return;
+    
+    let ticking = false;
+    
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const winScroll = document.documentElement.scrollTop;
+          const height = document.documentElement.scrollHeight - window.innerHeight;
+          const scrolled = (winScroll / height) * 100;
+          progressBar.style.width = `${scrolled}%`;
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }, { passive: true });
+  }
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initReadingProgress);
+  } else {
+    initReadingProgress();
+  }
 </script> 

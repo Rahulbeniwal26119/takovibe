@@ -19,15 +19,55 @@ export default defineConfig({
   ),
   build: {
     inlineStylesheets: 'auto',
+    assets: 'assets'
   },
   vite: {
-    // Remove console.log and development code in production
     define: {
       __DEV__: process.env.NODE_ENV === 'development',
     },
     esbuild: {
       drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
     },
+    build: {
+      cssCodeSplit: true,
+      cssMinify: 'lightningcss',
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: true,
+          drop_debugger: true,
+          pure_funcs: ['console.log']
+        }
+      },
+      rollupOptions: {
+        output: {
+          assetFileNames: 'assets/[name].[hash][extname]',
+          experimentalMinChunkSize: 2000,
+          manualChunks(id) {
+            if (id.includes('tiptap')) return 'tiptap';
+            if (id.includes('react')) return 'vendor';
+            if (id.includes('remark-math') || id.includes('rehype-katex')) return 'math';
+            if (id.includes('ReadingProgress') || id.includes('ErrorBoundary') || id.includes('SearchBar')) {
+              return 'async-components';
+            }
+          }
+        }
+      }
+    },
+    ssr: {
+      noExternal: ['@tiptap/core', '@tiptap/starter-kit']
+    },
+    optimizeDeps: {
+      include: ['@tiptap/core', '@tiptap/starter-kit', 'interactjs']
+    },
+    worker: {
+      format: 'es'
+    },
+    server: {
+      fs: {
+        allow: ['..']
+      }
+    }
   },
   integrations: [
     react(),
@@ -42,13 +82,7 @@ export default defineConfig({
       optimize: true
     }),
     tailwind({
-      // Minify CSS in production
-      minify: true,
-      // Reduce unused CSS
-      purge: {
-        content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
-        safelist: ['katex']
-      }
+      applyBaseStyles: false,
     }),
     sitemap({
       filter: (page) => {
@@ -190,42 +224,6 @@ export default defineConfig({
     shikiConfig: {
       theme: 'dracula',
       wrap: true
-    }
-  },
-  vite: {
-    build: {
-      sourcemap: false, // Disable in production
-      cssCodeSplit: true,
-      minify: 'terser',
-      terserOptions: {
-        compress: {
-          drop_console: true,
-          drop_debugger: true
-        }
-      },
-      rollupOptions: {
-        output: {
-          manualChunks: {
-            'tiptap': ['@tiptap/core', '@tiptap/starter-kit'],
-            'vendor': ['react', 'react-dom'],
-            'math': ['remark-math', 'rehype-katex']
-          }
-        }
-      }
-    },
-    ssr: {
-      noExternal: ['@tiptap/core', '@tiptap/starter-kit']
-    },
-    optimizeDeps: {
-      include: ['@tiptap/core', '@tiptap/starter-kit', 'interactjs']
-    },
-    worker: {
-      format: 'es'
-    },
-    server: {
-      fs: {
-        allow: ['..']
-      }
     }
   },
   base: '/'
