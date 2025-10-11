@@ -1,7 +1,11 @@
 backend:
   name: proxy
+  repo: Rahulbeniwal26119/blog
   proxy_url: "https://crm.takovibe.com/api/v1"
-  branch: "article-draft"          # where CMS saves posts (you review before merging to main)
+  branch: "main"          # where CMS saves posts (you review before merging to main)
+  # base_url: https://decap-github-oauth-proxy.vercel.app 
+  # auth_endpoint: auth
+  squash_merges: true
   commit_messages:
     create: "📝 Create new post {{slug}}"
     update: "✏️ Update post {{slug}}"
@@ -9,7 +13,7 @@ backend:
     uploadMedia: "📸 Upload image {{path}}"
     deleteMedia: "🧹 Delete image {{path}}"
 
-publish_mode: simple               # disable editorial workflow (proxy doesn’t support it)
+publish_mode: simple  # enable PR-based editorial workflow
 
 media_folder: "public/images"      # where images are stored in your repo
 public_folder: "/images"
@@ -43,7 +47,7 @@ collections:
 
 # Optional — show logo/title in the CMS UI
 site_url: "https://crm.takovibe.com"
-logo_url: "https://crm.takovibe.com/images/logo.png"
+logo_url: "https://takovibe.com/images/logo.svg"
 
 # Allow local testing
 local_backend: false
