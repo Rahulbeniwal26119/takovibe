@@ -1,15 +1,24 @@
 backend:
   name: proxy
-  proxy_url: http://54.38.65.238:8081/api/v1
-  branch: main
+  repo: Rahulbeniwal26119/blog
+  proxy_url: "https://crm.takovibe.com/api/v1"
+  branch: "main"          # where CMS saves posts (you review before merging to main)
+  # base_url: https://decap-github-oauth-proxy.vercel.app 
+  # auth_endpoint: auth
+  squash_merges: true
+  commit_messages:
+    create: "📝 Create new post {{slug}}"
+    update: "✏️ Update post {{slug}}"
+    delete: "🗑️ Delete post {{slug}}"
+    uploadMedia: "📸 Upload image {{path}}"
+    deleteMedia: "🧹 Delete image {{path}}"
 
-# For local development/testing without authentication
-local_backend: true
+publish_mode: simple  # enable PR-based editorial workflow
 
-media_folder: "public/images"
+media_folder: "public/images"      # where images are stored in your repo
 public_folder: "/images"
 
-# Force all YAML values to be quoted
+# Optional: quote YAML values for safer frontmatter
 yaml_quote: all
 
 collections:
@@ -20,11 +29,10 @@ collections:
     slug: "{{slug}}"
     format: "frontmatter"
     extension: "mdx"
-    yaml_quote: all
     fields:
       - { label: "Layout", name: "layout", widget: "hidden", default: "../../layouts/BlogPost.astro" }
       - { label: "Title", name: "title", widget: "string", required: true }
-      - { label: "Date", name: "date", widget: "string", required: true, pattern: ['\d{4}-\d{2}-\d{2}', "Must be YYYY-MM-DD format"] }
+      - { label: "Date", name: "date", widget: "string", required: true }
       - { label: "Author", name: "author", widget: "string", required: true }
       - { label: "Description", name: "description", widget: "text", required: true }
       - { label: "Featured Image", name: "image", widget: "string", required: true }
@@ -36,3 +44,10 @@ collections:
       - { label: "Series", name: "series", widget: "string", required: false }
       - { label: "Series Order", name: "seriesOrder", widget: "number", required: false }
       - { label: "Body", name: "body", widget: "markdown", required: true, sanitize_preview: false }
+
+# Optional — show logo/title in the CMS UI
+site_url: "https://crm.takovibe.com"
+logo_url: "https://takovibe.com/images/logo.svg"
+
+# Allow local testing
+local_backend: false

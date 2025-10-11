@@ -56,3 +56,4 @@ coverage/
 dev-dist/
 .vscode/
 run_docker_prod.sh
+decap-users.yml

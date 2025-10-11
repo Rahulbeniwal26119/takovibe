@@ -17,11 +17,11 @@ function fixBrackets(filePath) {
   try {
     let content = fs.readFileSync(filePath, 'utf-8');
     const originalContent = content;
-    
+
     // Fix escaped brackets in JSX
     content = content.replace(/\\\[/g, '[');
     content = content.replace(/\\\]/g, ']');
-    
+
     // Only write if something changed
     if (content !== originalContent) {
       fs.writeFileSync(filePath, content, 'utf-8');
