@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev": "npm run dev:watch & HOST=0.0.0.0 npx decap-server & astro dev --host 0.0.0.0",
+    "dev": "astro dev",
     "dev:watch": "node watch-mdx.mjs",
     "start": "astro dev",
     "build": "npm run clean && astro build",

@@ -129,7 +129,7 @@ Answer:`;
 
   const fetchStartTime = Date.now();
   
-  const response = await fetch('https://chat.takovibe.com/api/generate', {
+  const response = await fetch('https://chatt.takovibe.com/api/generate', {
     method: 'POST',
     headers: {
       'Authorization': 'Basic YXBpdXNlcjpteWFwaWtleW15YXBpa2V5bXlhcGlrZXlteWFwaWtleW15YXBpa2V5bXlhcGlrZXlteWFwaWtleW15YXBpa2V5bXlhcGlrZXlteWFwaWtleW15YXBpa2V5bXlhcGlrZXlteWFwaWtleW15YXBpa2V5bXlhcGlrZXk=',
