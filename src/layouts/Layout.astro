@@ -130,13 +130,13 @@ const structuredData = {
     <script type="application/ld+json" set:html={JSON.stringify(structuredData)}></script>
 
     {/* Add AdSense script only if noAds is false */}
-    {!noAds && (
+    <!-- {!noAds && (
       <script 
         async 
         src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4238071991829602"
         crossorigin="anonymous"
       ></script>
-    )}
+    )} -->
   </head>
   <body class="text-gray-900 dark:text-gray-100 min-h-screen overflow-x-hidden zen-body">
     {!no_header && <Header />}
