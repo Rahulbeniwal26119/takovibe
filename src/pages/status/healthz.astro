@@ -1,0 +1,63 @@
+---
+import Layout from "../../layouts/Layout.astro";
+---
+
+<Layout
+    title="Health Check - TakoVibe"
+    description="System health status"
+    no_footer={true}
+    no_header={true}
+>
+    <div
+        class="min-h-screen flex items-center justify-center bg-white dark:bg-[#171923] relative overflow-hidden"
+    >
+        <div
+            class="absolute inset-0 pointer-events-none opacity-30 dark:opacity-20"
+        >
+            <div
+                class="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(159,122,234,0.15),transparent_70%)]"
+            >
+            </div>
+        </div>
+
+        <div class="relative z-10 text-center p-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 mb-4">
+                <div class="relative">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full blur-xl opacity-50 animate-pulse"
+                    >
+                    </div>
+
+                    <div
+                        class="relative w-16 h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center"
+                    >
+                        <svg
+                            class="w-8 h-8 text-white"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2.5"
+                                d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-2">
+                <span
+                    class="text-2xl font-semibold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent"
+                >
+                    OK
+                </span>
+            </div>
+
+            <div class="text-sm text-gray-500 dark:text-gray-400 font-medium">
+                System Operational
+            </div>
+        </div>
+    </div>
+</Layout>
