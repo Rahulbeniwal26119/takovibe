@@ -40,15 +40,15 @@ try {
     const blogsResult = await blogsResponse.json();
     if (blogsResult.code === 0 && blogsResult.data) {
       blogEntries = blogsResult.data;
-      
+
       // Filter out unpublished posts
       publishedPosts = blogEntries.filter(post => post.is_published);
-      
+
       // Sort by created_at date (newest first)
       sortedPosts = publishedPosts.sort(
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
-      
+
       // Get featured posts (top 6)
       featuredPosts = sortedPosts.slice(0, 6);
     }
@@ -60,7 +60,7 @@ try {
     const tagsResult = await tagsResponse.json();
     if (tagsResult.code === 0 && tagsResult.data) {
       tagsData = tagsResult.data;
-      
+
       // Convert tags object to array and sort by count (most popular first)
       popularTags = Object.entries(tagsData)
         .map(([name, count]) => ({ name, count }))
@@ -82,7 +82,7 @@ try {
   tags={["software engineering", "system design", "technology", "programming", "web development", "tech community"]}
 >
   <div class="min-h-screen bg-white dark:bg-[#171923]">
-    
+
     <!-- Hero Section -->
     <section class="pb-20 px-4 sm:px-6" id="about">
       <div class="max-w-5xl mx-auto">
@@ -90,7 +90,7 @@ try {
           <!-- Main Content -->
           <div class="lg:col-span-12 order-1">
             <div class="text-center">
-              <div class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-full text-sm font-medium mb-8 border border-gray-200 dark:border-gray-700">
+              <div class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-full text-sm font-medium mb-8 border border-gray-200 dark:border-gray-700 mt-20">
                 <span class="text-base">💎</span>
                 From Developers to Developers
               </div>
@@ -102,8 +102,8 @@ try {
                 </span>
               </h1>
               <p class="text-lg sm:text-xl text-gray-700 dark:text-gray-300 mb-10 leading-relaxed max-w-2xl mx-auto font-normal">
-                A modern platform where developers share insights on 
-                <span class="text-blue-700 dark:text-blue-300 font-semibold">software engineering</span> 
+                A modern platform where developers share insights on
+                <span class="text-blue-700 dark:text-blue-300 font-semibold">software engineering</span>
                 and cutting-edge technologies.
               </p>
               <div class="flex flex-col sm:flex-row gap-4 justify-center">
@@ -165,7 +165,7 @@ try {
             </div>
           </div>
         </div>
-        
+
         <!-- No duplicate mobile section needed as we have responsive grid already -->
       </div>
     </section>
@@ -175,7 +175,7 @@ try {
       <!-- Subtle background elements -->
       <div class="absolute top-0 left-1/3 w-64 h-64 bg-gradient-to-r from-purple-400/10 to-blue-400/10 rounded-full blur-3xl"></div>
       <div class="absolute bottom-0 right-1/3 w-48 h-48 bg-gradient-to-r from-blue-400/10 to-indigo-400/10 rounded-full blur-2xl"></div>
-      
+
       <div class="max-w-6xl mx-auto relative z-10">
         <!-- Compact Header -->
         <div class="text-center mb-8">
@@ -216,7 +216,7 @@ try {
       <div class="absolute inset-0 bg-gradient-to-b from-purple-50/30 via-transparent to-blue-50/30 dark:from-purple-900/10 dark:via-transparent dark:to-blue-900/10"></div>
       <div class="absolute top-20 right-10 w-32 h-32 bg-gradient-to-r from-purple-400/10 to-blue-400/10 rounded-full blur-3xl"></div>
       <div class="absolute bottom-20 left-10 w-24 h-24 bg-gradient-to-r from-blue-400/10 to-indigo-400/10 rounded-full blur-2xl"></div>
-      
+
       <div class="max-w-5xl mx-auto relative z-10">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-12">
           <div class="mb-6 sm:mb-0">
@@ -255,7 +255,7 @@ try {
             </div>
           )}
         </div>
-        
+
         <!-- Bottom decorative line -->
         <div class="mt-16 flex justify-center">
           <div class="w-24 h-1 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full"></div>
@@ -271,7 +271,7 @@ try {
         <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-r from-purple-400/8 to-pink-400/8 rounded-full blur-3xl animate-pulse" style="animation-delay: 3s"></div>
         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-gradient-to-r from-indigo-400/6 to-blue-400/6 rounded-full blur-3xl animate-pulse" style="animation-delay: 1.5s"></div>
       </div>
-      
+
       <div class="max-w-7xl mx-auto relative z-10">
         <!-- Enhanced Header -->
         <div class="text-center mb-16 sm:mb-20">
@@ -282,7 +282,7 @@ try {
             </div>
             <span class="font-semibold">Explore by Topics</span>
           </div>
-          
+
           <h2 class="text-5xl sm:text-6xl lg:text-7xl font-bold text-slate-900 dark:text-slate-100 mb-6 sm:mb-8 leading-tight">
             <span class="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
               Popular
@@ -290,7 +290,7 @@ try {
             <br class="hidden sm:block" />
             <span class="text-slate-800 dark:text-slate-200 font-light">Topics</span>
           </h2>
-          
+
           <p class="text-xl sm:text-2xl text-slate-600 dark:text-slate-400 max-w-4xl mx-auto leading-relaxed font-light">
             Discover articles organized by the most engaging topics in our community.
             <br class="hidden sm:block" />
@@ -302,59 +302,59 @@ try {
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8 mb-12">
           {popularTags.slice(0, 8).map((tag, index) => {
             const tagPosts = sortedPosts.filter(post => (post.tags || []).includes(tag.name));
-            
+
             // Enhanced color schemes
             const colorSchemes = [
-              { 
+              {
                 gradient: 'from-blue-500 to-cyan-500',
                 bg: 'from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30',
                 border: 'border-blue-200/60 dark:border-blue-700/60',
                 text: 'text-blue-700 dark:text-blue-300',
                 accent: 'bg-blue-500'
               },
-              { 
+              {
                 gradient: 'from-purple-500 to-pink-500',
                 bg: 'from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30',
                 border: 'border-purple-200/60 dark:border-purple-700/60',
                 text: 'text-purple-700 dark:text-purple-300',
                 accent: 'bg-purple-500'
               },
-              { 
+              {
                 gradient: 'from-emerald-500 to-teal-500',
                 bg: 'from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30',
                 border: 'border-emerald-200/60 dark:border-emerald-700/60',
                 text: 'text-emerald-700 dark:text-emerald-300',
                 accent: 'bg-emerald-500'
               },
-              { 
+              {
                 gradient: 'from-orange-500 to-red-500',
                 bg: 'from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30',
                 border: 'border-orange-200/60 dark:border-orange-700/60',
                 text: 'text-orange-700 dark:text-orange-300',
                 accent: 'bg-orange-500'
               },
-              { 
+              {
                 gradient: 'from-indigo-500 to-purple-500',
                 bg: 'from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30',
                 border: 'border-indigo-200/60 dark:border-indigo-700/60',
                 text: 'text-indigo-700 dark:text-indigo-300',
                 accent: 'bg-indigo-500'
               },
-              { 
+              {
                 gradient: 'from-rose-500 to-pink-500',
                 bg: 'from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30',
                 border: 'border-rose-200/60 dark:border-rose-700/60',
                 text: 'text-rose-700 dark:text-rose-300',
                 accent: 'bg-rose-500'
               },
-              { 
+              {
                 gradient: 'from-teal-500 to-blue-500',
                 bg: 'from-teal-50 to-blue-50 dark:from-teal-950/30 dark:to-blue-950/30',
                 border: 'border-teal-200/60 dark:border-teal-700/60',
                 text: 'text-teal-700 dark:text-teal-300',
                 accent: 'bg-teal-500'
               },
-              { 
+              {
                 gradient: 'from-violet-500 to-purple-500',
                 bg: 'from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30',
                 border: 'border-violet-200/60 dark:border-violet-700/60',
@@ -362,7 +362,7 @@ try {
                 accent: 'bg-violet-500'
               }
             ];
-            
+
             // Enhanced icons mapping
             const icons = {
               'python': '🐍',
@@ -390,28 +390,28 @@ try {
               'tips': '💡',
               'best practices': '✨'
             };
-            
+
             const scheme = colorSchemes[index % colorSchemes.length];
             const tagLower = tag.name.toLowerCase();
             const icon = icons[tagLower] || '📝';
-            
+
             return (
-              <article 
-                class="group relative animate-fade-up hover:z-10" 
+              <article
+                class="group relative animate-fade-up hover:z-10"
                 style={`animation-delay: ${index * 0.1}s`}
               >
                 {/* Hover glow effect */}
                 <div class={`absolute -inset-2 bg-gradient-to-r ${scheme.gradient} opacity-0 group-hover:opacity-20 rounded-2xl blur-xl transition-all duration-500`}></div>
-                
+
                 <div class={`relative bg-gradient-to-br ${scheme.bg} backdrop-blur-sm rounded-2xl p-6 border ${scheme.border} hover:border-opacity-100 transition-all duration-300 hover:shadow-2xl hover:shadow-black/5 dark:hover:shadow-white/5 transform hover:-translate-y-2 hover:scale-105 h-full flex flex-col`}>
-                  
+
                   {/* Header with icon and stats */}
                   <div class="flex items-start justify-between mb-4">
                     <div class={`relative p-3 rounded-xl bg-gradient-to-br ${scheme.gradient} shadow-lg`}>
                       <span class="text-2xl filter drop-shadow-sm">{icon}</span>
                       <div class={`absolute -inset-1 ${scheme.accent} opacity-20 rounded-xl blur-sm group-hover:opacity-40 transition-opacity`}></div>
                     </div>
-                    
+
                     <div class="text-right">
                       <div class={`text-2xl font-bold ${scheme.text} mb-1`}>
                         {tag.count}
@@ -421,19 +421,19 @@ try {
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Topic name */}
                   <h3 class={`text-xl font-bold text-slate-900 dark:text-slate-100 mb-3 capitalize group-hover:${scheme.text} transition-colors duration-300 leading-tight`}>
                     {tag.name.replace(/[-_]/g, ' ')}
                   </h3>
-                  
+
                   {/* Description */}
                   <p class="text-slate-600 dark:text-slate-400 text-sm mb-6 leading-relaxed flex-1">
                     Comprehensive guides and tutorials covering {tag.name.replace(/[-_]/g, ' ')} development and best practices.
                   </p>
-                  
+
                   {/* Action button */}
-                  <button 
+                  <button
                     class={`category-modal-btn w-full inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r ${scheme.gradient} text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-black/20 dark:hover:shadow-white/10 transition-all duration-300 transform hover:scale-105 group/btn`}
                     data-category={tag.name}
                     data-articles={JSON.stringify(tagPosts.map(post => ({
@@ -459,8 +459,8 @@ try {
         {/* Enhanced Call-to-Action */}
         <div class="text-center">
           <div class="inline-flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-            <a 
-              href="/categories" 
+            <a
+              href="/categories"
               class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 transform hover:scale-105 group"
             >
               <span>Browse All Categories</span>
@@ -468,7 +468,7 @@ try {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
             </a>
-            
+
             <div class="text-slate-600 dark:text-slate-400 text-sm">
               <span class="font-medium">{popularTags.reduce((sum, tag) => sum + tag.count, 0)}+</span> articles across <span class="font-medium">{popularTags.length}</span> topics
             </div>
@@ -504,10 +504,10 @@ try {
         <!-- Search Bar -->
         <div class="p-6 border-b border-gray-200 dark:border-gray-700">
           <div class="relative">
-            <input 
-              type="text" 
-              id="articleSearch" 
-              placeholder="Search articles..." 
+            <input
+              type="text"
+              id="articleSearch"
+              placeholder="Search articles..."
               class="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
             />
             <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -564,7 +564,7 @@ try {
     const start = levels[startLevel] || 1;
     const end = levels[endLevel] || 1;
     const avg = (start + end) / 2;
-    
+
     if (avg <= 1.5) return "from-purple-500 to-blue-500";
     if (avg <= 2.5) return "from-blue-500 to-purple-500";
     return "from-orange-500 to-red-500";
@@ -575,10 +575,10 @@ try {
   }
 
   function formatDate(dateString) {
-    return new Date(dateString).toLocaleDateString('en-US', { 
-      month: 'long', 
-      day: 'numeric', 
-      year: 'numeric' 
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
     });
   }
 
@@ -593,14 +593,14 @@ try {
   // Fetch and display homepage stats
   async function loadHomeStats() {
     const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
-    
+
     try {
       const response = await fetch(`${API_URL}/api/blogs/home/our-stats/`);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      
+
       const result = await response.json();
       const stats = result.data;
-      
+
       // Update each stat with animation
       const statElements = [
         { id: 'total-blogs', value: stats.total_blogs },
@@ -608,7 +608,7 @@ try {
         { id: 'total-authors', value: stats.total_authors },
         { id: 'total-views', value: stats.total_views }
       ];
-      
+
       statElements.forEach(({ id, value }, index) => {
         setTimeout(() => {
           const element = document.getElementById(id);
@@ -618,10 +618,10 @@ try {
           }
         }, index * 100); // Stagger the animations
       });
-      
+
     } catch (error) {
       console.error('Failed to load stats:', error);
-      
+
       // Fallback to default values on error
       const fallbackStats = [
         { id: 'total-blogs', value: '25+' },
@@ -629,7 +629,7 @@ try {
         { id: 'total-authors', value: '2+' },
         { id: 'total-views', value: '3K+' }
       ];
-      
+
       fallbackStats.forEach(({ id, value }, index) => {
         setTimeout(() => {
           const element = document.getElementById(id);
@@ -645,7 +645,7 @@ try {
   // Fetch and display featured series
   async function loadFeaturedSeries() {
     const container = document.getElementById('featured-series-container');
-    
+
     // Show loading state
     container.innerHTML = `
       <div class="col-span-full flex items-center justify-center py-8">
@@ -661,10 +661,10 @@ try {
     try {
       const response = await fetch(`${API_URL}/api/blogs/series/?page_size=10`);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      
+
       const data = await response.json();
       const allSeries = data.results || []; // Show all series, not just live ones
-      
+
       if (allSeries.length === 0) {
         container.innerHTML = `
           <div class="col-span-full text-center py-8">
@@ -688,7 +688,7 @@ try {
 
       // Display series as a simple list
       const displaySeries = allSeries.slice(0, 10); // Show more series in list format
-      
+
       container.innerHTML = `
         <!-- Series List -->
         <div class="space-y-4">
@@ -696,7 +696,7 @@ try {
             const articlesCount = series.articles_count || 0;
             const plannedArticles = series.planned_articles || 0;
             const icon = getSeriesIcon(series.topic_covered || []);
-            
+
             return `
               <div class="flex items-center justify-between p-4 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-lg border border-purple-200/50 dark:border-purple-700/30 hover:border-purple-300 dark:hover:border-purple-400/50 hover:shadow-md transition-all duration-200" style="animation-delay: ${index * 0.05}s">
                 <div class="flex items-center gap-4">
@@ -739,8 +739,8 @@ try {
           <p class="text-gray-600 dark:text-gray-400 mb-4 text-sm">
             Connection issue. Please try again.
           </p>
-          <button 
-            onclick="loadFeaturedSeries()" 
+          <button
+            onclick="loadFeaturedSeries()"
             class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-200 hover:scale-105 text-sm"
           >
             <svg class="w-3 h-3 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -775,7 +775,7 @@ try {
     const modalCount = document.getElementById('modalCount');
     const modalIcon = document.getElementById('modalIcon');
     const searchInput = document.getElementById('articleSearch');
-    
+
     // Icon mapping
     const icons = {
       'python': '🐍',
@@ -803,16 +803,16 @@ try {
       'system design': 'from-pink-500 to-pink-600',
       'programming': 'from-gray-500 to-gray-600'
     };
-    
+
     // Update modal content
     modalTitle.textContent = category.charAt(0).toUpperCase() + category.slice(1);
     modalCount.textContent = `${articles.length} article${articles.length !== 1 ? 's' : ''}`;
     modalIcon.textContent = icons[category.toLowerCase()] || '📝';
     modalIcon.className = `w-10 h-10 bg-gradient-to-r ${colors[category.toLowerCase()] || 'from-gray-500 to-gray-600'} rounded-xl flex items-center justify-center text-white text-xl`;
-    
+
     // Clear search
     (searchInput as HTMLInputElement).value = '';
-    
+
     // Show modal with animation
     modal.classList.remove('hidden');
     setTimeout(() => {
@@ -820,10 +820,10 @@ try {
       modalContent.classList.remove('scale-95');
       modalContent.classList.add('scale-100');
     }, 10);
-    
+
     // Render articles
     renderArticles(articles);
-    
+
     // Prevent body scrolling
     document.body.style.overflow = 'hidden';
   };
@@ -831,11 +831,11 @@ try {
   (window as any).closeCategoryModal = function() {
     const modal = document.getElementById('categoryModal');
     const modalContent = document.getElementById('modalContent');
-    
+
     modal.classList.add('opacity-0');
     modalContent.classList.remove('scale-100');
     modalContent.classList.add('scale-95');
-    
+
     setTimeout(() => {
       modal.classList.add('hidden');
       document.body.style.overflow = '';
@@ -844,7 +844,7 @@ try {
 
   function renderArticles(articles) {
     const articlesList = document.getElementById('modalArticlesList');
-    
+
     if (articles.length === 0) {
       articlesList.innerHTML = `
         <div class="p-8 text-center">
@@ -855,7 +855,7 @@ try {
       `;
       return;
     }
-    
+
     articlesList.innerHTML = articles.map(article => `
       <a href="/blog/${article.slug}" class="block p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-200 dark:border-gray-700 last:border-b-0">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
@@ -892,7 +892,7 @@ try {
     // Handle category modal buttons
     document.addEventListener('click', function(e) {
       const target = e.target as HTMLElement;
-      
+
       if (target.closest('.category-modal-btn')) {
         e.preventDefault();
         const btn = target.closest('.category-modal-btn') as HTMLElement;
@@ -900,7 +900,7 @@ try {
         const articles = JSON.parse(btn.getAttribute('data-articles') || '[]');
         (window as any).openCategoryModal(category, articles);
       }
-      
+
       // Handle close button
       if (target.closest('#closeModalBtn')) {
         (window as any).closeCategoryModal();
@@ -912,7 +912,7 @@ try {
     if (searchInput) {
       searchInput.addEventListener('input', function(e) {
         const query = (e.target as HTMLInputElement).value.toLowerCase();
-        const filteredArticles = currentArticles.filter(article => 
+        const filteredArticles = currentArticles.filter(article =>
           article.title.toLowerCase().includes(query) ||
           article.description.toLowerCase().includes(query) ||
           article.tags.some(tag => tag.toLowerCase().includes(query))

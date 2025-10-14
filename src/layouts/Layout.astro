@@ -10,241 +10,289 @@ import AnimatedBackground from "../components/AnimatedBackground.astro";
 import ErrorBoundary from "../components/ErrorBoundary.astro";
 
 interface Props {
-  title: string;
-  description?: string;
-  image?: string;
-  type?: 'website' | 'article';
-  tags?: string[];
-  author?: string;
-  noAds?: boolean;
-  published_date?: string;
-  modified_date?: string;
-  no_footer?: boolean;
-  no_header?: boolean;
+    title: string;
+    description?: string;
+    image?: string;
+    type?: "website" | "article";
+    tags?: string[];
+    author?: string;
+    noAds?: boolean;
+    published_date?: string;
+    modified_date?: string;
+    no_footer?: boolean;
+    no_header?: boolean;
 }
 
 const {
-  title, 
-  description,
-  image = "https://takovibe.com/images/logo.svg",
-  type,
-  noAds = false,
-  author = "Rahul Beniwal",
-  tags = [],
-  published_date = new Date().toISOString(),
-  modified_date,
-  no_footer = false,
-  no_header = false
+    title,
+    description,
+    image = "https://takovibe.com/images/logo.svg",
+    type,
+    noAds = false,
+    author = "Rahul Beniwal",
+    tags = [],
+    published_date = new Date().toISOString(),
+    modified_date,
+    no_footer = false,
+    no_header = false,
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
 // Prepare structured data
 const structuredData = {
-  "@context": "https://schema.org",
-  "@type": type === 'article' ? "BlogPosting" : "WebPage",
-  "headline": title,
-  "description": description,
-  "image": image.startsWith('http') ? image : new URL(image, Astro.site).toString(),
-  "author": {
-    "@type": "Person",
-    "name": author
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "TakoVibe",
-    "logo": {
-      "@type": "ImageObject",
-      "url": new URL("/images/logo.svg", Astro.site).toString()
-    }
-  },
-  "datePublished": published_date,
-  ...(modified_date && { "dateModified": modified_date }),
-  "url": canonicalURL.toString()
+    "@context": "https://schema.org",
+    "@type": type === "article" ? "BlogPosting" : "WebPage",
+    headline: title,
+    description: description,
+    image: image.startsWith("http")
+        ? image
+        : new URL(image, Astro.site).toString(),
+    author: {
+        "@type": "Person",
+        name: author,
+    },
+    publisher: {
+        "@type": "Organization",
+        name: "TakoVibe",
+        logo: {
+            "@type": "ImageObject",
+            url: new URL("/images/logo.svg", Astro.site).toString(),
+        },
+    },
+    datePublished: published_date,
+    ...(modified_date && { dateModified: modified_date }),
+    url: canonicalURL.toString(),
 };
 ---
 
 <!doctype html>
 <html lang="en" class="dark overflow-x-hidden">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="description" content={description} />
-    <meta name="author" content={author} />
-    <link rel="icon" type="image/svg+xml" href="/images/logo.svg" />
-    <link rel="canonical" href={canonicalURL} />
-    
-    <!-- Open Graph / Facebook / LinkedIn -->
-    <meta property="og:type" content={type} />
-    <meta property="og:title" content={title} />
-    <meta property="og:description" content={description} />
-    <meta property="og:image" content={image.startsWith('http') ? image : new URL(image, Astro.site).toString()} />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:url" content={canonicalURL} />
-    <meta property="og:site_name" content="TakoVibe" />
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="description" content={description} />
+        <meta name="author" content={author} />
+        <link rel="icon" type="image/svg+xml" href="/images/logo.svg" />
+        <link rel="canonical" href={canonicalURL} />
 
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={title} />
-    <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={image.startsWith('http') ? image : new URL(image, Astro.site).toString()} />
-    <meta name="twitter:image:alt" content={`Cover image for ${title}`} />
-    <!-- <meta name="twitter:site" content="@takovibe" /> -->
-    
-    <!-- Article specific meta tags (for blog posts) -->
-    {type === 'article' && (
-      <>
-        { published_date && (
-          <meta property="article:published_time" content={published_date} />
-        )}
-        { modified_date && (
-          <meta property="article:modified_time" content={modified_date} />
-        )}
-        <meta property="article:author" content={author} />
-        {tags.map(tag => (
-          <meta property="article:tag" content={tag} />
-        ))}
-        <meta property="og:image:alt" content={`Cover image for ${title}`} />
-      </>
-    )}
-    
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
-    />
-    
-    <!-- Font preconnect for performance -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <meta name="generator" content={Astro.generator} />
-    <title>{title}</title>
-    
-    <slot name="head" />
+        <!-- Open Graph / Facebook / LinkedIn -->
+        <meta property="og:type" content={type} />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content={description} />
+        <meta
+            property="og:image"
+            content={image.startsWith("http")
+                ? image
+                : new URL(image, Astro.site).toString()}
+        />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:url" content={canonicalURL} />
+        <meta property="og:site_name" content="TakoVibe" />
 
-    <!-- Schema.org markup for Google -->
-    <script type="application/ld+json" set:html={JSON.stringify(structuredData)}></script>
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={title} />
+        <meta name="twitter:description" content={description} />
+        <meta
+            name="twitter:image"
+            content={image.startsWith("http")
+                ? image
+                : new URL(image, Astro.site).toString()}
+        />
+        <meta name="twitter:image:alt" content={`Cover image for ${title}`} />
+        <!-- <meta name="twitter:site" content="@takovibe" /> -->
 
-    {/* Add AdSense script only if noAds is false */}
-    <!-- {!noAds && (
-      <script 
-        async 
+        <!-- Article specific meta tags (for blog posts) -->
+        {
+            type === "article" && (
+                <>
+                    {published_date && (
+                        <meta
+                            property="article:published_time"
+                            content={published_date}
+                        />
+                    )}
+                    {modified_date && (
+                        <meta
+                            property="article:modified_time"
+                            content={modified_date}
+                        />
+                    )}
+                    <meta property="article:author" content={author} />
+                    {tags.map((tag) => (
+                        <meta property="article:tag" content={tag} />
+                    ))}
+                    <meta
+                        property="og:image:alt"
+                        content={`Cover image for ${title}`}
+                    />
+                </>
+            )
+        }
+
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+        />
+
+        <!-- Font preconnect for performance -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <meta name="generator" content={Astro.generator} />
+        <title>{title}</title>
+
+        <slot name="head" />
+
+        <!-- Schema.org markup for Google -->
+        <script
+            type="application/ld+json"
+            set:html={JSON.stringify(structuredData)}
+        />
+
+        {/* Add AdSense script only if noAds is false */}
+        <!-- {!noAds && (
+      <script
+        async
         src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4238071991829602"
         crossorigin="anonymous"
       ></script>
     )} -->
-  </head>
-  <body class="text-gray-900 dark:text-gray-100 min-h-screen overflow-x-hidden zen-body">
-    {!no_header && <Header />}
-    <ReadingProgress />
-
-    <main
-      class="bg-white dark:bg-[#171923] text-black dark:text-white pt-[104px] md:pt-[112px] relative z-10"
+    </head>
+    <body
+        class="text-gray-900 dark:text-gray-100 min-h-screen overflow-x-hidden zen-body"
     >
-      <!-- Gradient Overlay -->
-      <div class="fixed inset-0 pointer-events-none opacity-50 dark:opacity-30">
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(159,122,234,0.15),transparent_50%)]"></div>
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_100%_100%,rgba(183,148,244,0.15),transparent_50%)]"></div>
-      </div>
-      <div class="relative z-20 mx-auto">
-        <ErrorBoundary>
-          <slot />
-        </ErrorBoundary>
-      </div>
-    </main>
-    {!no_footer && <Footer />}
-    
-    <!-- Global Image Placeholder Script -->
-    <script is:inline>
-      // Setup image placeholders globally
-      document.addEventListener('DOMContentLoaded', function() {
-        setupGlobalImagePlaceholders();
-      });
+        {!no_header && <Header />}
+        <ReadingProgress />
 
-      function setupGlobalImagePlaceholders() {
-        // Handle existing images
-        document.querySelectorAll('img').forEach(setupImageErrorHandling);
-        
-        // Setup mutation observer for dynamically added images
-        const observer = new MutationObserver((mutations) => {
-          mutations.forEach((mutation) => {
-            mutation.addedNodes.forEach((node) => {
-              if (node.nodeType === Node.ELEMENT_NODE) {
-                const element = node;
-                if (element.querySelectorAll) {
-                  const images = element.querySelectorAll('img');
-                  images.forEach(setupImageErrorHandling);
-                }
-                if (element.tagName === 'IMG') {
-                  setupImageErrorHandling(element);
-                }
-              }
+        <main
+            class="bg-white dark:bg-[#171923] text-black dark:text-white relative z-10 "
+        >
+            <!-- Gradient Overlay -->
+            <div
+                class="fixed inset-0 pointer-events-none opacity-50 dark:opacity-30"
+            >
+                <div
+                    class="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(159,122,234,0.15),transparent_50%)]"
+                >
+                </div>
+                <div
+                    class="absolute inset-0 bg-[radial-gradient(circle_at_100%_100%,rgba(183,148,244,0.15),transparent_50%)]"
+                >
+                </div>
+            </div>
+            <div class="relative z-20 mx-auto">
+                <ErrorBoundary>
+                    <slot />
+                </ErrorBoundary>
+            </div>
+        </main>
+        {!no_footer && <Footer />}
+
+        <!-- Global Image Placeholder Script -->
+        <script is:inline>
+            // Setup image placeholders globally
+            document.addEventListener("DOMContentLoaded", function () {
+                setupGlobalImagePlaceholders();
             });
-          });
-        });
-        
-        observer.observe(document.body, { childList: true, subtree: true });
-      }
 
-      function setupImageErrorHandling(img) {
-        if (img.dataset.placeholderSetup) return; // Already setup
-        
-        img.dataset.placeholderSetup = 'true';
-        img.dataset.loading = 'true';
-        
-        const handleLoad = () => {
-          img.dataset.loading = 'false';
-          img.dataset.loaded = 'true';
-        };
-        
-        const handleError = () => {
-          img.dataset.loading = 'false';
-          img.dataset.error = 'true';
-          
-          // Create placeholder
-          const placeholder = createImagePlaceholder(img);
-          if (img.parentNode) {
-            img.parentNode.insertBefore(placeholder, img);
-          }
-        };
-        
-        // Remove existing listeners to avoid duplicates
-        img.removeEventListener('load', handleLoad);
-        img.removeEventListener('error', handleError);
-        
-        // Add new listeners
-        img.addEventListener('load', handleLoad);
-        img.addEventListener('error', handleError);
-        
-        // Check if image is already loaded
-        if (img.complete) {
-          if (img.naturalWidth === 0) {
-            handleError();
-          } else {
-            handleLoad();
-          }
-        }
-      }
+            function setupGlobalImagePlaceholders() {
+                // Handle existing images
+                document
+                    .querySelectorAll("img")
+                    .forEach(setupImageErrorHandling);
 
-      function createImagePlaceholder(originalImg) {
-        const placeholder = document.createElement('div');
-        placeholder.className = 'image-placeholder ' + (originalImg.className || '');
-        
-        // Copy dimensions and styles
-        const computedStyle = window.getComputedStyle(originalImg);
-        placeholder.style.width = originalImg.offsetWidth ? originalImg.offsetWidth + 'px' : computedStyle.width;
-        placeholder.style.height = originalImg.offsetHeight ? originalImg.offsetHeight + 'px' : computedStyle.height;
-        placeholder.style.aspectRatio = computedStyle.aspectRatio || 'auto';
-        
-        // Get random tech theme
-        const theme = getTechTheme();
-        
-        // Create placeholder content with particles
-        placeholder.innerHTML = `
+                // Setup mutation observer for dynamically added images
+                const observer = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        mutation.addedNodes.forEach((node) => {
+                            if (node.nodeType === Node.ELEMENT_NODE) {
+                                const element = node;
+                                if (element.querySelectorAll) {
+                                    const images =
+                                        element.querySelectorAll("img");
+                                    images.forEach(setupImageErrorHandling);
+                                }
+                                if (element.tagName === "IMG") {
+                                    setupImageErrorHandling(element);
+                                }
+                            }
+                        });
+                    });
+                });
+
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true,
+                });
+            }
+
+            function setupImageErrorHandling(img) {
+                if (img.dataset.placeholderSetup) return; // Already setup
+
+                img.dataset.placeholderSetup = "true";
+                img.dataset.loading = "true";
+
+                const handleLoad = () => {
+                    img.dataset.loading = "false";
+                    img.dataset.loaded = "true";
+                };
+
+                const handleError = () => {
+                    img.dataset.loading = "false";
+                    img.dataset.error = "true";
+
+                    // Create placeholder
+                    const placeholder = createImagePlaceholder(img);
+                    if (img.parentNode) {
+                        img.parentNode.insertBefore(placeholder, img);
+                    }
+                };
+
+                // Remove existing listeners to avoid duplicates
+                img.removeEventListener("load", handleLoad);
+                img.removeEventListener("error", handleError);
+
+                // Add new listeners
+                img.addEventListener("load", handleLoad);
+                img.addEventListener("error", handleError);
+
+                // Check if image is already loaded
+                if (img.complete) {
+                    if (img.naturalWidth === 0) {
+                        handleError();
+                    } else {
+                        handleLoad();
+                    }
+                }
+            }
+
+            function createImagePlaceholder(originalImg) {
+                const placeholder = document.createElement("div");
+                placeholder.className =
+                    "image-placeholder " + (originalImg.className || "");
+
+                // Copy dimensions and styles
+                const computedStyle = window.getComputedStyle(originalImg);
+                placeholder.style.width = originalImg.offsetWidth
+                    ? originalImg.offsetWidth + "px"
+                    : computedStyle.width;
+                placeholder.style.height = originalImg.offsetHeight
+                    ? originalImg.offsetHeight + "px"
+                    : computedStyle.height;
+                placeholder.style.aspectRatio =
+                    computedStyle.aspectRatio || "auto";
+
+                // Get random tech theme
+                const theme = getTechTheme();
+
+                // Create placeholder content with particles
+                placeholder.innerHTML = `
           <div class="tech-particles">
             ${generateParticles()}
           </div>
@@ -256,70 +304,70 @@ const structuredData = {
             <div class="placeholder-subtitle">${theme.subtitle}</div>
           </div>
         `;
-        
-        return placeholder;
-      }
 
-      function getTechTheme() {
-        const themes = [
-          {
-            title: "Code Loading...",
-            subtitle: "Compiling awesome content",
-            icon: `<svg class="tech-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                return placeholder;
+            }
+
+            function getTechTheme() {
+                const themes = [
+                    {
+                        title: "Code Loading...",
+                        subtitle: "Compiling awesome content",
+                        icon: `<svg class="tech-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
-                  </svg>`
-          },
-          {
-            title: "Data Streaming...",
-            subtitle: "Processing visual content",
-            icon: `<svg class="tech-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  </svg>`,
+                    },
+                    {
+                        title: "Data Streaming...",
+                        subtitle: "Processing visual content",
+                        icon: `<svg class="tech-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
-                  </svg>`
-          },
-          {
-            title: "AI Generating...",
-            subtitle: "Creating visual magic",
-            icon: `<svg class="tech-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  </svg>`,
+                    },
+                    {
+                        title: "AI Generating...",
+                        subtitle: "Creating visual magic",
+                        icon: `<svg class="tech-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                  </svg>`
-          },
-          {
-            title: "Cloud Syncing...",
-            subtitle: "Fetching from the matrix",
-            icon: `<svg class="tech-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  </svg>`,
+                    },
+                    {
+                        title: "Cloud Syncing...",
+                        subtitle: "Fetching from the matrix",
+                        icon: `<svg class="tech-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
-                  </svg>`
-          },
-          {
-            title: "Neural Network...",
-            subtitle: "Computing visual insights",
-            icon: `<svg class="tech-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  </svg>`,
+                    },
+                    {
+                        title: "Neural Network...",
+                        subtitle: "Computing visual insights",
+                        icon: `<svg class="tech-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
-                  </svg>`
-          },
-          {
-            title: "Quantum Loading...",
-            subtitle: "Superposition of pixels",
-            icon: `<svg class="tech-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  </svg>`,
+                    },
+                    {
+                        title: "Quantum Loading...",
+                        subtitle: "Superposition of pixels",
+                        icon: `<svg class="tech-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-                  </svg>`
-          }
-        ];
-        
-        return themes[Math.floor(Math.random() * themes.length)];
-      }
+                  </svg>`,
+                    },
+                ];
 
-      function generateParticles() {
-        let particles = '';
-        for (let i = 0; i < 8; i++) {
-          const delay = Math.random() * 4;
-          const left = Math.random() * 100;
-          particles += `<div class="particle" style="left: ${left}%; animation-delay: ${delay}s;"></div>`;
-        }
-        return particles;
-      }
-    </script>
-  </body>
+                return themes[Math.floor(Math.random() * themes.length)];
+            }
+
+            function generateParticles() {
+                let particles = "";
+                for (let i = 0; i < 8; i++) {
+                    const delay = Math.random() * 4;
+                    const left = Math.random() * 100;
+                    particles += `<div class="particle" style="left: ${left}%; animation-delay: ${delay}s;"></div>`;
+                }
+                return particles;
+            }
+        </script>
+    </body>
 </html>
 
 <!-- <script is:inline>
@@ -344,269 +392,299 @@ const structuredData = {
 </script> -->
 
 <style is:global>
-  :root {
-    --cherry-light: #ffffff;
-    --cherry-medium: #f8fafc;
-    --cherry-accent: #9F7AEA;
-    --cherry-dark: #6B46C1;
-    --zen-text: #1a1a1a;
-    --zen-light: #ffffff;
-    --zen-shadow: rgba(111, 63, 231, 0.08);
-  }
-
-  :root.dark {
-    --cherry-light: #171923;
-    --cherry-medium: #1A202C;
-    --cherry-accent: #9F7AEA;
-    --cherry-dark: #B794F4;
-    --zen-text: #f8fafc;
-    --zen-light: #171923;
-    --zen-shadow: rgba(159, 122, 234, 0.15);
-  }
-
-  html {
-    background: linear-gradient(135deg, var(--cherry-light) 0%, var(--cherry-medium) 100%);
-    color: var(--zen-text);
-    font-family: 'Space Grotesk', sans-serif;
-    scroll-behavior: smooth;
-  }
-
-  body {
-    margin: 0;
-    padding: 0;
-    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    background: transparent;
-  }
-
-  .zen-body {
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 1) 0%,
-      rgba(248, 250, 252, 0.95) 100%
-    );
-  }
-
-  .dark .zen-body {
-    background: linear-gradient(
-      135deg,
-      rgba(17, 17, 17, 1) 0%,
-      rgba(26, 26, 26, 0.98) 100%
-    );
-  }
-
-  /* Minimal scrollbar */
-  ::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 3px;
-  }
-
-  .dark ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.3);
-  }
-
-  .dark ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
-  }
-
-  /* Smooth transitions */
-  * {
-    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 200ms;
-  }
-
-  /* Purple glow effect on hover */
-  .hover-glow:hover {
-    box-shadow: 0 0 20px rgba(159, 122, 234, 0.2);
-  }
-  
-  .dark .hover-glow:hover {
-    box-shadow: 0 0 20px rgba(183, 148, 244, 0.2);
-  }
-
-  /* Zen text selection */
-  ::selection {
-    background: var(--cherry-accent);
-    color: white;
-  }
-
-  html, body {
-    overflow-x: hidden;
-    width: 100%;
-    position: relative;
-  }
-
-  /* Additional zen elements */
-  .zen-gradient {
-    background: linear-gradient(135deg, var(--cherry-light), var(--cherry-medium));
-  }
-
-  .zen-shadow {
-    box-shadow: 0 4px 20px var(--zen-shadow);
-  }
-
-  .zen-border {
-    border: 1px solid rgba(59, 130, 246, 0.2);
-  }
-
-  /* Global Image placeholder styles */
-  .image-placeholder {
-    background: linear-gradient(135deg, #1e1b4b, #3730a3, #1e40af);
-    background-size: 400% 400%;
-    animation: gradientShift 4s ease infinite;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid rgba(79, 70, 229, 0.3);
-    border-radius: 0.75rem;
-    position: relative;
-    overflow: hidden;
-    min-height: 200px;
-  }
-
-  .dark .image-placeholder {
-    background: linear-gradient(135deg, #0f0f23, #1e1b4b, #312e81);
-    border-color: rgba(99, 102, 241, 0.4);
-  }
-
-  @keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-
-  .image-placeholder::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.1),
-      transparent
-    );
-    animation: shimmer 3s infinite;
-  }
-
-  @keyframes shimmer {
-    0% { left: -100%; }
-    100% { left: 100%; }
-  }
-
-  .image-placeholder-content {
-    color: #e0e7ff;
-    text-align: center;
-    padding: 2rem;
-    z-index: 2;
-    position: relative;
-  }
-
-  .dark .image-placeholder-content {
-    color: #c7d2fe;
-  }
-
-  .tech-icon-container {
-    width: 4rem;
-    height: 4rem;
-    margin: 0 auto 1rem;
-    position: relative;
-    animation: float 3s ease-in-out infinite;
-  }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-  }
-
-  .tech-icon {
-    width: 100%;
-    height: 100%;
-    opacity: 0.9;
-    filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.5));
-  }
-
-  .placeholder-title {
-    font-size: 1.125rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-    background: linear-gradient(45deg, #a78bfa, #c084fc, #f472b6);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: titleGlow 2s ease-in-out infinite alternate;
-  }
-
-  @keyframes titleGlow {
-    from { filter: brightness(1); }
-    to { filter: brightness(1.2); }
-  }
-
-  .placeholder-subtitle {
-    font-size: 0.875rem;
-    opacity: 0.8;
-    font-weight: 400;
-  }
-
-  .tech-particles {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    pointer-events: none;
-  }
-
-  .particle {
-    position: absolute;
-    width: 4px;
-    height: 4px;
-    background: rgba(139, 92, 246, 0.6);
-    border-radius: 50%;
-    animation: particleFloat 4s linear infinite;
-  }
-
-  @keyframes particleFloat {
-    0% {
-      transform: translateY(100vh) rotate(0deg);
-      opacity: 0;
+    :root {
+        --cherry-light: #ffffff;
+        --cherry-medium: #f8fafc;
+        --cherry-accent: #9f7aea;
+        --cherry-dark: #6b46c1;
+        --zen-text: #1a1a1a;
+        --zen-light: #ffffff;
+        --zen-shadow: rgba(111, 63, 231, 0.08);
     }
-    10% {
-      opacity: 1;
-    }
-    90% {
-      opacity: 1;
-    }
-    100% {
-      transform: translateY(-10px) rotate(360deg);
-      opacity: 0;
-    }
-  }
 
-  /* Enhanced image loading states */
-  img[data-loading="true"] {
-    opacity: 0;
-    transition: opacity 0.4s ease;
-  }
+    :root.dark {
+        --cherry-light: #171923;
+        --cherry-medium: #1a202c;
+        --cherry-accent: #9f7aea;
+        --cherry-dark: #b794f4;
+        --zen-text: #f8fafc;
+        --zen-light: #171923;
+        --zen-shadow: rgba(159, 122, 234, 0.15);
+    }
 
-  img[data-loaded="true"] {
-    opacity: 1;
-  }
+    html {
+        background: linear-gradient(
+            135deg,
+            var(--cherry-light) 0%,
+            var(--cherry-medium) 100%
+        );
+        color: var(--zen-text);
+        font-family: "Space Grotesk", sans-serif;
+        scroll-behavior: smooth;
+    }
 
-  img[data-error="true"] {
-    display: none;
-  }
+    body {
+        margin: 0;
+        padding: 0;
+        transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        background: transparent;
+    }
+
+    .zen-body {
+        background: linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 1) 0%,
+            rgba(248, 250, 252, 0.95) 100%
+        );
+    }
+
+    .dark .zen-body {
+        background: linear-gradient(
+            135deg,
+            rgba(17, 17, 17, 1) 0%,
+            rgba(26, 26, 26, 0.98) 100%
+        );
+    }
+
+    /* Minimal scrollbar */
+    ::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 3px;
+    }
+
+    .dark ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 0, 0, 0.3);
+    }
+
+    .dark ::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Smooth transitions */
+    * {
+        transition-property:
+            background-color, border-color, color, fill, stroke, opacity,
+            box-shadow, transform;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-duration: 200ms;
+    }
+
+    /* Purple glow effect on hover */
+    .hover-glow:hover {
+        box-shadow: 0 0 20px rgba(159, 122, 234, 0.2);
+    }
+
+    .dark .hover-glow:hover {
+        box-shadow: 0 0 20px rgba(183, 148, 244, 0.2);
+    }
+
+    /* Zen text selection */
+    ::selection {
+        background: var(--cherry-accent);
+        color: white;
+    }
+
+    html,
+    body {
+        overflow-x: hidden;
+        width: 100%;
+        position: relative;
+    }
+
+    /* Additional zen elements */
+    .zen-gradient {
+        background: linear-gradient(
+            135deg,
+            var(--cherry-light),
+            var(--cherry-medium)
+        );
+    }
+
+    .zen-shadow {
+        box-shadow: 0 4px 20px var(--zen-shadow);
+    }
+
+    .zen-border {
+        border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+
+    /* Global Image placeholder styles */
+    .image-placeholder {
+        background: linear-gradient(135deg, #1e1b4b, #3730a3, #1e40af);
+        background-size: 400% 400%;
+        animation: gradientShift 4s ease infinite;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(79, 70, 229, 0.3);
+        border-radius: 0.75rem;
+        position: relative;
+        overflow: hidden;
+        min-height: 200px;
+    }
+
+    .dark .image-placeholder {
+        background: linear-gradient(135deg, #0f0f23, #1e1b4b, #312e81);
+        border-color: rgba(99, 102, 241, 0.4);
+    }
+
+    @keyframes gradientShift {
+        0% {
+            background-position: 0% 50%;
+        }
+        50% {
+            background-position: 100% 50%;
+        }
+        100% {
+            background-position: 0% 50%;
+        }
+    }
+
+    .image-placeholder::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.1),
+            transparent
+        );
+        animation: shimmer 3s infinite;
+    }
+
+    @keyframes shimmer {
+        0% {
+            left: -100%;
+        }
+        100% {
+            left: 100%;
+        }
+    }
+
+    .image-placeholder-content {
+        color: #e0e7ff;
+        text-align: center;
+        padding: 2rem;
+        z-index: 2;
+        position: relative;
+    }
+
+    .dark .image-placeholder-content {
+        color: #c7d2fe;
+    }
+
+    .tech-icon-container {
+        width: 4rem;
+        height: 4rem;
+        margin: 0 auto 1rem;
+        position: relative;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%,
+        100% {
+            transform: translateY(0px);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+
+    .tech-icon {
+        width: 100%;
+        height: 100%;
+        opacity: 0.9;
+        filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.5));
+    }
+
+    .placeholder-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(45deg, #a78bfa, #c084fc, #f472b6);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: titleGlow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes titleGlow {
+        from {
+            filter: brightness(1);
+        }
+        to {
+            filter: brightness(1.2);
+        }
+    }
+
+    .placeholder-subtitle {
+        font-size: 0.875rem;
+        opacity: 0.8;
+        font-weight: 400;
+    }
+
+    .tech-particles {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    .particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: rgba(139, 92, 246, 0.6);
+        border-radius: 50%;
+        animation: particleFloat 4s linear infinite;
+    }
+
+    @keyframes particleFloat {
+        0% {
+            transform: translateY(100vh) rotate(0deg);
+            opacity: 0;
+        }
+        10% {
+            opacity: 1;
+        }
+        90% {
+            opacity: 1;
+        }
+        100% {
+            transform: translateY(-10px) rotate(360deg);
+            opacity: 0;
+        }
+    }
+
+    /* Enhanced image loading states */
+    img[data-loading="true"] {
+        opacity: 0;
+        transition: opacity 0.4s ease;
+    }
+
+    img[data-loaded="true"] {
+        opacity: 1;
+    }
+
+    img[data-error="true"] {
+        display: none;
+    }
 </style>

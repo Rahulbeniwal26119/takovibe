@@ -9,7 +9,7 @@ const currentPath = Astro.url.pathname;
 
 <header
   id="site-header"
-  class="fixed top-0 inset-x-0 z-[70] overflow-visible isolate"
+  class="bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-[#1a1325] dark:via-[#0f172a] dark:to-[#111827] backdrop-blur-md"
 >
   <!-- ROW 1: chrome bar -->
   <div
@@ -102,125 +102,77 @@ const currentPath = Astro.url.pathname;
     class="lg:block bg-transparent border-b border-gray-200/20 dark:border-gray-800/20"
     id='header-nav-container'
   >
-    <div
-      class="max-w-screen-2xl mx-auto px-3 lg:px-6 flex"
-    >
-      <!-- Primary links (centered and enhanced) -->
-      <nav
-        class="flex items-center gap-2 py-1"
-        aria-label="Primary"
-        role="navigation"
-      >
-        <a
-          href="/"
-          class={`nav-link group relative px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ease-out ${
-            currentPath === "/"
-              ? "text-purple-700 dark:text-purple-300 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-900/40 dark:via-blue-900/40 dark:to-indigo-900/40 border-2 border-purple-300/60 dark:border-purple-400/50 shadow-lg shadow-purple-100 dark:shadow-purple-900/20 scale-105"
-              : "text-gray-700 dark:text-gray-300 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-gradient-to-br hover:from-purple-50/80 hover:via-blue-50/80 hover:to-indigo-50/80 dark:hover:from-purple-900/30 dark:hover:via-blue-900/30 dark:hover:to-indigo-900/30 hover:border-2 hover:border-purple-300/40 dark:hover:border-purple-400/30 hover:shadow-lg hover:shadow-purple-100/50 dark:hover:shadow-purple-900/10 hover:scale-105"
-          }`}
-        >
-          Home
-          <div
-            class="absolute inset-x-0 -bottom-1 h-1 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 rounded-full transform origin-center scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out"
+      <div class="max-w-screen-2xl mx-auto px-3 lg:px-6 flex">
+        <!-- Primary links (simple & transparent) -->
+        <nav class="flex items-center justify-around w-full" aria-label="Primary" role="navigation">
+          <a
+            href="/"
+            class={`nav-link relative px-4 py-2 rounded-xl text-sm font-semibold ${
+              currentPath === "/"
+                ? "text-purple-700 dark:text-purple-300 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-900/40 dark:via-blue-900/40 dark:to-indigo-900/40 border border-purple-300/60 dark:border-purple-400/50 shadow-md"
+                : "text-gray-700 dark:text-gray-300 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-gradient-to-br hover:from-purple-50/60 hover:via-blue-50/60 hover:to-indigo-50/60 dark:hover:from-purple-900/20 dark:hover:via-blue-900/20 dark:hover:to-indigo-900/20 hover:border hover:border-purple-300/30 dark:hover:border-purple-400/20"
+            }`}
           >
-          </div>
-        </a>
-        <a
-          href="/blog"
-          class={`nav-link group relative px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ease-out ${
-            currentPath.startsWith("/blog")
-              ? "text-purple-700 dark:text-purple-300 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-900/40 dark:via-blue-900/40 dark:to-indigo-900/40 border-2 border-purple-300/60 dark:border-purple-400/50 shadow-lg shadow-purple-100 dark:shadow-purple-900/20 scale-105"
-              : "text-gray-700 dark:text-gray-300 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-gradient-to-br hover:from-purple-50/80 hover:via-blue-50/80 hover:to-indigo-50/80 dark:hover:from-purple-900/30 dark:hover:via-blue-900/30 dark:hover:to-indigo-900/30 hover:border-2 hover:border-purple-300/40 dark:hover:border-purple-400/30 hover:shadow-lg hover:shadow-purple-100/50 dark:hover:shadow-purple-900/10 hover:scale-105"
-          }`}
-        >
-          Blog
-          <div
-            class="absolute inset-x-0 -bottom-1 h-1 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 rounded-full transform origin-center scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out"
+            Home
+          </a>
+      
+          <a
+            href="/blog"
+            class={`nav-link relative px-4 py-2 rounded-xl text-sm font-semibold ${
+              currentPath.startsWith("/blog")
+                ? "text-purple-700 dark:text-purple-300 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-900/40 dark:via-blue-900/40 dark:to-indigo-900/40 border border-purple-300/60 dark:border-purple-400/50 shadow-md"
+                : "text-gray-700 dark:text-gray-300 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-gradient-to-br hover:from-purple-50/60 hover:via-blue-50/60 hover:to-indigo-50/60 dark:hover:from-purple-900/20 dark:hover:via-blue-900/20 dark:hover:to-indigo-900/20 hover:border hover:border-purple-300/30 dark:hover:border-purple-400/20"
+            }`}
           >
-          </div>
-        </a>
-        <a
-          href="/about"
-          class={`nav-link group relative px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ease-out ${
-            currentPath === "/about"
-              ? "text-purple-700 dark:text-purple-300 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-900/40 dark:via-blue-900/40 dark:to-indigo-900/40 border-2 border-purple-300/60 dark:border-purple-400/50 shadow-lg shadow-purple-100 dark:shadow-purple-900/20 scale-105"
-              : "text-gray-700 dark:text-gray-300 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-gradient-to-br hover:from-purple-50/80 hover:via-blue-50/80 hover:to-indigo-50/80 dark:hover:from-purple-900/30 dark:hover:via-blue-900/30 dark:hover:to-indigo-900/30 hover:border-2 hover:border-purple-300/40 dark:hover:border-purple-400/30 hover:shadow-lg hover:shadow-purple-100/50 dark:hover:shadow-purple-900/10 hover:scale-105"
-          }`}
-        >
-          About
-          <div
-            class="absolute inset-x-0 -bottom-1 h-1 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 rounded-full transform origin-center scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out"
+            Blog
+          </a>
+      
+          <a
+            href="/about"
+            class={`nav-link relative px-4 py-2 rounded-xl text-sm font-semibold ${
+              currentPath === "/about"
+                ? "text-purple-700 dark:text-purple-300 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-900/40 dark:via-blue-900/40 dark:to-indigo-900/40 border border-purple-300/60 dark:border-purple-400/50 shadow-md"
+                : "text-gray-700 dark:text-gray-300 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-gradient-to-br hover:from-purple-50/60 hover:via-blue-50/60 hover:to-indigo-50/60 dark:hover:from-purple-900/20 dark:hover:via-blue-900/20 dark:hover:to-indigo-900/20 hover:border hover:border-purple-300/30 dark:hover:border-purple-400/20"
+            }`}
           >
-          </div>
-        </a>
-        <a
-          href="/categories"
-          class={`nav-link group relative px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ease-out ${
-            currentPath === "/categories"
-              ? "text-purple-700 dark:text-purple-300 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-900/40 dark:via-blue-900/40 dark:to-indigo-900/40 border-2 border-purple-300/60 dark:border-purple-400/50 shadow-lg shadow-purple-100 dark:shadow-purple-900/20 scale-105"
-              : "text-gray-700 dark:text-gray-300 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-gradient-to-br hover:from-purple-50/80 hover:via-blue-50/80 hover:to-indigo-50/80 dark:hover:from-purple-900/30 dark:hover:via-blue-900/30 dark:hover:to-indigo-900/30 hover:border-2 hover:border-purple-300/40 dark:hover:border-purple-400/30 hover:shadow-lg hover:shadow-purple-100/50 dark:hover:shadow-purple-900/10 hover:scale-105"
-          }`}
-        >
-          Categories
-          <div
-            class="absolute inset-x-0 -bottom-1 h-1 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 rounded-full transform origin-center scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out"
+            About
+          </a>
+      
+          <a
+            href="/categories"
+            class={`nav-link relative px-4 py-2 rounded-xl text-sm font-semibold ${
+              currentPath === "/categories"
+                ? "text-purple-700 dark:text-purple-300 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-900/40 dark:via-blue-900/40 dark:to-indigo-900/40 border border-purple-300/60 dark:border-purple-400/50 shadow-md"
+                : "text-gray-700 dark:text-gray-300 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-gradient-to-br hover:from-purple-50/60 hover:via-blue-50/60 hover:to-indigo-50/60 dark:hover:from-purple-900/20 dark:hover:via-blue-900/20 dark:hover:to-indigo-900/20 hover:border hover:border-purple-300/30 dark:hover:border-purple-400/20"
+            }`}
           >
-          </div>
-        </a>
-        <a
-          href="/series"
-          class={`nav-link group relative px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ease-out ${
-            currentPath.startsWith("/series")
-              ? "text-purple-700 dark:text-purple-300 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-900/40 dark:via-blue-900/40 dark:to-indigo-900/40 border-2 border-purple-300/60 dark:border-purple-400/50 shadow-lg shadow-purple-100 dark:shadow-purple-900/20 scale-105"
-              : "text-gray-700 dark:text-gray-300 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-gradient-to-br hover:from-purple-50/80 hover:via-blue-50/80 hover:to-indigo-50/80 dark:hover:from-purple-900/30 dark:hover:via-blue-900/30 dark:hover:to-indigo-900/30 hover:border-2 hover:border-purple-300/40 dark:hover:border-purple-400/30 hover:shadow-lg hover:shadow-purple-100/50 dark:hover:shadow-purple-900/10 hover:scale-105"
-          }`}
-        >
-          Series
-          <div
-            class="absolute inset-x-0 -bottom-1 h-1 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 rounded-full transform origin-center scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out"
+            Categories
+          </a>
+      
+          <a
+            href="/series"
+            class={`nav-link relative px-4 py-2 rounded-xl text-sm font-semibold ${
+              currentPath.startsWith("/series")
+                ? "text-purple-700 dark:text-purple-300 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-900/40 dark:via-blue-900/40 dark:to-indigo-900/40 border border-purple-300/60 dark:border-purple-400/50 shadow-md"
+                : "text-gray-700 dark:text-gray-300 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-gradient-to-br hover:from-purple-50/60 hover:via-blue-50/60 hover:to-indigo-50/60 dark:hover:from-purple-900/20 dark:hover:via-blue-900/20 dark:hover:to-indigo-900/20 hover:border hover:border-purple-300/30 dark:hover:border-purple-400/20"
+            }`}
           >
-          </div>
-        </a>
-        <a
-          href="/contact"
-          class={`nav-link group relative px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ease-out ${
-            currentPath === "/contact"
-              ? "text-purple-700 dark:text-purple-300 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-900/40 dark:via-blue-900/40 dark:to-indigo-900/40 border-2 border-purple-300/60 dark:border-purple-400/50 shadow-lg shadow-purple-100 dark:shadow-purple-900/20 scale-105"
-              : "text-gray-700 dark:text-gray-300 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-gradient-to-br hover:from-purple-50/80 hover:via-blue-50/80 hover:to-indigo-50/80 dark:hover:from-purple-900/30 dark:hover:via-blue-900/30 dark:hover:to-indigo-900/30 hover:border-2 hover:border-purple-300/40 dark:hover:border-purple-400/30 hover:shadow-lg hover:shadow-purple-100/50 dark:hover:shadow-purple-900/10 hover:scale-105"
-          }`}
-        >
-          Contact
-          <div
-            class="absolute inset-x-0 -bottom-1 h-1 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 rounded-full transform origin-center scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out"
+            Series
+          </a>
+      
+          <a
+            href="/contact"
+            class={`nav-link relative px-4 py-2 rounded-xl text-sm font-semibold ${
+              currentPath === "/contact"
+                ? "text-purple-700 dark:text-purple-300 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-900/40 dark:via-blue-900/40 dark:to-indigo-900/40 border border-purple-300/60 dark:border-purple-400/50 shadow-md"
+                : "text-gray-700 dark:text-gray-300 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-gradient-to-br hover:from-purple-50/60 hover:via-blue-50/60 hover:to-indigo-50/60 dark:hover:from-purple-900/20 dark:hover:via-blue-900/20 dark:hover:to-indigo-900/20 hover:border hover:border-purple-300/30 dark:hover:border-purple-400/20"
+            }`}
           >
-          </div>
-        </a>
+            Contact
+          </a>
+        </nav>
+      </div>
 
-        <!-- Library dropdown -->
-        <!-- <details class="relative">
-          <summary
-            class="list-none cursor-pointer px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-black/[.04] dark:hover:bg-white/5">
-            Library
-          </summary>
-          <div
-            class="absolute left-0 top-full mt-1 w-56 rounded-2xl border border-black/10 dark:border-white/10 bg-white/95 dark:bg-gray-900/95 backdrop-blur p-2 shadow-xl z-[80]"
-          >
-            <a href="/me/recent" class="block px-3 py-2 rounded-xl text-sm text-gray-700 dark:text-gray-300 hover:bg-black/[.04] dark:hover:bg-white/5">Recently read</a>
-            <a href="/me/likes" class="block px-3 py-2 rounded-xl text-sm text-gray-700 dark:text-gray-300 hover:bg-black/[.04] dark:hover:bg-white/5">Liked</a>
-            <a href="/me/comments" class="block px-3 py-2 rounded-xl text-sm text-gray-700 dark:text-gray-300 hover:bg-black/[.04] dark:hover:bg-white/5">Commented</a>
-            <a href="/bookmarks" class="block px-3 py-2 rounded-xl text-sm text-gray-700 dark:text-gray-300 hover:bg-black/[.04] dark:hover:bg-white/5">Bookmarks</a>
-          </div>
-        </details> -->
-      </nav>
-
-      <!-- <div class="lg:block shrink-0">
-        <LiveIndicator
-          seriesName="30-Days-to-RAG"
-          message="Series is LIVE! New posts every day"
-          href="/series/30-days-to-rag"
-        />
-      </div> -->
-    </div>
   </div>
 
   <!-- MOBILE DRAWER -->
@@ -614,10 +566,6 @@ const currentPath = Astro.url.pathname;
   }
 
   /* Ensure header has consistent height */
-  #site-header {
-    height: calc(48px + 36px); /* Mobile total height */
-  }
-
   @media (min-width: 768px) {
     #site-header {
       height: calc(56px + 40px); /* Desktop total height */
