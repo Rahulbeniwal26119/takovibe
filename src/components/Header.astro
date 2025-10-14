@@ -9,7 +9,7 @@ const currentPath = Astro.url.pathname;
 
 <header
   id="site-header"
-  class="bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-[#1a1325] dark:via-[#0f172a] dark:to-[#111827] backdrop-blur-md"
+  class="sticky top-0 z-[70] bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-[#1a1325] dark:via-[#0f172a] dark:to-[#111827] backdrop-blur-md"
 >
   <!-- ROW 1: chrome bar -->
   <div
@@ -178,13 +178,13 @@ const currentPath = Astro.url.pathname;
   <!-- MOBILE DRAWER -->
   <div
     id="drawerBackdrop"
-    class="fixed inset-0 z-[65] bg-black/40 opacity-0 pointer-events-none transition"
+    class="fixed inset-0 z-[65] bg-black/40 opacity-0 pointer-events-none transition-opacity duration-200"
   >
   </div>
 
   <aside
     id="drawer"
-    class="fixed left-0 top-0 z-[66] h-full w-[86vw] max-w-[360px] -translate-x-full transition-transform duration-200
+    class="fixed left-0 top-0 z-[66] w-[86vw] max-w-[360px] -translate-x-full transition-transform duration-200
                 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 p-3 md:hidden"
     aria-label="Mobile menu"
     aria-hidden="true"
@@ -317,11 +317,13 @@ const currentPath = Astro.url.pathname;
     function openDrawer() {
       drawer?.classList.remove("-translate-x-full");
       backdrop?.classList.remove("pointer-events-none", "opacity-0");
+      backdrop?.classList.add("opacity-100"); // Add this line to make backdrop visible
     }
 
     function closeDrawer() {
       drawer?.classList.add("-translate-x-full");
       backdrop?.classList.add("pointer-events-none", "opacity-0");
+      backdrop?.classList.remove("opacity-100"); // Add this line to hide backdrop
     }
 
     function openMobileSearch() {
