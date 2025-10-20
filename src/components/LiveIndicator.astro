@@ -6,9 +6,9 @@ export interface Props {
 }
 
 const { 
-  seriesName = "RAG Mastery", 
+  seriesName = "ML Fundamentals", 
   message = "Series is LIVE! New posts every day",
-  href = "/series/rag-mastery"
+  href = "/series/machine-learning-fundamentals/"
 } = Astro.props;
 ---
 
@@ -17,7 +17,7 @@ const {
     href={href} 
     class="live-indicator group flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white text-xs font-medium rounded-full shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl whitespace-nowrap"
     aria-label={`${seriesName} - ${message}`}
-    title="Click to view the 30 Days to RAG series"
+    title=`Click to view ${seriesName}`
   >
     <!-- Live Dot Animation -->
     <div class="relative flex items-center">
@@ -29,19 +29,15 @@ const {
     <span class="text-content-xl">
       <span class="font-bold">LIVE</span>
       <span class="mx-1">•</span>
-      <span>RAG Mastery</span>
+      <span>{seriesName}</span>
     </span>
     
     <span class="text-content-lg">
       <span class="font-bold">LIVE</span>
-      <span class="mx-1">•</span>
-      <span>30 Days</span>
     </span>
     
     <span class="text-content-md">
       <span class="font-bold">LIVE</span>
-      <span class="mx-1">•</span>
-      <span>RAG</span>
     </span>
     
     <span class="text-content-sm font-bold">LIVE</span>
