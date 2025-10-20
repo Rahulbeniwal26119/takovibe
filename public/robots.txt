@@ -31,5 +31,6 @@ Disallow: /
 User-agent: ClaudeBot
 Disallow: /
 
-# -------- Sitemap --------
+# -------- Sitemaps --------
 Sitemap: https://takovibe.com/sitemap-index.xml
+Sitemap: https://takovibe.com/news-sitemap.xml

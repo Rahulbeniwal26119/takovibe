@@ -1,0 +1,79 @@
+---
+import { generateBreadcrumbSchema } from '../utils/seo';
+
+interface BreadcrumbItem {
+  name: string;
+  url: string;
+}
+
+interface Props {
+  items: BreadcrumbItem[];
+  current?: string;
+}
+
+const { items, current } = Astro.props;
+
+// Add current page if provided
+const allItems = current ? [...items, { name: current, url: Astro.url.pathname }] : items;
+
+// Generate structured data
+const breadcrumbSchema = generateBreadcrumbSchema(allItems);
+---
+
+<!-- SEO: Breadcrumb structured data -->
+<script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema, null, 2)}></script>
+
+<!-- Visual breadcrumbs -->
+<nav aria-label="Breadcrumb" class="mb-6">
+  <ol class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+    {allItems.map((item, index) => (
+      <li class="flex items-center">
+        {index > 0 && (
+          <svg class="mx-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+          </svg>
+        )}
+        {index < allItems.length - 1 ? (
+          <a 
+            href={item.url} 
+            class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            itemprop="item"
+          >
+            <span itemprop="name">{item.name}</span>
+          </a>
+        ) : (
+          <span class="font-medium text-gray-900 dark:text-gray-100" itemprop="name">
+            {item.name}
+          </span>
+        )}
+      </li>
+    ))}
+  </ol>
+</nav>
+
+<style>
+  nav {
+    /* Improve accessibility */
+    position: relative;
+  }
+  
+  nav ol {
+    /* Better mobile rendering */
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: thin;
+  }
+  
+  nav ol::-webkit-scrollbar {
+    height: 2px;
+  }
+  
+  nav ol::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  nav ol::-webkit-scrollbar-thumb {
+    background: rgba(156, 163, 175, 0.5);
+    border-radius: 1px;
+  }
+</style>

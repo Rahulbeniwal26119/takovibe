@@ -1,0 +1,95 @@
+---
+// Core Web Vitals monitoring component
+// Tracks LCP, FID, CLS and reports to analytics
+---
+
+<script>
+  // Manual Core Web Vitals implementation (lightweight alternative)
+  
+  // Function to send metrics to analytics
+  function sendToAnalytics(metric: any) {
+    // Send to Google Analytics if available
+    if (typeof (window as any).gtag !== 'undefined') {
+      (window as any).gtag('event', metric.name, {
+        event_category: 'Web Vitals',
+        event_label: metric.id,
+        value: Math.round(metric.name === 'CLS' ? metric.value * 1000 : metric.value),
+        non_interaction: true,
+      });
+    }
+
+    // Send to console for development
+    console.log('Web Vital:', metric);
+
+    // Send to custom analytics endpoint
+    fetch('/api/web-vitals', {
+      method: 'POST',
+      body: JSON.stringify(metric),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }).catch(err => {
+      // Silent fail for analytics
+      console.warn('Failed to send web vital:', err);
+    });
+  }
+
+  // Core Web Vitals implementation
+  function trackWebVitals() {
+    // Track LCP (Largest Contentful Paint)
+    if ('PerformanceObserver' in window) {
+      const lcpObserver = new PerformanceObserver((list) => {
+        const entries = list.getEntries();
+        const lastEntry = entries[entries.length - 1];
+        sendToAnalytics({
+          name: 'LCP',
+          value: lastEntry.startTime,
+          id: `lcp-${Date.now()}`,
+          rating: lastEntry.startTime > 2500 ? 'poor' : lastEntry.startTime > 1200 ? 'needs-improvement' : 'good'
+        });
+      });
+      lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
+
+      // Track FID (First Input Delay) - now replaced by INP
+      const fidObserver = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          sendToAnalytics({
+            name: 'FID',
+            value: (entry as any).processingStart - entry.startTime,
+            id: `fid-${Date.now()}`,
+            rating: (entry as any).processingStart - entry.startTime > 100 ? 'poor' : (entry as any).processingStart - entry.startTime > 300 ? 'needs-improvement' : 'good'
+          });
+        }
+      });
+      fidObserver.observe({ entryTypes: ['first-input'] });
+
+      // Track CLS (Cumulative Layout Shift)
+      let clsValue = 0;
+      const clsObserver = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          if (!(entry as any).hadRecentInput) {
+            clsValue += (entry as any).value;
+          }
+        }
+        sendToAnalytics({
+          name: 'CLS',
+          value: clsValue,
+          id: `cls-${Date.now()}`,
+          rating: clsValue > 0.25 ? 'poor' : clsValue > 0.1 ? 'needs-improvement' : 'good'
+        });
+      });
+      clsObserver.observe({ entryTypes: ['layout-shift'] });
+    }
+  }
+
+  // Initialize tracking when DOM is loaded
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', trackWebVitals);
+  } else {
+    trackWebVitals();
+  }
+</script>
+
+<!-- Add resource hints for better performance -->
+<link rel="preconnect" href="https://www.google-analytics.com">
+<link rel="dns-prefetch" href="https://www.googletagmanager.com">

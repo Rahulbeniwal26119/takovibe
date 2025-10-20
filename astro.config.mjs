@@ -3,12 +3,34 @@ import mdx from '@astrojs/mdx';
 import react from '@astrojs/react';
 import tailwind from '@astrojs/tailwind';
 import fs from 'node:fs';
+import path from 'node:path';
+import { globSync } from 'glob';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import sitemap from '@astrojs/sitemap';
 import compress from 'astro-compress';
 import pwa from '@vite-pwa/astro';
 import node from '@astrojs/node';
+
+// SITEMAP FIX: Get AI news URLs dynamically for inclusion in main sitemap
+// WHY: Astro sitemap plugin can't automatically discover dynamic routes from collections
+// BENEFIT: Your AI news articles will now appear in the main sitemap with proper SEO signals
+function getAiNewsUrls() {
+  try {
+    // Use glob to find all AI news MDX files
+    const aiNewsFiles = globSync('./src/content/ai-news/*.mdx');
+    const urls = aiNewsFiles.map(file => {
+      const slug = path.basename(file, '.mdx');
+      return `https://takovibe.com/ai/${slug}`;
+    });
+    
+    console.log(`✅ Found ${urls.length} AI news articles for sitemap:`, urls);
+    return urls;
+  } catch (error) {
+    console.warn('⚠️  Could not load AI news for sitemap:', error);
+    return [];
+  }
+}
 
 export default defineConfig({
   site: 'https://takovibe.com',
@@ -60,8 +82,11 @@ export default defineConfig({
       },
       customPages: [
         'https://takovibe.com/blog/',
+        'https://takovibe.com/ai/', // AI news index page
         'https://takovibe.com/about/',
-        'https://takovibe.com/portfolio/'
+        'https://takovibe.com/portfolio/',
+        // ADD: Dynamic AI news URLs
+        ...getAiNewsUrls()
       ],
       serialize(item) {
         // Base configuration
@@ -82,12 +107,30 @@ export default defineConfig({
           }
         }
 
-        // Customize based on URL pattern
+        // Customize based on URL pattern with ENHANCED AI NEWS handling
         if (item.url === 'https://takovibe.com/') {
           priority = 1.0;
           changefreq = 'daily';
+        } else if (item.url.includes('/ai/')) {
+          // AI News articles - HIGH PRIORITY for news content
+          priority = 0.9;
+          changefreq = 'hourly'; // News changes frequently
+          
+          // Try to get AI news lastmod from ai-news content
+          try {
+            const aiSlug = item.url.split('/ai/')[1].replace(/\/$/, '');
+            const stats = fs.statSync(`./src/content/ai-news/${aiSlug}.mdx`);
+            lastmod = stats.mtime;
+          } catch (e) {
+            // Fallback for AI news
+            lastmod = new Date(); // Assume recent for news
+          }
+        } else if (item.url === 'https://takovibe.com/ai/') {
+          // AI news index page - VERY HIGH PRIORITY
+          priority = 0.95;
+          changefreq = 'hourly';
         } else if (item.url.includes('/blog/')) {
-          // Individual blog posts
+          // Individual blog posts - EVERGREEN content
           priority = 0.8;
           changefreq = 'monthly';
         } else if (item.url === 'https://takovibe.com/blog/') {

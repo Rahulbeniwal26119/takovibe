@@ -70,7 +70,18 @@ const structuredData = {
 <html lang="en" class="dark overflow-x-hidden">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width" />
+        <!-- Mobile-First Optimization (Google's mobile-first indexing) -->
+        <!-- WHY: Google primarily uses mobile version of content for indexing and ranking -->
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+        
+        <!-- PWA Enhancement (improves mobile user experience) -->
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="TakoVibe - AI News & Tech Tutorials" />
+        
+        <!-- Disable auto-formatting for better UX -->
+        <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
         <meta name="description" content={description} />
         <meta name="author" content={author} />
         <link rel="icon" type="image/svg+xml" href="/images/logo.svg" />
@@ -137,17 +148,94 @@ const structuredData = {
             href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
         />
 
-        <!-- Font preconnect for performance -->
+        <!-- Critical resource hints for performance -->
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
+        
+        <!-- Optimized font loading with font-display -->
         <link
             href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
             rel="stylesheet"
+            media="print"
+            onload="this.media='all'"
         />
+        <noscript>
+          <link
+            href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+            rel="stylesheet"
+          />
+        </noscript>
+        
+        <!-- Preload critical assets -->
+        <link rel="preload" href="/images/logo.svg" as="image" type="image/svg+xml" />
+        
+        <!-- Service Worker for caching -->
+        <script>
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(() => {
+              // Silent fail
+            });
+          }
+        </script>
         <meta name="generator" content={Astro.generator} />
         <title>{title}</title>
 
         <slot name="head" />
+
+        <!-- Core Web Vitals Monitoring -->
+        <!-- WHY: Google uses Core Web Vitals as ranking signals since 2021 -->
+        <!-- SAFE: Only adds monitoring, doesn't change existing functionality -->
+        <script>
+          function trackCoreWebVitals() {
+            if (!('PerformanceObserver' in window)) return;
+            
+            try {
+              // Track LCP (Largest Contentful Paint) - measures loading performance
+              // TARGET: < 2.5 seconds for good user experience
+              new PerformanceObserver((entryList) => {
+                const entries = entryList.getEntries();
+                if (entries.length > 0) {
+                  const lcp = entries[entries.length - 1].startTime;
+                  console.log(`📊 LCP: ${Math.round(lcp)}ms`, lcp < 2500 ? '✅ Good' : lcp < 4000 ? '⚠️ Needs Improvement' : '❌ Poor');
+                }
+              }).observe({ entryTypes: ['largest-contentful-paint'] });
+
+              // Track CLS (Cumulative Layout Shift) - measures visual stability
+              // TARGET: < 0.1 for good user experience
+              let clsScore = 0;
+              new PerformanceObserver((entryList) => {
+                for (const entry of entryList.getEntries()) {
+                  if (!(entry as any).hadRecentInput) {
+                    clsScore += (entry as any).value;
+                  }
+                }
+                console.log(`📊 CLS: ${clsScore.toFixed(3)}`, clsScore < 0.1 ? '✅ Good' : clsScore < 0.25 ? '⚠️ Needs Improvement' : '❌ Poor');
+              }).observe({ entryTypes: ['layout-shift'] });
+
+              // Track FID (First Input Delay) - measures interactivity
+              // TARGET: < 100ms for good user experience
+              new PerformanceObserver((entryList) => {
+                for (const entry of entryList.getEntries()) {
+                  const fid = (entry as any).processingStart - entry.startTime;
+                  console.log(`📊 FID: ${Math.round(fid)}ms`, fid < 100 ? '✅ Good' : fid < 300 ? '⚠️ Needs Improvement' : '❌ Poor');
+                }
+              }).observe({ entryTypes: ['first-input'] });
+
+            } catch (error) {
+              // Silent fail - monitoring shouldn't break the site
+              console.debug('Core Web Vitals monitoring error:', error);
+            }
+          }
+
+          // Initialize safely
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', trackCoreWebVitals);
+          } else {
+            trackCoreWebVitals();
+          }
+        </script>
 
         <!-- Schema.org markup for Google -->
         <script
@@ -686,5 +774,76 @@ const structuredData = {
 
     img[data-error="true"] {
         display: none;
+    }
+
+    /* Mobile-first optimizations */
+    @media (max-width: 640px) {
+        /* Improve touch targets */
+        button, a, input, textarea, select {
+            min-height: 44px;
+            min-width: 44px;
+        }
+        
+        /* Better text rendering on mobile */
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeSpeed;
+        }
+        
+        /* Prevent horizontal scroll */
+        * {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        /* Optimize for thumb navigation */
+        nav a, button {
+            padding: 12px 16px;
+        }
+        
+        /* Reduce motion for better battery life */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    }
+
+    /* PWA safe areas */
+    @supports (padding: max(0px)) {
+        .safe-area-inset {
+            padding-left: max(1rem, env(safe-area-inset-left));
+            padding-right: max(1rem, env(safe-area-inset-right));
+        }
+        
+        .safe-area-top {
+            padding-top: max(1rem, env(safe-area-inset-top));
+        }
+        
+        .safe-area-bottom {
+            padding-bottom: max(1rem, env(safe-area-inset-bottom));
+        }
+    }
+
+    /* Dark mode optimizations */
+    @media (prefers-color-scheme: dark) {
+        :root {
+            color-scheme: dark;
+        }
+        
+        /* Better contrast for mobile screens */
+        body {
+            background-color: #0a0a0a;
+        }
+    }
+
+    /* High contrast mode support */
+    @media (prefers-contrast: high) {
+        body {
+            filter: contrast(1.2);
+        }
     }
 </style>

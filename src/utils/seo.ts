@@ -78,34 +78,73 @@ export function generateSEOTags(props: SEOProps) {
 export function generateStructuredData(props: SEOProps & { 
   readingTime?: string;
   wordCount?: number;
+  contentType?: 'blog' | 'ai-news'; // NEW: Distinguish content types
+  category?: string;
+  breaking?: boolean;
+  trending?: boolean;
 }) {
+  const organizationData = {
+    "@type": "Organization",
+    "name": "TakoVibe",
+    "url": "https://takovibe.com",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://takovibe.com/images/logo.svg",
+      "width": 300,
+      "height": 300
+    },
+    "description": "Tech blog and AI news site covering programming tutorials and latest AI industry insights",
+    "sameAs": [
+      "https://github.com/Rahulbeniwal26119",
+      "https://linkedin.com/in/rahulbeniwal26"
+    ],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "Customer Service",
+      "url": "https://takovibe.com/contact"
+    }
+  };
+
+  const authorData = {
+    "@type": "Person",
+    "name": props.author || defaultSEO.author,
+    "url": "https://takovibe.com/about",
+    "image": "https://takovibe.com/images/logo.svg",
+    "jobTitle": "Software Engineer & Technical Writer",
+    "worksFor": organizationData,
+    "sameAs": [
+      "https://github.com/Rahulbeniwal26119",
+      "https://twitter.com/rahulbeniwal26",
+      "https://linkedin.com/in/rahulbeniwal26"
+    ]
+  };
+
   const baseData = {
     "@context": "https://schema.org",
     "@type": props.type === 'article' ? "BlogPosting" : "WebSite",
     "name": props.title || defaultSEO.title,
     "description": props.description || defaultSEO.description,
     "url": props.url || defaultSEO.url,
-    "image": props.image || defaultSEO.image,
-    "author": {
-      "@type": "Person",
-      "name": props.author || defaultSEO.author,
-      "url": "https://takovibe.com/about"
+    "image": {
+      "@type": "ImageObject",
+      "url": props.image || defaultSEO.image,
+      "width": 1200,
+      "height": 630
     },
-    "publisher": {
-      "@type": "Organization",
-      "name": "TakoVibe",
-      "url": "https://takovibe.com",
-      "logo": {
-        "@type": "ImageObject",
-        "url": "https://takovibe.com/images/logo.svg"
-      }
-    }
+    "author": authorData,
+    "publisher": organizationData,
+    "inLanguage": "en-US",
+    "copyrightYear": new Date().getFullYear(),
+    "copyrightHolder": organizationData
   };
 
   if (props.type === 'article') {
-    return {
+    const isNews = props.contentType === 'ai-news';
+    
+    const baseArticleData = {
       ...baseData,
       "headline": props.title,
+      "alternativeHeadline": props.description,
       "datePublished": props.publishedTime,
       "dateModified": props.modifiedTime || props.publishedTime,
       "keywords": props.tags?.join(', '),
@@ -114,9 +153,97 @@ export function generateStructuredData(props: SEOProps & {
       "mainEntityOfPage": {
         "@type": "WebPage",
         "@id": props.url
-      }
+      },
+      "about": props.tags?.map(tag => ({
+        "@type": "Thing",
+        "name": tag
+      }))
     };
+
+    if (isNews) {
+      // NEWS ARTICLE: Different schema for AI news content
+      // WHY: Google treats news articles differently in indexing and ranking
+      return {
+        ...baseArticleData,
+        "@type": "NewsArticle", // Signals this is news content
+        "articleSection": "AI News",
+        "genre": props.category || "Technology News",
+        // News-specific properties for Google News
+        "dateline": new Date(props.publishedTime || Date.now()).toLocaleDateString('en-US'),
+        "isAccessibleForFree": true, // Important for Google News
+        ...(props.breaking && {
+          "speakable": {
+            "@type": "SpeakableSpecification",
+            "cssSelector": [".news-headline", ".news-summary"]
+          }
+        })
+      };
+    } else {
+      // BLOG POST: Educational/tutorial content
+      // WHY: Different structure for evergreen educational content
+      return {
+        ...baseArticleData,
+        "@type": "BlogPosting", // Signals this is educational content
+        "articleSection": "Technology Tutorials",
+        "articleBody": props.description,
+        "educationalLevel": "beginner-to-advanced", // Signals educational intent
+        "learningResourceType": "tutorial", // Helps with educational search results
+        "commentCount": 0,
+        "speakable": {
+          "@type": "SpeakableSpecification",
+          "cssSelector": [".blog-content h1", ".blog-content h2", ".blog-content p"]
+        }
+      };
+    }
   }
 
-  return baseData;
+  // Website schema with additional properties
+  return {
+    ...baseData,
+    "@type": "WebSite",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://takovibe.com/search?q={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
+    },
+    "mainEntity": {
+      "@type": "Blog",
+      "name": "TakoVibe Tech Blog",
+      "description": "Cutting-edge tutorials on Python, web development, AI, and system programming",
+      "url": "https://takovibe.com/blog"
+    }
+  };
+}
+
+// Generate breadcrumb structured data
+export function generateBreadcrumbSchema(breadcrumbs: Array<{name: string; url: string}>) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": breadcrumbs.map((crumb, index) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "name": crumb.name,
+      "item": crumb.url
+    }))
+  };
+}
+
+// Generate FAQ structured data for blog posts
+export function generateFAQSchema(faqs: Array<{question: string; answer: string}>) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqs.map(faq => ({
+      "@type": "Question",
+      "name": faq.question,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": faq.answer
+      }
+    }))
+  };
 }

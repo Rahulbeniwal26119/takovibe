@@ -13,6 +13,9 @@ interface Props {
   loading?: 'lazy' | 'eager';
   fetchpriority?: 'high' | 'low' | 'auto';
   decoding?: 'async' | 'sync' | 'auto';
+  title?: string; // SEO: image title for hover text
+  caption?: string; // SEO: for screen readers
+  isHero?: boolean; // SEO: mark hero images for priority loading
 }
 
 const { 
@@ -22,27 +25,47 @@ const {
   height = 400, 
   quality = 80,
   sizes: customSizes,
-  widths = [400, 800, 1200],
+  widths = [400, 800, 1200, 1600],
   class: className = '',
   loading = 'lazy',
   fetchpriority = 'auto',
-  decoding = 'async'
+  decoding = 'async',
+  title,
+  caption,
+  isHero = false
 } = Astro.props;
+
+// SEO: Hero images should load eagerly with high priority
+const finalLoading = isHero ? 'eager' : loading;
+const finalFetchPriority = isHero ? 'high' : fetchpriority;
 
 const optimizedSrc = optimizeImage(src, { width, height, quality });
 const srcset = generateSrcset(src, widths);
 const sizes = generateSizes(customSizes);
+
+// Generate unique ID for caption
+const captionId = `caption-${Math.random().toString(36).substr(2, 9)}`;
 ---
 
-<img 
-  src={optimizedSrc}
-  srcset={srcset}
-  sizes={sizes}
-  alt={alt}
-  width={width}
-  height={height}
-  class={className}
-  loading={loading}
-  fetchpriority={fetchpriority}
-  decoding={decoding}
-/>
+<!-- SEO: Semantic image with proper structure -->
+<figure class={className}>
+  <img 
+    src={optimizedSrc}
+    srcset={srcset}
+    sizes={sizes}
+    alt={alt}
+    width={width}
+    height={height}
+    loading={finalLoading}
+    decoding={decoding}
+    title={title}
+    aria-describedby={caption ? captionId : undefined}
+  />
+  
+  <!-- SEO: Caption for accessibility and context -->
+  {caption && (
+    <figcaption id={captionId} class="text-sm text-gray-600 dark:text-gray-400 mt-2 italic">
+      {caption}
+    </figcaption>
+  )}
+</figure>
