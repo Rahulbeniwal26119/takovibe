@@ -178,17 +178,6 @@ const googleClientId = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID;
     document.head.appendChild(script);
   })();
 </script>
-
-<style>
-  .auth-container {
-    position: relative;
-    z-index: 50;
-  }
-
-  .hidden {
-    display: none !important;
-  }
-</style> 
 ) : (
   <div class="text-gray-500 text-sm">Auth unavailable</div>
 )}

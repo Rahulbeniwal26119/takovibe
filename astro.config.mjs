@@ -28,6 +28,10 @@ export default defineConfig({
     esbuild: {
       drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
     },
+    build: {
+      cssMinify: false,           // skip LightningCSS (uses Rust)
+      minify: false,              // skip esbuild minification
+    },
   },
   integrations: [
     react(),
