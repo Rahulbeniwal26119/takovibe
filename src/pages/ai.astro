@@ -1,0 +1,791 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { getCollection } from "astro:content";
+
+// For AI news, we'll use a different approach - news articles instead of technical blogs
+interface AINewsItem {
+  id: string;
+  title: string;
+  summary: string;
+  content?: string;
+  publishedAt: string;
+  source: string;
+  category: string;
+  tags: string[];
+  imageUrl?: string;
+  url: string;
+  trending?: boolean;
+  breaking?: boolean;
+}
+
+// AI News Categories
+const aiNewsCategories = [
+  { id: 'llms', name: 'Large Language Models', icon: '🧠', count: 15 },
+  { id: 'releases', name: 'Product Releases', icon: '🚀', count: 12 },
+  { id: 'research', name: 'AI Research', icon: '🔬', count: 8 },
+  { id: 'startups', name: 'AI Startups', icon: '💡', count: 6 },
+  { id: 'enterprise', name: 'Enterprise AI', icon: '🏢', count: 10 },
+  { id: 'regulation', name: 'AI Regulation', icon: '⚖️', count: 5 },
+  { id: 'hardware', name: 'AI Hardware', icon: '🔧', count: 7 },
+  { id: 'ethics', name: 'AI Ethics', icon: '🤝', count: 4 }
+];
+
+// Sample AI news data (in production, this would come from news APIs)
+const aiNewsData: AINewsItem[] = [
+  {
+    id: 'openai-gpt4-turbo-vision',
+    title: 'OpenAI Releases GPT-4 Turbo with Enhanced Vision Capabilities',
+    summary: 'OpenAI announces GPT-4 Turbo with improved multimodal capabilities, supporting larger context windows and reduced pricing.',
+    publishedAt: '2024-10-20T10:00:00Z',
+    source: 'OpenAI',
+    category: 'llms',
+    tags: ['GPT-4', 'OpenAI', 'Multimodal', 'Vision'],
+    imageUrl: '/images/ai-news/openai-gpt4-turbo.jpg',
+    url: '/ai/openai-gpt4-turbo-vision',
+    breaking: true
+  },
+  {
+    id: 'google-gemini-ultra-coding',
+    title: 'Google\'s Gemini Ultra Shows Superior Coding Performance',
+    summary: 'Latest benchmarks reveal Gemini Ultra outperforming competitors in code generation and debugging tasks.',
+    publishedAt: '2024-10-20T08:30:00Z',
+    source: 'Google DeepMind',
+    category: 'llms',
+    tags: ['Gemini', 'Google', 'Coding', 'Benchmarks'],
+    imageUrl: '/images/ai-news/gemini-ultra-coding.jpg',
+    url: '/ai/google-gemini-ultra-coding',
+    trending: true
+  },
+  {
+    id: 'anthropic-claude-3-enterprise',
+    title: 'Anthropic Launches Claude 3 for Enterprise with Advanced Safety Features',
+    summary: 'Claude 3 Enterprise edition includes enhanced safety protocols and enterprise-grade security features.',
+    publishedAt: '2024-10-19T16:45:00Z',
+    source: 'Anthropic',
+    category: 'enterprise',
+    tags: ['Claude 3', 'Anthropic', 'Enterprise', 'Safety'],
+    imageUrl: '/images/ai-news/claude-3-enterprise.jpg',
+    url: '/ai/anthropic-claude-3-enterprise'
+  },
+  {
+    id: 'meta-llama-3-open-source',
+    title: 'Meta Open Sources Llama 3 with Commercial License',
+    summary: 'Meta releases Llama 3 under a new commercial-friendly license, enabling broader enterprise adoption.',
+    publishedAt: '2024-10-19T14:20:00Z',
+    source: 'Meta AI',
+    category: 'releases',
+    tags: ['Llama 3', 'Meta', 'Open Source', 'Commercial'],
+    imageUrl: '/images/ai-news/llama-3-open-source.jpg',
+    url: '/ai/meta-llama-3-open-source'
+  },
+  {
+    id: 'nvidia-h200-benchmarks',
+    title: 'NVIDIA H200 GPU Shows 3x Performance Improvement for AI Training',
+    summary: 'New benchmark results demonstrate significant performance gains for large-scale AI model training.',
+    publishedAt: '2024-10-19T11:15:00Z',
+    source: 'NVIDIA',
+    category: 'hardware',
+    tags: ['NVIDIA', 'H200', 'GPU', 'Performance'],
+    imageUrl: '/images/ai-news/nvidia-h200.jpg',
+    url: '/ai/nvidia-h200-benchmarks'
+  },
+  {
+    id: 'eu-ai-act-implementation',
+    title: 'EU AI Act Implementation Guidelines Released',
+    summary: 'European Union publishes detailed implementation guidelines for the AI Act, affecting global AI development.',
+    publishedAt: '2024-10-18T13:00:00Z',
+    source: 'European Commission',
+    category: 'regulation',
+    tags: ['EU', 'AI Act', 'Regulation', 'Guidelines'],
+    imageUrl: '/images/ai-news/eu-ai-act.jpg',
+    url: '/ai/eu-ai-act-implementation'
+  }
+];
+
+// Sort news by date (most recent first)
+const sortedNews = aiNewsData.sort((a, b) => 
+  new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+);
+
+// Get featured/breaking news
+const breakingNews = sortedNews.filter(item => item.breaking);
+const trendingNews = sortedNews.filter(item => item.trending);
+const latestNews = sortedNews.slice(0, 6);
+---
+
+<Layout
+  title="AI News & Industry Updates - TakoVibe"
+  description="Stay updated with the latest AI news, product releases, industry trends, and breakthrough developments in artificial intelligence."
+  type="website"
+  author="TakoVibe Team"
+  tags={["ai news", "artificial intelligence", "ai industry", "ai trends", "ai releases", "tech news"]}
+>
+  <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/30 dark:from-slate-900 dark:via-blue-950/30 dark:to-emerald-950/30">
+    
+    <!-- Hero Section -->
+    <section class="py-16 px-4 sm:px-6 relative overflow-hidden">
+      <!-- Background Elements -->
+      <div class="absolute inset-0">
+        <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-emerald-400/10 to-cyan-400/10 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-r from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s"></div>
+      </div>
+      
+      <div class="max-w-7xl mx-auto text-center relative z-10">
+        <div class="inline-flex items-center gap-3 px-6 py-3 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm text-emerald-700 dark:text-emerald-300 rounded-full text-sm font-medium mb-6 border border-emerald-200/80 dark:border-emerald-700/80 shadow-sm">
+          <div class="relative">
+            <span class="text-xl">📰</span>
+            <div class="absolute -inset-1 bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 rounded-full blur-sm animate-pulse"></div>
+          </div>
+          <span class="font-semibold">AI Industry Hub</span>
+        </div>
+        
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+          <span class="bg-gradient-to-r from-emerald-600 via-cyan-600 to-blue-600 bg-clip-text text-transparent">
+            AI News
+          </span>
+          <br />
+          <span class="text-slate-800 dark:text-slate-200 font-light">& Industry Updates</span>
+        </h1>
+        
+        <p class="text-lg sm:text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto leading-relaxed font-light mb-8">
+          Your source for the latest AI developments, product releases, and industry trends.
+          <br class="hidden sm:block" />
+          <span class="text-base text-slate-500 dark:text-slate-500">Breaking news • Company updates • Product launches • Research breakthroughs</span>
+        </p>
+      </div>
+    </section>
+
+    <!-- Breaking News Banner -->
+    {breakingNews.length > 0 && (
+      <section class="py-4 px-4 sm:px-6 bg-red-50 dark:bg-red-900/20 border-y border-red-200 dark:border-red-800/50">
+        <div class="max-w-7xl mx-auto">
+          <div class="flex items-center gap-4">
+            <span class="flex items-center gap-2 px-3 py-1 bg-red-500 text-white rounded-full text-sm font-bold">
+              🚨 BREAKING
+            </span>
+            <div class="flex-1 min-w-0">
+              <a href={breakingNews[0].url} class="text-red-800 dark:text-red-200 hover:text-red-900 dark:hover:text-red-100 font-semibold truncate">
+                {breakingNews[0].title}
+              </a>
+            </div>
+            <span class="text-red-600 dark:text-red-400 text-sm">
+              {new Date(breakingNews[0].publishedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          </div>
+        </div>
+      </section>
+    )}
+
+    <!-- News Categories -->
+    <section class="py-12 px-4 sm:px-6 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
+      <div class="max-w-7xl mx-auto">
+        <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-8 text-center">
+          Browse by <span class="bg-gradient-to-r from-emerald-600 to-cyan-600 bg-clip-text text-transparent">Category</span>
+        </h2>
+        
+        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-4">
+          {aiNewsCategories.map((category, index) => (
+            <button 
+              class="group bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl p-4 border border-slate-200/50 dark:border-slate-700/50 hover:border-emerald-300 dark:hover:border-emerald-500 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/10 transform hover:-translate-y-1 text-left"
+              onclick={`filterByCategory('${category.id}')`}
+            >
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-2xl">{category.icon}</span>
+                <span class="text-xs bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 px-2 py-1 rounded-full font-medium">
+                  {category.count}
+                </span>
+              </div>
+              <h3 class="font-semibold text-slate-900 dark:text-slate-100 text-sm group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                {category.name}
+              </h3>
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Latest AI News Section -->
+    <section class="py-16 px-4 sm:px-6" id="latest-news">
+      <div class="max-w-7xl mx-auto">
+        <div class="flex items-center justify-between mb-12">
+          <div>
+            <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+              Latest <span class="bg-gradient-to-r from-emerald-600 to-cyan-600 bg-clip-text text-transparent">AI News</span>
+            </h2>
+            <p class="text-slate-600 dark:text-slate-400">
+              Stay updated with the latest developments in AI
+            </p>
+          </div>
+          
+          <div class="flex items-center gap-3">
+            <button 
+              id="refresh-news"
+              class="inline-flex items-center px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-sm font-medium"
+            >
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              Refresh
+            </button>
+          </div>
+        </div>
+
+        <!-- Featured News Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+          <!-- Main Featured Article -->
+          {latestNews.length > 0 && (
+            <div class="lg:col-span-2">
+              <article class="group bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200/50 dark:border-slate-700/50">
+                <div class="aspect-[16/9] bg-gradient-to-br from-emerald-100 to-cyan-100 dark:from-emerald-900/30 dark:to-cyan-900/30 relative overflow-hidden">
+                  {latestNews[0].imageUrl ? (
+                    <img src={latestNews[0].imageUrl} alt={latestNews[0].title} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  ) : (
+                    <div class="w-full h-full flex items-center justify-center">
+                      <span class="text-6xl">🤖</span>
+                    </div>
+                  )}
+                  
+                  {/* Category Badge */}
+                  <div class="absolute top-4 left-4">
+                    <span class="px-3 py-1 bg-emerald-500 text-white rounded-full text-sm font-medium capitalize">
+                      {latestNews[0].category}
+                    </span>
+                  </div>
+                  
+                  {/* Breaking/Trending Badge */}
+                  {(latestNews[0].breaking || latestNews[0].trending) && (
+                    <div class="absolute top-4 right-4">
+                      <span class={`px-3 py-1 rounded-full text-sm font-bold ${
+                        latestNews[0].breaking 
+                          ? 'bg-red-500 text-white animate-pulse' 
+                          : 'bg-orange-500 text-white'
+                      }`}>
+                        {latestNews[0].breaking ? '🚨 BREAKING' : '🔥 TRENDING'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                
+                <div class="p-6">
+                  <div class="flex items-center gap-3 mb-3">
+                    <span class="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                      {latestNews[0].source}
+                    </span>
+                    <span class="text-slate-400">•</span>
+                    <time class="text-sm text-slate-500 dark:text-slate-400">
+                      {new Date(latestNews[0].publishedAt).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </time>
+                  </div>
+                  
+                  <h3 class="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-3 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors leading-tight">
+                    <a href={latestNews[0].url} class="hover:underline">
+                      {latestNews[0].title}
+                    </a>
+                  </h3>
+                  
+                  <p class="text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
+                    {latestNews[0].summary}
+                  </p>
+                  
+                  <div class="flex items-center justify-between">
+                    <div class="flex flex-wrap gap-2">
+                      {latestNews[0].tags.slice(0, 3).map(tag => (
+                        <span class="px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded text-sm">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                    
+                    <a 
+                      href={latestNews[0].url}
+                      class="inline-flex items-center text-emerald-600 dark:text-emerald-400 font-medium hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors group/link"
+                    >
+                      Read More
+                      <svg class="ml-1 w-4 h-4 group-hover/link:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </a>
+                  </div>
+                </div>
+              </article>
+            </div>
+          )}
+          
+          <!-- Side Articles -->
+          <div class="space-y-6">
+            {latestNews.slice(1, 4).map((news, index) => (
+              <article class="group bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200/50 dark:border-slate-700/50 hover:border-emerald-300 dark:hover:border-emerald-500 transition-all duration-300 hover:shadow-lg">
+                <div class="flex items-center gap-3 mb-3">
+                  <span class="px-2 py-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded text-xs font-medium capitalize">
+                    {news.category}
+                  </span>
+                  <time class="text-xs text-slate-500 dark:text-slate-400">
+                    {new Date(news.publishedAt).toLocaleDateString('en-US', { 
+                      month: 'short', 
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </time>
+                </div>
+                
+                <h4 class="font-bold text-slate-900 dark:text-slate-100 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-tight text-sm">
+                  <a href={news.url} class="hover:underline">
+                    {news.title}
+                  </a>
+                </h4>
+                
+                <p class="text-slate-600 dark:text-slate-400 text-sm mb-3 line-clamp-2">
+                  {news.summary}
+                </p>
+                
+                <div class="flex items-center justify-between">
+                  <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                    {news.source}
+                  </span>
+                  
+                  <a 
+                    href={news.url}
+                    class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium transition-colors"
+                  >
+                    Read →
+                  </a>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+
+        <!-- More News Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="more-news-container">
+          {latestNews.slice(4).map((news, index) => (
+            <article class="group bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200/50 dark:border-slate-700/50 hover:border-emerald-300 dark:hover:border-emerald-500 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1">
+              <div class="flex items-center justify-between mb-3">
+                <span class="px-2 py-1 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white rounded text-xs font-medium capitalize">
+                  {news.category}
+                </span>
+                <time class="text-xs text-slate-500 dark:text-slate-400">
+                  {new Date(news.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </time>
+              </div>
+              
+              <h4 class="font-bold text-slate-900 dark:text-slate-100 mb-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors leading-tight">
+                <a href={news.url} class="hover:underline">
+                  {news.title}
+                </a>
+              </h4>
+              
+              <p class="text-slate-600 dark:text-slate-400 text-sm mb-4 line-clamp-3">
+                {news.summary}
+              </p>
+              
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  {news.source}
+                </span>
+                
+                <a 
+                  href={news.url}
+                  class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 text-sm font-medium transition-colors group/link"
+                >
+                  Read More
+                  <svg class="inline ml-1 w-3 h-3 group-hover/link:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </a>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <!-- Load More Button -->
+        <div class="text-center mt-12">
+          <button 
+            id="load-more-news"
+            class="inline-flex items-center px-8 py-3 bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+          >
+            <span>Load More News</span>
+            <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</Layout>
+
+<script>
+  // Initialize AI News page
+  document.addEventListener('DOMContentLoaded', function() {
+    setupEventHandlers();
+    loadMoreNewsOnScroll();
+  });
+
+  // Setup event handlers for the page
+  function setupEventHandlers() {
+    // Refresh news button
+    const refreshBtn = document.getElementById('refresh-news');
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', refreshNews);
+    }
+
+    // Load more news button
+    const loadMoreBtn = document.getElementById('load-more-news');
+    if (loadMoreBtn) {
+      loadMoreBtn.addEventListener('click', loadMoreNews);
+    }
+
+    // Category filter buttons
+    document.addEventListener('click', function(e) {
+      const target = e.target as HTMLElement;
+      const button = target.closest('[onclick*="filterByCategory"]');
+      if (button) {
+        e.preventDefault();
+        const onclickAttr = (button as HTMLElement).getAttribute('onclick');
+        if (onclickAttr) {
+          const match = onclickAttr.match(/'([^']+)'/);
+          if (match && match[1]) {
+            filterByCategory(match[1]);
+          }
+        }
+      }
+    });
+  }
+
+  // Filter news by category
+  function filterByCategory(categoryId) {
+    // Show loading state
+    const container = document.getElementById('more-news-container');
+    container.innerHTML = `
+      <div class="col-span-full text-center py-12">
+        <div class="animate-spin w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full mx-auto mb-4"></div>
+        <p class="text-slate-600 dark:text-slate-400">Loading ${categoryId} news...</p>
+      </div>
+    `;
+
+    // Simulate API call delay
+    setTimeout(() => {
+      const filteredNews = getNewsByCategory(categoryId);
+      renderNewsGrid(filteredNews, container);
+    }, 500);
+  }
+
+  // Get news by category (simulated data)
+  function getNewsByCategory(categoryId) {
+    const categoryNewsMap = {
+      'llms': [
+        {
+          title: 'OpenAI GPT-5 Development Updates',
+          summary: 'Latest insights into GPT-5 capabilities and expected release timeline.',
+          source: 'OpenAI',
+          publishedAt: new Date().toISOString(),
+          category: 'llms',
+          url: '/ai/openai-gpt5-updates'
+        },
+        {
+          title: 'Anthropic Claude 3.5 Sonnet Performance Analysis',
+          summary: 'Comprehensive benchmarking of Claude 3.5 Sonnet against competitors.',
+          source: 'Anthropic',
+          publishedAt: new Date(Date.now() - 3600000).toISOString(),
+          category: 'llms',
+          url: '/ai/claude-35-sonnet-analysis'
+        }
+      ],
+      'releases': [
+        {
+          title: 'Microsoft Copilot Pro Enterprise Features',
+          summary: 'New enterprise-grade features for Microsoft Copilot Pro users.',
+          source: 'Microsoft',
+          publishedAt: new Date().toISOString(),
+          category: 'releases',
+          url: '/ai/copilot-pro-enterprise'
+        }
+      ]
+      // Add more categories as needed
+    };
+
+    return categoryNewsMap[categoryId] || [];
+  }
+
+  // Render news in grid format
+  function renderNewsGrid(newsItems, container) {
+    if (newsItems.length === 0) {
+      container.innerHTML = `
+        <div class="col-span-full text-center py-12">
+          <div class="text-4xl mb-4">📰</div>
+          <h3 class="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
+            No news in this category yet
+          </h3>
+          <p class="text-slate-600 dark:text-slate-400">
+            Check back later for updates.
+          </p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = newsItems.map((news, index) => `
+      <article class="group bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200/50 dark:border-slate-700/50 hover:border-emerald-300 dark:hover:border-emerald-500 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1" style="animation-delay: ${index * 0.1}s">
+        <div class="flex items-center justify-between mb-3">
+          <span class="px-2 py-1 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white rounded text-xs font-medium capitalize">
+            ${news.category}
+          </span>
+          <time class="text-xs text-slate-500 dark:text-slate-400">
+            ${new Date(news.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+          </time>
+        </div>
+        
+        <h4 class="font-bold text-slate-900 dark:text-slate-100 mb-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors leading-tight">
+          <a href="${news.url}" class="hover:underline">
+            ${news.title}
+          </a>
+        </h4>
+        
+        <p class="text-slate-600 dark:text-slate-400 text-sm mb-4 line-clamp-3">
+          ${news.summary}
+        </p>
+        
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">
+            ${news.source}
+          </span>
+          
+          <a 
+            href="${news.url}"
+            class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 text-sm font-medium transition-colors group/link"
+          >
+            Read More
+            <svg class="inline ml-1 w-3 h-3 group-hover/link:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
+        </div>
+      </article>
+    `).join('');
+  }
+
+  // Refresh news
+  function refreshNews() {
+    const refreshBtn = document.getElementById('refresh-news');
+    const originalText = refreshBtn.innerHTML;
+    
+    // Show loading state
+    refreshBtn.innerHTML = `
+      <svg class="animate-spin w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+      </svg>
+      Refreshing...
+    `;
+    
+    // Simulate refresh delay
+    setTimeout(() => {
+      refreshBtn.innerHTML = originalText;
+      
+      // You could reload the page or fetch new data here
+      // For now, just show a success message
+      showNotification('News refreshed successfully!', 'success');
+    }, 1500);
+  }
+
+  // Load more news
+  function loadMoreNews() {
+    const button = document.getElementById('load-more-news');
+    const container = document.getElementById('more-news-container');
+    
+    // Show loading state
+    button.innerHTML = `
+      <div class="animate-spin w-5 h-5 mr-2 border-2 border-white/30 border-t-white rounded-full"></div>
+      <span>Loading...</span>
+    `;
+    
+    // Simulate loading delay
+    setTimeout(() => {
+      // Add more news items (simulated)
+      const moreNews = [
+        {
+          title: 'AI Chip Shortage Affects Global Tech Industry',
+          summary: 'Supply chain constraints continue to impact AI hardware availability worldwide.',
+          source: 'TechCrunch',
+          publishedAt: new Date(Date.now() - 86400000).toISOString(),
+          category: 'hardware',
+          url: '/ai/ai-chip-shortage-2024'
+        },
+        {
+          title: 'New AI Safety Research from Stanford',
+          summary: 'Breakthrough research in AI alignment and safety protocols.',
+          source: 'Stanford AI Lab',
+          publishedAt: new Date(Date.now() - 172800000).toISOString(),
+          category: 'research',
+          url: '/ai/stanford-ai-safety-research'
+        }
+      ];
+      
+      // Append new items to container
+      const newItemsHTML = moreNews.map((news, index) => `
+        <article class="group bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200/50 dark:border-slate-700/50 hover:border-emerald-300 dark:hover:border-emerald-500 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1" style="animation-delay: ${index * 0.1}s">
+          <div class="flex items-center justify-between mb-3">
+            <span class="px-2 py-1 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white rounded text-xs font-medium capitalize">
+              ${news.category}
+            </span>
+            <time class="text-xs text-slate-500 dark:text-slate-400">
+              ${new Date(news.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            </time>
+          </div>
+          
+          <h4 class="font-bold text-slate-900 dark:text-slate-100 mb-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors leading-tight">
+            <a href="${news.url}" class="hover:underline">
+              ${news.title}
+            </a>
+          </h4>
+          
+          <p class="text-slate-600 dark:text-slate-400 text-sm mb-4 line-clamp-3">
+            ${news.summary}
+          </p>
+          
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              ${news.source}
+            </span>
+            
+            <a 
+              href="${news.url}"
+              class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 text-sm font-medium transition-colors group/link"
+            >
+              Read More
+              <svg class="inline ml-1 w-3 h-3 group-hover/link:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
+          </div>
+        </article>
+      `).join('');
+      
+      container.innerHTML += newItemsHTML;
+      
+      // Reset button
+      button.innerHTML = `
+        <span>Load More News</span>
+        <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      `;
+      
+    }, 1000);
+  }
+
+  // Infinite scroll for loading more news
+  function loadMoreNewsOnScroll() {
+    let loading = false;
+    
+    window.addEventListener('scroll', () => {
+      if (loading) return;
+      
+      const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+      
+      if (scrollTop + clientHeight >= scrollHeight - 1000) {
+        loading = true;
+        
+        setTimeout(() => {
+          // Simulate loading more news
+          const container = document.getElementById('more-news-container');
+          const loadingDiv = document.createElement('div');
+          loadingDiv.className = 'col-span-full text-center py-8';
+          loadingDiv.innerHTML = `
+            <div class="animate-spin w-8 h-8 border-3 border-emerald-500/20 border-t-emerald-500 rounded-full mx-auto mb-3"></div>
+            <p class="text-slate-600 dark:text-slate-400 text-sm">Loading more news...</p>
+          `;
+          
+          if (container) {
+            container.appendChild(loadingDiv);
+            
+            setTimeout(() => {
+              loadingDiv.remove();
+              loading = false;
+            }, 1000);
+          }
+        }, 500);
+      }
+    });
+  }
+
+  // Show notification
+  function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg text-white font-medium transition-all duration-300 transform translate-x-full ${
+      type === 'success' ? 'bg-emerald-500' : 'bg-blue-500'
+    }`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.style.transform = 'translateX(0)';
+    }, 100);
+    
+    setTimeout(() => {
+      notification.style.transform = 'translateX(100%)';
+      setTimeout(() => {
+        notification.remove();
+      }, 300);
+    }, 3000);
+  }
+
+  // Make functions globally available
+  (window as any).filterByCategory = filterByCategory;
+  (window as any).refreshNews = refreshNews;
+  (window as any).loadMoreNews = loadMoreNews;
+</script>
+
+<style>
+  /* AI-specific animations */
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(40px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .animate-fade-up {
+    animation: fadeUp 0.8s ease-out forwards;
+    opacity: 0;
+  }
+
+  /* Smooth scroll behavior */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Enhanced hover effects */
+  .group:hover {
+    transform: translateY(-4px) scale(1.02);
+  }
+
+  /* Custom scrollbar for AI theme */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #10b981, #06b6d4);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, #059669, #0891b2);
+  }
+</style>

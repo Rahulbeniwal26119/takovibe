@@ -101,14 +101,29 @@ try {
                   TakoVibe
                 </span>
               </h1>
-              <p class="text-lg sm:text-xl text-gray-700 dark:text-gray-300 mb-10 leading-relaxed max-w-2xl mx-auto font-normal">
-                A modern platform where developers share insights on
-                <span class="text-blue-700 dark:text-blue-300 font-semibold">software engineering</span>
+              <p class="text-lg sm:text-xl text-gray-700 dark:text-gray-300 mb-6 leading-relaxed max-w-2xl mx-auto font-normal">
+                A modern platform for 
+                <span class="text-blue-700 dark:text-blue-300 font-semibold">software engineering</span>, 
+                <span class="text-emerald-700 dark:text-emerald-300 font-semibold">AI insights</span>, 
                 and cutting-edge technologies.
               </p>
+              
+              <!-- New AI Badge -->
+              <div class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-emerald-200 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 rounded-full text-sm font-medium mb-8">
+                <span class="text-base">🤖</span>
+                Now featuring AI Insights & News
+              </div>
               <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="#articles" class="group inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
                   <span>Explore Articles</span>
+                  <svg class="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </a>
+                <a href="/ai" class="group inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                  <span class="flex items-center gap-2">
+                    🤖 <span>AI Insights</span>
+                  </span>
                   <svg class="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
@@ -477,6 +492,139 @@ try {
       </div>
     </section>
 
+    <!-- AI Insights & News Section -->
+    <section class="py-20 px-4 sm:px-6 bg-gradient-to-br from-emerald-50/30 via-cyan-50/20 to-blue-50/30 dark:from-emerald-900/10 dark:via-cyan-900/10 dark:to-blue-900/10 border-t border-emerald-200/50 dark:border-emerald-800/30 relative overflow-hidden" id="ai-section">
+      <!-- Background Elements -->
+      <div class="absolute top-0 left-1/4 w-64 h-64 bg-gradient-to-r from-emerald-400/10 to-cyan-400/10 rounded-full blur-3xl animate-pulse"></div>
+      <div class="absolute bottom-0 right-1/4 w-48 h-48 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-full blur-2xl animate-pulse" style="animation-delay: 2s"></div>
+      
+      <div class="max-w-7xl mx-auto relative z-10">
+        <!-- Section Header -->
+        <div class="text-center mb-16">
+          <div class="inline-flex items-center gap-3 px-6 py-3 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm text-emerald-700 dark:text-emerald-300 rounded-full text-sm font-medium mb-8 border border-emerald-200/70 dark:border-emerald-700/50 shadow-sm">
+            <div class="relative">
+              <span class="text-lg">🤖</span>
+              <div class="absolute -inset-1 bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 rounded-full blur-sm animate-pulse"></div>
+            </div>
+            <span class="font-semibold">AI Insights & Latest News</span>
+          </div>
+          
+          <h2 class="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-6">
+            <span class="bg-gradient-to-r from-emerald-600 via-cyan-600 to-blue-600 bg-clip-text text-transparent">
+              AI Revolution
+            </span>
+            <br class="hidden sm:block" />
+            <span class="text-gray-800 dark:text-gray-200 font-light">in Tech</span>
+          </h2>
+          
+          <p class="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed">
+            Stay ahead with cutting-edge AI insights, machine learning tutorials, and the latest AI news.
+          </p>
+        </div>
+
+        <!-- AI Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+          
+          <!-- AI Articles Column -->
+          <div>
+            <div class="flex items-center justify-between mb-8">
+              <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
+                <div class="w-8 h-8 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-lg flex items-center justify-center">
+                  <span class="text-white text-sm">📚</span>
+                </div>
+                Latest AI Articles
+              </h3>
+              <a href="/ai" class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium text-sm transition-colors group">
+                View All
+                <svg class="inline ml-1 w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </a>
+            </div>
+            
+            <div id="ai-articles-preview" class="space-y-6">
+              <!-- AI Articles will be loaded here -->
+              <div class="text-center py-8">
+                <div class="animate-spin w-8 h-8 border-3 border-emerald-500/20 border-t-emerald-500 rounded-full mx-auto mb-3"></div>
+                <p class="text-gray-600 dark:text-gray-400 text-sm">Loading AI articles...</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI News Column -->
+          <div>
+            <div class="flex items-center justify-between mb-8">
+              <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
+                <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+                  <span class="text-white text-sm">📰</span>
+                </div>
+                AI News Feed
+              </h3>
+              <button class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium text-sm transition-colors group" onclick="refreshAINews()">
+                Refresh
+                <svg class="inline ml-1 w-4 h-4 group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </button>
+            </div>
+            
+            <div id="ai-news-preview" class="space-y-4">
+              <!-- AI News will be loaded here -->
+              <div class="text-center py-8">
+                <div class="animate-spin w-8 h-8 border-3 border-blue-500/20 border-t-blue-500 rounded-full mx-auto mb-3"></div>
+                <p class="text-gray-600 dark:text-gray-400 text-sm">Loading AI news...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Features Showcase -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+          <div class="group bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-emerald-200/50 dark:border-emerald-700/50 hover:border-emerald-300 dark:hover:border-emerald-500 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/10 transform hover:-translate-y-1">
+            <div class="w-12 h-12 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+              <span class="text-2xl">🧠</span>
+            </div>
+            <h4 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">Machine Learning</h4>
+            <p class="text-gray-600 dark:text-gray-400 text-sm">Deep dives into ML algorithms, neural networks, and practical implementations.</p>
+          </div>
+          
+          <div class="group bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-cyan-200/50 dark:border-cyan-700/50 hover:border-cyan-300 dark:hover:border-cyan-500 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10 transform hover:-translate-y-1">
+            <div class="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+              <span class="text-2xl">🔗</span>
+            </div>
+            <h4 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">LLMs & RAG</h4>
+            <p class="text-gray-600 dark:text-gray-400 text-sm">Large Language Models, RAG systems, and prompt engineering techniques.</p>
+          </div>
+          
+          <div class="group bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-blue-200/50 dark:border-blue-700/50 hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 transform hover:-translate-y-1">
+            <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+              <span class="text-2xl">📊</span>
+            </div>
+            <h4 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">AI Tools & Frameworks</h4>
+            <p class="text-gray-600 dark:text-gray-400 text-sm">Practical guides for TensorFlow, PyTorch, Langchain, and more.</p>
+          </div>
+        </div>
+
+        <!-- CTA Section -->
+        <div class="text-center">
+          <div class="inline-flex flex-col sm:flex-row items-center gap-4">
+            <a href="/ai" class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:shadow-emerald-500/25 transition-all duration-300 transform hover:scale-105 group">
+              <span class="flex items-center gap-2">
+                🤖 <span>Explore AI Hub</span>
+              </span>
+              <svg class="ml-3 w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </a>
+            
+            <div class="text-gray-600 dark:text-gray-400 text-sm">
+              <span class="font-medium" id="ai-content-count">25+</span> AI articles and growing daily
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
   </div>
 
   <!-- Category Modal -->
@@ -763,9 +911,204 @@ try {
     }
   }
 
+  // Load AI Articles Preview
+  async function loadAIArticles() {
+    const container = document.getElementById('ai-articles-preview');
+    if (!container) return;
+
+    try {
+      // Sample AI articles data - replace with actual API call
+      const aiArticles = [
+        {
+          title: "Building RAG Systems with LangChain",
+          description: "Learn how to create powerful Retrieval Augmented Generation systems using LangChain and vector databases.",
+          uri: "/blog/building-rag-systems-langchain",
+          tags: ["RAG", "LangChain", "AI"],
+          created_at: new Date().toISOString(),
+          readingTime: "8 min read"
+        },
+        {
+          title: "Fine-tuning Large Language Models",
+          description: "A comprehensive guide to fine-tuning LLMs for specific tasks and domains.",
+          uri: "/blog/fine-tuning-llms",
+          tags: ["LLM", "Fine-tuning", "Machine Learning"],
+          created_at: new Date(Date.now() - 86400000).toISOString(),
+          readingTime: "12 min read"
+        },
+        {
+          title: "Computer Vision with Deep Learning",
+          description: "Explore modern computer vision techniques using PyTorch and TensorFlow.",
+          uri: "/blog/computer-vision-deep-learning",
+          tags: ["Computer Vision", "Deep Learning", "PyTorch"],
+          created_at: new Date(Date.now() - 172800000).toISOString(),
+          readingTime: "10 min read"
+        }
+      ];
+
+      container.innerHTML = aiArticles.map((article, index) => `
+        <article class="group bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl p-5 border border-emerald-200/50 dark:border-emerald-700/50 hover:border-emerald-300 dark:hover:border-emerald-500 transition-all duration-300 hover:shadow-md hover:shadow-emerald-500/10 transform hover:-translate-y-0.5" style="animation-delay: ${index * 0.1}s">
+          <div class="flex flex-wrap items-center gap-2 mb-3">
+            ${article.tags.slice(0, 2).map(tag => `
+              <span class="px-2 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-md text-xs font-medium">
+                ${tag}
+              </span>
+            `).join('')}
+          </div>
+          
+          <h4 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors duration-300 leading-tight">
+            <a href="${article.uri}" class="hover:underline">${article.title}</a>
+          </h4>
+          
+          <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 leading-relaxed line-clamp-2">
+            ${article.description}
+          </p>
+          
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-500 dark:text-gray-400">${article.readingTime}</span>
+            <a href="${article.uri}" class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 text-sm font-medium transition-colors group/link">
+              Read More
+              <svg class="inline ml-1 w-3 h-3 group-hover/link:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
+          </div>
+        </article>
+      `).join('');
+    } catch (error) {
+      console.error('Failed to load AI articles:', error);
+      container.innerHTML = `
+        <div class="text-center py-6">
+          <div class="text-4xl mb-2">🤖</div>
+          <p class="text-gray-600 dark:text-gray-400 text-sm">AI articles coming soon!</p>
+        </div>
+      `;
+    }
+  }
+
+  // Load AI News Preview
+  async function loadAINews() {
+    const container = document.getElementById('ai-news-preview');
+    if (!container) return;
+
+    try {
+      // Sample AI news data - replace with actual news API
+      const aiNews = [
+        {
+          title: "OpenAI Releases GPT-4 Turbo with Enhanced Capabilities",
+          summary: "Latest model shows improved reasoning and reduced hallucinations.",
+          source: "OpenAI",
+          time: "2 hours ago",
+          category: "LLMs"
+        },
+        {
+          title: "Google's Gemini Pro Advances Multimodal AI",
+          summary: "New benchmark results show competitive performance across tasks.",
+          source: "Google DeepMind",
+          time: "4 hours ago",
+          category: "Research"
+        },
+        {
+          title: "Meta's Code Llama 2 Transforms Programming",
+          summary: "Advanced code generation capabilities for developers.",
+          source: "Meta AI",
+          time: "8 hours ago",
+          category: "Development"
+        },
+        {
+          title: "AI Safety Summit Addresses Future Challenges",
+          summary: "Industry leaders discuss governance and safety protocols.",
+          source: "AI Safety Institute",
+          time: "12 hours ago",
+          category: "Policy"
+        },
+        {
+          title: "Breakthrough in AI-Powered Drug Discovery",
+          summary: "New model accelerates pharmaceutical research significantly.",
+          source: "Nature AI",
+          time: "1 day ago",
+          category: "Healthcare"
+        }
+      ];
+
+      const categoryColors = {
+        'LLMs': 'from-blue-500 to-cyan-500',
+        'Research': 'from-purple-500 to-pink-500',
+        'Development': 'from-emerald-500 to-teal-500',
+        'Policy': 'from-orange-500 to-red-500',
+        'Healthcare': 'from-green-500 to-emerald-500'
+      };
+
+      container.innerHTML = aiNews.slice(0, 4).map((news, index) => `
+        <article class="group bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl p-4 border border-blue-200/50 dark:border-blue-700/50 hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-300 hover:shadow-md hover:shadow-blue-500/10 transform hover:-translate-y-0.5" style="animation-delay: ${index * 0.05}s">
+          <div class="flex items-center justify-between mb-3">
+            <span class="px-2 py-1 bg-gradient-to-r ${categoryColors[news.category] || 'from-gray-500 to-slate-500'} text-white text-xs font-medium rounded-md">
+              ${news.category}
+            </span>
+            <span class="text-xs text-gray-500 dark:text-gray-400">${news.time}</span>
+          </div>
+          
+          <h4 class="text-md font-bold text-gray-900 dark:text-gray-100 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300 leading-tight">
+            ${news.title}
+          </h4>
+          
+          <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 leading-relaxed">
+            ${news.summary}
+          </p>
+          
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">${news.source}</span>
+            <button class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium transition-colors">
+              Read More
+            </button>
+          </div>
+        </article>
+      `).join('');
+    } catch (error) {
+      console.error('Failed to load AI news:', error);
+      container.innerHTML = `
+        <div class="text-center py-6">
+          <div class="text-4xl mb-2">📰</div>
+          <p class="text-gray-600 dark:text-gray-400 text-sm">AI news coming soon!</p>
+        </div>
+      `;
+    }
+  }
+
+  // Load AI Content
+  async function loadAIContent() {
+    loadAIArticles();
+    loadAINews();
+    
+    // Update AI content count
+    const countEl = document.getElementById('ai-content-count');
+    if (countEl) {
+      countEl.textContent = '25+';
+    }
+  }
+
+  // Refresh AI News
+  function refreshAINews() {
+    const container = document.getElementById('ai-news-preview');
+    if (container) {
+      container.innerHTML = `
+        <div class="text-center py-8">
+          <div class="animate-spin w-8 h-8 border-3 border-blue-500/20 border-t-blue-500 rounded-full mx-auto mb-3"></div>
+          <p class="text-gray-600 dark:text-gray-400 text-sm">Refreshing AI news...</p>
+        </div>
+      `;
+      
+      // Simulate refresh delay
+      setTimeout(() => {
+        loadAINews();
+      }, 1000);
+    }
+  }
+
   // Make functions globally available
   (window as any).loadFeaturedSeries = loadFeaturedSeries;
   (window as any).loadHomeStats = loadHomeStats;
+  (window as any).loadAIContent = loadAIContent;
+  (window as any).refreshAINews = refreshAINews;
 
   (window as any).openCategoryModal = function(category, articles) {
     currentArticles = articles;
@@ -888,6 +1231,7 @@ try {
     // Load stats and featured series on page load
     loadHomeStats();
     loadFeaturedSeries();
+    loadAIContent();
 
     // Handle category modal buttons
     document.addEventListener('click', function(e) {
