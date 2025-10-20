@@ -1,0 +1,276 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+
+export async function getStaticPaths() {
+  const aiNewsEntries = await getCollection('ai-news');
+  return aiNewsEntries.map(entry => ({
+    params: { slug: entry.slug },
+    props: entry,
+  }));
+}
+
+const entry = Astro.props;
+const { Content } = await entry.render();
+
+// Format publish date
+const publishedDate = new Date(entry.data.publishedAt);
+const updatedDate = entry.data.updatedAt ? new Date(entry.data.updatedAt) : null;
+---
+
+<Layout
+  title={entry.data.seoTitle || `${entry.data.title} - AI News`}
+  description={entry.data.seoDescription || entry.data.summary}
+  type="article"
+  author={entry.data.author}
+  tags={entry.data.tags}
+  image={entry.data.image}
+  published_date={entry.data.publishedAt}
+  modified_date={entry.data.updatedAt}
+>
+  <article class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/30 dark:from-slate-900 dark:via-blue-950/30 dark:to-emerald-950/30">
+    
+    <!-- Article Header -->
+    <header class="py-16 px-4 sm:px-6 relative overflow-hidden">
+      <!-- Background Elements -->
+      <div class="absolute inset-0">
+        <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-emerald-400/10 to-cyan-400/10 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-r from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s"></div>
+      </div>
+
+      <div class="max-w-4xl mx-auto relative z-10">
+        <!-- Back Navigation -->
+        <div class="mb-8">
+          <a 
+            href="/ai" 
+            class="inline-flex items-center text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium transition-colors group"
+          >
+            <svg class="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to AI News
+          </a>
+        </div>
+
+        <!-- Article Badges -->
+        <div class="flex flex-wrap items-center gap-3 mb-6">
+          <span class="px-3 py-1 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white rounded-full text-sm font-medium capitalize">
+            {entry.data.category}
+          </span>
+          
+          {entry.data.breaking && (
+            <span class="px-3 py-1 bg-red-500 text-white rounded-full text-sm font-bold animate-pulse">
+              🚨 Breaking News
+            </span>
+          )}
+          
+          {entry.data.trending && (
+            <span class="px-3 py-1 bg-orange-500 text-white rounded-full text-sm font-bold">
+              🔥 Trending
+            </span>
+          )}
+          
+          {entry.data.featured && (
+            <span class="px-3 py-1 bg-purple-500 text-white rounded-full text-sm font-bold">
+              ⭐ Featured
+            </span>
+          )}
+        </div>
+
+        <!-- Article Title -->
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+          <span class="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-900 dark:from-slate-100 dark:via-slate-200 dark:to-slate-100 bg-clip-text text-transparent">
+            {entry.data.title}
+          </span>
+        </h1>
+
+        <!-- Article Summary -->
+        <p class="text-xl text-slate-600 dark:text-slate-400 mb-8 leading-relaxed max-w-3xl">
+          {entry.data.summary}
+        </p>
+
+        <!-- Article Meta -->
+        <div class="flex flex-wrap items-center gap-6 text-sm text-slate-500 dark:text-slate-400">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <span>By {entry.data.author}</span>
+          </div>
+          
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>
+              {publishedDate.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </span>
+          </div>
+          
+          {updatedDate && (
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span>
+                Updated {updatedDate.toLocaleDateString('en-US', { 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </span>
+            </div>
+          )}
+          
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
+            <span>Source: {entry.data.source}</span>
+          </div>
+
+          {entry.data.readingTime && (
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+              <span>{entry.data.readingTime} read</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </header>
+
+    <!-- Article Image -->
+    {entry.data.image && (
+      <section class="px-4 sm:px-6 mb-12">
+        <div class="max-w-4xl mx-auto">
+          <div class="aspect-[16/9] rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-emerald-100 to-cyan-100 dark:from-emerald-900/30 dark:to-cyan-900/30">
+            <img 
+              src={entry.data.image} 
+              alt={entry.data.title}
+              class="w-full h-full object-cover"
+            />
+          </div>
+        </div>
+      </section>
+    )}
+
+    <!-- Article Content -->
+    <section class="px-4 sm:px-6 pb-16">
+      <div class="max-w-4xl mx-auto">
+        <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-8 sm:p-12 shadow-lg border border-slate-200/50 dark:border-slate-700/50">
+          
+          <!-- Source Link -->
+          {entry.data.sourceUrl && (
+            <div class="mb-8 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-xl border border-blue-200/50 dark:border-blue-800/50">
+              <div class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
+                <div>
+                  <p class="text-sm text-blue-800 dark:text-blue-200 font-medium">Original Source</p>
+                  <a 
+                    href={entry.data.sourceUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium hover:underline"
+                  >
+                    {entry.data.source} →
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <!-- Article Content -->
+          <div class="prose prose-slate dark:prose-invert prose-lg max-w-none
+                      prose-headings:text-slate-900 dark:prose-headings:text-slate-100
+                      prose-p:text-slate-700 dark:prose-p:text-slate-300
+                      prose-a:text-emerald-600 dark:prose-a:text-emerald-400
+                      prose-strong:text-slate-900 dark:prose-strong:text-slate-100
+                      prose-code:text-emerald-700 dark:prose-code:text-emerald-300
+                      prose-pre:bg-slate-800 dark:prose-pre:bg-slate-900
+                      prose-blockquote:border-emerald-500 prose-blockquote:text-slate-700 dark:prose-blockquote:text-slate-300">
+            <Content />
+          </div>
+
+          <!-- Tags -->
+          {entry.data.tags.length > 0 && (
+            <div class="mt-12 pt-8 border-t border-slate-200 dark:border-slate-700">
+              <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Tags</h3>
+              <div class="flex flex-wrap gap-3">
+                {entry.data.tags.map(tag => (
+                  <span class="px-3 py-1 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+
+    <!-- Related Articles -->
+    <section class="px-4 sm:px-6 pb-16">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-8">
+          Related <span class="bg-gradient-to-r from-emerald-600 to-cyan-600 bg-clip-text text-transparent">AI News</span>
+        </h2>
+        
+        <div class="text-center py-12 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-200/50 dark:border-slate-700/50">
+          <div class="text-4xl mb-4">🤖</div>
+          <p class="text-slate-600 dark:text-slate-400 mb-4">More AI news coming soon!</p>
+          <a 
+            href="/ai" 
+            class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-emerald-600 to-cyan-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-200 hover:scale-105"
+          >
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to AI News
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </article>
+</Layout>
+
+<style>
+  /* Custom prose styling for better readability */
+  .prose h2 {
+    @apply border-b border-slate-200 dark:border-slate-700 pb-2 mb-6;
+  }
+  
+  .prose h3 {
+    @apply text-emerald-700 dark:text-emerald-400;
+  }
+  
+  .prose table {
+    @apply bg-white dark:bg-slate-800 shadow-lg rounded-lg overflow-hidden;
+  }
+  
+  .prose th {
+    @apply bg-emerald-50 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-200;
+  }
+  
+  .prose td {
+    @apply border-b border-slate-200 dark:border-slate-700;
+  }
+  
+  .prose pre {
+    @apply rounded-lg shadow-lg;
+  }
+  
+  .prose blockquote {
+    @apply bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4;
+  }
+</style>

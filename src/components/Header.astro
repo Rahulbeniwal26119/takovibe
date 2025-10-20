@@ -99,7 +99,7 @@ const currentPath = Astro.url.pathname;
 
   <!-- ROW 2: primary navigation - hidden on mobile, visible on large screens -->
   <div
-    class="lg:block bg-transparent border-b border-gray-200/20 dark:border-gray-800/20"
+    class="hidden md:block bg-transparent border-b border-gray-200/20 dark:border-gray-800/20"
     id='header-nav-container'
   >
       <div class="max-w-screen-2xl mx-auto px-3 lg:px-6 flex">
@@ -124,8 +124,8 @@ const currentPath = Astro.url.pathname;
                 : "text-gray-700 dark:text-gray-300 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-gradient-to-br hover:from-purple-50/60 hover:via-blue-50/60 hover:to-indigo-50/60 dark:hover:from-purple-900/20 dark:hover:via-blue-900/20 dark:hover:to-indigo-900/20 hover:border hover:border-purple-300/30 dark:hover:border-purple-400/20"
             }`}
           >
-          </div>
-        </a>
+            Blog
+          </a>
         <a
           href="/ai"
           class={`nav-link group relative px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ease-out ${
@@ -142,19 +142,19 @@ const currentPath = Astro.url.pathname;
           >
           </div>
         </a>
-        <a
-          href="/about"
-          class={`nav-link group relative px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ease-out ${
-            currentPath === "/about"
-              ? "text-purple-700 dark:text-purple-300 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-900/40 dark:via-blue-900/40 dark:to-indigo-900/40 border-2 border-purple-300/60 dark:border-purple-400/50 shadow-lg shadow-purple-100 dark:shadow-purple-900/20 scale-105"
-              : "text-gray-700 dark:text-gray-300 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-gradient-to-br hover:from-purple-50/80 hover:via-blue-50/80 hover:to-indigo-50/80 dark:hover:from-purple-900/30 dark:hover:via-blue-900/30 dark:hover:to-indigo-900/30 hover:border-2 hover:border-purple-300/40 dark:hover:border-purple-400/30 hover:shadow-lg hover:shadow-purple-100/50 dark:hover:shadow-purple-900/10 hover:scale-105"
-          }`}
-        >
-          About
-          <div
-            class="absolute inset-x-0 -bottom-1 h-1 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 rounded-full transform origin-center scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out"
+          <a
+            href="/about"
+            class={`nav-link group relative px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ease-out ${
+              currentPath === "/about"
+                ? "text-purple-700 dark:text-purple-300 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-900/40 dark:via-blue-900/40 dark:to-indigo-900/40 border-2 border-purple-300/60 dark:border-purple-400/50 shadow-lg shadow-purple-100 dark:shadow-purple-900/20 scale-105"
+                : "text-gray-700 dark:text-gray-300 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-gradient-to-br hover:from-purple-50/80 hover:via-blue-50/80 hover:to-indigo-50/80 dark:hover:from-purple-900/30 dark:hover:via-blue-900/30 dark:hover:to-indigo-900/30 hover:border-2 hover:border-purple-300/40 dark:hover:border-purple-400/30 hover:shadow-lg hover:shadow-purple-100/50 dark:hover:shadow-purple-900/10 hover:scale-105"
+            }`}
           >
             About
+            <div
+              class="absolute inset-x-0 -bottom-1 h-1 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 rounded-full transform origin-center scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out"
+            >
+            </div>
           </a>
       
           <a

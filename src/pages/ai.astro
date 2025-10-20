@@ -2,115 +2,36 @@
 import Layout from "../layouts/Layout.astro";
 import { getCollection } from "astro:content";
 
-// For AI news, we'll use a different approach - news articles instead of technical blogs
-interface AINewsItem {
-  id: string;
-  title: string;
-  summary: string;
-  content?: string;
-  publishedAt: string;
-  source: string;
-  category: string;
-  tags: string[];
-  imageUrl?: string;
-  url: string;
-  trending?: boolean;
-  breaking?: boolean;
-}
+// Get AI news from content collection
+const aiNewsEntries = await getCollection('ai-news');
 
-// AI News Categories
-const aiNewsCategories = [
-  { id: 'llms', name: 'Large Language Models', icon: '🧠', count: 15 },
-  { id: 'releases', name: 'Product Releases', icon: '🚀', count: 12 },
-  { id: 'research', name: 'AI Research', icon: '🔬', count: 8 },
-  { id: 'startups', name: 'AI Startups', icon: '💡', count: 6 },
-  { id: 'enterprise', name: 'Enterprise AI', icon: '🏢', count: 10 },
-  { id: 'regulation', name: 'AI Regulation', icon: '⚖️', count: 5 },
-  { id: 'hardware', name: 'AI Hardware', icon: '🔧', count: 7 },
-  { id: 'ethics', name: 'AI Ethics', icon: '🤝', count: 4 }
-];
-
-// Sample AI news data (in production, this would come from news APIs)
-const aiNewsData: AINewsItem[] = [
-  {
-    id: 'openai-gpt4-turbo-vision',
-    title: 'OpenAI Releases GPT-4 Turbo with Enhanced Vision Capabilities',
-    summary: 'OpenAI announces GPT-4 Turbo with improved multimodal capabilities, supporting larger context windows and reduced pricing.',
-    publishedAt: '2024-10-20T10:00:00Z',
-    source: 'OpenAI',
-    category: 'llms',
-    tags: ['GPT-4', 'OpenAI', 'Multimodal', 'Vision'],
-    imageUrl: '/images/ai-news/openai-gpt4-turbo.jpg',
-    url: '/ai/openai-gpt4-turbo-vision',
-    breaking: true
-  },
-  {
-    id: 'google-gemini-ultra-coding',
-    title: 'Google\'s Gemini Ultra Shows Superior Coding Performance',
-    summary: 'Latest benchmarks reveal Gemini Ultra outperforming competitors in code generation and debugging tasks.',
-    publishedAt: '2024-10-20T08:30:00Z',
-    source: 'Google DeepMind',
-    category: 'llms',
-    tags: ['Gemini', 'Google', 'Coding', 'Benchmarks'],
-    imageUrl: '/images/ai-news/gemini-ultra-coding.jpg',
-    url: '/ai/google-gemini-ultra-coding',
-    trending: true
-  },
-  {
-    id: 'anthropic-claude-3-enterprise',
-    title: 'Anthropic Launches Claude 3 for Enterprise with Advanced Safety Features',
-    summary: 'Claude 3 Enterprise edition includes enhanced safety protocols and enterprise-grade security features.',
-    publishedAt: '2024-10-19T16:45:00Z',
-    source: 'Anthropic',
-    category: 'enterprise',
-    tags: ['Claude 3', 'Anthropic', 'Enterprise', 'Safety'],
-    imageUrl: '/images/ai-news/claude-3-enterprise.jpg',
-    url: '/ai/anthropic-claude-3-enterprise'
-  },
-  {
-    id: 'meta-llama-3-open-source',
-    title: 'Meta Open Sources Llama 3 with Commercial License',
-    summary: 'Meta releases Llama 3 under a new commercial-friendly license, enabling broader enterprise adoption.',
-    publishedAt: '2024-10-19T14:20:00Z',
-    source: 'Meta AI',
-    category: 'releases',
-    tags: ['Llama 3', 'Meta', 'Open Source', 'Commercial'],
-    imageUrl: '/images/ai-news/llama-3-open-source.jpg',
-    url: '/ai/meta-llama-3-open-source'
-  },
-  {
-    id: 'nvidia-h200-benchmarks',
-    title: 'NVIDIA H200 GPU Shows 3x Performance Improvement for AI Training',
-    summary: 'New benchmark results demonstrate significant performance gains for large-scale AI model training.',
-    publishedAt: '2024-10-19T11:15:00Z',
-    source: 'NVIDIA',
-    category: 'hardware',
-    tags: ['NVIDIA', 'H200', 'GPU', 'Performance'],
-    imageUrl: '/images/ai-news/nvidia-h200.jpg',
-    url: '/ai/nvidia-h200-benchmarks'
-  },
-  {
-    id: 'eu-ai-act-implementation',
-    title: 'EU AI Act Implementation Guidelines Released',
-    summary: 'European Union publishes detailed implementation guidelines for the AI Act, affecting global AI development.',
-    publishedAt: '2024-10-18T13:00:00Z',
-    source: 'European Commission',
-    category: 'regulation',
-    tags: ['EU', 'AI Act', 'Regulation', 'Guidelines'],
-    imageUrl: '/images/ai-news/eu-ai-act.jpg',
-    url: '/ai/eu-ai-act-implementation'
-  }
-];
-
-// Sort news by date (most recent first)
-const sortedNews = aiNewsData.sort((a, b) => 
-  new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+// Sort by published date (newest first)
+const sortedAINews = aiNewsEntries.sort(
+  (a, b) => new Date(b.data.publishedAt).getTime() - new Date(a.data.publishedAt).getTime()
 );
 
-// Get featured/breaking news
-const breakingNews = sortedNews.filter(item => item.breaking);
-const trendingNews = sortedNews.filter(item => item.trending);
-const latestNews = sortedNews.slice(0, 6);
+// Get featured, breaking, and trending news
+const featuredNews = sortedAINews.filter(entry => entry.data.featured);
+const breakingNews = sortedAINews.filter(entry => entry.data.breaking);
+const trendingNews = sortedAINews.filter(entry => entry.data.trending);
+const recentNews = sortedAINews.slice(0, 12); // Show latest 12 articles
+
+# AI News Categories - dynamically calculate counts
+const aiNewsCategories = [
+  { id: 'llms', name: 'Large Language Models', icon: '🧠' },
+  { id: 'releases', name: 'Product Releases', icon: '🚀' },
+  { id: 'research', name: 'AI Research', icon: '🔬' },
+  { id: 'startups', name: 'AI Startups', icon: '💡' },
+  { id: 'enterprise', name: 'Enterprise AI', icon: '🏢' },
+  { id: 'regulation', name: 'AI Regulation & Policy', icon: '⚖️' },
+  { id: 'hardware', name: 'AI Hardware', icon: '🔧' },
+  { id: 'ethics', name: 'AI Ethics & Safety', icon: '🤝' },
+  { id: 'funding', name: 'AI Funding', icon: '💰' },
+  { id: 'partnerships', name: 'AI Partnerships', icon: '🤝' }
+].map(category => ({
+  ...category,
+  count: sortedAINews.filter(entry => entry.data.category === category.id).length
+}));
 ---
 
 <Layout
@@ -164,12 +85,12 @@ const latestNews = sortedNews.slice(0, 6);
               🚨 BREAKING
             </span>
             <div class="flex-1 min-w-0">
-              <a href={breakingNews[0].url} class="text-red-800 dark:text-red-200 hover:text-red-900 dark:hover:text-red-100 font-semibold truncate">
-                {breakingNews[0].title}
+              <a href={`/ai/${breakingNews[0].slug}`} class="text-red-800 dark:text-red-200 hover:text-red-900 dark:hover:text-red-100 font-semibold truncate">
+                {breakingNews[0].data.title}
               </a>
             </div>
             <span class="text-red-600 dark:text-red-400 text-sm">
-              {new Date(breakingNews[0].publishedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              {new Date(breakingNews[0].data.publishedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </span>
           </div>
         </div>
@@ -233,12 +154,12 @@ const latestNews = sortedNews.slice(0, 6);
         <!-- Featured News Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
           <!-- Main Featured Article -->
-          {latestNews.length > 0 && (
+          {recentNews.length > 0 && (
             <div class="lg:col-span-2">
               <article class="group bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200/50 dark:border-slate-700/50">
                 <div class="aspect-[16/9] bg-gradient-to-br from-emerald-100 to-cyan-100 dark:from-emerald-900/30 dark:to-cyan-900/30 relative overflow-hidden">
-                  {latestNews[0].imageUrl ? (
-                    <img src={latestNews[0].imageUrl} alt={latestNews[0].title} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  {recentNews[0].data.image ? (
+                    <img src={recentNews[0].data.image} alt={recentNews[0].data.title} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                   ) : (
                     <div class="w-full h-full flex items-center justify-center">
                       <span class="text-6xl">🤖</span>
@@ -248,19 +169,19 @@ const latestNews = sortedNews.slice(0, 6);
                   {/* Category Badge */}
                   <div class="absolute top-4 left-4">
                     <span class="px-3 py-1 bg-emerald-500 text-white rounded-full text-sm font-medium capitalize">
-                      {latestNews[0].category}
+                      {recentNews[0].data.category}
                     </span>
                   </div>
                   
                   {/* Breaking/Trending Badge */}
-                  {(latestNews[0].breaking || latestNews[0].trending) && (
+                  {(recentNews[0].data.breaking || recentNews[0].data.trending) && (
                     <div class="absolute top-4 right-4">
                       <span class={`px-3 py-1 rounded-full text-sm font-bold ${
-                        latestNews[0].breaking 
+                        recentNews[0].data.breaking 
                           ? 'bg-red-500 text-white animate-pulse' 
                           : 'bg-orange-500 text-white'
                       }`}>
-                        {latestNews[0].breaking ? '🚨 BREAKING' : '🔥 TRENDING'}
+                        {recentNews[0].data.breaking ? '🚨 BREAKING' : '🔥 TRENDING'}
                       </span>
                     </div>
                   )}
@@ -269,11 +190,11 @@ const latestNews = sortedNews.slice(0, 6);
                 <div class="p-6">
                   <div class="flex items-center gap-3 mb-3">
                     <span class="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-                      {latestNews[0].source}
+                      {recentNews[0].data.source}
                     </span>
                     <span class="text-slate-400">•</span>
                     <time class="text-sm text-slate-500 dark:text-slate-400">
-                      {new Date(latestNews[0].publishedAt).toLocaleDateString('en-US', { 
+                      {new Date(recentNews[0].data.publishedAt).toLocaleDateString('en-US', { 
                         month: 'short', 
                         day: 'numeric',
                         hour: '2-digit',
@@ -283,18 +204,18 @@ const latestNews = sortedNews.slice(0, 6);
                   </div>
                   
                   <h3 class="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-3 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors leading-tight">
-                    <a href={latestNews[0].url} class="hover:underline">
-                      {latestNews[0].title}
+                    <a href={`/ai/${recentNews[0].slug}`} class="hover:underline">
+                      {recentNews[0].data.title}
                     </a>
                   </h3>
                   
                   <p class="text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
-                    {latestNews[0].summary}
+                    {recentNews[0].data.summary}
                   </p>
                   
                   <div class="flex items-center justify-between">
                     <div class="flex flex-wrap gap-2">
-                      {latestNews[0].tags.slice(0, 3).map(tag => (
+                      {recentNews[0].data.tags.slice(0, 3).map(tag => (
                         <span class="px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded text-sm">
                           {tag}
                         </span>
@@ -302,7 +223,7 @@ const latestNews = sortedNews.slice(0, 6);
                     </div>
                     
                     <a 
-                      href={latestNews[0].url}
+                      href={`/ai/${recentNews[0].slug}`}
                       class="inline-flex items-center text-emerald-600 dark:text-emerald-400 font-medium hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors group/link"
                     >
                       Read More
@@ -318,14 +239,14 @@ const latestNews = sortedNews.slice(0, 6);
           
           <!-- Side Articles -->
           <div class="space-y-6">
-            {latestNews.slice(1, 4).map((news, index) => (
+            {recentNews.slice(1, 4).map((news, index) => (
               <article class="group bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200/50 dark:border-slate-700/50 hover:border-emerald-300 dark:hover:border-emerald-500 transition-all duration-300 hover:shadow-lg">
                 <div class="flex items-center gap-3 mb-3">
                   <span class="px-2 py-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded text-xs font-medium capitalize">
-                    {news.category}
+                    {news.data.category}
                   </span>
                   <time class="text-xs text-slate-500 dark:text-slate-400">
-                    {new Date(news.publishedAt).toLocaleDateString('en-US', { 
+                    {new Date(news.data.publishedAt).toLocaleDateString('en-US', { 
                       month: 'short', 
                       day: 'numeric',
                       hour: '2-digit',
@@ -335,22 +256,22 @@ const latestNews = sortedNews.slice(0, 6);
                 </div>
                 
                 <h4 class="font-bold text-slate-900 dark:text-slate-100 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-tight text-sm">
-                  <a href={news.url} class="hover:underline">
-                    {news.title}
+                  <a href={`/ai/${news.slug}`} class="hover:underline">
+                    {news.data.title}
                   </a>
                 </h4>
                 
                 <p class="text-slate-600 dark:text-slate-400 text-sm mb-3 line-clamp-2">
-                  {news.summary}
+                  {news.data.summary}
                 </p>
                 
                 <div class="flex items-center justify-between">
                   <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                    {news.source}
+                    {news.data.source}
                   </span>
                   
                   <a 
-                    href={news.url}
+                    href={`/ai/${news.slug}`}
                     class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium transition-colors"
                   >
                     Read →
@@ -363,34 +284,34 @@ const latestNews = sortedNews.slice(0, 6);
 
         <!-- More News Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="more-news-container">
-          {latestNews.slice(4).map((news, index) => (
+          {recentNews.slice(4).map((news, index) => (
             <article class="group bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200/50 dark:border-slate-700/50 hover:border-emerald-300 dark:hover:border-emerald-500 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1">
               <div class="flex items-center justify-between mb-3">
                 <span class="px-2 py-1 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white rounded text-xs font-medium capitalize">
-                  {news.category}
+                  {news.data.category}
                 </span>
                 <time class="text-xs text-slate-500 dark:text-slate-400">
-                  {new Date(news.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  {new Date(news.data.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 </time>
               </div>
               
               <h4 class="font-bold text-slate-900 dark:text-slate-100 mb-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors leading-tight">
-                <a href={news.url} class="hover:underline">
-                  {news.title}
+                <a href={`/ai/${news.slug}`} class="hover:underline">
+                  {news.data.title}
                 </a>
               </h4>
               
               <p class="text-slate-600 dark:text-slate-400 text-sm mb-4 line-clamp-3">
-                {news.summary}
+                {news.data.summary}
               </p>
               
               <div class="flex items-center justify-between">
                 <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                  {news.source}
+                  {news.data.source}
                 </span>
                 
                 <a 
-                  href={news.url}
+                  href={`/ai/${news.slug}`}
                   class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 text-sm font-medium transition-colors group/link"
                 >
                   Read More
