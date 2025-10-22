@@ -1,0 +1,88 @@
+---
+import type { GlossaryTerm } from '../types/glossary';
+import { getDifficultyColor } from '../utils/glossaryApi';
+
+interface Props {
+  term: GlossaryTerm;
+  showDescription?: boolean;
+}
+
+const { term, showDescription = true } = Astro.props;
+
+const truncateText = (text: string, maxLength: number = 150): string => {
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength).trim() + '...';
+};
+
+const difficultyColor = term.difficulty_level ? getDifficultyColor(term.difficulty_level) : '';
+---
+
+<article class="group relative bg-white dark:bg-gray-900/50 rounded-2xl border border-gray-200/70 dark:border-gray-700/50 hover:border-purple-300/50 dark:hover:border-purple-400/30 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10 overflow-hidden">
+  <div class="p-6 pb-4">
+    <div class="flex items-start justify-between gap-4 mb-3">
+      <h3 class="text-xl font-bold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+        <a href={`/glossary/${term.slug}`} class="hover:underline">
+          {term.term}
+        </a>
+      </h3>
+      
+      {term.difficulty_level && (
+        <span class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${difficultyColor}`}>
+          {term.difficulty_level}
+        </span>
+      )}
+    </div>
+    
+    {showDescription && (
+      <div class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-4" set:html={truncateText(term.description.replace(/[#*`]/g, ''), 120)}>
+      </div>
+    )}
+  </div>
+
+  <div class="px-6 pb-4 pt-0">
+    <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+      <div class="flex items-center gap-4">
+        {term.category && (
+          <span class="inline-flex items-center gap-1">
+            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"></path>
+            </svg>
+            {term.category}
+          </span>
+        )}
+        
+        {term.tags && term.tags.length > 0 && (
+          <span class="inline-flex items-center gap-1">
+            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+            </svg>
+            {term.tags.slice(0, 2).join(', ')}
+            {term.tags.length > 2 && ` +${term.tags.length - 2}`}
+          </span>
+        )}
+      </div>
+      
+      <div class="flex items-center gap-3">
+        {term.likes > 0 && (
+          <span class="inline-flex items-center gap-1">
+            <svg class="w-3 h-3 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path>
+            </svg>
+            {term.likes}
+          </span>
+        )}
+        
+        {term.related_terms && term.related_terms.length > 0 && (
+          <span class="inline-flex items-center gap-1">
+            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd"></path>
+            </svg>
+            {term.related_terms.length} related
+          </span>
+        )}
+      </div>
+    </div>
+  </div>
+
+  <div class="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl"></div>
+</article>

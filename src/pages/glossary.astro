@@ -1,0 +1,488 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout 
+  title="Tech Glossary - TakoVibe" 
+  description="Comprehensive tech glossary with definitions, code examples, and related terms. Learn programming concepts, frameworks, and development terminology."
+  type="website"
+>
+  <main class="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-[#1a1325] dark:via-[#0f172a] dark:to-[#111827]">
+    <!-- Header Section -->
+    <div class="relative overflow-hidden">
+      <div class="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-blue-600/10"></div>
+      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <div class="text-center">
+          <h1 class="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
+            Tech <span class="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Glossary</span>
+          </h1>
+          <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-8">
+            Discover and understand programming concepts, frameworks, and development terminology with clear definitions, code examples, and related references.
+          </p>
+          
+          <!-- Search Bar -->
+          <div class="max-w-md mx-auto mb-8">
+            <div class="relative">
+              <input 
+                type="text" 
+                id="glossary-search"
+                placeholder="Search terms..." 
+                class="w-full pl-12 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-2xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+              />
+              <svg class="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
+              </svg>
+            </div>
+          </div>
+          
+          <!-- Stats -->
+          <div class="flex justify-center items-center gap-8 text-sm text-gray-600 dark:text-gray-400">
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span id="total-count">Loading...</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2-2v-4z"></path>
+              </svg>
+              <span id="categories-count">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+      <!-- Loading State -->
+      <div id="loading-state" class="text-center py-12">
+        <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mx-auto mb-4"></div>
+        <p class="text-gray-600 dark:text-gray-400">Loading glossary...</p>
+      </div>
+
+      <!-- Error State -->
+      <div id="error-state" class="text-center py-12 hidden">
+        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-8 max-w-md mx-auto">
+          <svg class="w-12 h-12 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <h2 class="text-xl font-semibold text-red-800 dark:text-red-200 mb-2">Failed to load glossary</h2>
+          <p class="text-red-600 dark:text-red-300 mb-4">Please try refreshing the page or check back later.</p>
+          <button onclick="window.location.reload()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition-colors">
+            Retry
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div id="main-content" class="hidden">
+        <!-- Quick Access Sections -->
+        <div class="grid lg:grid-cols-2 gap-8 mb-16">
+          <!-- Latest Terms -->
+          <section>
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Latest Terms</h2>
+              <a href="/glossary/latest" class="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium text-sm">
+                View all →
+              </a>
+            </div>
+            <div id="latest-terms" class="grid gap-4">
+              <!-- Latest terms will be loaded here -->
+            </div>
+          </section>
+
+          <!-- Popular Terms -->
+          <section>
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Popular Terms</h2>
+              <a href="/glossary/popular" class="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium text-sm">
+                View all →
+              </a>
+            </div>
+            <div id="popular-terms" class="grid gap-4">
+              <!-- Popular terms will be loaded here -->
+            </div>
+          </section>
+        </div>
+
+        <!-- Categories Section -->
+        <section id="categories-section" class="mb-16 hidden">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Browse by Category</h2>
+          <div id="categories-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <!-- Categories will be loaded here -->
+          </div>
+        </section>
+
+        <!-- All Terms Section -->
+        <section>
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">All Terms</h2>
+            <div class="flex items-center gap-4">
+              <!-- Filter Controls -->
+              <select 
+                id="category-filter"
+                class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+              >
+                <option value="">All Categories</option>
+                <!-- Categories will be populated dynamically -->
+              </select>
+              
+              <select 
+                id="difficulty-filter"
+                class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+              >
+                <option value="">All Levels</option>
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+              </select>
+            </div>
+          </div>
+          
+          <div id="terms-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Terms will be loaded here -->
+          </div>
+
+          <!-- Load More Button -->
+          <div id="load-more-container" class="text-center mt-12 hidden">
+            <button 
+              id="load-more"
+              class="px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-2xl transition-colors duration-300"
+            >
+              Load More Terms
+            </button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Client-side data loading and functionality
+    document.addEventListener('DOMContentLoaded', () => {
+      const BASE_URL = 'https://backend.takovibe.com/api';
+      
+      // DOM elements
+      const loadingState = document.getElementById('loading-state');
+      const errorState = document.getElementById('error-state');
+      const mainContent = document.getElementById('main-content');
+      const totalCountEl = document.getElementById('total-count');
+      const categoriesCountEl = document.getElementById('categories-count');
+      const latestTermsEl = document.getElementById('latest-terms');
+      const popularTermsEl = document.getElementById('popular-terms');
+      const categoriesSection = document.getElementById('categories-section');
+      const categoriesGrid = document.getElementById('categories-grid');
+      const termsGrid = document.getElementById('terms-grid');
+      const categoryFilter = document.getElementById('category-filter');
+      const difficultyFilter = document.getElementById('difficulty-filter');
+      const loadMoreContainer = document.getElementById('load-more-container');
+      const loadMoreBtn = document.getElementById('load-more');
+      const searchInput = document.getElementById('glossary-search');
+      
+      let currentPage = 1;
+      let totalCount = 0;
+      let isLoading = false;
+      let categories = [];
+
+      // Initialize the page
+      initializePage();
+
+      async function initializePage() {
+        try {
+          showLoading();
+          await Promise.all([
+            loadInitialData(),
+            loadCategories(),
+            loadLatestTerms(),
+            loadPopularTerms()
+          ]);
+          showMainContent();
+        } catch (error) {
+          console.error('Failed to initialize glossary:', error);
+          showError();
+        }
+      }
+
+      async function loadInitialData() {
+        const response = await fetch(`${BASE_URL}/glossary/terms/?page=1&page_size=12`);
+        if (!response.ok) throw new Error('Failed to load terms');
+        
+        const data = await response.json();
+        totalCount = data.count || 0;
+        
+        if (totalCountEl) {
+          totalCountEl.textContent = `${totalCount} Terms`;
+        }
+        
+        renderTerms(data.results || [], termsGrid);
+        
+        if (totalCount > 12 && loadMoreContainer) {
+          loadMoreContainer.classList.remove('hidden');
+        }
+      }
+
+      async function loadCategories() {
+        try {
+          const response = await fetch(`${BASE_URL}/glossary/categories/`);
+          if (!response.ok) throw new Error('Failed to load categories');
+          
+          const data = await response.json();
+          categories = data.results || data || [];
+          
+          if (categoriesCountEl) {
+            categoriesCountEl.textContent = `${categories.length} Categories`;
+          }
+          
+          if (categories.length > 0) {
+            renderCategories(categories);
+            populateCategoryFilter(categories);
+            categoriesSection?.classList.remove('hidden');
+          }
+        } catch (error) {
+          console.error('Failed to load categories:', error);
+        }
+      }
+
+      async function loadLatestTerms() {
+        try {
+          const response = await fetch(`${BASE_URL}/glossary/terms/latest/?limit=3`);
+          if (!response.ok) throw new Error('Failed to load latest terms');
+          
+          const data = await response.json();
+          const terms = data.results || data || [];
+          renderTerms(terms, latestTermsEl, false);
+        } catch (error) {
+          console.error('Failed to load latest terms:', error);
+        }
+      }
+
+      async function loadPopularTerms() {
+        try {
+          const response = await fetch(`${BASE_URL}/glossary/terms/popular/?limit=3`);
+          if (!response.ok) throw new Error('Failed to load popular terms');
+          
+          const data = await response.json();
+          const terms = data.results || data || [];
+          renderTerms(terms, popularTermsEl, false);
+        } catch (error) {
+          console.error('Failed to load popular terms:', error);
+        }
+      }
+
+      function renderTerms(terms, container, showDescription = true) {
+        if (!container) return;
+        
+        container.innerHTML = terms.map(term => createTermCard(term, showDescription)).join('');
+      }
+
+      function createTermCard(term, showDescription = true) {
+        const difficultyColors = {
+          beginner: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+          intermediate: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
+          advanced: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+        };
+
+        const difficultyColor = term.difficulty_level ? difficultyColors[term.difficulty_level] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300' : '';
+        
+        const truncatedDescription = showDescription ? 
+          term.description.replace(/[#*`]/g, '').substring(0, 120) + (term.description.length > 120 ? '...' : '') : '';
+
+        return `
+          <article class="group relative bg-white dark:bg-gray-900/50 rounded-2xl border border-gray-200/70 dark:border-gray-700/50 hover:border-purple-300/50 dark:hover:border-purple-400/30 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10 overflow-hidden">
+            <div class="p-6 pb-4">
+              <div class="flex items-start justify-between gap-4 mb-3">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                  <a href="/glossary/${term.slug}" class="hover:underline">${term.term}</a>
+                </h3>
+                ${term.difficulty_level ? `
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${difficultyColor}">
+                    ${term.difficulty_level}
+                  </span>
+                ` : ''}
+              </div>
+              ${showDescription && truncatedDescription ? `
+                <div class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-4">
+                  ${truncatedDescription}
+                </div>
+              ` : ''}
+            </div>
+            
+            <div class="px-6 pb-4 pt-0">
+              <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                <div class="flex items-center gap-4">
+                  ${term.category ? `
+                    <span class="inline-flex items-center gap-1">
+                      <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"></path>
+                      </svg>
+                      ${term.category}
+                    </span>
+                  ` : ''}
+                  
+                  ${term.tags && term.tags.length > 0 ? `
+                    <span class="inline-flex items-center gap-1">
+                      <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+                      </svg>
+                      ${term.tags.slice(0, 2).join(', ')}${term.tags.length > 2 ? ` +${term.tags.length - 2}` : ''}
+                    </span>
+                  ` : ''}
+                </div>
+                
+                <div class="flex items-center gap-3">
+                  ${term.likes > 0 ? `
+                    <span class="inline-flex items-center gap-1">
+                      <svg class="w-3 h-3 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path>
+                      </svg>
+                      ${term.likes}
+                    </span>
+                  ` : ''}
+                  
+                  ${term.related_terms && term.related_terms.length > 0 ? `
+                    <span class="inline-flex items-center gap-1">
+                      <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd"></path>
+                      </svg>
+                      ${term.related_terms.length} related
+                    </span>
+                  ` : ''}
+                </div>
+              </div>
+            </div>
+            
+            <div class="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl"></div>
+          </article>
+        `;
+      }
+
+      function renderCategories(categories) {
+        if (!categoriesGrid) return;
+        
+        categoriesGrid.innerHTML = categories.map(category => `
+          <a href="/glossary/category/${category.slug}"
+             class="group p-4 bg-white dark:bg-gray-900/50 rounded-2xl border border-gray-200/70 dark:border-gray-700/50 hover:border-purple-300/50 dark:hover:border-purple-400/30 transition-all duration-300 hover:shadow-lg">
+            <h3 class="font-semibold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 mb-1">
+              ${category.name}
+            </h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">${category.description || ''}</p>
+            <div class="text-xs text-gray-500 dark:text-gray-500">
+              ${category.term_count || 0} terms
+            </div>
+          </a>
+        `).join('');
+      }
+
+      function populateCategoryFilter(categories) {
+        if (!categoryFilter) return;
+        
+        const currentOptions = categoryFilter.innerHTML;
+        categoryFilter.innerHTML = currentOptions + categories.map(category => 
+          `<option value="${category.slug}">${category.name}</option>`
+        ).join('');
+      }
+
+      function showLoading() {
+        loadingState?.classList.remove('hidden');
+        errorState?.classList.add('hidden');
+        mainContent?.classList.add('hidden');
+      }
+
+      function showError() {
+        loadingState?.classList.add('hidden');
+        errorState?.classList.remove('hidden');
+        mainContent?.classList.add('hidden');
+      }
+
+      function showMainContent() {
+        loadingState?.classList.add('hidden');
+        errorState?.classList.add('hidden');
+        mainContent?.classList.remove('hidden');
+      }
+
+      // Search functionality
+      let searchTimeout;
+      if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+          clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(() => {
+            const target = e.target as HTMLInputElement;
+            if (target && target.value && target.value.trim()) {
+              window.location.href = `/glossary/search?q=${encodeURIComponent(target.value.trim())}`;
+            }
+          }, 500);
+        });
+      }
+
+      // Filter functionality
+      if (categoryFilter) {
+        categoryFilter.addEventListener('change', performFilter);
+      }
+      
+      if (difficultyFilter) {
+        difficultyFilter.addEventListener('change', performFilter);
+      }
+
+      // Load more functionality
+      if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', loadMoreTerms);
+      }
+
+      function performFilter() {
+        const categoryEl = categoryFilter as HTMLSelectElement;
+        const difficultyEl = difficultyFilter as HTMLSelectElement;
+        const category = categoryEl ? categoryEl.value : '';
+        const difficulty = difficultyEl ? difficultyEl.value : '';
+        
+        const params = new URLSearchParams();
+        if (category) params.append('category', category);
+        if (difficulty) params.append('difficulty', difficulty);
+        
+        const queryString = params.toString();
+        window.location.href = queryString ? `/glossary?${queryString}` : '/glossary';
+      }
+
+      async function loadMoreTerms() {
+        if (isLoading) return;
+        
+        isLoading = true;
+        const btn = loadMoreBtn as HTMLButtonElement;
+        if (btn) {
+          btn.textContent = 'Loading...';
+          btn.disabled = true;
+        }
+
+        try {
+          const response = await fetch(`${BASE_URL}/glossary/terms/?page=${currentPage + 1}&page_size=12`);
+          if (!response.ok) throw new Error('Failed to load more terms');
+          
+          const data = await response.json();
+          
+          if (data.results && data.results.length > 0) {
+            const newTermsHtml = data.results.map(term => createTermCard(term)).join('');
+            if (termsGrid) {
+              termsGrid.innerHTML += newTermsHtml;
+            }
+            currentPage++;
+            
+            // Hide load more if we've loaded all terms
+            if (currentPage * 12 >= totalCount && loadMoreContainer) {
+              loadMoreContainer.classList.add('hidden');
+            }
+          } else if (loadMoreContainer) {
+            loadMoreContainer.classList.add('hidden');
+          }
+        } catch (error) {
+          console.error('Failed to load more terms:', error);
+        } finally {
+          isLoading = false;
+          if (btn) {
+            btn.textContent = 'Load More Terms';
+            btn.disabled = false;
+          }
+        }
+      }
+    });
+  </script>
+</Layout>

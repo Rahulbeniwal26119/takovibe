@@ -1,0 +1,269 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout 
+  title="Popular Terms - Tech Glossary"
+  description="Explore the most popular and liked terms in our tech glossary. Learn about the most sought-after programming concepts."
+  type="website"
+>
+  <main class="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-[#1a1325] dark:via-[#0f172a] dark:to-[#111827]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      
+      <!-- Breadcrumb -->
+      <nav class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-8">
+        <a href="/glossary" class="hover:text-purple-600 dark:hover:text-purple-400 transition-colors">Glossary</a>
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+        </svg>
+        <span class="text-gray-900 dark:text-white font-medium">Popular Terms</span>
+      </nav>
+
+      <!-- Header -->
+      <div class="text-center mb-12">
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+          <span class="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Popular</span> Terms
+        </h1>
+        <p class="text-xl text-gray-600 dark:text-gray-300 mb-6">
+          Most liked and viewed terms in our tech glossary
+        </p>
+        
+        <!-- Stats Badge -->
+        <div class="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl">
+          <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path>
+          </svg>
+          <span id="stats-badge" class="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Loading...
+          </span>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loading-state" class="text-center py-12">
+        <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mx-auto mb-4"></div>
+        <p class="text-gray-600 dark:text-gray-400">Loading popular terms...</p>
+      </div>
+
+      <!-- Error State -->
+      <div id="error-state" class="text-center py-12 hidden">
+        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-8 max-w-md mx-auto">
+          <svg class="w-16 h-16 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <h2 class="text-2xl font-bold text-red-800 dark:text-red-200 mb-2">Failed to load popular terms</h2>
+          <p class="text-red-600 dark:text-red-300 mb-4">Please try refreshing the page or check back later.</p>
+          <button onclick="window.location.reload()" class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition-colors mr-4">
+            Retry
+          </button>
+          <a href="/glossary" class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-xl transition-colors">
+            Back to Glossary
+          </a>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div id="empty-state" class="text-center py-24 hidden">
+        <svg class="w-24 h-24 text-gray-400 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+        </svg>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">No popular terms yet</h2>
+        <p class="text-gray-600 dark:text-gray-400 mb-8">
+          Start liking terms to see them appear here!
+        </p>
+        <a href="/glossary" class="inline-flex items-center px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-2xl transition-colors">
+          Browse All Terms
+        </a>
+      </div>
+
+      <!-- Main Content -->
+      <div id="main-content" class="hidden">
+        <!-- Top 3 Popular Terms - Special Display -->
+        <div id="top-three" class="mb-16 hidden">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-8 text-center">🏆 Top 3 Most Popular</h2>
+          <div id="top-three-grid" class="grid md:grid-cols-3 gap-8">
+            <!-- Top 3 terms will be loaded here -->
+          </div>
+        </div>
+
+        <!-- All Popular Terms -->
+        <div id="all-terms-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- All popular terms will be loaded here -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Client-side popular terms loading
+    document.addEventListener('DOMContentLoaded', () => {
+      const BASE_URL = 'https://backend.takovibe.com/api';
+      
+      // DOM elements
+      const loadingState = document.getElementById('loading-state');
+      const errorState = document.getElementById('error-state');
+      const emptyState = document.getElementById('empty-state');
+      const mainContent = document.getElementById('main-content');
+      const statsBadge = document.getElementById('stats-badge');
+      const topThreeSection = document.getElementById('top-three');
+      const topThreeGrid = document.getElementById('top-three-grid');
+      const allTermsGrid = document.getElementById('all-terms-grid');
+      
+      // Initialize the page
+      initializePage();
+
+      async function initializePage() {
+        try {
+          showLoading();
+          await loadPopularTerms();
+        } catch (error) {
+          console.error('Failed to load popular terms:', error);
+          showError();
+        }
+      }
+
+      async function loadPopularTerms() {
+        const response = await fetch(`${BASE_URL}/glossary/terms/popular/?limit=50`);
+        if (!response.ok) throw new Error('Failed to load popular terms');
+        
+        const data = await response.json();
+        const terms = data.results || data || [];
+        
+        if (terms.length === 0) {
+          showEmpty();
+          return;
+        }
+        
+        renderPopularTerms(terms);
+        showMainContent();
+      }
+
+      function renderPopularTerms(terms) {
+        // Update stats badge
+        if (statsBadge) {
+          statsBadge.textContent = `Top ${terms.length} most popular terms`;
+        }
+        
+        // Render top 3 if we have at least 3 terms
+        if (terms.length >= 3 && topThreeSection && topThreeGrid) {
+          topThreeGrid.innerHTML = terms.slice(0, 3).map((term, index) => {
+            const badges = [
+              { bg: 'bg-yellow-400', text: 'text-yellow-900', label: '#1 Most Popular' },
+              { bg: 'bg-gray-300', text: 'text-gray-800', label: '#2 Popular' },
+              { bg: 'bg-orange-300', text: 'text-orange-800', label: '#3 Popular' }
+            ];
+            
+            return `
+              <div class="relative">
+                <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 ${badges[index].bg} ${badges[index].text} px-3 py-1 rounded-full text-sm font-bold">
+                  ${badges[index].label}
+                </div>
+                ${createTermCard(term)}
+              </div>
+            `;
+          }).join('');
+          topThreeSection.classList.remove('hidden');
+        }
+        
+        // Render remaining terms
+        if (allTermsGrid) {
+          allTermsGrid.innerHTML = terms.slice(3).map((term, index) => `
+            <div class="relative">
+              <div class="absolute -top-2 -right-2 bg-purple-600 text-white text-xs font-bold w-8 h-8 rounded-full flex items-center justify-center">
+                #${index + 4}
+              </div>
+              ${createTermCard(term)}
+            </div>
+          `).join('');
+        }
+      }
+
+      function createTermCard(term) {
+        const difficultyColors = {
+          beginner: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+          intermediate: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
+          advanced: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+        };
+
+        const difficultyColor = term.difficulty_level ? difficultyColors[term.difficulty_level] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300' : '';
+        const truncatedDescription = term.description.replace(/[#*`]/g, '').substring(0, 120) + (term.description.length > 120 ? '...' : '');
+
+        return `
+          <article class="group relative bg-white dark:bg-gray-900/50 rounded-2xl border border-gray-200/70 dark:border-gray-700/50 hover:border-purple-300/50 dark:hover:border-purple-400/30 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10 overflow-hidden">
+            <div class="p-6 pb-4">
+              <div class="flex items-start justify-between gap-4 mb-3">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                  <a href="/glossary/${term.slug}" class="hover:underline">${term.term}</a>
+                </h3>
+                ${term.difficulty_level ? `
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${difficultyColor}">
+                    ${term.difficulty_level}
+                  </span>
+                ` : ''}
+              </div>
+              <div class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-4">
+                ${truncatedDescription}
+              </div>
+            </div>
+            
+            <div class="px-6 pb-4 pt-0">
+              <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                <div class="flex items-center gap-4">
+                  ${term.category ? `
+                    <span class="inline-flex items-center gap-1">
+                      <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 4z" clip-rule="evenodd"></path>
+                      </svg>
+                      ${term.category}
+                    </span>
+                  ` : ''}
+                </div>
+                
+                <div class="flex items-center gap-3">
+                  ${term.likes > 0 ? `
+                    <span class="inline-flex items-center gap-1 text-red-500 font-medium">
+                      <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path>
+                      </svg>
+                      ${term.likes}
+                    </span>
+                  ` : ''}
+                </div>
+              </div>
+            </div>
+            
+            <div class="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl"></div>
+          </article>
+        `;
+      }
+
+      function showLoading() {
+        loadingState?.classList.remove('hidden');
+        errorState?.classList.add('hidden');
+        emptyState?.classList.add('hidden');
+        mainContent?.classList.add('hidden');
+      }
+
+      function showError() {
+        loadingState?.classList.add('hidden');
+        errorState?.classList.remove('hidden');
+        emptyState?.classList.add('hidden');
+        mainContent?.classList.add('hidden');
+      }
+
+      function showEmpty() {
+        loadingState?.classList.add('hidden');
+        errorState?.classList.add('hidden');
+        emptyState?.classList.remove('hidden');
+        mainContent?.classList.add('hidden');
+      }
+
+      function showMainContent() {
+        loadingState?.classList.add('hidden');
+        errorState?.classList.add('hidden');
+        emptyState?.classList.add('hidden');
+        mainContent?.classList.remove('hidden');
+      }
+    });
+  </script>
+</Layout>

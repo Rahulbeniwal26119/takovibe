@@ -161,6 +161,17 @@ const currentPath = Astro.url.pathname;
           </a>
       
           <a
+            href="/glossary"
+            class={`nav-link relative px-4 py-2 rounded-xl text-sm font-semibold ${
+              currentPath.startsWith("/glossary")
+                ? "text-purple-700 dark:text-purple-300 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-900/40 dark:via-blue-900/40 dark:to-indigo-900/40 border border-purple-300/60 dark:border-purple-400/50 shadow-md"
+                : "text-gray-700 dark:text-gray-300 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-gradient-to-br hover:from-purple-50/60 hover:via-blue-50/60 hover:to-indigo-50/60 dark:hover:from-purple-900/20 dark:hover:via-blue-900/20 dark:hover:to-indigo-900/20 hover:border hover:border-purple-300/30 dark:hover:border-purple-400/20"
+            }`}
+          >
+            Glossary
+          </a>
+      
+          <a
             href="/contact"
             class={`nav-link relative px-4 py-2 rounded-xl text-sm font-semibold ${
               currentPath === "/contact"
@@ -248,6 +259,11 @@ const currentPath = Astro.url.pathname;
         href="/series"
         class="block px-3 py-2 rounded-xl hover:bg-black/[.04] dark:hover:bg-white/5"
         >Series</a
+      >
+      <a
+        href="/glossary"
+        class="block px-3 py-2 rounded-xl hover:bg-black/[.04] dark:hover:bg-white/5"
+        >Glossary</a
       >
       <a
         href="/contact"
