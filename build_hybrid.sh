@@ -80,7 +80,7 @@ deploy() {
 
   log "Installing production dependencies..."
   if [ "$PM" = "bun" ]; then
-    bun install --production --prefer-offline
+    bun install --production --prefer-offline 
   else
     npm ci --omit=dev --prefer-offline --no-audit --no-fund || npm install --omit=dev --prefer-offline --no-audit --no-fund
   fi
