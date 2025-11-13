@@ -1,0 +1,209 @@
+---
+layout: ../../layouts/BlogPost.astro
+title: "Don't Get Scripted: A Practical Guide to Preventing XSS"
+date: 2025-11-13
+author: Rahul Beniwal
+description: Cross-Site Scripting (XSS) has been a top-tier web vulnerability
+  for over a decade, and for good reason. Let's protect our website.
+image: https://ik.imagekit.io/bhu1voux5/XSS%20Attack
+readingTime: 5 min
+tags:
+  - xss
+  - application-security
+  - cross-site-scripting
+keywords:
+  - xss
+  - application-security
+  - cross-site-scripting
+type: article
+series: Application Security
+seriesOrder: 3
+---
+import Image from '../../components/Image.jsx';
+
+Welcome Everyone, this is 3rd article in our application security series. We have already discussed SQL injection and command injection. Today, we are going to discuss Cross-Site Scripting (XSS), another injection attack.
+
+Similar to its above relatives, it has also been a top-tier web vulnerability for over a decade. It is a simple-sounding attack on the fundamental principle of the web: ***Trust***
+
+When a user visits our site, their browser trust all code to be coming from us. XSS breaks that trust by injecting malicious code into our site. Today, I will discuss how we can prevent ourselves from this in ***Go***, ***JavaScript,*** and ***Python.***
+
+# What is XSS?
+XSS is a vulnerability where an attacker injects malicious client-side script (usually JavaScript) into a webpage viewed by other users.
+
+Consider our site is a built-in board.
+* A normal user posts: ***"Hello World"***
+* An attacker posts a note: `Hello world! <script>steal_everyone_auth_cookie();</script>`
+
+So when our site displays this note without proper handling, every other user's browser will execute that malicious script, thinking it is a valid part of the site.
+
+# Types of XSS
+
+1. ***Stored (or Persistent) XSS***: This is the most dangerous. Malicious script stored permanently on the server. (As a user comment, post, or user profile). Every user who views that stored content gets attacked.
+2. ***Reflected XSS***: The script is ***reflected*** off your application. It's usually delivered to a victim via a link (Email or Message). The malicious script is a part of the URL itself, like `https://yoursite.com/search?q=<script>alert('XSS')</script>`. When the search page helpfully displays "You searched for: `<script>alert('XSS')</script>`" The script runs.
+3. ***DOM-based XSS***: A modern variation where the vulnerability exists entirely in the client-side code (JS). The server is not involved. The script reads data from the URL (e.g., `yoursite.com/page#name=...`) and writes it directly into the page's DOM, causing the page to execute.
+
+# Why XSS is a System-Killer
+
+An XSS vulnerability isn't just a minor bug; it's a critical security breach that can lead to a total compromise of your users and your application.
+
+When an attacker's script runs in your user's browser, it does so with the ***full permission*** of your website. It can:
+
+1. ***Steal Session Cookies & Auth Tokens***: This is the big one. A script can grab the user's session cookie (`document.cookie`) and send it to the attacker. The attacker can then paste the cookie into their own browser and be instantly logged in as the victim. This is ***a full account takeover***.
+2. ***Perform Actions as the User:*** The script can silently make requests in the background. It can change the user's password, delete their data, make a purchase, or transfer funds—all without the user knowing.
+3. ***Capture Keystrokes (Keylogging)***: The script can listen for every key the user presses, easily stealing passwords, credit card numbers, and other sensitive information.
+4. ***Phishing & Redirection***: The script can pop up a fake login that looks identical to yours or simply redirect the user to a malicious phishing site.
+5. ***Website Defacement***: An attacker can alter the content of your site, damaging your brand's reputation.
+
+# Real-World Mayhem: Major XSS Incidents
+
+1. ***The MySpace "Samy" Worm (2005)***:  This is the most famous example. A user named Samy created a self-propagating XSS worm. When anyone viewed his profile, the script would run, automatically add "Samy is my hero" to *their* profile, and then add Samy as a friend. This script was the payload. Within 20 hours, Samy had over 1 million friend requests, and MySpace had to be taken offline to clean up the mess.
+2. ***Twitter "Rainbow" Tweet (2010)***: A vulnerability allowed users to run JavaScript by exploiting an `onMouseOver` event in a tweet. This was quickly used to create "rainbow tweets" that changed colors. 
+3. ***eBay Phishing (2014)***: A major XSS flaw allowed attackers to inject code into eBay listings. This was used to create fake login forms *on the legitimate eBay site*, tricking users into giving up their credentials.
+
+# How to Prevent XSS: Your Practical Playbook
+
+> ***The Golden Rule: NEVER TRUST USER INPUT.***
+
+The *only* way to prevent XSS is to treat all data from users, third-party APIs, or even your own database (if it stores user content) as untrusted.
+
+### 1. The #1 Defense: Output Encoding
+
+It is the single most important defense to encode all data on output, right before you render it to HTML. This means converting special characters into their safe, displayable HTML entities.
+
+You encode differently based on where the data is going:
+
+1. Inside the HTML body:
+  * `<` becomes `&lt;`
+  * `>` becomes `&gt;`
+
+2. Inside an HTML Attribute:
+  * `"` becomes `&quot;`
+  * `'` becomes `&#x27;`
+
+3. Inside a JavaScript String:
+  * `'` becomes `\'`
+  * `"` becomes `\"`
+
+### How to Do This in Go
+
+```go
+package main
+
+import (
+	"html/template"
+	"os"
+)
+
+func main() {
+	userInput := `<script>alert('You are hacked!')</script>`
+
+	tmpl := `
+	<h1>User Comment</h1>
+	<div>{{.}}</div>
+	`
+	t, _ := template.New("safe").Parse(tmpl)
+	t.Execute(os.Stdout, userInput)
+}
+```
+
+```html
+
+        <h1>User Comment</h1>
+        <div>&lt;script&gt;alert(&#39;You are hacked!&#39;)&lt;/script&gt;</div>
+```
+<Image src="https://ik.imagekit.io/bhu1voux5/xss1" shadow={true} bordered={false} />
+
+The user's browser will now *display* the text `<script>alert('You are hacked!')</script>` instead of *executing* it. You are safe.
+
+### How to do it in Python
+
+```python
+import html
+
+user_input = '<script>alert("XSS")</script>'
+safe = html.escape(user_input, quote=True)
+
+print(safe)
+
+# &lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt;
+```
+
+### How to do it in JS (Client Side)
+
+```javascript
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+const comment = escapeHtml(userInput);
+const html = `<p>${comment}</p>`;
+
+document.getElementById("comment").innerHTML = html;
+
+// <p>&lt;script&gt;alert(&#39;You are hacked!&#39;)&lt;/script&gt;</p>
+```
+
+### 2. The Modern Defense: Content Security Policy (CSP)
+
+CSP is your powerful, second layer of defense. It's an HTTP response header you send from your server that tells the browser, *Here is a whitelist of sources I trust. Do not execute any scripts, styles, or images from anywhere else*.
+
+A good CSP can block most XSS attacks, even if you have a bug in your code.
+
+```http
+Content-Security-Policy: default-src 'self'; script-src 'self' trusted-scripts.com; object-src 'none';
+```
+
+This tells the browser:
+
+* ***`default-src 'self'`***: By default, only load content (images, etc.) from my own domain.
+* ***`script-src 'self' trusted-scripts.com`***: Only run scripts that come from my domain or `trusted-scripts.com` (like a Google Analytics).
+* ***`object-src 'none'`***: Don't allow plugins like Flash.
+
+### 3. The Easy Win: `HttpOnly` Cookies
+
+As we saw, the main goal of XSS is often cookie theft. You can instantly mitigate this by setting the `HttpOnly` flag on your session cookies.
+
+When a cookie is set to `HttpOnly`, it cannot be accessed by JavaScript (`document.cookie` will not see it).
+
+```go
+cookie := http.Cookie {
+    Name: "session",
+    Value: "<Secret Value>",
+    HttpOnly: true,
+    Secure: true,
+    Path: "/",
+}
+```
+
+In case you are using Django
+
+```python
+from django.http import HttpResponse
+
+resp = HttpResponse("hello")
+
+resp.set_cookie(
+    key="session",
+    value="<secret>",
+    httponly=True,
+    secure=True,
+    samesite="Lax",
+    path="/",
+)
+
+```
+
+Node also exposes a similar API for setting cookies.
+
+# Summary Of XSS:
+
+* ENCODE ON OUTPUT: Use a context-aware library like Go's `html/template`.
+* USE CSP: Add a Content Security Policy header as a strong second layer.
+* USE `HttpOnly` COOKIES: Make session theft vastly more difficult.
+
+Thank you for reading till the end, if hope you liked it and found it helpful. Stay tuned for the upcoming article, i will update you on LinkedIn and via email in soon future.
