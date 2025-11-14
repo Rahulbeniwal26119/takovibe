@@ -1,0 +1,215 @@
+---
+layout: ../../layouts/BlogPost.astro
+title: "Don't Be a Puppet: A Practical Guide to Defeating CSRF"
+date: 2025-11-14
+author: Rahul Beniwal
+description: CSRF is one of the most dangerous attacks that can lead to account
+  takeover, destructive operations on the server, and a lot more. Let's see how
+  we can save our servers.
+image: https://ik.imagekit.io/bhu1voux5/csrf-thumbnail
+readingTime: 7 min
+tags:
+  - application-security
+  - csrf
+  - cross-site-request-forgery
+keywords:
+  - application-security
+  - csrf
+  - cross-site-request-forgery
+type: article
+series: Application Security
+seriesOrder: 4
+---
+import Image from '../../components/Image.jsx';
+
+Welcome, Everyone, to our application security series. Today we are covering the fourth article in this series again very popular but dangerous, and it is not an injection attack.  We have already covered the "trio" of injection attacks. Same as XSS, it also exploits ***trust*** but doesn't require any flaws in data handling.
+
+CSRF is about tricking a user's browser into sending a request *to* our site, a request the user never intended to make.
+
+Our server trusts the user's browser, and the browser faithfully sends along authentication cookies with every request. CSRF exploits that trust to make a user an unwilling puppet. Let's see how we can stop this "session-riding" attack with Go and Python.
+
+# What is CSRF? An Analogy
+
+Imagine we logged into our admin panel at `blog.com`. Our browser now holds a "session-cookie" which is like a valid, all-access security pass for `blog.com`
+
+Then we open an evil site `evilblog.com` which an attacker tricked us into visiting. This site has a hidden image on it.
+
+```html
+<img src="https://blog.com/api/posts/123/delete" width="0" height="0"/>
+```
+
+<Image src="https://ik.imagekit.io/bhu1voux5/CSRF" shadow={true}/>
+
+You can see in the dev tool that it is making an API call to the server to delete the blog. Here browser thinks we need to load the image from the server, `blog.com` and the  browser has security pass (session key), sothe  server will say let's delete this.
+
+> As far as your server knows, *you* made this request. It validates the cookie, confirms you are an admin, and... deletes post 123. You've just been forced to perform an action you knew nothing about.
+
+This is CSRF. The attacker ***forged*** a ***request***, and your ***cross-site*** browser was tricked into executing it.
+
+## Why CSRF is So Dangerous
+
+The attack works on any "state-changing" action:
+
+* Deleting a post, user, or any other data.
+* Changing a password or email address (leading to account takeover).
+* Making a purchase or transferring funds.
+
+This isn't a data theft attack like ***XSS*** (attacker may not be able to see the response from the server). This is ***a data manipulation*** and ***action-performing*** attack.
+
+## CSRF vs. XSS: A Quick Refresher
+
+* ***XSS*** : Exploits the trust a user has in your site.
+* ***CSRF*** : Exploits the trust your site has in a user's browser.
+
+## How to Prevent CSRF: Your Practical Playbook
+
+### 1. The Modern & Easy Fix: `SameSite` Cookies
+
+This is the single most effective "easy win". The SameSite attribute is a flag you set on your cookie to tell the browser when it should send it with cross-site requests.
+
+* **`SameSite=strict`**: The browser will not send cookies on any cross-site request .This isthe  most secure, but it can break the legitimate functionalit,y like a user clicking a link to your site from an email and not being logged in.
+* **`SameSite=Lax:`** The browser will not send the cookie on "unsafe" cross-site requests (like `POST`, `PUT`, `DELETE`, or `<img>` tags). It will send it on top-level safe requests.
+* **`SameSite=None`**: The cookie will be sent on all requests. This requires the `Secure` flag (HTTPS)
+
+#### In Go (using `http.SetCookie`)
+
+```go
+package main
+
+import (
+	"net/http"
+)
+
+func handler(w http.ResponseWriter, r *http.Request) {
+	cookie := http.Cookie{
+		Name:     "session",
+		Value:    "<secret-token>",
+		HttpOnly: true,
+		Secure:   true,
+		Path:     "/",
+	}
+
+	http.SetCookie(w, &cookie)
+
+	w.Write([]byte("Cookie set"))
+}
+
+func main() {
+	http.HandleFunc("/", handler)
+	e := http.ListenAndServe(":8085", nil)
+	if e != nil {
+		panic(e)
+	}
+}
+```
+
+#### In Python (using Django)
+
+Django enables `SameSite='Lax'` by default! but you can  also set it in `settings.py`
+
+```python
+# settings.py
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+```
+
+## 2. The Classic & Robust Fix: Anti-CSRF Tokens
+
+This is the "belt and suspenders" approach and the classic defense. It's also known as the ***Synchronizer Token Pattern***.
+
+1. When a user logs in, the server generates a unique, secret, random token and stores it in the user's session.
+2. For any sensitive form (like changing a password), the server embeds this token as a hidden field.
+3. When the user submits the form, they send back the form data and the hidden token.
+4. The server ***rejects*** the request unless the submitted token exactly matches the token stored in the user's session.
+
+An attacker on `evilblog.com` can forge a request, but they cannot guess the secret, user-specific token. Their attack fails.
+
+### In Go
+
+```go
+package main
+
+import (
+	"html/template"
+	"net/http"
+	"github.com/go-chi/chi/v5"
+	"github.com/gorilla/csrf"
+)
+
+func main() {
+	csrfMiddleware := csrf.Protect(
+		[]byte("32-byte-long-auth-key-goes-here!"),
+		csrf.Secure(true),
+		csrf.SameSite(csrf.SameSiteLaxMode),
+
+	)
+
+	template := template.Must(
+		template.New("profile").Parse(`
+		<!DOCTYPE html>
+		<html>
+		<head>
+			<meta charset="UTF-8">
+			<title>Profile</title>
+		</head>
+		<body>
+			<h1>Update profile</h1>
+			<form method="POST" action="/profile">
+				{{ .csrfField }}  <!-- This outputs the hidden input, like Django's {% csrf_token %} -->
+				<label>
+					Name:
+					<input type="text" name="name">
+				</label>
+				<button type="submit">Save</button>
+			</form>
+		</body>
+		</html>`,
+	))
+	
+
+	r := chi.NewRouter()
+	r.Use(csrfMiddleware)
+
+	r.Get(
+		"/profile",
+		func(w http.ResponseWriter, r *http.Request) {
+			data := map[string]interface{} {
+				csrf.TemplateTag: csrf.TemplateField(r),
+			}
+
+			if err := template.Execute(w, data); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+	})
+
+	r.Post("/profile", func(w http.ResponseWriter, r *http.Request) {
+			name := r.FormValue("name")
+			w.Write([]byte("Profile updated: " + name))
+	})
+
+	http.ListenAndServe(":8084", r)
+}
+```
+
+<Image src="https://ik.imagekit.io/bhu1voux5/csrf2" shadow={true}/>
+
+### In Python (Django)
+
+
+Django does this automatically! You just need to add one tag to your template.
+
+```html
+<form method="post">
+    {% csrf_token %}  {{ form.as_p }}
+    <button type="submit">Save</button>
+</form>
+```
+
+# Summary of CSRF Defenses
+
+1. Use **`SameSite=Lax`** (or **`Strict`**) Cookies: This is your powerful first line of defense
+2. Use Anti-CSRF Tokens: This is your second, explicit line of defense for all state-changing forms (`POST`, `PUT`, `DELETE`).
+3. Never Use `GET` for State-Changing Actions: `GET` requests are easily triggered by `<img>` tags, CSS `url()` calls, and more. Only use `POST`, `PUT`, or `DELETE`.
+
+Thank you for reading till the end, Hope you guys found it helpful and more confident regarding mitigation of these attacks.  I will continue cover common attacks or security vulvenarabilities so that we can write secure code.
