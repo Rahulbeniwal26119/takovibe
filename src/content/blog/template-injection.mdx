@@ -1,0 +1,161 @@
+---
+layout: ../../layouts/BlogPost.astro
+title: "Beyond XSS: Unmasking Template Injection"
+date: 2025-15-11
+author: Rahul Beniwal
+description: Template Injection is one of the most overlooked vulnerabilities in
+  application security. While often overshadowed by attacks like XSS, a
+  successful template injection can be far more devastating, leading to data
+  exposure, privilege escalation, or even full server compromise. Understanding
+  how it works and how to prevent it is crucial for maintaining the security of
+  your systems.
+image: https://ik.imagekit.io/bhu1voux5/Template%20Injection
+readingTime: 5 min
+tags:
+  - template-injection
+  - application-security
+  - injection-attacks
+keywords:
+  - template-injection
+  - application-security
+  - injection-attacks
+canonical: https://www.takovibe.com/blog/template-injection
+type: article
+series: Application Security
+seriesOrder: 5
+---
+Welcome back, everyone, to our ongoing application security series. We have previously covered how various "injection" attacks, like SQL, Command allow attackers to manipulate our application's data or client-side code. Today, we are going to discuss a more sophisticated and often overlooked vulnerability that lives closer to the heart of many web frameworks, ***Template Injection.***
+
+This attack infects the server-side templates. When an attacker injects malicious code into a template, they can often execute unwanted code on our server, leading to application compromise. 
+
+# What is Template Injection?
+
+Almost all modern web application frameworks have support for template engines (like Jinja2 in Python, Twig in PHP, or `html/template` in Go) to dynamically generate HTML pages. These engines allow us to embed variables, loops, and conditional logic directly in HTML.
+
+> Template Injection occurs when an attacker can inject template syntax directly into user-supplied input that is then processed by the server-side template engine.
+
+Instead of treating input as text, the template engines treat it as their own executable code.
+
+Imagine an application that allows users to customize a "Welcome Message" for their profile. So we, as developers, either store it in a template file or we can store it in a database and then render.
+
+```html
+<h1>Welcome, {{ .Username }}!</h1>
+<p>Your custom message: {{ .UserMessage }}</p>
+```
+
+If the `UserMessage` variable contains the code crafted by an attacker may be `{{ 7 / 0 }}` or `{{ system("ls /" }}`, and the template engine processes it without proper sanitization, the attacker's code will execute on the server.
+
+## Why Template Injection is a System-Killer?
+
+Unlike `XSS`, which executes on the client side (the user's browser), a successful Template Injection executes code on the server. This gives attackers a far more direct and devastating impact.
+
+* ***Remote Code Executions (RCE)*** : This is the holy grail for attackers. Many template engines, especially when misconfigured or used with unsafe features, allow direct access to system functions or objects.
+*  ***Sensitive Data Disclosure***: Attackers can read server-side files (e.g., Code, Configs, Secrets) or read environment variables, leading to theft or critical information.
+* ***Complete System Compromise***: With RCE, the attacker essentially owns the server, capable of installing backdoors, pivoting to other systems, or deploying malware.
+
+## How to Detect Template Injection
+
+The key to detecting is to look for user input that is reflected into a template context without being *escaped*.
+
+You can often test for it by trying to inject simple template expressions that should evaluate to a predictable result:
+
+* ***Basic Arithmetic***: `{{ 3 * 3 }}` should output 49
+* ***Object Property Access***: `{{ self.__class__ }}`, `{{config.items()}}`
+
+Please keep in mind that different template engines have different syntax.
+
+# How to Prevent Template Injection
+
+The fundamental rule is **NEVER TRUST USER INPUT**
+
+The core defense against Template injection is similar to XSS: *escape or sanitize user input before rendering*. However, it's crucial to notice that *HTML escaping alone is insufficient* for Template Injection, as the attack happens before rendering.
+
+## 1. Avoid Rendering Untrusted Input as Template Code (But with sanitization)
+
+### In Go
+
+```go
+package main
+
+import (
+	"html/template"
+	"log"
+	"net/http"
+)
+
+	type PageData struct {
+		UserName string
+	}
+
+	func handler(w http.ResponseWriter, r *http.Request) {
+		storedWelcomeMessage := `Welcome, {{.UserName}}!`
+		userName := r.URL.Query().Get("name")
+		if userName == "" {
+			userName = "Guest"
+		}
+
+		tpl, err := template.New("welcome").Parse(storedWelcomeMessage)
+		if err != nil {
+			http.Error(w, "template error", http.StatusInternalServerError)
+			return
+		}
+
+		data := PageData {
+			UserName: userName,
+		}
+
+		if err := tpl.Execute(w, data); err != nil {
+			http.Error(w, "render error", http.StatusInternalServerError)
+			return
+		}
+	}
+
+func main() {
+	http.HandleFunc("/", handler)
+	log.Fatal(http.ListenAndServe(":8084", nil))
+}
+```
+
+```bash
+curl http://127.0.0.1:8084/?name=7*7
+Welcome, 7*7!
+```
+
+The Go `html/template` package does not parse `{{ }}` inside a string variable passed to `{{.}}` or other template actions. It considers the userInput as data, not template code. This makes it very resilient to Template Injection by design.
+
+### In Python
+
+I am using `Jinja2`, which is widely adopted in Python
+
+```python
+from jinja2 import Template
+
+
+def render_welcome_safe(name):
+    tmpl = Template("<h1>Welcome, {{ name }}</h1>")
+    return tmpl.render(name=name)
+
+
+user_input = "{{ 7 * 7 }}"
+print(render_welcome_safe(user_input))  
+```
+
+```html
+<h1>Welcome, {{ 7 * 7 }}</h1>
+```
+
+> All modern template libraries protect from template injection out of the box, but still be aware
+
+## 2. Escaping/Sanitization for Different Contexts
+
+While the primary defense is to avoid parsing user input as template code, remember the lessons from XSS:
+
+* ***HTML Escaping***: If user input is displayed in an HTML context, always HTML-escape it. Go's html/template does this automatically.
+* ***URL Escaping***: If user input goes into a URL, URL-encode it.
+* ***JavaScript Escaping***: If user input goes into a JavaScript string, JavaScript-escape it.
+
+# Summary
+
+Template Injection highlights the importance of understanding how your tools work, especially when mixing untrusted data with powerful server-side logic. By keeping user input separate from template logic, you keep your server safe.
+
+Thank you for reading! Stay tuned for our next article as we continue our journey through application security.
