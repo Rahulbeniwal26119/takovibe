@@ -1,0 +1,142 @@
+---
+
+---
+
+<div
+    id="selection-popover"
+    class="fixed z-50 hidden transition-opacity duration-200"
+    role="tooltip"
+>
+    <div
+        class="bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg shadow-xl px-2 py-1.5 flex items-center gap-1 transform -translate-x-1/2 -translate-y-full mb-2 after:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-4 after:border-transparent after:border-t-gray-900 dark:after:border-t-white"
+    >
+        <button
+            id="btn-copy"
+            class="p-1.5 hover:bg-gray-700 dark:hover:bg-gray-100 rounded-md transition-colors group relative"
+            aria-label="Copy text"
+        >
+            <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                ></path>
+            </svg>
+            <span
+                class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs bg-black text-white rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap"
+                >Copy</span
+            >
+        </button>
+
+        <div class="w-px h-4 bg-gray-700 dark:bg-gray-200 mx-1"></div>
+
+        <button
+            id="btn-share"
+            class="p-1.5 hover:bg-gray-700 dark:hover:bg-gray-100 rounded-md transition-colors group relative"
+            aria-label="Share on Twitter"
+        >
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                    d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
+                ></path>
+            </svg>
+            <span
+                class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs bg-black text-white rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap"
+                >Share</span
+            >
+        </button>
+    </div>
+</div>
+
+<script>
+    const popover = document.getElementById("selection-popover");
+    const copyBtn = document.getElementById("btn-copy");
+    const shareBtn = document.getElementById("btn-share");
+    let currentSelection = "";
+
+    function updatePopoverPosition() {
+        const selection = window.getSelection();
+        if (
+            !selection ||
+            selection.isCollapsed ||
+            !selection.toString().trim()
+        ) {
+            popover?.classList.add("hidden");
+            return;
+        }
+
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+
+        // Only show if selection is within the article
+        const article = document.querySelector("article");
+        if (!article?.contains(range.commonAncestorContainer)) {
+            popover?.classList.add("hidden");
+            return;
+        }
+
+        currentSelection = selection.toString().trim();
+
+        if (popover) {
+            popover.classList.remove("hidden");
+            // Position above the selection center
+            popover.style.left = `${rect.left + rect.width / 2}px`;
+            popover.style.top = `${rect.top + window.scrollY - 10}px`;
+        }
+    }
+
+    document.addEventListener("selectionchange", () => {
+        // Debounce slightly
+        requestAnimationFrame(updatePopoverPosition);
+    });
+
+    // Hide on scroll to prevent misalignment
+    document.addEventListener(
+        "scroll",
+        () => {
+            if (popover && !popover.classList.contains("hidden")) {
+                // Optional: Hide on scroll or update position. Hiding is safer/cleaner.
+                popover.classList.add("hidden");
+            }
+        },
+        { passive: true },
+    );
+
+    copyBtn?.addEventListener("click", async () => {
+        if (currentSelection) {
+            try {
+                await navigator.clipboard.writeText(currentSelection);
+
+                // Visual feedback
+                const icon = copyBtn.querySelector("svg");
+                const originalPath = icon?.innerHTML;
+                if (icon) {
+                    icon.innerHTML =
+                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>';
+                    setTimeout(() => {
+                        icon.innerHTML = originalPath || "";
+                    }, 1500);
+                }
+            } catch (err) {
+                console.error("Failed to copy:", err);
+            }
+        }
+    });
+
+    shareBtn?.addEventListener("click", () => {
+        if (currentSelection) {
+            const text = encodeURIComponent(`"${currentSelection}"`);
+            const url = encodeURIComponent(window.location.href);
+            window.open(
+                `https://twitter.com/intent/tweet?text=${text}&url=${url}`,
+                "_blank",
+            );
+        }
+    });
+</script>

@@ -5,91 +5,140 @@ import LiveIndicator from "./LiveIndicator.astro";
 
 // Get current path for active navigation
 const currentPath = Astro.url.pathname;
+
+const navItems = [
+  { href: "/", label: "Home" },
+  { href: "/blog", label: "Blog" },
+  { href: "/about", label: "About" },
+  { href: "/categories", label: "Categories" },
+  { href: "/series", label: "Series" },
+  { href: "/contact", label: "Contact" },
+];
 ---
 
 <header
   id="site-header"
-  class="sticky top-0 z-[70] bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-[#1a1325] dark:via-[#0f172a] dark:to-[#111827] backdrop-blur-md"
+  class="sticky top-0 z-[70] w-full transition-all duration-300"
 >
-  <!-- ROW 1: chrome bar -->
   <div
-    class="bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200/70 dark:border-gray-800/70"
+    class="backdrop-blur-2xl border-b border-gray-200/30 dark:border-gray-800/30 bg-white/80 dark:bg-slate-900/80 supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-slate-900/60"
   >
     <div
-      class="max-w-screen-2xl mx-auto h-12 md:h-14 grid grid-cols-[auto_1fr_auto] items-center gap-2 px-3 md:px-6"
+      class="max-w-[1400px] mx-auto h-16 lg:h-20 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4"
     >
-      <!-- Left cluster: menu + logo -->
-      <div class="flex items-center gap-3">
+      <!-- Left: Logo & Mobile Toggle -->
+      <div class="flex items-center gap-4 shrink-0">
         <!-- Mobile drawer button -->
         <button
           id="openDrawerBtn"
           aria-label="Open menu"
-          class="md:hidden w-10 h-10 grid place-items-center rounded-xl border border-black/10 dark:border-white/10 text-gray-800 dark:text-gray-200"
+          class="lg:hidden w-10 h-10 grid place-items-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors"
         >
           <svg
-            width="18"
-            height="18"
+            width="20"
+            height="20"
             viewBox="0 0 24 24"
             fill="none"
-            aria-hidden="true"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
           >
-            <path
-              d="M3 6h18M3 12h18M3 18h18"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"></path>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
           </svg>
         </button>
 
         <a
           href="/"
-          class="shrink-0 hover:opacity-90 transition"
+          class="flex items-center gap-3 group"
           aria-label="TakoVibe home"
         >
-          <img
-            src="/images/logo.svg"
-            alt="TakoVibe logo"
-            class="w-10 h-10 rounded-full"
-          />
+          <div class="relative">
+            <div
+              class="absolute inset-0 bg-purple-500/20 rounded-full blur-md group-hover:bg-purple-500/30 transition-colors"
+            >
+            </div>
+            <img
+              src="/images/logo.svg"
+              alt="TakoVibe logo"
+              class="relative w-9 h-9 lg:w-10 lg:h-10 rounded-full shadow-sm group-hover:scale-105 transition-transform duration-300"
+            />
+          </div>
+          <span
+            class="hidden sm:block font-bold text-xl tracking-tight text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors"
+          >
+            TakoVibe
+          </span>
         </a>
-        <div class="block shrink-0">
+
+        <div class="hidden xl:block ml-2">
           <LiveIndicator
             seriesName="ML Fundamentals"
-            message="Series is LIVE! New posts every day"
+            message="Live"
             href="/series/machine-learning-fundamentals/"
           />
         </div>
       </div>
 
-      <!-- Center cell (kept empty so grid guarantees space distribution) -->
-      <div class="min-w-0"></div>
+      <!-- Center: Navigation (Desktop) -->
+      <nav
+        class="hidden lg:flex items-center justify-center gap-1 absolute left-1/2 -translate-x-1/2"
+      >
+        {
+          navItems.map((item) => {
+            const isActive =
+              item.href === "/"
+                ? currentPath === "/"
+                : currentPath.startsWith(item.href);
+            return (
+              <a
+                href={item.href}
+                class={`px-5 py-2.5 rounded-full text-base font-medium transition-all duration-200 ${
+                  isActive
+                    ? "bg-purple-50 dark:bg-purple-900/10 text-purple-600 dark:text-purple-400"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                }`}
+              >
+                {item.label}
+              </a>
+            );
+          })
+        }
+      </nav>
 
-      <!-- Right cluster: search + auth (never shrinks on desktop) -->
-      <div class="flex items-center gap-3">
-        <!-- Desktop search bar - visible when mobile menu is hidden -->
-        <div class="w-[280px]" id="header-search-container">
+      <!-- Right: Search & Auth -->
+      <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+        <!-- Desktop Search -->
+        <div class="hidden md:block w-64 xl:w-72">
           <Search variant="header" />
         </div>
 
-        <!-- Mobile search icon - visible on mobile -->
+        <!-- Mobile Search Toggle -->
         <button
           id="mobileSearchBtn"
-          class="w-10 h-10 grid place-items-center"
+          class="md:hidden w-10 h-10 grid place-items-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors"
           aria-label="Open search"
         >
           <svg
-            width="18"
-            height="18"
+            width="20"
+            height="20"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
             stroke-width="2"
-            aria-hidden="true"
+            stroke-linecap="round"
+            stroke-linejoin="round"
           >
             <circle cx="11" cy="11" r="8"></circle>
-            <path d="M21 21l-4.35-4.35"></path>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
         </button>
+
+        <div class="h-6 w-px bg-gray-200 dark:bg-gray-800 hidden sm:block">
+        </div>
+
         <div class="auth-wrapper" onclick="event.stopPropagation();">
           <Auth />
         </div>
@@ -97,164 +146,103 @@ const currentPath = Astro.url.pathname;
     </div>
   </div>
 
-  <!-- ROW 2: primary navigation - hidden on mobile, visible on large screens -->
-  <div
-    class="lg:block bg-transparent border-b border-gray-200/20 dark:border-gray-800/20"
-    id='header-nav-container'
-  >
-      <div class="max-w-screen-2xl mx-auto px-3 lg:px-6 flex">
-        <!-- Primary links (simple & transparent) -->
-        <nav class="flex items-center justify-around w-full" aria-label="Primary" role="navigation">
-          <a
-            href="/"
-            class={`nav-link relative px-4 py-2 rounded-xl text-sm font-semibold ${
-              currentPath === "/"
-                ? "text-purple-700 dark:text-purple-300 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-900/40 dark:via-blue-900/40 dark:to-indigo-900/40 border border-purple-300/60 dark:border-purple-400/50 shadow-md"
-                : "text-gray-700 dark:text-gray-300 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-gradient-to-br hover:from-purple-50/60 hover:via-blue-50/60 hover:to-indigo-50/60 dark:hover:from-purple-900/20 dark:hover:via-blue-900/20 dark:hover:to-indigo-900/20 hover:border hover:border-purple-300/30 dark:hover:border-purple-400/20"
-            }`}
-          >
-            Home
-          </a>
-      
-          <a
-            href="/blog"
-            class={`nav-link relative px-4 py-2 rounded-xl text-sm font-semibold ${
-              currentPath.startsWith("/blog")
-                ? "text-purple-700 dark:text-purple-300 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-900/40 dark:via-blue-900/40 dark:to-indigo-900/40 border border-purple-300/60 dark:border-purple-400/50 shadow-md"
-                : "text-gray-700 dark:text-gray-300 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-gradient-to-br hover:from-purple-50/60 hover:via-blue-50/60 hover:to-indigo-50/60 dark:hover:from-purple-900/20 dark:hover:via-blue-900/20 dark:hover:to-indigo-900/20 hover:border hover:border-purple-300/30 dark:hover:border-purple-400/20"
-            }`}
-          >
-            Blog
-          </a>
-      
-          <a
-            href="/about"
-            class={`nav-link relative px-4 py-2 rounded-xl text-sm font-semibold ${
-              currentPath === "/about"
-                ? "text-purple-700 dark:text-purple-300 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-900/40 dark:via-blue-900/40 dark:to-indigo-900/40 border border-purple-300/60 dark:border-purple-400/50 shadow-md"
-                : "text-gray-700 dark:text-gray-300 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-gradient-to-br hover:from-purple-50/60 hover:via-blue-50/60 hover:to-indigo-50/60 dark:hover:from-purple-900/20 dark:hover:via-blue-900/20 dark:hover:to-indigo-900/20 hover:border hover:border-purple-300/30 dark:hover:border-purple-400/20"
-            }`}
-          >
-            About
-          </a>
-      
-          <a
-            href="/categories"
-            class={`nav-link relative px-4 py-2 rounded-xl text-sm font-semibold ${
-              currentPath === "/categories"
-                ? "text-purple-700 dark:text-purple-300 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-900/40 dark:via-blue-900/40 dark:to-indigo-900/40 border border-purple-300/60 dark:border-purple-400/50 shadow-md"
-                : "text-gray-700 dark:text-gray-300 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-gradient-to-br hover:from-purple-50/60 hover:via-blue-50/60 hover:to-indigo-50/60 dark:hover:from-purple-900/20 dark:hover:via-blue-900/20 dark:hover:to-indigo-900/20 hover:border hover:border-purple-300/30 dark:hover:border-purple-400/20"
-            }`}
-          >
-            Categories
-          </a>
-      
-          <a
-            href="/series"
-            class={`nav-link relative px-4 py-2 rounded-xl text-sm font-semibold ${
-              currentPath.startsWith("/series")
-                ? "text-purple-700 dark:text-purple-300 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-900/40 dark:via-blue-900/40 dark:to-indigo-900/40 border border-purple-300/60 dark:border-purple-400/50 shadow-md"
-                : "text-gray-700 dark:text-gray-300 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-gradient-to-br hover:from-purple-50/60 hover:via-blue-50/60 hover:to-indigo-50/60 dark:hover:from-purple-900/20 dark:hover:via-blue-900/20 dark:hover:to-indigo-900/20 hover:border hover:border-purple-300/30 dark:hover:border-purple-400/20"
-            }`}
-          >
-            Series
-          </a>
-      
-          <a
-            href="/contact"
-            class={`nav-link relative px-4 py-2 rounded-xl text-sm font-semibold ${
-              currentPath === "/contact"
-                ? "text-purple-700 dark:text-purple-300 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-900/40 dark:via-blue-900/40 dark:to-indigo-900/40 border border-purple-300/60 dark:border-purple-400/50 shadow-md"
-                : "text-gray-700 dark:text-gray-300 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-gradient-to-br hover:from-purple-50/60 hover:via-blue-50/60 hover:to-indigo-50/60 dark:hover:from-purple-900/20 dark:hover:via-blue-900/20 dark:hover:to-indigo-900/20 hover:border hover:border-purple-300/30 dark:hover:border-purple-400/20"
-            }`}
-          >
-            Contact
-          </a>
-        </nav>
-      </div>
-
-  </div>
-
   <!-- MOBILE DRAWER -->
   <div
     id="drawerBackdrop"
-    class="fixed inset-0 z-[65] bg-black/40 opacity-0 pointer-events-none transition-opacity duration-200"
+    class="fixed inset-0 z-[65] bg-black/40 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300"
   >
   </div>
 
   <aside
     id="drawer"
-    class="fixed left-0 top-0 z-[66] w-[86vw] max-w-[360px] -translate-x-full transition-transform duration-200
-                bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 p-3 md:hidden"
+    class="fixed left-0 top-0 z-[66] w-[85vw] max-w-[320px] h-full -translate-x-full transition-transform duration-300 cubic-bezier(0.4, 0, 0.2, 1)
+           bg-white dark:bg-[#0f1117] border-r border-gray-200 dark:border-gray-800 flex flex-col shadow-2xl"
     aria-label="Mobile menu"
-    aria-hidden="true"
   >
-    <div class="h-12 flex items-center">
+    <!-- Drawer Header -->
+    <div
+      class="h-20 px-6 flex items-center justify-between border-b border-gray-100 dark:border-gray-800/50"
+    >
+      <div class="flex items-center gap-3">
+        <img src="/images/logo.svg" alt="Logo" class="w-8 h-8 rounded-full" />
+        <span class="font-bold text-lg text-gray-900 dark:text-white">Menu</span
+        >
+      </div>
       <button
         id="closeDrawerBtn"
         aria-label="Close menu"
-        class="w-10 h-10 grid place-items-center rounded-xl border border-black/10 dark:border-white/10 text-gray-800 dark:text-gray-200"
+        class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 transition-colors"
       >
         <svg
-          width="18"
-          height="18"
+          width="20"
+          height="20"
           viewBox="0 0 24 24"
           fill="none"
-          aria-hidden="true"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
         >
-          <path
-            d="M6 6l12 12M18 6L6 18"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"></path>
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
         </svg>
       </button>
-      <strong class="ml-2">Menu</strong>
     </div>
 
-    <!-- Mobile Search Section -->
-    <div class="mt-4 mb-4" id="mobile-search-section">
+    <!-- Mobile Search (if not on blog page) -->
+    <div class="p-4" id="mobile-search-section">
       {
         Astro.url.pathname !== "/blog" && (
-          <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
+          <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-1">
             <Search variant="mobile" />
           </div>
         )
       }
     </div>
 
-    <nav class="mt-2 space-y-1 text-gray-800 dark:text-gray-200">
-      <a
-        href="/"
-        class="block px-3 py-2 rounded-xl hover:bg-black/[.04] dark:hover:bg-white/5"
-        >Home</a
-      >
-      <a
-        href="/blog"
-        class="block px-3 py-2 rounded-xl hover:bg-black/[.04] dark:hover:bg-white/5"
-        >Blog</a
-      >
-      <a
-        href="/about"
-        class="block px-3 py-2 rounded-xl hover:bg-black/[.04] dark:hover:bg-white/5"
-        >About</a
-      >
-      <a
-        href="/categories"
-        class="block px-3 py-2 rounded-xl hover:bg-black/[.04] dark:hover:bg-white/5"
-        >Categories</a
-      >
-      <a
-        href="/series"
-        class="block px-3 py-2 rounded-xl hover:bg-black/[.04] dark:hover:bg-white/5"
-        >Series</a
-      >
-      <a
-        href="/contact"
-        class="block px-3 py-2 rounded-xl hover:bg-black/[.04] dark:hover:bg-white/5"
-        >Contact</a
-      >
+    <!-- Drawer Nav -->
+    <nav class="flex-1 overflow-y-auto px-4 py-2 space-y-1">
+      {
+        navItems.map((item) => {
+          const isActive =
+            item.href === "/"
+              ? currentPath === "/"
+              : currentPath.startsWith(item.href);
+          return (
+            <a
+              href={item.href}
+              class={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                isActive
+                  ? "bg-purple-50 dark:bg-purple-900/10 text-purple-600 dark:text-purple-400"
+                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-white"
+              }`}
+            >
+              {item.label}
+            </a>
+          );
+        })
+      }
     </nav>
+
+    <!-- Drawer Footer -->
+    <div class="p-4 border-t border-gray-100 dark:border-gray-800/50">
+      <div class="flex items-center justify-center gap-4 text-gray-400">
+        <a href="#" class="hover:text-purple-500 transition-colors"
+          ><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"
+            ><path
+              d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"
+            ></path></svg
+          ></a
+        >
+        <a href="#" class="hover:text-purple-500 transition-colors"
+          ><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"
+            ><path
+              d="M12 0c-6.626 0-12 5.373-12 12 0 3.368 1.376 6.391 3.6 8.613 2.222 2.222 5.245 3.6 8.613 3.6 3.362 0 6.38-1.372 8.6-3.594 2.22-2.22 3.594-5.238 3.594-8.6 0-6.627-5.373-12-12-12zm0 21.6c-5.298 0-9.6-4.302-9.6-9.6s4.302-9.6 9.6-9.6 9.6 4.302 9.6 9.6-4.302 9.6-9.6 9.6z"
+            ></path></svg
+          ></a
+        >
+      </div>
+    </div>
   </aside>
 
   <!-- MOBILE SEARCH OVERLAY -->
@@ -262,33 +250,35 @@ const currentPath = Astro.url.pathname;
     id="mobileSearchOverlay"
     class="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300 lg:hidden"
   >
-    <div class="flex items-start justify-center pt-20 px-4">
+    <div class="flex items-start justify-center pt-24 px-4">
       <div
         id="mobileSearchModal"
-        class="w-full max-w-lg bg-white dark:bg-gray-900 rounded-2xl shadow-2xl transform scale-95 transition-transform duration-300"
+        class="w-full max-w-lg bg-white dark:bg-[#1a1d26] rounded-2xl shadow-2xl transform scale-95 transition-all duration-300 border border-gray-200 dark:border-gray-800"
       >
-        <div class="p-4 border-b border-gray-200 dark:border-gray-700">
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-              Search
-            </h3>
-            <button
-              id="closeMobileSearchBtn"
-              class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-              aria-label="Close search"
+        <div
+          class="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between"
+        >
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            Search
+          </h3>
+          <button
+            id="closeMobileSearchBtn"
+            class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-colors"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
             >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M18 6L6 18M6 6l12 12"></path>
-              </svg>
-            </button>
-          </div>
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
         </div>
         <div class="p-4">
           {Astro.url.pathname !== "/blog" && <Search variant="modal" />}
@@ -298,13 +288,13 @@ const currentPath = Astro.url.pathname;
   </div>
 </header>
 
-<!-- Drawer toggling and mobile search -->
 <script is:inline>
   document.addEventListener("DOMContentLoaded", () => {
     const drawer = document.querySelector("#drawer");
     const backdrop = document.querySelector("#drawerBackdrop");
     const openBtn = document.querySelector("#openDrawerBtn");
     const closeBtn = document.querySelector("#closeDrawerBtn");
+    const header = document.getElementById("site-header");
 
     // Mobile search elements
     const mobileSearchBtn = document.querySelector("#mobileSearchBtn");
@@ -317,26 +307,26 @@ const currentPath = Astro.url.pathname;
     function openDrawer() {
       drawer?.classList.remove("-translate-x-full");
       backdrop?.classList.remove("pointer-events-none", "opacity-0");
-      backdrop?.classList.add("opacity-100"); // Add this line to make backdrop visible
+      backdrop?.classList.add("opacity-100");
+      document.body.style.overflow = "hidden";
     }
 
     function closeDrawer() {
       drawer?.classList.add("-translate-x-full");
       backdrop?.classList.add("pointer-events-none", "opacity-0");
-      backdrop?.classList.remove("opacity-100"); // Add this line to hide backdrop
+      backdrop?.classList.remove("opacity-100");
+      document.body.style.overflow = "";
     }
 
     function openMobileSearch() {
       mobileSearchOverlay?.classList.remove("pointer-events-none", "opacity-0");
       mobileSearchModal?.classList.remove("scale-95");
       mobileSearchModal?.classList.add("scale-100");
+      document.body.style.overflow = "hidden";
 
-      // Focus the search input after animation
       setTimeout(() => {
         const searchInput = document.querySelector("#modal-search-input");
-        if (searchInput) {
-          searchInput.focus();
-        }
+        if (searchInput) searchInput.focus();
       }, 300);
     }
 
@@ -344,47 +334,29 @@ const currentPath = Astro.url.pathname;
       mobileSearchOverlay?.classList.add("pointer-events-none", "opacity-0");
       mobileSearchModal?.classList.remove("scale-100");
       mobileSearchModal?.classList.add("scale-95");
+      document.body.style.overflow = "";
     }
 
-    // Drawer functionality
+    // Event Listeners
     openBtn?.addEventListener("click", (e) => {
-      e.preventDefault();
       e.stopPropagation();
       openDrawer();
     });
 
-    closeBtn?.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      closeDrawer();
-    });
+    closeBtn?.addEventListener("click", closeDrawer);
+    backdrop?.addEventListener("click", closeDrawer);
 
-    backdrop?.addEventListener("click", (e) => {
-      if (e.target === backdrop) {
-        closeDrawer();
-      }
-    });
-
-    // Mobile search functionality
     mobileSearchBtn?.addEventListener("click", (e) => {
-      e.preventDefault();
       e.stopPropagation();
       openMobileSearch();
     });
 
-    closeMobileSearchBtn?.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      closeMobileSearch();
-    });
-
+    closeMobileSearchBtn?.addEventListener("click", closeMobileSearch);
     mobileSearchOverlay?.addEventListener("click", (e) => {
-      if (e.target === mobileSearchOverlay) {
-        closeMobileSearch();
-      }
+      if (e.target === mobileSearchOverlay) closeMobileSearch();
     });
 
-    // Close on Escape key
+    // Close on Escape
     window.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         closeDrawer();
@@ -392,324 +364,43 @@ const currentPath = Astro.url.pathname;
       }
     });
 
-    // Prevent header clicks from opening drawer
-    const header = document.querySelector("#site-header");
-    header?.addEventListener("click", (e) => {
-      if (!e.target?.closest("#openDrawerBtn")) {
-        e.stopPropagation();
-      }
-    });
-
-    // Enhanced navigation interactions
-    const navLinks = document.querySelectorAll(".nav-link");
-    navLinks.forEach((link) => {
-      // Add keyboard support
-      link.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          link.click();
-        }
-      });
-
-      // Add focus styles
-      link.addEventListener("focus", () => {
-        link.classList.add(
-          "ring-2",
-          "ring-purple-500/50",
-          "ring-offset-2",
-          "dark:ring-offset-gray-900",
-        );
-      });
-
-      link.addEventListener("blur", () => {
-        link.classList.remove(
-          "ring-2",
-          "ring-purple-500/50",
-          "ring-offset-2",
-          "dark:ring-offset-gray-900",
-        );
-      });
-    });
-  });
-
-  // Handle mobile navigation visibility
-  document.addEventListener("DOMContentLoaded", () => {
-    const openDrawerBtn = document.getElementById("openDrawerBtn");
-    const navSection = document.querySelector(
-      'nav[aria-label="Primary"]',
-    ).parentElement;
-
-    let isNavVisible = window.innerWidth >= 768;
-
-    function updateNavVisibility() {
-      if (window.innerWidth >= 768) {
-        navSection.style.display = "block";
-        isNavVisible = true;
-      } else {
-        navSection.style.display = isNavVisible ? "block" : "none";
-      }
-    }
-
-    // Initial visibility
-    updateNavVisibility();
-
-    // Toggle nav on mobile
-    openDrawerBtn?.addEventListener("click", () => {
-      isNavVisible = !isNavVisible;
-      updateNavVisibility();
-    });
-
-    // Update on resize
-    window.addEventListener("resize", () => {
-      updateNavVisibility();
-    });
-  });
-</script>
-
-<style>
-  /* Enhanced navigation styles */
-  .nav-link {
-    position: relative;
-    overflow: hidden;
-    backdrop-filter: blur(12px);
-    transform-origin: center;
-    will-change: transform;
-  }
-
-  .nav-link::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(139, 92, 246, 0.15),
-      rgba(59, 130, 246, 0.1),
-      transparent
-    );
-    transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .nav-link:hover::before {
-    left: 100%;
-  }
-
-  .nav-link:active {
-    transform: scale(0.95);
-  }
-
-  /* Enhanced active state styling */
-  .nav-link.scale-105 {
-    transform: scale(1.05);
-    box-shadow: 0 8px 25px -8px rgba(139, 92, 246, 0.3);
-  }
-
-  /* Improved hover animations */
-  .nav-link:hover {
-    transform: translateY(-2px) scale(1.05);
-  }
-
-  /* Smooth scrolling for navigation overflow */
-  nav[aria-label="Primary"] {
-    scroll-behavior: smooth;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-
-  nav[aria-label="Primary"]::-webkit-scrollbar {
-    display: none;
-  }
-
-  /* Enhance backdrop blur */
-  .backdrop-blur-xl {
-    backdrop-filter: blur(24px);
-  }
-
-  /* Enhanced shadow for active nav items */
-  .nav-link.bg-gradient-to-br {
-    box-shadow:
-      0 4px 20px -4px rgba(139, 92, 246, 0.3),
-      0 2px 8px -2px rgba(59, 130, 246, 0.2);
-  }
-
-  /* Mobile drawer enhanced animations */
-  @media (max-width: 767px) {
-    .nav-link {
-      margin-bottom: 0.125rem;
-    }
-  }
-
-  /* Smooth color transitions for theme switching */
-  * {
-    transition:
-      background-color 0.3s ease,
-      border-color 0.3s ease,
-      color 0.3s ease;
-  }
-</style>
-
-<style>
-  /* Add body padding to account for fixed header */
-  :global(body) {
-    padding-top: calc(
-      48px + 36px
-    ); /* Mobile: 48px (h-12) + 36px (navigation row) */
-  }
-
-  @media (min-width: 768px) {
-    :global(body) {
-      padding-top: calc(
-        56px + 40px
-      ); /* Desktop: 56px (h-14) + 40px (navigation row) */
-    }
-  }
-
-  /* Ensure header has consistent height */
-  @media (min-width: 768px) {
-    #site-header {
-      height: calc(56px + 40px); /* Desktop total height */
-    }
-  }
-
-  /* Smooth header transition */
-  #site-header {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  /* Header hide/show animation - only for desktop */
-  @media (min-width: 768px) {
-    #site-header.header-hidden {
-      transform: translateY(-100%);
-    }
-
-    #site-header.header-visible {
-      transform: translateY(0);
-    }
-  }
-
-  /* Hide on small screens (<768px), show on medium and up */
-  #header-search-container {
-    display: none;
-  }
-
-  @media (min-width: 768px) {
-    #header-search-container {
-      display: block !important;
-    }
-  }
-
-  @media (min-width: 768px) {
-    #header-nav-container {
-      display: block !important;
-    }
-  }
-
-  @media (max-width: 767px) {
-    #header-nav-container {
-      display: none !important;
-    }
-  }
-
-  /* Show on small screens, hide on medium and up */
-  #mobileSearchBtn {
-    display: block;
-  }
-
-  @media (min-width: 768px) {
-    #mobileSearchBtn {
-      display: none !important;
-    }
-  }
-</style>
-
-<!-- Scroll Direction Detection Script -->
-<script is:inline>
-  document.addEventListener("DOMContentLoaded", () => {
+    // Scroll Behavior
     let lastScrollY = window.scrollY;
     let isScrollingDown = false;
-    let scrollTimeout;
-    const header = document.getElementById("site-header");
 
-    // Only apply scroll behavior on desktop
-    function handleScroll() {
-      // Only apply this behavior on desktop (md breakpoint and above)
-      if (window.innerWidth < 768) {
-        header?.classList.remove("header-hidden", "header-visible");
-        return;
-      }
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (window.innerWidth < 1024) return; // Only on desktop
 
-      const currentScrollY = window.scrollY;
-      const scrollDifference = currentScrollY - lastScrollY;
+        const currentScrollY = window.scrollY;
 
-      // Only trigger if scrolled more than 5px to avoid small scroll jitters
-      if (Math.abs(scrollDifference) > 5) {
-        if (scrollDifference > 0) {
-          // Scrolling down - hide header
+        if (currentScrollY > lastScrollY && currentScrollY > 100) {
           if (!isScrollingDown) {
+            header.style.transform = "translateY(-100%)";
             isScrollingDown = true;
-            header?.classList.add("header-hidden");
-            header?.classList.remove("header-visible");
           }
         } else {
-          // Scrolling up - show header
           if (isScrollingDown) {
+            header.style.transform = "translateY(0)";
             isScrollingDown = false;
-            header?.classList.add("header-visible");
-            header?.classList.remove("header-hidden");
           }
         }
-
         lastScrollY = currentScrollY;
-      }
-
-      // Clear timeout and set a new one
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => {
-        // If at the top of the page, always show header
-        if (currentScrollY <= 10) {
-          isScrollingDown = false;
-          header?.classList.add("header-visible");
-          header?.classList.remove("header-hidden");
-        }
-      }, 150);
-    }
-
-    // Add scroll event listener with throttling
-    let ticking = false;
-
-    function requestTick() {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          handleScroll();
-          ticking = false;
-        });
-        ticking = true;
-      }
-    }
-
-    window.addEventListener("scroll", requestTick, { passive: true });
-
-    // Handle window resize to reset header state
-    window.addEventListener("resize", () => {
-      if (window.innerWidth < 768) {
-        // Reset header state on mobile
-        header?.classList.remove("header-hidden", "header-visible");
-        isScrollingDown = false;
-      } else {
-        // Initialize proper state on desktop
-        if (window.scrollY <= 10) {
-          header?.classList.add("header-visible");
-          header?.classList.remove("header-hidden");
-        }
-      }
-    });
-
-    // Initialize header state
-    if (window.innerWidth >= 768) {
-      header?.classList.add("header-visible");
-    }
+      },
+      { passive: true },
+    );
   });
 </script>
+
+<style>
+  /* Ensure content isn't hidden behind fixed header */
+  :global(body) {
+    padding-top: 0; /* Reset */
+  }
+
+  /* Add padding to main content wrapper instead if needed, 
+     but sticky header usually sits on top. 
+     If using fixed, we need padding. 
+     Here we use sticky, so it takes space in flow. */
+</style>

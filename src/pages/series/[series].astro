@@ -13,11 +13,11 @@ const SERIES_DETAILS = {
     "Level": "Beginner to Advance",
     "TotalArticle": "Inf"
   },
-  // "RAG Mastery": {
-  //   "Description": "A comprehensive journey from tokenization to production-ready RAG systems. Master Retrieval-Augmented Generation with hands-on tutorials, code examples, and real-world applications.",
-  //   "Level": "Intermediate to Advance",
-  //   "TotalArticle": "31"
-  // },
+  "Application Security": {
+    "Description": "Master web application security from XSS to advanced attack vectors. Learn to build secure applications with practical examples and real-world scenarios.",
+    "Level": "Intermediate to Advanced",
+    "TotalArticle": "15"
+  },
   "Machine Learning Fundamentals": {
     "Description": "Master the core concepts of machine learning from ground up. Start learning with algorithms, data preprocessing, model evaluation, and deployment with hands-on Python examples and real-world projects.",
     "Level": "Beginner to Intermediate",
@@ -60,6 +60,7 @@ const publishedArticlesCount = posts.filter(post => new Date(post.data.date) <= 
 const totalArticleValue = series_details?.TotalArticle;
 const plannedArticlesCount = totalArticleValue === "Inf" ? Infinity : (parseInt(totalArticleValue) || posts.length);
 const isSeriesComplete = plannedArticlesCount !== Infinity && plannedArticlesCount > 0 && publishedArticlesCount >= plannedArticlesCount;
+const progressPercentage = totalArticleValue === "Inf" ? 0 : (publishedArticlesCount / plannedArticlesCount) * 100;
 
 // Prepare article data
 const articlesData = posts.map((post, index) => {
@@ -70,24 +71,7 @@ const articlesData = posts.map((post, index) => {
     ...post,
     index,
     isPublished,
-    isCurrent,
-    cardClasses: isCurrent 
-      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-lg' 
-      : isPublished 
-        ? 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-lg' 
-        : 'border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 opacity-60',
-    badgeClasses: isCurrent 
-      ? 'bg-blue-500 text-white' 
-      : isPublished 
-        ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white' 
-        : 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400',
-    titleClasses: isPublished 
-      ? 'text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400' 
-      : 'text-gray-500 dark:text-gray-400',
-    descClasses: isPublished ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500',
-    buttonClasses: isCurrent 
-      ? 'bg-blue-500 hover:bg-blue-600 text-white' 
-      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+    isCurrent
   };
 });
 ---
@@ -96,179 +80,280 @@ const articlesData = posts.map((post, index) => {
   title={`${seriesName} Series - All Articles`}
   description={`Complete ${seriesName} series with ${posts.length} articles covering everything from basics to advanced concepts.`}
 >
-  <main class="max-w-4xl mx-auto px-4 py-8 mt-16">
-    <!-- Series Header -->
-    <div class="text-center mb-12">
-      <div class={`inline-flex items-center gap-2 px-4 py-2 text-white text-sm font-medium rounded-full mb-4 ${
-        isSeriesComplete 
-          ? 'bg-gradient-to-r from-green-500 to-emerald-500' 
-          : 'bg-gradient-to-r from-red-500 to-orange-500'
-      }`}>
-        {isSeriesComplete ? (
-          <>
-            <div class="w-2 h-2 bg-white rounded-full"></div>
-            <span class="font-bold">COMPLETED SERIES</span>
-            <svg class="w-4 h-4 text-green-200" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-            </svg>
-          </>
-        ) : (
-          <>
-            <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-            <span class="font-bold">LIVE SERIES</span>
-            <svg class="w-4 h-4 text-yellow-300 animate-bounce" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clip-rule="evenodd"/>
-            </svg>
-          </>
-        )}
+  <!-- Hero Section with Gradient -->
+  <section class="relative overflow-hidden bg-gradient-to-br from-purple-600 via-pink-600 to-blue-600 pt-24 pb-16">
+    <!-- Decorative Elements -->
+    <div class="absolute top-10 right-10 w-32 h-32 bg-pink-500 rounded-full opacity-50 blur-3xl"></div>
+    <div class="absolute bottom-10 left-10 w-40 h-40 bg-blue-500 rounded-full opacity-50 blur-3xl"></div>
+    
+    <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6">
+      <!-- Breadcrumb -->
+      <nav class="flex text-sm text-white/80 mb-8" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+          <li class="inline-flex items-center">
+            <a href="/" class="inline-flex items-center hover:text-white transition-colors">
+              <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+              </svg>
+              Home
+            </a>
+          </li>
+          <li>
+            <div class="flex items-center">
+              <svg class="w-6 h-6 text-white/60" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+              </svg>
+              <a href="/series" class="ml-1 hover:text-white transition-colors">Series</a>
+            </div>
+          </li>
+          <li aria-current="page">
+            <div class="flex items-center">
+              <svg class="w-6 h-6 text-white/60" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+              </svg>
+              <span class="ml-1 text-white font-medium truncate max-w-[200px] sm:max-w-xs">{seriesName}</span>
+            </div>
+          </li>
+        </ol>
+      </nav>
+
+      <!-- Status Badge -->
+      <div class="flex justify-center mb-6">
+        <div class={`inline-flex items-center gap-2 px-4 py-2 text-white text-sm font-semibold rounded-full backdrop-blur-sm border-2 ${
+          isSeriesComplete 
+            ? 'bg-green-500/20 border-green-300' 
+            : 'bg-yellow-500/20 border-yellow-300'
+        }`}>
+          {isSeriesComplete ? (
+            <>
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+              </svg>
+              <span>COMPLETED SERIES</span>
+            </>
+          ) : (
+            <>
+              <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+              <span>ONGOING SERIES</span>
+            </>
+          )}
+        </div>
       </div>
       
-      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+      <!-- Title -->
+      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-white text-center mb-6">
         {seriesName}
       </h1>
       
-      <p class="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-6">
-        {
-          series_details?.Description || "Explore this comprehensive series covering essential topics with in-depth articles and practical insights."
-        }
+      <!-- Description -->
+      <p class="text-xl sm:text-2xl text-white/90 text-center max-w-4xl mx-auto mb-8 leading-relaxed">
+        {series_details?.Description || "Explore this comprehensive series covering essential topics with in-depth articles and practical insights."}
       </p>
       
-      <div class="flex items-center justify-center gap-6 text-sm text-gray-500 dark:text-gray-400">
-        <div class="flex items-center gap-2">
+      <!-- Stats -->
+      <div class="flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-white/90">
+        <div class="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
           </svg>
-          <span>{posts.length} Articles</span>
+          <span class="font-semibold">{publishedArticlesCount} / {totalArticleValue === "Inf" ? "∞" : totalArticleValue} Articles</span>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
-          <span>~{posts.length * 8} min read</span>
+          <span class="font-semibold">~{posts.length * 8} min total</span>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
           </svg>
-          <span>Beginner to Advanced</span>
+          <span class="font-semibold">{series_details?.Level || "All Levels"}</span>
         </div>
       </div>
-    </div>
 
-    <!-- Progress Bar -->
-    <div class="mb-8">
-      <div class="flex items-center justify-between mb-2">
-        <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Series Progress</span>
-        <span class="text-sm text-gray-500 dark:text-gray-400">
-          {posts.filter(post => new Date(post.data.date) <= new Date()).length}/{series_details?.TotalArticle||posts.length} Published
-        </span>
-      </div>
-      <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-        <div 
-          class="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
-          style={`width: ${
-            totalArticleValue === "Inf" 
-              ? "0%" 
-              : `${(publishedArticlesCount / plannedArticlesCount) * 100}%`
-          }`}
-        ></div>
-      </div>
-    </div>
-
-    <!-- Articles Grid -->
-    <div class="space-y-6">
-      {articlesData.map((article) => (
-        <article class={`group relative overflow-hidden rounded-xl border transition-all duration-300 ${article.cardClasses}`}>
-          
-          {/* Day Number Badge */}
-          <div class={`top-4 left-4 z-10 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${article.badgeClasses}`}>
-            {article.index + 1}
+      <!-- Progress Bar -->
+      {totalArticleValue !== "Inf" && (
+        <div class="mt-8 max-w-2xl mx-auto">
+          <div class="flex items-center justify-between mb-2 text-white/90 text-sm">
+            <span class="font-medium">Series Progress</span>
+            <span class="font-bold">{Math.round(progressPercentage)}%</span>
           </div>
+          <div class="w-full bg-white/20 backdrop-blur-sm rounded-full h-3 border border-white/30">
+            <div 
+              class="bg-gradient-to-r from-green-400 to-emerald-400 h-full rounded-full transition-all duration-500 shadow-lg"
+              style={`width: ${progressPercentage}%`}
+            ></div>
+          </div>
+        </div>
+      )}
+    </div>
+  </section>
 
-          {/* Coming Soon Badge */}
-          {!article.isPublished && (
-            <div class="absolute top-4 right-4 z-10 px-3 py-1 bg-yellow-500 text-yellow-900 text-xs font-medium rounded-full">
-              Coming Soon
-            </div>
-          )}
+  <!-- Articles Section -->
+  <section class="py-16 px-4 sm:px-6 bg-gray-50 dark:bg-gray-900">
+    <div class="max-w-6xl mx-auto">
+      <!-- Section Header -->
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+          Learning Path
+        </h2>
+        <p class="text-gray-600 dark:text-gray-400">
+          Follow the articles in order for the best learning experience
+        </p>
+      </div>
 
-          {/* Current Reading Badge */}
-          {article.isCurrent && (
-            <div class="absolute top-4 right-4 z-10 px-3 py-1 bg-blue-500 text-white text-xs font-medium rounded-full">
-              Currently Reading
-            </div>
-          )}
+      <!-- Articles Grid -->
+      <div class="space-y-6">
+        {articlesData.map((article, idx) => (
+          <article class={`group relative overflow-hidden rounded-2xl border-2 transition-all duration-300 ${
+            article.isCurrent 
+              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-xl scale-[1.02]' 
+              : article.isPublished 
+                ? 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-purple-300 dark:hover:border-purple-600 hover:shadow-xl hover:-translate-y-1' 
+                : 'border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 opacity-70'
+          }`}>
+            
+            {/* Gradient Accent */}
+            {article.isPublished && (
+              <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-purple-500 via-pink-500 to-blue-500"></div>
+            )}
 
-          <div class="p-6">
-            <div class="flex items-start justify-between mb-4">
-              <div class="flex-1">
-                <h2 class={`text-xl font-bold mb-2 transition-colors ${article.titleClasses}`}>
+            <div class="flex items-start gap-6 p-6">
+              {/* Number Badge */}
+              <div class={`flex-shrink-0 w-14 h-14 rounded-xl flex items-center justify-center text-xl font-bold shadow-lg ${
+                article.isCurrent 
+                  ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white' 
+                  : article.isPublished 
+                    ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white' 
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+              }`}>
+                {idx + 1}
+              </div>
+
+              {/* Content */}
+              <div class="flex-1 min-w-0">
+                {/* Status Badges */}
+                <div class="flex items-center gap-2 mb-3">
+                  {!article.isPublished && (
+                    <span class="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 text-xs font-semibold rounded-full">
+                      Coming Soon
+                    </span>
+                  )}
+                  {article.isCurrent && (
+                    <span class="px-3 py-1 bg-blue-500 text-white text-xs font-semibold rounded-full">
+                      📖 Currently Reading
+                    </span>
+                  )}
+                  {article.isPublished && !article.isCurrent && (
+                    <span class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-xs font-semibold rounded-full flex items-center gap-1">
+                      <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                      </svg>
+                      Published
+                    </span>
+                  )}
+                </div>
+
+                {/* Title */}
+                <h3 class={`text-xl sm:text-2xl font-bold mb-3 ${
+                  article.isPublished 
+                    ? 'text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400' 
+                    : 'text-gray-500 dark:text-gray-400'
+                } transition-colors`}>
                   {article.data.title}
-                </h2>
+                </h3>
                 
-                <p class={`text-sm mb-3 ${article.descClasses}`}>
+                {/* Description */}
+                <p class={`text-sm sm:text-base mb-4 line-clamp-2 ${
+                  article.isPublished ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'
+                }`}>
                   {article.data.description}
                 </p>
                 
-                <div class="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
-                  <span>{article.data.readingTime || '8 min read'}</span>
+                {/* Meta Info */}
+                <div class="flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mb-4">
+                  <span class="flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    {article.data.readingTime || '8 min read'}
+                  </span>
                   <span>•</span>
                   <span>{new Date(article.data.date).toLocaleDateString('en-US', { 
                     year: 'numeric', 
-                    month: 'long', 
+                    month: 'short', 
                     day: 'numeric' 
                   })}</span>
-                  {article.data.tags && (
-                    <div class="flex items-center gap-1">
+                  {article.data.tags && article.data.tags.length > 0 && (
+                    <>
                       <span>•</span>
-                      <div class="flex gap-1">
+                      <div class="flex gap-2">
                         {article.data.tags.slice(0, 2).map((tag) => (
-                          <span class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">
-                            {tag}
+                          <span class="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded text-xs font-medium">
+                            #{tag}
                           </span>
                         ))}
                       </div>
-                    </div>
+                    </>
                   )}
                 </div>
-              </div>
-            </div>
 
-            {/* Action Button */}
-            <div class="flex justify-between items-center">
-              {article.isPublished ? (
-                <a 
-                  href={`/blog/${article.slug}`}
-                  class={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${article.buttonClasses}`}
-                >
-                  {article.isCurrent ? 'Continue Reading' : 'Read Article'}
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                  </svg>
-                </a>
-              ) : (
-                <div class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 rounded-lg">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                  </svg>
-                  Coming Soon
-                </div>
-              )}
-
-              {/* Completion Status */}
-              <div class="flex items-center gap-2">
-                {article.isPublished && !article.isCurrent && (
-                  <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                {/* Action Button */}
+                {article.isPublished ? (
+                  <a 
+                    href={`/blog/${article.slug}`}
+                    class={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                      article.isCurrent 
+                        ? 'bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl' 
+                        : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl hover:scale-105'
+                    }`}
+                  >
+                    {article.isCurrent ? 'Continue Reading' : 'Read Article'}
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
                     </svg>
+                  </a>
+                ) : (
+                  <div class="inline-flex items-center gap-2 px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 rounded-xl cursor-not-allowed">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                    Coming Soon
                   </div>
                 )}
               </div>
             </div>
-          </div>
-        </article>
-      ))}
+          </article>
+        ))}
+      </div>
+
+      <!-- CTA Section -->
+      <div class="mt-16 text-center p-8 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-2xl border border-purple-200 dark:border-purple-800">
+        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+          Ready to Start Learning?
+        </h3>
+        <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-2xl mx-auto">
+          Begin your journey with the first article and work your way through the series at your own pace.
+        </p>
+        <div class="flex flex-wrap gap-4 justify-center">
+          <a 
+            href={`/blog/${posts[0].slug}`}
+            class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+          >
+            <span>Start from Beginning</span>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+            </svg>
+          </a>
+          <a 
+            href="/series"
+            class="inline-flex items-center gap-2 px-8 py-4 border-2 border-purple-600 dark:border-purple-500 text-purple-600 dark:text-purple-400 font-semibold rounded-xl hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-300"
+          >
+            <span>Browse All Series</span>
+          </a>
+        </div>
+      </div>
     </div>
-  </main>
+  </section>
 </Layout>

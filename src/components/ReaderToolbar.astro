@@ -1,0 +1,640 @@
+---
+import TableOfContents from "./TableOfContents.astro";
+// import TextToSpeech from "./TextToSpeech.astro"; // Commented out - TTS broken, will fix later
+import SocialShare from "./SocialShare.astro";
+import CommentsDrawer from "./CommentsDrawer.astro";
+
+interface Props {
+    headings: { depth: number; slug: string; text: string }[];
+    title: string;
+    description: string;
+    url: string;
+    slug: string;
+}
+
+const { headings, title, description, url, slug } = Astro.props;
+const apiUrl = import.meta.env.PUBLIC_API_URL;
+---
+
+<div
+    class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-2xl px-4 pointer-events-none"
+>
+    <div
+        class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl p-2 pointer-events-auto flex items-center justify-between gap-2"
+    >
+        <!-- Left: Navigation & Settings -->
+        <div class="flex items-center gap-1">
+            <!-- Copy Link Button (Replaced TTS) -->
+            <button
+                id="copy-link-btn"
+                class="p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all relative group"
+                aria-label="Copy article link"
+                title="Copy Link"
+            >
+                <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    ></path>
+                </svg>
+                <!-- Tooltip -->
+                <span
+                    class="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none"
+                >
+                    Copy Link
+                </span>
+            </button>
+
+            <!-- TOC Toggle -->
+            <button
+                id="toc-toggle"
+                class="lg:hidden p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+                aria-label="Table of Contents"
+                title="Table of Contents"
+            >
+                <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M4 6h16M4 12h16M4 18h7"></path>
+                </svg>
+            </button>
+
+            <!-- Font Settings Toggle -->
+            <button
+                id="font-toggle"
+                class="p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+                aria-label="Text Settings"
+                title="Text Settings"
+            >
+                <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
+                    ></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Center: Reading Stats (Replaced TTS) -->
+        <div
+            class="flex-1 flex justify-center items-center border-l border-r border-gray-200 dark:border-gray-700 px-2"
+        >
+            <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                Reading Mode
+            </span>
+        </div>
+
+        <!-- Right: Actions -->
+        <div class="flex items-center gap-1">
+            <!-- Like Button -->
+            <button
+                id="like-btn"
+                class="group p-2 flex items-center gap-1.5 text-gray-600 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+                aria-label="Like"
+                title="Like"
+            >
+                <svg
+                    class="w-5 h-5 transition-transform group-hover:scale-110"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                    ></path>
+                </svg>
+                <span id="like-count" class="text-xs font-semibold">0</span>
+            </button>
+
+            <!-- Comments Toggle -->
+            <button
+                id="comments-toggle"
+                class="p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+                aria-label="Comments"
+                title="Comments"
+            >
+                <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                    ></path>
+                </svg>
+            </button>
+
+            <!-- Share Toggle -->
+            <button
+                id="share-toggle"
+                class="p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+                aria-label="Share"
+                title="Share"
+            >
+                <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                    ></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Drawers/Popups -->
+
+    <!-- TOC Drawer -->
+    <div
+        id="toc-drawer"
+        class="absolute bottom-full left-4 mb-4 w-64 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl p-4 transform scale-95 opacity-0 pointer-events-none transition-all duration-200 origin-bottom-left"
+    >
+        <div class="flex items-center justify-between mb-4">
+            <h3
+                class="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider"
+            >
+                Contents
+            </h3>
+            <button
+                class="close-drawer text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+                <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    ><path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"></path></svg
+                >
+            </button>
+        </div>
+        <div class="max-h-64 overflow-y-auto custom-scrollbar">
+            <TableOfContents headings={headings} />
+        </div>
+    </div>
+
+    <!-- Font Settings Drawer -->
+    <div
+        id="font-drawer"
+        class="absolute bottom-full left-16 mb-4 w-72 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl p-4 transform scale-95 opacity-0 pointer-events-none transition-all duration-200 origin-bottom-left"
+    >
+        <div class="flex items-center justify-between mb-4">
+            <h3
+                class="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider"
+            >
+                Appearance
+            </h3>
+            <button
+                class="close-drawer text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+                <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    ><path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"></path></svg
+                >
+            </button>
+        </div>
+
+        <!-- Font Size Controls -->
+        <div class="flex flex-col items-center space-y-4">
+            <div class="flex items-center justify-between w-full px-2">
+                <span class="text-xs text-gray-500 font-medium">Small</span>
+                <span
+                    id="currentSize"
+                    class="text-sm font-bold text-purple-600 dark:text-purple-400"
+                    >18px</span
+                >
+                <span class="text-xs text-gray-500 font-medium">Large</span>
+            </div>
+
+            <div class="flex items-center justify-between w-full gap-3">
+                <button
+                    id="decreaseBtn"
+                    class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                >
+                    <span class="text-sm font-bold">A-</span>
+                </button>
+
+                <div
+                    class="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full relative cursor-pointer"
+                    id="sliderContainer"
+                >
+                    <div
+                        id="sliderTrack"
+                        class="absolute left-0 top-0 h-full bg-purple-500 rounded-full"
+                        style="width: 50%"
+                    >
+                    </div>
+                    <div
+                        id="sliderHandle"
+                        class="absolute top-1/2 -translate-y-1/2 w-5 h-5 bg-white border-2 border-purple-500 rounded-full shadow-md cursor-pointer hover:scale-110 transition-transform"
+                        style="left: 50%"
+                    >
+                    </div>
+                </div>
+
+                <button
+                    id="increaseBtn"
+                    class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                >
+                    <span class="text-lg font-bold">A+</span>
+                </button>
+            </div>
+
+            <button
+                id="resetBtn"
+                class="text-xs text-gray-500 hover:text-purple-600 dark:hover:text-purple-400 transition-colors flex items-center gap-1"
+            >
+                <svg
+                    class="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    ><path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    ></path></svg
+                >
+                Reset to default
+            </button>
+        </div>
+    </div>
+
+    <!-- Share Drawer -->
+    <div
+        id="share-drawer"
+        class="absolute bottom-full right-4 mb-4 w-64 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl p-4 transform scale-95 opacity-0 pointer-events-none transition-all duration-200 origin-bottom-right"
+    >
+        <div class="flex items-center justify-between mb-4">
+            <h3
+                class="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider"
+            >
+                Share
+            </h3>
+            <button
+                class="close-drawer text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+                <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    ><path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"></path></svg
+                >
+            </button>
+        </div>
+
+        <!-- Copy Link Button (Moved here) -->
+        <button
+            id="copy-link-btn"
+            class="w-full flex items-center justify-center gap-2 p-2 mb-3 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors group"
+        >
+            <svg
+                class="w-4 h-4 text-gray-600 dark:text-gray-400 copy-icon"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                ></path>
+            </svg>
+            <svg
+                class="w-4 h-4 text-green-500 check-icon hidden"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                >Copy Link</span
+            >
+        </button>
+
+        <SocialShare title={title} description={description} url={url} />
+    </div>
+</div>
+
+<!-- Comments Drawer Component -->
+<CommentsDrawer slug={slug} />
+
+<script define:vars={{ slug, apiUrl }}>
+    // Drawer Logic
+    function setupDrawer(toggleId, drawerId) {
+        const toggle = document.getElementById(toggleId);
+        const drawer = document.getElementById(drawerId);
+        const closeBtns = drawer?.querySelectorAll(".close-drawer");
+
+        if (!toggle || !drawer) return;
+
+        function open() {
+            // Close all other drawers first
+            document.querySelectorAll('[id$="-drawer"]').forEach((el) => {
+                if (el.id !== drawerId && el.id !== "comments-drawer")
+                    close(el);
+            });
+
+            drawer?.classList.remove(
+                "opacity-0",
+                "scale-95",
+                "pointer-events-none",
+            );
+            drawer?.classList.add(
+                "opacity-100",
+                "scale-100",
+                "pointer-events-auto",
+            );
+            toggle?.classList.add(
+                "text-purple-600",
+                "bg-purple-50",
+                "dark:bg-purple-900/20",
+            );
+        }
+
+        function close(el = drawer) {
+            el.classList.add("opacity-0", "scale-95", "pointer-events-none");
+            el.classList.remove(
+                "opacity-100",
+                "scale-100",
+                "pointer-events-auto",
+            );
+
+            // Find associated toggle and reset style
+            const id = el.id.replace("-drawer", "-toggle");
+            const t = document.getElementById(id);
+            t?.classList.remove(
+                "text-purple-600",
+                "bg-purple-50",
+                "dark:bg-purple-900/20",
+            );
+        }
+
+        function toggleDrawer() {
+            const isOpen = !drawer?.classList.contains("opacity-0");
+            if (isOpen) close();
+            else open();
+        }
+
+        toggle.addEventListener("click", (e) => {
+            e.stopPropagation();
+            toggleDrawer();
+        });
+
+        closeBtns?.forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                close();
+            });
+        });
+
+        // Close on click outside
+        document.addEventListener("click", (e) => {
+            const target = e.target;
+            if (!drawer.contains(target) && !toggle.contains(target)) {
+                close();
+            }
+        });
+    }
+
+    setupDrawer("toc-toggle", "toc-drawer");
+    setupDrawer("font-toggle", "font-drawer");
+    setupDrawer("share-toggle", "share-drawer");
+
+    // Comments Toggle
+    document
+        .getElementById("comments-toggle")
+        ?.addEventListener("click", () => {
+            if (window.toggleComments) window.toggleComments();
+        });
+
+    // Like Logic
+    const likeBtn = document.getElementById("like-btn");
+    const likeCountEl = document.getElementById("like-count");
+    let likeCount = 0;
+    let pendingLikes = 0;
+    let likeTimeout = null;
+
+    async function fetchLikes() {
+        try {
+            const res = await fetch(
+                `${apiUrl}/api/blogs/meta/?blog_slug=${slug}`,
+            );
+            const data = await res.json();
+            if (data.code === 0) {
+                likeCount = data.data.like_count || 0;
+                if (likeCountEl) likeCountEl.textContent = likeCount;
+            }
+        } catch (err) {
+            console.error("Error fetching likes:", err);
+        }
+    }
+
+    async function updateLikes() {
+        if (pendingLikes > 0) {
+            try {
+                await fetch(`${apiUrl}/api/blogs/likes/`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ likes: pendingLikes, blog: slug }),
+                });
+                pendingLikes = 0;
+                fetchLikes();
+            } catch (err) {
+                console.error("Error updating likes:", err);
+            }
+        }
+    }
+
+    if (likeBtn) {
+        likeBtn.addEventListener("click", () => {
+            likeCount++;
+            pendingLikes++;
+            if (likeCountEl) likeCountEl.textContent = likeCount;
+
+            // Visual feedback
+            const icon = likeBtn.querySelector("svg");
+            icon.classList.add("text-red-500", "scale-125");
+            setTimeout(() => icon.classList.remove("scale-125"), 200);
+
+            // Debounce API call
+            if (likeTimeout) clearTimeout(likeTimeout);
+            likeTimeout = setTimeout(updateLikes, 1000);
+        });
+    }
+
+    fetchLikes();
+
+    // Font Size Logic (Robust)
+    function initFontSize() {
+        const MIN_SIZE = 16;
+        const MAX_SIZE = 24;
+        const DEFAULT_SIZE = 18;
+
+        let currentSize = parseInt(
+            localStorage.getItem("blog-font-size") || DEFAULT_SIZE,
+        );
+
+        const display = document.getElementById("currentSize");
+        const track = document.getElementById("sliderTrack");
+        const handle = document.getElementById("sliderHandle");
+
+        function updateUI(size) {
+            if (display) display.textContent = `${size}px`;
+
+            const percentage =
+                ((size - MIN_SIZE) / (MAX_SIZE - MIN_SIZE)) * 100;
+            if (track) track.style.width = `${percentage}%`;
+            if (handle) handle.style.left = `${percentage}%`;
+        }
+
+        function applySize(size) {
+            // Create or update style tag
+            let style = document.getElementById("dynamic-font-size");
+            if (!style) {
+                style = document.createElement("style");
+                style.id = "dynamic-font-size";
+                document.head.appendChild(style);
+            }
+
+            style.textContent = `
+        article.prose p, 
+        article.prose li, 
+        article.prose span, 
+        article.prose div, 
+        article.prose blockquote {
+          font-size: ${size}px !important;
+          line-height: 1.7 !important;
+        }
+        article.prose h1 { font-size: ${size * 2.2}px !important; }
+        article.prose h2 { font-size: ${size * 1.8}px !important; }
+        article.prose h3 { font-size: ${size * 1.5}px !important; }
+        article.prose h4 { font-size: ${size * 1.25}px !important; }
+      `;
+
+            localStorage.setItem("blog-font-size", size);
+        }
+
+        function setSize(size) {
+            size = Math.min(Math.max(size, MIN_SIZE), MAX_SIZE);
+            currentSize = size;
+            updateUI(size);
+            applySize(size);
+        }
+
+        // Initialize
+        setSize(currentSize);
+
+        document
+            .getElementById("increaseBtn")
+            ?.addEventListener("click", () => setSize(currentSize + 1));
+        document
+            .getElementById("decreaseBtn")
+            ?.addEventListener("click", () => setSize(currentSize - 1));
+        document
+            .getElementById("resetBtn")
+            ?.addEventListener("click", () => setSize(DEFAULT_SIZE));
+    }
+
+    document.addEventListener("DOMContentLoaded", initFontSize);
+    document.addEventListener("astro:after-swap", initFontSize);
+
+    // Copy Link Functionality
+    const copyArticleLinkBtn = document.getElementById("copy-link-btn");
+    if (copyArticleLinkBtn) {
+        copyArticleLinkBtn.addEventListener("click", async () => {
+            try {
+                await navigator.clipboard.writeText(window.location.href);
+
+                // Visual feedback
+                const originalHTML = copyArticleLinkBtn.innerHTML;
+                copyArticleLinkBtn.innerHTML = `
+                    <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span class="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-green-600 text-white text-xs rounded whitespace-nowrap pointer-events-none">
+                        Copied!
+                    </span>
+                `;
+
+                // Reset after 2 seconds
+                setTimeout(() => {
+                    copyArticleLinkBtn.innerHTML = originalHTML;
+                }, 2000);
+            } catch (err) {
+                console.error("Failed to copy link:", err);
+            }
+        });
+    }
+</script>
+
+<style>
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: rgba(156, 163, 175, 0.5);
+        border-radius: 2px;
+    }
+</style>

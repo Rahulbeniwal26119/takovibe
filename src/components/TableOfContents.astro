@@ -1,0 +1,85 @@
+---
+interface Props {
+    headings: { depth: number; slug: string; text: string }[];
+}
+
+const { headings } = Astro.props;
+
+// Filter out h1 and limit depth if needed
+const toc = headings.filter((h) => h.depth > 1 && h.depth <= 3);
+---
+
+<nav class="toc-container">
+    <h2
+        class="text-base font-bold text-gray-900 dark:text-gray-100 mb-4 uppercase tracking-wider"
+    >
+        On this page
+    </h2>
+    <ul class="space-y-3 text-base">
+        {
+            toc.map((heading) => (
+                <li
+                    class={`toc-item depth-${heading.depth} border-l-2 border-transparent hover:border-purple-500 transition-colors duration-200`}
+                >
+                    <a
+                        href={`#${heading.slug}`}
+                        class="block py-1 pl-4 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200 line-clamp-2"
+                    >
+                        {heading.text}
+                    </a>
+                </li>
+            ))
+        }
+    </ul>
+</nav>
+
+<script>
+    // Highlight active section on scroll
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                const id = entry.target.getAttribute("id");
+                const link = document.querySelector(
+                    `.toc-item a[href="#${id}"]`,
+                );
+
+                if (entry.isIntersecting) {
+                    document.querySelectorAll(".toc-item").forEach((item) => {
+                        item.classList.remove("active");
+                        item.classList.remove("border-purple-500");
+                    });
+                    link?.parentElement?.classList.add("active");
+                    link?.parentElement?.classList.add("border-purple-500");
+                    link?.classList.add(
+                        "text-purple-600",
+                        "dark:text-purple-400",
+                    );
+                } else {
+                    link?.classList.remove(
+                        "text-purple-600",
+                        "dark:text-purple-400",
+                    );
+                }
+            });
+        },
+        { rootMargin: "-100px 0px -66%" },
+    );
+
+    document.querySelectorAll("h2[id], h3[id]").forEach((section) => {
+        observer.observe(section);
+    });
+</script>
+
+<style>
+    .depth-3 {
+        margin-left: 1rem;
+    }
+
+    .toc-item.active {
+        @apply border-purple-500;
+    }
+
+    .toc-item.active a {
+        @apply text-purple-600 dark:text-purple-400 font-medium;
+    }
+</style>
