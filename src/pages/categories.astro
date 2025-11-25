@@ -4,284 +4,181 @@ import Layout from "../layouts/Layout.astro";
 // API configuration
 const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
 
-// Interface for API response
-interface TagsStatsResponse {
-  message: string;
-  code: number;
-  data: Record<string, number>;
-}
-
 // Fetch tags statistics from API
 let tagsData: Record<string, number> = {};
-let totalCategories = 0;
-let totalArticles = 0;
 
 try {
   const response = await fetch(`${API_URL}/api/blogs/tags/`);
   if (response.ok) {
-    const result: TagsStatsResponse = await response.json();
+    const result = await response.json();
     if (result.code === 0 && result.data) {
       tagsData = result.data;
-      totalCategories = Object.keys(tagsData).length;
-      totalArticles = Object.values(tagsData).reduce((sum, count) => sum + count, 0);
     }
   }
 } catch (error) {
   console.error("Error fetching tags data:", error);
-  // Keep empty object as fallback
 }
 
-// Convert tags data to sorted array for easier processing
-const categoriesData = Object.entries(tagsData)
+// Convert to array, sort, and limit to top 25 for clarity
+const allTags = Object.entries(tagsData)
   .map(([tag, count]) => ({ tag, count }))
-  .sort((a, b) => {
-    if (b.count !== a.count) {
-      return b.count - a.count;
-    }
-    return a.tag.localeCompare(b.tag);
-  });
+  .sort((a, b) => b.count - a.count)
+  .slice(0, 25);
 
-// Enhanced category icons with more mappings
-const categoryIcons = {
-  'sample': '📝',
-  'blog': '✍️',
-  'python': '🐍',
-  'javascript': '⚡',
-  'typescript': '🔷',
-  'react': '⚛️',
-  'django': '🎸',
-  'database': '🗄️',
-  'devops': '⚙️',
-  'nginx': '🌐',
-  'docker': '🐳',
-  'tutorial': '📚',
-  'programming': '💻',
-  'web development': '🌍',
-  'backend': '🔧',
-  'frontend': '🎨',
-  'performance': '⚡',
-  'security': '🔒',
-  'testing': '🧪',
-  'api': '🔌',
-  'microservices': '🏗️',
-  'machine learning': '🤖',
-  'data science': '📊',
-  'algorithms': '🧮',
-  'system design': '🏛️',
-  'tips': '💡',
-  'guide': '📖',
-  'best practices': '✨'
-};
+// Fetch articles to detect tag relationships automatically
+let topicRelationships: Record<string, string[]> = {};
 
-const getCategoryIcon = (tag: string) => categoryIcons[tag.toLowerCase()] || '📝';
-
-// Enhanced color schemes for 3D cubes with more playful colors
-const categoryColorSchemes = [
-  {
-    gradient: 'from-blue-500 to-cyan-400',
-    bg: 'from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30',
-    shadow: 'shadow-blue-500/25',
-    glow: 'shadow-blue-500/40',
-    accent: 'bg-blue-500',
-    text: 'text-blue-700 dark:text-blue-300'
-  },
-  {
-    gradient: 'from-purple-500 to-pink-400',
-    bg: 'from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30',
-    shadow: 'shadow-purple-500/25',
-    glow: 'shadow-purple-500/40',
-    accent: 'bg-purple-500',
-    text: 'text-purple-700 dark:text-purple-300'
-  },
-  {
-    gradient: 'from-emerald-500 to-teal-400',
-    bg: 'from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30',
-    shadow: 'shadow-emerald-500/25',
-    glow: 'shadow-emerald-500/40',
-    accent: 'bg-emerald-500',
-    text: 'text-emerald-700 dark:text-emerald-300'
-  },
-  {
-    gradient: 'from-orange-500 to-red-400',
-    bg: 'from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30',
-    shadow: 'shadow-orange-500/25',
-    glow: 'shadow-orange-500/40',
-    accent: 'bg-orange-500',
-    text: 'text-orange-700 dark:text-orange-300'
-  },
-  {
-    gradient: 'from-indigo-500 to-purple-400',
-    bg: 'from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30',
-    shadow: 'shadow-indigo-500/25',
-    glow: 'shadow-indigo-500/40',
-    accent: 'bg-indigo-500',
-    text: 'text-indigo-700 dark:text-indigo-300'
-  },
-  {
-    gradient: 'from-pink-500 to-rose-400',
-    bg: 'from-pink-50 to-rose-50 dark:from-pink-950/30 dark:to-rose-950/30',
-    shadow: 'shadow-pink-500/25',
-    glow: 'shadow-pink-500/40',
-    accent: 'bg-pink-500',
-    text: 'text-pink-700 dark:text-pink-300'
-  },
-  {
-    gradient: 'from-yellow-500 to-amber-400',
-    bg: 'from-yellow-50 to-amber-50 dark:from-yellow-950/30 dark:to-amber-950/30',
-    shadow: 'shadow-yellow-500/25',
-    glow: 'shadow-yellow-500/40',
-    accent: 'bg-yellow-500',
-    text: 'text-yellow-700 dark:text-yellow-300'
-  },
-  {
-    gradient: 'from-lime-500 to-green-400',
-    bg: 'from-lime-50 to-green-50 dark:from-lime-950/30 dark:to-green-950/30',
-    shadow: 'shadow-lime-500/25',
-    glow: 'shadow-lime-500/40',
-    accent: 'bg-lime-500',
-    text: 'text-lime-700 dark:text-lime-300'
+try {
+  const articlesResponse = await fetch(`${API_URL}/api/blogs/blogs/?page_size=100`);
+  if (articlesResponse.ok) {
+    const articlesData = await articlesResponse.json();
+    const articles = articlesData.results || [];
+    
+    // Build co-occurrence map
+    const coOccurrence: Record<string, Record<string, number>> = {};
+    
+    articles.forEach((article: any) => {
+      const tags = article.tags || [];
+      // For each pair of tags in the article
+      for (let i = 0; i < tags.length; i++) {
+        const tag1 = tags[i].toLowerCase();
+        if (!allTags.some(t => t.tag.toLowerCase() === tag1)) continue;
+        
+        if (!coOccurrence[tag1]) coOccurrence[tag1] = {};
+        
+        for (let j = 0; j < tags.length; j++) {
+          if (i === j) continue;
+          const tag2 = tags[j].toLowerCase();
+          if (!allTags.some(t => t.tag.toLowerCase() === tag2)) continue;
+          
+          coOccurrence[tag1][tag2] = (coOccurrence[tag1][tag2] || 0) + 1;
+        }
+      }
+    });
+    
+    // Convert to relationships (keep top 5 most related tags for each)
+    Object.keys(coOccurrence).forEach(tag => {
+      const related = Object.entries(coOccurrence[tag])
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([relatedTag]) => relatedTag);
+      topicRelationships[tag] = related;
+    });
   }
+} catch (error) {
+  console.error("Failed to fetch articles for relationships:", error);
+}
+
+// Soft pastel color palette (inspired by the image)
+const colorPalette = [
+  { fill: '#FFE5D9', stroke: '#D4A59A', text: '#5D4037' }, // Peachy
+  { fill: '#FFF9C4', stroke: '#D4C157', text: '#5D4037' }, // Light yellow
+  { fill: '#E1F5DD', stroke: '#A5D6A7', text: '#2E7D32' }, // Mint green
+  { fill: '#E3F2FD', stroke: '#90CAF9', text: '#1565C0' }, // Light blue
+  { fill: '#F3E5F5', stroke: '#CE93D8', text: '#6A1B9A' }, // Lavender
+  { fill: '#FFF3E0', stroke: '#FFCC80', text: '#E65100' }, // Light orange
+  { fill: '#FCE4EC', stroke: '#F48FB1', text: '#C2185B' }, // Light pink
+  { fill: '#E8F5E9', stroke: '#A5D6A7', text: '#2E7D32' }, // Pale green
 ];
-
-const getCategoryColorScheme = (index: number) => categoryColorSchemes[index % categoryColorSchemes.length];
-
-// Pagination constants
-const CATEGORIES_PER_PAGE = 12; // Show more cubes per page
-const totalPages = Math.ceil(categoriesData.length / CATEGORIES_PER_PAGE);
 ---
 
 <Layout
-    title="Categories | TakoVibe - Explore Topic Collections"
+    title="Topic Network | TakoVibe"
     author="TakoVibe Team"
-    description="Discover our comprehensive collection of technical articles organized by topic. Each category contains curated guides, tutorials, and insights designed to help you master modern software development."
-    tags={["categories", "blog topics", "programming", "technology", "software engineering", "tutorials"]}
+    description="Explore the relationships between topics in our knowledge graph. Discover how different technologies and concepts connect."
+    tags={["topics", "knowledge graph", "explore", "relationships"]}
 >
-    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30 dark:from-slate-900 dark:via-blue-950/30 dark:to-purple-950/30">
+    <div class="min-h-screen bg-gray-50 dark:bg-[#0B1120]">
         
-        <!-- Enhanced Hero Section -->
-        <section class="relative overflow-hidden pt-24 pb-16 px-4 sm:px-6">
-            <!-- Background effects -->
-            <div class="absolute inset-0">
-                <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-400/8 to-purple-400/8 rounded-full blur-3xl animate-pulse"></div>
-                <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-r from-purple-400/8 to-pink-400/8 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s"></div>
-            </div>
-            
-            <div class="max-w-6xl mx-auto text-center relative z-10">
-                <!-- Header badge -->
-                <div class="inline-flex items-center gap-3 px-6 py-3 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm text-slate-700 dark:text-slate-300 rounded-full text-sm font-medium mb-8 border border-slate-200/80 dark:border-slate-700/80 shadow-sm">
-                    <div class="relative">
-                        <span class="text-lg">📚</span>
-                        <div class="absolute -inset-1 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-sm"></div>
-                    </div>
-                    <span class="font-semibold">Topic Collections</span>
+        <!-- Hero Section -->
+        <section class="relative py-24 lg:py-32 overflow-hidden">
+            <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-100 via-gray-50 to-gray-50 dark:from-purple-900/20 dark:via-[#0B1120] dark:to-[#0B1120]"></div>
+
+            <div class="absolute top-0 left-1/4 w-96 h-96 bg-purple-400/20 dark:bg-purple-500/10 rounded-full blur-3xl animate-blob"></div>
+            <div class="absolute top-0 right-1/4 w-96 h-96 bg-blue-400/20 dark:bg-blue-500/10 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+
+            <div class="relative z-10 max-w-6xl mx-auto px-6 text-center">
+                <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/50 dark:bg-white/5 backdrop-blur-md text-purple-700 dark:text-purple-300 rounded-full text-sm font-medium mb-8 border border-purple-200/50 dark:border-white/10 shadow-sm animate-fade-in-up">
+                    <span class="text-base">🕸️</span>
+                    <span>Knowledge Graph</span>
                 </div>
-                
-                <!-- Main heading -->
-                <h1 class="text-5xl sm:text-6xl lg:text-7xl font-bold text-slate-900 dark:text-slate-100 mb-6 leading-tight">
-                    <span class="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                        Topic
-                    </span>
-                    <br class="hidden sm:block" />
-                    <span class="text-slate-800 dark:text-slate-200 font-light">Collections</span>
+
+                <h1 class="text-5xl md:text-6xl lg:text-7xl font-bold mb-8 animate-fade-in-up animation-delay-200 tracking-tight">
+                    <span class="block text-gray-900 dark:text-white mb-2">Topic</span>
+                    <span class="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent animate-gradient">Space</span>
                 </h1>
-                
-                <!-- Description -->
-                <p class="text-xl sm:text-2xl text-slate-600 dark:text-slate-400 max-w-4xl mx-auto leading-relaxed font-light mb-8">
-                    Explore our curated collection of technical articles organized by topic. Each 
-                    category contains comprehensive guides, tutorials, and insights designed to 
-                    help you master modern software development.
+
+                <p class="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed animate-fade-in-up animation-delay-400 mb-8">
+                    Discover how topics connect. Larger bubbles = more content. 
                 </p>
-                
-                <!-- Stats -->
-                <!-- <div class="flex flex-wrap items-center justify-center gap-6 text-slate-500 dark:text-slate-400">
-                    <div class="flex items-center gap-2">
-                        <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        <span class="font-medium">{totalCategories}</span>
-                        <span>categories</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-2 h-2 bg-purple-500 rounded-full"></div>
-                        <span class="font-medium">{totalArticles}</span>
-                        <span>total articles</span>
-                    </div>
-                </div> -->
             </div>
         </section>
 
-        <!-- Categories Container -->
-        <section class="relative px-4 sm:px-6 pb-20">
-            <div class="max-w-7xl mx-auto">
-                
-                <!-- Playful intro text -->
-                <div class="text-center mb-12">
-                    <div class="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-full mb-6">
-                        <span class="text-2xl animate-bounce">🎯</span>
-                        <span class="font-semibold text-purple-700 dark:text-purple-300">Discover Topics</span>
+        <!-- Network Graph Section -->
+        {allTags.length > 0 ? (
+            <section class="py-16 px-6">
+                <div class="max-w-7xl mx-auto">
+                    <!-- Graph Container -->
+                    <div class="relative bg-white dark:bg-[#131B2E] rounded-3xl border border-gray-200 dark:border-gray-700/50 p-8 shadow-2xl overflow-hidden">
+                        <div id="network-graph" class="w-full" style="height: 800px;">
+                            <!-- Graph will be rendered here -->
+                        </div>
                     </div>
-                    <p class="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-                        Click on any cube to explore articles in that category. Each cube shows how many awesome articles await you!
+
+                    <!-- Legend -->
+                    {/* <div class="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
+                        <div class="flex items-center gap-3 p-4 bg-white dark:bg-[#131B2E] rounded-xl border border-gray-200 dark:border-gray-700">
+                            <div class="w-20 h-12 rounded-full bg-gradient-to-r from-purple-200 to-pink-200 dark:from-purple-900/40 dark:to-pink-900/40 border-2 border-purple-400 flex items-center justify-center text-xs font-bold">Topic</div>
+                            <span class="text-sm text-gray-600 dark:text-gray-400">Larger = More content</span>
+                        </div>
+                        <div class="flex items-center gap-3 p-4 bg-white dark:bg-[#131B2E] rounded-xl border border-gray-200 dark:border-gray-700">
+                            <svg width="40" height="20" class="flex-shrink-0">
+                                <defs>
+                                    <marker id="legend-arrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+                                        <path d="M0,0 L0,6 L8,3 z" fill="#94a3b8"/>
+                                    </marker>
+                                </defs>
+                                <path d="M5,10 Q20,10 35,10" stroke="#94a3b8" stroke-width="2" fill="none" marker-end="url(#legend-arrow)"/>
+                            </svg>
+                            <span class="text-sm text-gray-600 dark:text-gray-400">Related topics</span>
+                        </div>
+                        <div class="flex items-center gap-3 p-4 bg-white dark:bg-[#131B2E] rounded-xl border border-gray-200 dark:border-gray-700">
+                            <div class="w-20 h-12 rounded-full bg-gradient-to-r from-blue-200 to-cyan-200 dark:from-blue-900/40 dark:to-cyan-900/40 border-2 border-blue-400 flex items-center justify-center text-xs font-bold shadow-lg">Hover</div>
+                            <span class="text-sm text-gray-600 dark:text-gray-400">Highlight links</span>
+                        </div>
+                    </div> */}
+                </div>
+            </section>
+        ) : (
+            <section class="py-20 px-6">
+                <div class="max-w-4xl mx-auto text-center">
+                    <div class="text-8xl mb-6">🕸️</div>
+                    <h3 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">No Topics Yet</h3>
+                    <p class="text-xl text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-8">
+                        The knowledge graph will appear as we publish more content!
                     </p>
                 </div>
-                
-                <!-- 3D Categories Grid -->
-                <div id="categories-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                    <!-- Categories cubes will be populated here -->
-                </div>
-                
-                <!-- Pagination Controls -->
-                <div id="pagination-controls" class="flex items-center justify-center gap-4 mt-16" style="display: none;">
-                    <button id="prev-btn" class="group relative inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 shadow-lg hover:shadow-xl">
-                        <svg class="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                        </svg>
-                        Previous
-                    </button>
-                    
-                    <div class="flex items-center gap-3 px-6 py-3 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg">
-                        <span class="text-slate-600 dark:text-slate-400">Page</span>
-                        <span id="current-page" class="px-3 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-bold min-w-[2rem] text-center">1</span>
-                        <span class="text-slate-600 dark:text-slate-400">of</span>
-                        <span id="total-pages" class="font-bold text-slate-900 dark:text-slate-100">{totalPages}</span>
-                    </div>
-                    
-                    <button id="next-btn" class="group relative inline-flex items-center px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 shadow-lg hover:shadow-xl">
-                        Next
-                        <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </button>
-                </div>
+            </section>
+        )}
 
-                <!-- Fun CTA Section -->
-                <div class="mt-20 text-center">
-                    <div class="relative inline-block">
-                        <!-- Animated background -->
-                        <div class="absolute -inset-4 bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 opacity-20 blur-xl rounded-3xl animate-pulse"></div>
-                        
-                        <div class="relative p-10 bg-gradient-to-br from-white/95 to-slate-50/95 dark:from-slate-800/95 dark:to-slate-900/95 backdrop-blur-sm rounded-3xl border border-slate-200/50 dark:border-slate-700/50 shadow-2xl">
-                            <div class="flex items-center justify-center gap-3 mb-6">
-                                <!-- <span class="text-4xl animate-bounce" style="animation-delay: 0s">�</span> -->
-                                <span class="text-4xl animate-bounce" style="animation-delay: 0.2s">📖</span>
-                                <span class="text-4xl animate-bounce" style="animation-delay: 0.4s">✨</span>
-                            </div>
-                            
-                            <h3 class="text-3xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                                Ready to Dive Deeper?
-                            </h3>
-                            <p class="text-slate-600 dark:text-slate-400 mb-8 max-w-lg mx-auto text-lg">
-                                Explore all our articles with advanced search and filtering. Find exactly what you're looking for!
-                            </p>
-                            
-                            <a href="/blog" class="group relative inline-flex items-center gap-4 px-8 py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 hover:from-purple-700 hover:via-pink-700 hover:to-blue-700 text-white font-bold text-lg rounded-2xl shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1">
-                                <span>Explore All Articles</span>
-                                <div class="relative">
-                                    <svg class="w-6 h-6 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                                    </svg>
-                                    <div class="absolute -inset-2 bg-white/20 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping"></div>
-                                </div>
-                            </a>
-                        </div>
+        <!-- CTA Section -->
+        <section class="py-20 px-6">
+            <div class="max-w-4xl mx-auto">
+                <div class="bg-white/50 dark:bg-[#131B2E]/50 backdrop-blur-xl rounded-3xl p-12 border border-gray-200 dark:border-gray-700/50 text-center shadow-2xl">
+                    <h3 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+                        Ready to explore content?
+                    </h3>
+                    <p class="text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto text-lg">
+                        Browse our structured series or search through all articles.
+                    </p>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <a href="/series" class="px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl shadow-lg shadow-purple-600/20 hover:shadow-purple-600/40 transition-all duration-300 hover:-translate-y-1">
+                            Browse Series
+                        </a>
+                        <a href="/blog" class="px-8 py-4 bg-white dark:bg-[#0B1120] border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:border-purple-500 transition-all duration-300 hover:-translate-y-1">
+                            Search Articles
+                        </a>
                     </div>
                 </div>
             </div>
@@ -289,517 +186,288 @@ const totalPages = Math.ceil(categoriesData.length / CATEGORIES_PER_PAGE);
     </div>
 </Layout>
 
-<script define:vars={{ categoriesData, totalPages, CATEGORIES_PER_PAGE }}>
-    // State management
-    let currentPage = 1;
-    
-    // DOM elements
-    const categoriesContainer = document.getElementById('categories-container');
-    const paginationControls = document.getElementById('pagination-controls');
-    const prevBtn = document.getElementById('prev-btn');
-    const nextBtn = document.getElementById('next-btn');
-    const currentPageSpan = document.getElementById('current-page');
-    
-    // Enhanced category icons with more fun options
-    function getCategoryIcon(tag) {
-        const icons = {
-            'sample': '📝',
-            'blog': '✍️',
-            'python': '🐍',
-            'javascript': '⚡',
-            'typescript': '🔷',
-            'react': '⚛️',
-            'django': '🎸',
-            'database': '🗄️',
-            'devops': '⚙️',
-            'nginx': '🌐',
-            'docker': '🐳',
-            'tutorial': '📚',
-            'programming': '💻',
-            'web development': '🌍',
-            'backend': '🔧',
-            'frontend': '🎨',
-            'performance': '⚡',
-            'security': '🔒',
-            'testing': '🧪',
-            'api': '🔌',
-            'microservices': '🏗️',
-            'machine learning': '🤖',
-            'data science': '📊',
-            'algorithms': '🧮',
-            'system design': '🏛️',
-            'tips': '💡',
-            'guide': '📖',
-            'best practices': '✨'
+<script define:vars={{ allTags, topicRelationships, colorPalette }}>
+    document.addEventListener('DOMContentLoaded', () => {
+        const container = document.getElementById('network-graph');
+        if (!container || allTags.length === 0) return;
+
+        const width = container.clientWidth;
+        const height = 800;
+
+        // Calculate node sizes based on article count (oval shapes)
+        const maxCount = Math.max(...allTags.map(t => t.count));
+        const minCount = Math.min(...allTags.map(t => t.count));
+        
+        const getNodeSize = (count) => {
+            const normalized = (count - minCount) / (maxCount - minCount || 1);
+            return {
+                rx: 50 + (normalized * 60), // 50-110px horizontal radius
+                ry: 30 + (normalized * 25)  // 30-55px vertical radius
+            };
         };
-        return icons[tag.toLowerCase()] || '🎯';
-    }
-    
-    // Playful 3D color schemes
-    function getCategoryColorScheme(index) {
-        const schemes = [
-            {
-                gradient: 'from-blue-500 to-cyan-400',
-                bg: 'from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30',
-                shadow: 'shadow-blue-500/25',
-                glow: 'shadow-blue-500/40',
-                accent: 'bg-blue-500',
-                text: 'text-blue-700 dark:text-blue-300'
-            },
-            {
-                gradient: 'from-purple-500 to-pink-400',
-                bg: 'from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30',
-                shadow: 'shadow-purple-500/25',
-                glow: 'shadow-purple-500/40',
-                accent: 'bg-purple-500',
-                text: 'text-purple-700 dark:text-purple-300'
-            },
-            {
-                gradient: 'from-emerald-500 to-teal-400',
-                bg: 'from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30',
-                shadow: 'shadow-emerald-500/25',
-                glow: 'shadow-emerald-500/40',
-                accent: 'bg-emerald-500',
-                text: 'text-emerald-700 dark:text-emerald-300'
-            },
-            {
-                gradient: 'from-orange-500 to-red-400',
-                bg: 'from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30',
-                shadow: 'shadow-orange-500/25',
-                glow: 'shadow-orange-500/40',
-                accent: 'bg-orange-500',
-                text: 'text-orange-700 dark:text-orange-300'
-            },
-            {
-                gradient: 'from-indigo-500 to-purple-400',
-                bg: 'from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30',
-                shadow: 'shadow-indigo-500/25',
-                glow: 'shadow-indigo-500/40',
-                accent: 'bg-indigo-500',
-                text: 'text-indigo-700 dark:text-indigo-300'
-            },
-            {
-                gradient: 'from-pink-500 to-rose-400',
-                bg: 'from-pink-50 to-rose-50 dark:from-pink-950/30 dark:to-rose-950/30',
-                shadow: 'shadow-pink-500/25',
-                glow: 'shadow-pink-500/40',
-                accent: 'bg-pink-500',
-                text: 'text-pink-700 dark:text-pink-300'
-            },
-            {
-                gradient: 'from-yellow-500 to-amber-400',
-                bg: 'from-yellow-50 to-amber-50 dark:from-yellow-950/30 dark:to-amber-950/30',
-                shadow: 'shadow-yellow-500/25',
-                glow: 'shadow-yellow-500/40',
-                accent: 'bg-yellow-500',
-                text: 'text-yellow-700 dark:text-yellow-300'
-            },
-            {
-                gradient: 'from-lime-500 to-green-400',
-                bg: 'from-lime-50 to-green-50 dark:from-lime-950/30 dark:to-green-950/30',
-                shadow: 'shadow-lime-500/25',
-                glow: 'shadow-lime-500/40',
-                accent: 'bg-lime-500',
-                text: 'text-lime-700 dark:text-lime-300'
-            }
-        ];
-        return schemes[index % schemes.length];
-    }
-    
-    // Create magical 3D cube for each category
-    function createCategoryCube(category, index) {
-        const scheme = getCategoryColorScheme(index);
-        const icon = getCategoryIcon(category.tag);
-        const categoryName = category.tag.replace(/[-_]/g, ' ');
-        
-        return `
-            <a href="/blog?category=${encodeURIComponent(category.tag)}" 
-               class="category-cube group relative block transform-gpu transition-all duration-500 hover:scale-110 hover:-rotate-y-12 animate-fade-up"
-               style="animation-delay: ${index * 0.1}s; perspective: 1000px;">
-                
-                <!-- 3D Cube Container -->
-                <div class="relative w-full h-32 sm:h-36 preserve-3d transition-all duration-700 group-hover:rotate-y-12">
-                    
-                    <!-- Cube Face - Front -->
-                    <div class="absolute inset-0 bg-gradient-to-br ${scheme.bg} backdrop-blur-sm rounded-2xl border border-white/20 dark:border-white/10 ${scheme.shadow} group-hover:${scheme.glow} transition-all duration-500 transform-gpu">
-                        
-                        <!-- Hover glow effect -->
-                        <div class="absolute -inset-2 bg-gradient-to-r ${scheme.gradient} opacity-0 group-hover:opacity-30 rounded-3xl blur-xl transition-all duration-500"></div>
-                        
-                        <!-- Content -->
-                        <div class="relative h-full flex flex-col items-center justify-center p-4 text-center">
-                            
-                            <!-- Icon with bounce animation -->
-                            <div class="text-3xl sm:text-4xl mb-2 group-hover:animate-bounce transition-all duration-300 filter drop-shadow-lg">
-                                ${icon}
-                            </div>
-                            
-                            <!-- Category name -->
-                            <h3 class="font-bold text-sm sm:text-base text-slate-900 dark:text-slate-100 capitalize mb-1 leading-tight">
-                                ${categoryName}
-                            </h3>
-                            
-                            <!-- Article count with pulsing badge -->
-                            <div class="relative">
-                                <div class="px-3 py-1 bg-gradient-to-r ${scheme.gradient} text-white text-xs font-bold rounded-full ${scheme.shadow} group-hover:animate-pulse">
-                                    ${category.count} article${category.count !== 1 ? 's' : ''}
-                                </div>
-                                
-                                <!-- Sparkle effect on hover -->
-                                <div class="absolute -top-1 -right-1 w-2 h-2 bg-white rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-all duration-300"></div>
-                                <div class="absolute -bottom-1 -left-1 w-1.5 h-1.5 bg-white rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-all duration-300" style="animation-delay: 0.2s"></div>
-                            </div>
-                        </div>
-                        
-                        <!-- Corner decoration -->
-                        <div class="absolute top-2 right-2 w-2 h-2 bg-gradient-to-br ${scheme.gradient} rounded-full opacity-60 group-hover:opacity-100 transition-opacity"></div>
-                        <div class="absolute bottom-2 left-2 w-1.5 h-1.5 bg-gradient-to-br ${scheme.gradient} rounded-full opacity-40 group-hover:opacity-80 transition-opacity"></div>
-                    </div>
-                    
-                    <!-- Cube Face - Right (3D effect) -->
-                    <div class="absolute inset-0 bg-gradient-to-br ${scheme.gradient} opacity-20 rounded-2xl transform-gpu translate-x-1 translate-y-1 -z-10 transition-all duration-500 group-hover:translate-x-2 group-hover:translate-y-2"></div>
-                </div>
-                
-                <!-- Floating particles effect -->
-                <div class="absolute inset-0 pointer-events-none">
-                    <div class="absolute top-1/4 left-1/4 w-1 h-1 bg-white rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-float transition-all duration-500"></div>
-                    <div class="absolute top-3/4 right-1/4 w-0.5 h-0.5 bg-white rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-float transition-all duration-500" style="animation-delay: 0.3s"></div>
-                    <div class="absolute top-1/2 right-1/3 w-1.5 h-1.5 bg-white rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-float transition-all duration-500" style="animation-delay: 0.6s"></div>
-                </div>
-            </a>
-        `;
-    }
-    
-    // Render categories page with 3D cubes
-    function renderCategoriesPage(page) {
-        const startIndex = (page - 1) * CATEGORIES_PER_PAGE;
-        const endIndex = startIndex + CATEGORIES_PER_PAGE;
-        const pageCategories = categoriesData.slice(startIndex, endIndex);
-        
-        if (pageCategories.length === 0) {
-            categoriesContainer.innerHTML = `
-                <div class="col-span-full text-center py-20">
-                    <div class="inline-block">
-                        <div class="text-8xl mb-6 animate-bounce">🎲</div>
-                        <h3 class="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-4">No Categories Yet!</h3>
-                        <p class="text-xl text-slate-600 dark:text-slate-400 max-w-md mx-auto">
-                            The cubes will appear here once we publish some awesome articles. Stay tuned!
-                        </p>
-                    </div>
-                </div>
-            `;
-            return;
-        }
-        
-        categoriesContainer.innerHTML = pageCategories.map((category, index) => {
-            const globalIndex = startIndex + index;
-            return createCategoryCube(category, globalIndex);
-        }).join('');
-    }
-    
-    // Update pagination controls with fun styling
-    function updatePaginationControls() {
-        if (totalPages <= 1) {
-            paginationControls.style.display = 'none';
-            return;
-        }
-        
-        paginationControls.style.display = 'flex';
-        currentPageSpan.textContent = currentPage;
-        
-        prevBtn.disabled = currentPage === 1;
-        nextBtn.disabled = currentPage === totalPages;
-    }
-    
-    // Navigate to page with smooth animations
-    function goToPage(page) {
-        if (page < 1 || page > totalPages) return;
-        
-        // Add exit animation
-        document.querySelectorAll('.category-cube').forEach((cube, index) => {
-            cube.style.animationDelay = `${index * 0.05}s`;
-            cube.classList.add('animate-fade-out');
+
+        // Create nodes
+        const nodes = allTags.map((item, i) => {
+            const size = getNodeSize(item.count);
+            return {
+                id: item.tag,
+                count: item.count,
+                x: 0,
+                y: 0,
+                vx: 0,
+                vy: 0,
+                rx: size.rx,
+                ry: size.ry,
+                color: colorPalette[i % colorPalette.length]
+            };
         });
-        
-        // Update page after animation
-        setTimeout(() => {
-            currentPage = page;
-            renderCategoriesPage(currentPage);
-            updatePaginationControls();
+
+        // Create edges
+        const edges = [];
+        allTags.forEach(item => {
+            const related = topicRelationships[item.tag.toLowerCase()] || [];
+            related.forEach(relatedTag => {
+                if (allTags.some(t => t.tag.toLowerCase() === relatedTag)) {
+                    edges.push({
+                        source: item.tag,
+                        target: relatedTag
+                    });
+                }
+            });
+        });
+
+        // Force simulation
+        function runSimulation() {
+            const centerX = width / 2;
+            const centerY = height / 2;
             
-            // Scroll to top smoothly
-            categoriesContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 300);
-    }
-    
-    // Add some fun interactions
-    function addInteractivity() {
-        // Add hover sound effect (visual feedback)
-        document.addEventListener('mouseover', (e) => {
-            if (e.target.closest('.category-cube')) {
-                const cube = e.target.closest('.category-cube');
-                cube.style.transform = `scale(1.05) rotateY(5deg) rotateX(2deg)`;
+            // Initialize in circle
+            nodes.forEach((node, i) => {
+                const angle = (i / nodes.length) * 2 * Math.PI;
+                const radius = Math.min(width, height) * 0.35;
+                node.x = centerX + radius * Math.cos(angle);
+                node.y = centerY + radius * Math.sin(angle);
+            });
+
+            // Run simulation
+            for (let iter = 0; iter < 200; iter++) {
+                // Repulsion
+                for (let i = 0; i < nodes.length; i++) {
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        const dx = nodes[j].x - nodes[i].x;
+                        const dy = nodes[j].y - nodes[i].y;
+                        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                        const minDist = nodes[i].rx + nodes[j].rx + 40;
+                        
+                        if (dist < minDist * 1.5) {
+                            const force = (minDist - dist) * 0.6;
+                            nodes[i].vx -= (dx / dist) * force;
+                            nodes[i].vy -= (dy / dist) * force;
+                            nodes[j].vx += (dx / dist) * force;
+                            nodes[j].vy += (dy / dist) * force;
+                        }
+                    }
+                }
+
+                // Attraction along edges
+                edges.forEach(edge => {
+                    const source = nodes.find(n => n.id === edge.source);
+                    const target = nodes.find(n => n.id.toLowerCase() === edge.target);
+                    if (source && target) {
+                        const dx = target.x - source.x;
+                        const dy = target.y - source.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                        const force = dist * 0.001;
+                        source.vx += (dx / dist) * force;
+                        source.vy += (dy / dist) * force;
+                        target.vx -= (dx / dist) * force;
+                        target.vy -= (dy / dist) * force;
+                    }
+                });
+
+                // Center gravity
+                nodes.forEach(node => {
+                    node.vx += (centerX - node.x) * 0.002;
+                    node.vy += (centerY - node.y) * 0.002;
+                });
+
+                // Update positions
+                nodes.forEach(node => {
+                    node.x += node.vx;
+                    node.y += node.vy;
+                    node.vx *= 0.85;
+                    node.vy *= 0.85;
+
+                    // Boundaries
+                    node.x = Math.max(node.rx + 20, Math.min(width - node.rx - 20, node.x));
+                    node.y = Math.max(node.ry + 20, Math.min(height - node.ry - 20, node.y));
+                });
+            }
+        }
+
+        runSimulation();
+
+        // Create SVG
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', width);
+        svg.setAttribute('height', height);
+        svg.style.width = '100%';
+        svg.style.height = '100%';
+
+        // Define arrow marker
+        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+        const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+        marker.setAttribute('id', 'arrowhead');
+        marker.setAttribute('markerWidth', '10');
+        marker.setAttribute('markerHeight', '10');
+        marker.setAttribute('refX', '9');
+        marker.setAttribute('refY', '3');
+        marker.setAttribute('orient', 'auto');
+        const arrowPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        arrowPath.setAttribute('d', 'M0,0 L0,6 L9,3 z');
+        arrowPath.setAttribute('fill', '#94a3b8');
+        marker.appendChild(arrowPath);
+        defs.appendChild(marker);
+        svg.appendChild(defs);
+
+        // Draw curved edges with arrows
+        edges.forEach(edge => {
+            const source = nodes.find(n => n.id === edge.source);
+            const target = nodes.find(n => n.id.toLowerCase() === edge.target);
+            if (source && target) {
+                // Calculate curve control point
+                const midX = (source.x + target.x) / 2;
+                const midY = (source.y + target.y) / 2;
+                const dx = target.x - source.x;
+                const dy = target.y - source.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const curve = dist * 0.2;
+                const controlX = midX - dy / dist * curve;
+                const controlY = midY + dx / dist * curve;
+
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', `M${source.x},${source.y} Q${controlX},${controlY} ${target.x},${target.y}`);
+                path.setAttribute('stroke', '#CBD5E1');
+                path.setAttribute('stroke-width', '2');
+                path.setAttribute('fill', 'none');
+                path.setAttribute('opacity', '0.4');
+                path.setAttribute('marker-end', 'url(#arrowhead)');
+                path.setAttribute('class', `edge edge-${source.id.replace(/\s+/g, '-')} edge-${target.id.replace(/\s+/g, '-')}`);
+                path.style.transition = 'all 0.3s';
+                svg.appendChild(path);
             }
         });
-        
-        document.addEventListener('mouseout', (e) => {
-            if (e.target.closest('.category-cube')) {
-                const cube = e.target.closest('.category-cube');
-                cube.style.transform = '';
-            }
+
+        // Draw nodes (ovals)
+        nodes.forEach(node => {
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.setAttribute('class', `node node-${node.id.replace(/\s+/g, '-')}`);
+            g.setAttribute('transform', `translate(${node.x}, ${node.y})`);
+            g.style.cursor = 'pointer';
+            g.style.transition = 'all 0.3s';
+
+            // Detect dark mode
+            const isDark = document.documentElement.classList.contains('dark');
+
+            // Oval shape
+            const ellipse = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+            ellipse.setAttribute('rx', node.rx);
+            ellipse.setAttribute('ry', node.ry);
+            ellipse.setAttribute('fill', isDark ? '#1F2937' : node.color.fill);
+            ellipse.setAttribute('stroke', node.color.stroke);
+            ellipse.setAttribute('stroke-width', '2.5');
+            g.appendChild(ellipse);
+
+            // Topic name
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('text-anchor', 'middle');
+            text.setAttribute('dy', '0.35em');
+            text.setAttribute('font-size', '15');
+            text.setAttribute('font-weight', '600');
+            text.setAttribute('fill', isDark ? '#FFFFFF' : node.color.text);
+            text.textContent = node.id.replace(/[-_]/g, ' ');
+            text.style.textTransform = 'capitalize';
+            text.style.pointerEvents = 'none';
+            g.appendChild(text);
+
+            // Hover effects
+            g.addEventListener('mouseenter', () => {
+                g.style.transform = `translate(${node.x}px, ${node.y}px) scale(1.15)`;
+                g.style.zIndex = '100';
+                ellipse.setAttribute('stroke-width', '3.5');
+                ellipse.style.filter = 'drop-shadow(0 10px 25px rgba(0,0,0,0.2))';
+
+                // Highlight edges
+                const related = topicRelationships[node.id.toLowerCase()] || [];
+                related.forEach(tag => {
+                    const edgeClass = `edge-${node.id.replace(/\s+/g, '-')}`;
+                    const edges = svg.querySelectorAll(`.${edgeClass}`);
+                    edges.forEach(edge => {
+                        edge.setAttribute('stroke', node.color.stroke);
+                        edge.setAttribute('stroke-width', '3');
+                        edge.setAttribute('opacity', '0.8');
+                    });
+                });
+            });
+
+            g.addEventListener('mouseleave', () => {
+                g.style.transform = `translate(${node.x}px, ${node.y}px) scale(1)`;
+                g.style.zIndex = '1';
+                ellipse.setAttribute('stroke-width', '2.5');
+                ellipse.style.filter = '';
+
+                // Reset edges
+                svg.querySelectorAll('.edge').forEach(edge => {
+                    edge.setAttribute('stroke', '#CBD5E1');
+                    edge.setAttribute('stroke-width', '2');
+                    edge.setAttribute('opacity', '0.4');
+                });
+            });
+
+            g.addEventListener('click', () => {
+                window.location.href = `/blog?category=${encodeURIComponent(node.id)}`;
+            });
+
+            svg.appendChild(g);
         });
-    }
-    
-    // Initialize the awesome cube interface
-    function init() {
-        renderCategoriesPage(currentPage);
-        updatePaginationControls();
-        addInteractivity();
-        
-        // Event listeners for pagination
-        prevBtn.addEventListener('click', () => goToPage(currentPage - 1));
-        nextBtn.addEventListener('click', () => goToPage(currentPage + 1));
-    }
-    
-    // Start the magic when DOM is ready
-    document.addEventListener('DOMContentLoaded', init);
+
+        container.appendChild(svg);
+    });
 </script>
 
 <style>
-    /* Enhanced 3D animations and effects */
-    @keyframes fadeUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px) scale(0.9) rotateY(15deg);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0) scale(1) rotateY(0deg);
-        }
+    @keyframes blob {
+        0%, 100% { transform: translate(0px, 0px) scale(1); }
+        33% { transform: translate(30px, -50px) scale(1.1); }
+        66% { transform: translate(-20px, 20px) scale(0.9); }
     }
-    
-    @keyframes fadeOut {
-        from {
-            opacity: 1;
-            transform: translateY(0) scale(1) rotateY(0deg);
-        }
-        to {
-            opacity: 0;
-            transform: translateY(-20px) scale(0.9) rotateY(-15deg);
-        }
+    .animate-blob { animation: blob 7s infinite; }
+    .animation-delay-2000 { animation-delay: 2s; }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
     }
-    
-    @keyframes float {
-        0%, 100% {
-            transform: translateY(0px) rotate(0deg);
-        }
-        25% {
-            transform: translateY(-6px) rotate(2deg);
-        }
-        75% {
-            transform: translateY(6px) rotate(-2deg);
-        }
-    }
-    
-    @keyframes rotateY {
-        from {
-            transform: rotateY(0deg);
-        }
-        to {
-            transform: rotateY(360deg);
-        }
-    }
-    
-    @keyframes shake {
-        0%, 100% {
-            transform: translateX(0);
-        }
-        25% {
-            transform: translateX(-2px);
-        }
-        75% {
-            transform: translateX(2px);
-        }
-    }
-    
-    .animate-fade-up {
-        animation: fadeUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    .animate-fade-in-up {
+        animation: fadeInUp 0.8s ease-out forwards;
         opacity: 0;
     }
-    
-    .animate-fade-out {
-        animation: fadeOut 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    .animation-delay-200 { animation-delay: 0.2s; }
+    .animation-delay-400 { animation-delay: 0.4s; }
+    .animation-delay-600 { animation-delay: 0.6s; }
+
+    @keyframes gradient {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
     }
-    
-    .animate-float {
-        animation: float 3s ease-in-out infinite;
+    .animate-gradient {
+        background-size: 200% auto;
+        animation: gradient 4s linear infinite;
     }
-    
-    .animate-rotate-y {
-        animation: rotateY 20s linear infinite;
-    }
-    
-    .animate-shake {
-        animation: shake 0.5s ease-in-out;
-    }
-    
-    /* 3D Transform utilities */
-    .preserve-3d {
-        transform-style: preserve-3d;
-    }
-    
-    .transform-gpu {
-        transform: translateZ(0);
-        backface-visibility: hidden;
-    }
-    
-    .rotate-y-12 {
-        transform: rotateY(12deg);
-    }
-    
-    .-rotate-y-12 {
-        transform: rotateY(-12deg);
-    }
-    
-    /* Enhanced hover effects for cubes */
-    .category-cube {
-        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        transform-origin: center center;
-    }
-    
-    .category-cube:hover {
-        transform: scale(1.05) rotateY(5deg) rotateX(2deg) translateZ(20px);
-        z-index: 10;
-    }
-    
-    .category-cube:active {
-        transform: scale(0.98) rotateY(2deg) rotateX(1deg);
-        transition-duration: 0.1s;
-    }
-    
-    /* Glowing border effects */
-    .glow-border {
+
+    /* Ensure hover nodes appear on top */
+    .node {
         position: relative;
-        overflow: hidden;
-    }
-    
-    .glow-border::before {
-        content: '';
-        position: absolute;
-        inset: -2px;
-        background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-        border-radius: inherit;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-    
-    .glow-border:hover::before {
-        opacity: 1;
-    }
-    
-    /* Magical particle effects */
-    .particles {
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-        overflow: hidden;
-    }
-    
-    .particle {
-        position: absolute;
-        width: 2px;
-        height: 2px;
-        background: white;
-        border-radius: 50%;
-        opacity: 0;
-        animation: particle-float 3s ease-in-out infinite;
-    }
-    
-    @keyframes particle-float {
-        0% {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        10%, 90% {
-            opacity: 1;
-        }
-        100% {
-            opacity: 0;
-            transform: translateY(-20px);
-        }
-    }
-    
-    /* Enhanced scrollbar */
-    ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-    }
-    
-    ::-webkit-scrollbar-track {
-        background: transparent;
-    }
-    
-    ::-webkit-scrollbar-thumb {
-        background: linear-gradient(135deg, #8b5cf6, #3b82f6, #06b6d4);
-        border-radius: 4px;
-        transition: all 0.3s ease;
-    }
-    
-    ::-webkit-scrollbar-thumb:hover {
-        background: linear-gradient(135deg, #7c3aed, #2563eb, #0891b2);
-        transform: scale(1.1);
-    }
-    
-    /* Responsive grid adjustments */
-    @media (max-width: 640px) {
-        .category-cube {
-            transform-origin: center center;
-        }
-        
-        .category-cube:hover {
-            transform: scale(1.02) rotateY(2deg);
-        }
-    }
-    
-    /* Loading shimmer effect */
-    @keyframes shimmer {
-        0% {
-            background-position: -200px 0;
-        }
-        100% {
-            background-position: calc(200px + 100%) 0;
-        }
-    }
-    
-    .shimmer {
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-        background-size: 200px 100%;
-        animation: shimmer 2s infinite;
-    }
-    
-    /* Fun interaction feedback */
-    .category-cube:focus {
-        outline: none;
-        box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.5);
-    }
-    
-    /* Smooth page transitions */
-    .page-transition {
-        opacity: 1;
-        transform: translateY(0);
-        transition: all 0.3s ease-in-out;
-    }
-    
-    .page-transition.exiting {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    
-    /* Gradient text effects */
-    .gradient-text {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        z-index: 1;
     }
 </style>

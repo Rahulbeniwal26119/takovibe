@@ -1,43 +1,55 @@
 ---
-import { getCollection } from 'astro:content';
-import PostPreview from './PostPreview.astro';
+import { getCollection } from "astro:content";
+import PostPreview from "./PostPreview.astro";
 
 const { currentSlug, tags = [], limit = 3 } = Astro.props;
 
 // Get all blog posts
-const allPosts = await getCollection('blog');
+const allPosts = await getCollection("blog");
 
 // Filter out the current post and find posts with matching tags
 const relatedPosts = allPosts
-  .filter(post => post.slug !== currentSlug)
-  .filter(post => {
+  .filter((post) => post.slug !== currentSlug)
+  .filter((post) => {
     const postTags = post.data.tags || [];
-    return tags.some(tag => postTags.includes(tag));
+    return tags.some((tag) => postTags.includes(tag));
   })
-  .sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime())
+  .sort(
+    (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime(),
+  )
   .slice(0, limit);
 
 // If not enough related posts by tag, add recent posts
 let postsToShow = [...relatedPosts];
 if (postsToShow.length < limit) {
   const recentPosts = allPosts
-    .filter(post => post.slug !== currentSlug && !postsToShow.some(p => p.slug === post.slug))
-    .sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime())
+    .filter(
+      (post) =>
+        post.slug !== currentSlug &&
+        !postsToShow.some((p) => p.slug === post.slug),
+    )
+    .sort(
+      (a, b) =>
+        new Date(b.data.date).getTime() - new Date(a.data.date).getTime(),
+    )
     .slice(0, limit - postsToShow.length);
-  
+
   postsToShow = [...postsToShow, ...recentPosts];
 }
 ---
 
-{postsToShow.length > 0 && (
-  <section class="mt-16">
-    <h2 class="text-3xl font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">
-      Related Articles
-    </h2>
-    <div class="grid md:grid-cols-3 gap-8">
-      {postsToShow.map(post => (
-        <PostPreview post={post} />
-      ))}
-    </div>
-  </section>
-)} 
+{
+  postsToShow.length > 0 && (
+    <section class="mt-16">
+      <h2 class="text-3xl font-bold mb-8 text-gray-900 dark:text-white">
+        Related Articles
+      </h2>
+      <div class="grid md:grid-cols-3 gap-8">
+        {postsToShow.map((post) => (
+          <PostPreview post={post} />
+        ))}
+      </div>
+    </section>
+  )
+}
+

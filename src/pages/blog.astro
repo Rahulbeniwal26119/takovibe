@@ -1,11 +1,11 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import type { APIResponse } from '../types/api';
-import type { BlogPost, TagCount } from '../types/blog';
+import type { APIResponse } from "../types/api";
+import type { BlogPost, TagCount } from "../types/blog";
 import { getCollection } from "astro:content";
 
-const searchEndpoint = 'https://backend.takovibe.com/api/blogs/blogs/';
-const tagsEndpoint = 'https://backend.takovibe.com/api/blogs/tags/';
+const searchEndpoint = "https://backend.takovibe.com/api/blogs/blogs/";
+const tagsEndpoint = "https://backend.takovibe.com/api/blogs/tags/";
 
 interface TagData {
   tag: string;
@@ -18,22 +18,24 @@ let popularTags: TagData[] = [];
 
 // Fetch blog posts
 try {
-  const response = await fetch(`${searchEndpoint}?paginate=1&page_size=6`);
+  const response = await fetch(`${searchEndpoint}?paginate=1&page_size=9`);
   if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-  
-  const data = await response.json() as APIResponse<BlogPost>;
+
+  const data = (await response.json()) as APIResponse<BlogPost>;
   posts = data.results || [];
   totalCount = data.count || 0;
 } catch (err) {
   posts = null;
-  console.error('Failed to fetch posts:', err);
+  console.error("Failed to fetch posts:", err);
 }
 
 // Fetch popular tags
 try {
   const tagsResponse = await fetch(tagsEndpoint);
   if (tagsResponse.ok) {
-    const tagsData = await tagsResponse.json() as { data: Record<string, number> };
+    const tagsData = (await tagsResponse.json()) as {
+      data: Record<string, number>;
+    };
     if (tagsData.data) {
       popularTags = Object.entries(tagsData.data)
         .map(([tag, count]) => ({ tag, count: Number(count) }))
@@ -42,19 +44,20 @@ try {
     }
   }
 } catch (err) {
-  console.error('Failed to fetch tags:', err);
+  console.error("Failed to fetch tags:", err);
 }
 
 if (posts === null) {
-  console.error('Failed to fetch from API, falling back to local content:', error);
   // Fallback to local content
   const allPosts = await getCollection("blog");
   totalCount = allPosts.length;
 
   // Filter out unpublished posts and sort by date
   const currentDate = new Date();
-  const publishedPosts = allPosts.filter(post => new Date(post.data.date) <= currentDate);
-  posts = publishedPosts.map(post => ({
+  const publishedPosts = allPosts.filter(
+    (post) => new Date(post.data.date) <= currentDate,
+  );
+  posts = publishedPosts.map((post) => ({
     title: post.data.title,
     description: post.data.description,
     uri: `/blog/${post.slug}`,
@@ -64,219 +67,184 @@ if (posts === null) {
     created_at: post.data.date,
     author: {
       name: "Rahul Beniwal",
-      username: "rahulbeniwal26119"
-    }
+      username: "rahulbeniwal26119",
+    },
   }));
 }
 
-// Function to normalize tags
-function normalizeTag(tag: string) {
-  return tag.toLowerCase()
-    .replace(/['"]/g, '') // Remove quotes
-    .trim(); // Remove extra spaces
-}
-
-// Function to find similar tags
-function findSimilarTags(tags: string[]) {
-  const similarTags = new Map<string, string[]>();
-  
-  tags.forEach(tag => {
-    const normalizedTag = normalizeTag(tag);
-    const existing = Array.from(similarTags.entries()).find(([key, group]) => 
-      group.some(t => normalizeTag(t) === normalizedTag)
-    );
-    
-    if (existing) {
-      existing[1].push(tag);
-    } else {
-      similarTags.set(tag, [tag]);
-    }
-  });
-  
-  return similarTags;
-}
-
 // Pagination
-const POSTS_PER_PAGE = 6;
+const POSTS_PER_PAGE = 9;
 const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
-
-const regularPosts = posts;
 ---
 
 <Layout
   title="All Articles | TakoVibe"
   description="Browse all technical articles, tutorials, and insights about software engineering, system design, and modern development practices."
   author="Rahul Beniwal"
-  tags={["blog", "articles", "software engineering", "tutorials", "programming"]}
+  tags={[
+    "blog",
+    "articles",
+    "software engineering",
+    "tutorials",
+    "programming",
+  ]}
 >
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+  <div class="min-h-screen bg-gray-50 dark:bg-[#0B1120]">
+    <!-- Hero Section -->
+    <section class="relative py-24 lg:py-32 overflow-hidden">
+      <!-- Animated Background -->
+      <div
+        class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-100 via-gray-50 to-gray-50 dark:from-purple-900/20 dark:via-[#0B1120] dark:to-[#0B1120]"
+      >
+      </div>
 
-    <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-6 py-8">
-      <!-- Search and Filters -->
-      <div class="mb-8 text-gray-900 dark:text-white">
-        <div class="grid lg:grid-cols-4 gap-6">
-          <!-- Search -->
-          <div class="lg:col-span-2">
-            <div class="relative">
-              <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input 
-                type="text" 
-                id="search-input"
-                placeholder="Search articles..." 
-                class="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
-              />
-            </div>
+      <!-- Blobs -->
+      <div
+        class="absolute top-0 left-1/4 w-96 h-96 bg-purple-400/20 dark:bg-purple-500/10 rounded-full blur-3xl animate-blob"
+      >
+      </div>
+      <div
+        class="absolute top-0 right-1/4 w-96 h-96 bg-blue-400/20 dark:bg-blue-500/10 rounded-full blur-3xl animate-blob animation-delay-2000"
+      >
+      </div>
+      <div
+        class="absolute bottom-0 left-1/2 w-96 h-96 bg-indigo-400/20 dark:bg-indigo-500/10 rounded-full blur-3xl animate-blob animation-delay-4000"
+      >
+      </div>
+
+      <div class="relative z-10 max-w-7xl mx-auto px-6 text-center">
+        <div
+          class="inline-flex items-center gap-2 px-4 py-2 bg-white/50 dark:bg-white/5 backdrop-blur-md text-purple-700 dark:text-purple-300 rounded-full text-sm font-medium mb-8 border border-purple-200/50 dark:border-white/10 shadow-sm animate-fade-in-up"
+        >
+          <span class="text-base">📚</span>
+          <span>Knowledge Base</span>
+        </div>
+
+        <h1
+          class="text-5xl md:text-6xl lg:text-7xl font-bold mb-8 animate-fade-in-up animation-delay-200 tracking-tight"
+        >
+          <span class="block text-gray-900 dark:text-white mb-2"
+            >Explore Our</span
+          >
+          <span
+            class="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent animate-gradient"
+            >Latest Insights</span
+          >
+        </h1>
+
+        <p
+          class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-12 leading-relaxed animate-fade-in-up animation-delay-400"
+        >
+          Discover in-depth tutorials, technical deep dives, and the latest
+          trends in software engineering.
+        </p>
+
+        <!-- Search Bar -->
+        <div
+          class="max-w-2xl mx-auto relative group animate-fade-in-up animation-delay-600"
+        >
+          <div
+            class="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"
+          >
           </div>
-
-          <!-- Sort Dropdown -->
-          <!-- <div class="relative">
-            <select id="sort-select" class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors appearance-none cursor-pointer text-gray-900 dark:text-white">
-              <option value="date-desc">Latest First</option>
-              <option value="date-asc">Oldest First</option>
-              <option value="title-asc">Title A-Z</option>
-              <option value="title-desc">Title Z-A</option>
-              <option value="popular">Most Popular</option>
-            </select>
-            <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          <div class="relative">
+            <input
+              type="text"
+              id="search-input"
+              placeholder="Search articles, topics, or keywords..."
+              class="w-full pl-14 pr-6 py-5 bg-white dark:bg-[#131B2E] border border-gray-200 dark:border-gray-700/50 rounded-2xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all shadow-xl shadow-purple-500/5 text-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+            />
+            <svg
+              class="absolute left-5 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400 dark:text-gray-500 group-focus-within:text-purple-500 transition-colors"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
             </svg>
-          </div> -->
-
-          <!-- Results Info -->
-          <div class="flex items-center justify-between lg:justify-end">
-            <span id="results-count" class="text-sm text-gray-600 dark:text-gray-400">
-              Loading articles...
-            </span>
           </div>
         </div>
 
         <!-- Tags Filter -->
-        <div class="mt-6">
-          <div class="flex items-center gap-3 mb-4">
-            <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">Filter by topic:</h3>
-            <button id="clear-filters" class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hidden">
-              Clear all
+        <div class="mt-12 animate-fade-in-up animation-delay-800">
+          <div class="flex flex-wrap justify-center gap-2">
+            <button class="tag-filter active group" data-tag="all">
+              <span class="relative z-10">All Posts</span>
             </button>
-          </div>
-          <div class="flex flex-wrap gap-2">
-            <button class="tag-filter active" data-tag="all">
-              All Articles
-              <span class="tag-count">{totalCount}</span>
-            </button>
-            {popularTags.map(({ tag, count }) => (
-                <button class="tag-filter" data-tag={tag}>
-                  {tag}
-                  <span class="tag-count">{count}</span>
+            {
+              popularTags.map(({ tag, count }) => (
+                <button class="tag-filter group" data-tag={tag}>
+                  <span class="relative z-10">{tag}</span>
                 </button>
-            ))
+              ))
             }
           </div>
         </div>
       </div>
+    </section>
 
-      <!-- Featured Articles Section -->
-      <!-- <div class="mb-20">
-        <div class="text-center mb-12">
-          <h2 class="text-4xl font-bold text-gray-900 dark:text-white mb-4 flex items-center justify-center">
-            <svg class="w-8 h-8 mr-3 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-6 pb-32">
+      <!-- Results Info -->
+      <div class="flex items-center justify-between mb-10">
+        <span
+          id="results-count"
+          class="text-sm font-medium text-gray-500 dark:text-gray-400"
+        >
+          Showing latest articles
+        </span>
+      </div>
+
+      <!-- Articles Grid -->
+      <div
+        id="articles-container"
+        class="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+      >
+        <!-- Articles will be loaded dynamically via JavaScript -->
+      </div>
+
+      <!-- No Results -->
+      <div id="no-results" class="hidden text-center py-32">
+        <div class="max-w-md mx-auto">
+          <div
+            class="w-24 h-24 mx-auto mb-6 bg-gray-100 dark:bg-gray-800/50 rounded-full flex items-center justify-center"
+          >
+            <svg
+              class="w-12 h-12 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.5"
+                d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.034 0-3.935.785-5.365 2.077l-.673-.673a.75.75 0 01.673-1.404H8z"
+              ></path>
             </svg>
-            Featured Articles
-          </h2>
-          <p class="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Discover our most popular and impactful articles
-          </p>
-        </div>
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {featuredPosts.map((post, index) => (
-            <article class="group featured-card">
-              <a href={`/blog/${post.slug}`} class="block">
-                <div class="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-gray-100 dark:border-gray-700">
-                  {post.data.image ? (
-                    <div class="aspect-video overflow-hidden hidden md:block">
-                      <img 
-                        src={post.data.image} 
-                        alt={post.data.title}
-                        class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        loading={index === 0 ? "eager" : "lazy"}
-                      />
-                    </div>
-                  ) : (
-                    <div class="aspect-video bg-gradient-to-br from-purple-500 via-purple-600 to-pink-600 relative overflow-hidden hidden md:block">
-                      <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-                      <div class="absolute inset-0 flex items-center justify-center">
-                        <div class="text-center text-white">
-                          <h3 class="text-xl font-bold mb-2">{post.data.title}</h3>
-                          <div class="flex flex-wrap gap-2 justify-center">
-                            {post.data.tags?.slice(0, 2).map((tag) => (
-                              <span class="px-3 py-1 bg-white/25 backdrop-blur-md text-white text-xs font-semibold rounded-full border border-white/20">
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  <div class="p-6">
-                    <div class="flex items-center gap-2 mb-4">
-                      <span class="px-3 py-1.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full text-xs font-bold">
-                        ✨ Featured
-                      </span>
-                      {post.data.tags?.slice(0, 1).map((tag) => (
-                        <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full text-xs font-medium">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors line-clamp-2 leading-tight">
-                      {post.data.title}
-                    </h3>
-                    <p class="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2 leading-relaxed">
-                      {post.data.description}
-                    </p>
-                    <div class="flex items-center text-xs text-gray-500 dark:text-gray-400">
-                      <span>{new Date(post.data.date).toLocaleDateString('en-US', { 
-                        year: 'numeric', 
-                        month: 'short', 
-                        day: 'numeric' 
-                      })}</span>
-                      <span class="mx-2">•</span>
-                      <span>{(post.data as any).readingTime || '5 min read'}</span>
-                    </div>
-                  </div>
-                </div>
-              </a>
-            </article>
-          ))}
-        </div>
-      </div> -->
-
-      <!-- All Articles -->
-      <div class="mt-12">
-        <!-- Articles Grid/List -->
-        <div id="articles-container" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <!-- Articles will be loaded dynamically via JavaScript -->
-        </div>
-        </div>
-
-        <!-- No Results -->
-        <div id="no-results" class="hidden text-center py-12">
-          <div class="max-w-md mx-auto">
-            <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.034 0-3.935.785-5.365 2.077l-.673-.673a.75.75 0 01.673-1.404H8z" />
-            </svg>
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No articles found</h3>
-            <p class="text-gray-500 dark:text-gray-400">Try adjusting your search or filter criteria.</p>
           </div>
+          <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+            No articles found
+          </h3>
+          <p class="text-gray-500 dark:text-gray-400 mb-8">
+            We couldn't find any articles matching your search. Try adjusting
+            your keywords or filters.
+          </p>
+          <button
+            id="clear-filters-btn"
+            class="px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl transition-all shadow-lg shadow-purple-600/20 hover:shadow-purple-600/40 hover:-translate-y-0.5"
+          >
+            Clear Filters
+          </button>
         </div>
       </div>
 
       <!-- Pagination -->
-      <div id="pagination" class="flex items-center justify-center space-x-2 mt-20 mb-16">
+      <div id="pagination" class="flex items-center justify-center gap-3 mt-24">
         <!-- Pagination will be generated by JavaScript -->
       </div>
     </div>
@@ -284,81 +252,31 @@ const regularPosts = posts;
 </Layout>
 
 <style>
-  /* Line clamp utility */
-  .line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .line-clamp-3 {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  /* Tag filter styles */
-  .tag-filter {
-    @apply px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-900 dark:text-white hover:border-indigo-300 dark:hover:border-indigo-600 transition-all duration-200 flex items-center gap-2;
-  }
-
-  .tag-filter.active {
-    @apply bg-indigo-600 dark:bg-indigo-500 text-white border-indigo-600 dark:border-indigo-500;
-  }
-
-  .tag-count {
-    @apply text-xs opacity-75 bg-black/10 dark:bg-white/10 px-1.5 py-0.5 rounded-full;
-  }
-
-  .tag-filter.active .tag-count {
-    @apply bg-white/20;
-  }
-
-  /* View toggle styles */
-  .view-toggle {
-    @apply text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white;
-  }
-
-  .view-toggle.active {
-    @apply bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 shadow-sm;
-  }
-
-  /* List view styles */
-  .list-view .article-card {
-    @apply col-span-full;
-  }
-
-  .list-view .article-card > a > div {
-    @apply flex flex-row;
-  }
-
-  .list-view .article-card img {
-    @apply w-48 h-32 object-cover;
-  }
-
-  .list-view .article-card .aspect-video {
-    @apply aspect-auto w-48 h-32 flex-shrink-0;
-  }
-
-  /* Mobile optimizations - hide images for better performance */
-  @media (max-width: 768px) {
-    .article-card .aspect-video {
-      @apply hidden;
-    }
-    
-    .article-card .p-6 {
-      @apply pt-4;
-    }
-    
-    /* Adjust card spacing for mobile without images */
-    .article-card > a > div {
-      @apply min-h-0;
-    }
-  }
-
   /* Animations */
+  @keyframes blob {
+    0% {
+      transform: translate(0px, 0px) scale(1);
+    }
+    33% {
+      transform: translate(30px, -50px) scale(1.1);
+    }
+    66% {
+      transform: translate(-20px, 20px) scale(0.9);
+    }
+    100% {
+      transform: translate(0px, 0px) scale(1);
+    }
+  }
+  .animate-blob {
+    animation: blob 7s infinite;
+  }
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
+
   @keyframes fadeInUp {
     from {
       opacity: 0;
@@ -369,1043 +287,463 @@ const regularPosts = posts;
       transform: translateY(0);
     }
   }
-
-  .article-card {
-    animation: fadeInUp 0.5s ease-out;
+  .animate-fade-in-up {
+    animation: fadeInUp 0.8s ease-out forwards;
+    opacity: 0;
+  }
+  .animation-delay-200 {
+    animation-delay: 0.2s;
+  }
+  .animation-delay-400 {
+    animation-delay: 0.4s;
+  }
+  .animation-delay-600 {
+    animation-delay: 0.6s;
+  }
+  .animation-delay-800 {
+    animation-delay: 0.8s;
   }
 
-  .article-card:nth-child(1) { animation-delay: 0.05s; }
-  .article-card:nth-child(2) { animation-delay: 0.1s; }
-  .article-card:nth-child(3) { animation-delay: 0.15s; }
-  .article-card:nth-child(4) { animation-delay: 0.2s; }
-  .article-card:nth-child(5) { animation-delay: 0.25s; }
-  .article-card:nth-child(6) { animation-delay: 0.3s; }
-
-  /* Hover effects */
-  .featured-card:hover {
-    transform: translateY(-8px);
+  @keyframes gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+  .animate-gradient {
+    background-size: 200% auto;
+    animation: gradient 4s linear infinite;
   }
 
-  /* Custom scrollbar */
+  /* Tag Filters */
+  .tag-filter {
+    @apply relative px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300;
+    @apply bg-white dark:bg-[#131B2E] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700/50;
+    @apply hover:border-purple-400 dark:hover:border-purple-500/50 hover:text-purple-600 dark:hover:text-purple-400 hover:shadow-md;
+  }
+
+  .tag-filter.active {
+    @apply bg-purple-600 dark:bg-purple-600 text-white border-purple-600 dark:border-purple-600 shadow-lg shadow-purple-600/20;
+  }
+
+  /* Custom Scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
   }
-
   ::-webkit-scrollbar-track {
     background: transparent;
   }
-
   ::-webkit-scrollbar-thumb {
     background: #cbd5e1;
     border-radius: 3px;
   }
-
   .dark ::-webkit-scrollbar-thumb {
-    background: #64748b;
-  }
-
-  /* Focus styles */
-  button:focus-visible,
-  input:focus-visible,
-  select:focus-visible {
-    outline: 2px solid #6366f1;
-    outline-offset: 2px;
-  }
-
-  /* Image placeholder styles */
-  .image-placeholder {
-    background: linear-gradient(135deg, #1e1b4b, #3730a3, #1e40af);
-    background-size: 400% 400%;
-    animation: gradientShift 4s ease infinite;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid rgba(79, 70, 229, 0.3);
-    border-radius: 0.75rem;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .dark .image-placeholder {
-    background: linear-gradient(135deg, #0f0f23, #1e1b4b, #312e81);
-    border-color: rgba(99, 102, 241, 0.4);
-  }
-
-  @keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-
-  .image-placeholder::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.1),
-      transparent
-    );
-    animation: shimmer 3s infinite;
-  }
-
-  @keyframes shimmer {
-    0% { left: -100%; }
-    100% { left: 100%; }
-  }
-
-  .image-placeholder-content {
-    color: #e0e7ff;
-    text-align: center;
-    padding: 1.5rem;
-    z-index: 2;
-    position: relative;
-  }
-
-  .dark .image-placeholder-content {
-    color: #c7d2fe;
-  }
-
-  .tech-icon-container {
-    width: 3rem;
-    height: 3rem;
-    margin: 0 auto 0.75rem;
-    position: relative;
-    animation: float 3s ease-in-out infinite;
-  }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-8px); }
-  }
-
-  .tech-icon {
-    width: 100%;
-    height: 100%;
-    opacity: 0.9;
-    filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.4));
-  }
-
-  .placeholder-title {
-    font-size: 1rem;
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-    background: linear-gradient(45deg, #a78bfa, #c084fc, #f472b6);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: titleGlow 2s ease-in-out infinite alternate;
-  }
-
-  @keyframes titleGlow {
-    from { filter: brightness(1); }
-    to { filter: brightness(1.2); }
-  }
-
-  .placeholder-subtitle {
-    font-size: 0.75rem;
-    opacity: 0.8;
-    font-weight: 400;
-  }
-
-  .tech-particles {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    pointer-events: none;
-  }
-
-  .particle {
-    position: absolute;
-    width: 3px;
-    height: 3px;
-    background: rgba(139, 92, 246, 0.6);
-    border-radius: 50%;
-    animation: particleFloat 4s linear infinite;
-  }
-
-  @keyframes particleFloat {
-    0% {
-      transform: translateY(100%) rotate(0deg);
-      opacity: 0;
-    }
-    10% {
-      opacity: 1;
-    }
-    90% {
-      opacity: 1;
-    }
-    100% {
-      transform: translateY(-20px) rotate(360deg);
-      opacity: 0;
-    }
-  }
-
-  /* Enhanced image loading states */
-  img[data-loading="true"] {
-    opacity: 0;
-    transition: opacity 0.4s ease;
-  }
-
-  img[data-loaded="true"] {
-    opacity: 1;
-  }
-
-  img[data-error="true"] {
-    display: none;
-  }
-
-  /* Enhanced blog card animations */
-  @keyframes slideInUp {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes fadeInScale {
-    from {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-
-  #articles-container article {
-    animation: slideInUp 0.6s ease-out forwards;
-    opacity: 0;
-  }
-
-  #articles-container article:nth-child(1) { animation-delay: 0.1s; }
-  #articles-container article:nth-child(2) { animation-delay: 0.2s; }
-  #articles-container article:nth-child(3) { animation-delay: 0.3s; }
-  #articles-container article:nth-child(4) { animation-delay: 0.4s; }
-  #articles-container article:nth-child(5) { animation-delay: 0.5s; }
-  #articles-container article:nth-child(6) { animation-delay: 0.6s; }
-  #articles-container article:nth-child(7) { animation-delay: 0.7s; }
-  #articles-container article:nth-child(8) { animation-delay: 0.8s; }
-  #articles-container article:nth-child(9) { animation-delay: 0.9s; }
-
-  /* Enhanced hover effects */
-  #articles-container article:hover {
-    transform: translateY(-8px) scale(1.02);
-  }
-
-  /* Loading state improvements */
-  .loading-shimmer {
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    animation: shimmer 1.5s infinite;
-  }
-
-  /* Smooth transitions for all interactive elements */
-  #articles-container a,
-  #articles-container img,
-  #articles-container .tag,
-  #articles-container .read-more {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #475569;
   }
 </style>
 
 <script>
   // API endpoints
-  const API_BASE = 'https://backend.takovibe.com/api/blogs/blogs/';
-  
+  const API_BASE = "https://backend.takovibe.com/api/blogs/blogs/";
+
   let currentPage = 1;
   const ARTICLES_PER_PAGE_MOBILE = 6;
   const ARTICLES_PER_PAGE_DESKTOP = 9;
-  let currentArticlesPerPage = ARTICLES_PER_PAGE_MOBILE; // Default to mobile
-  let currentSearchTerm = '';
-  let currentTag = 'all';
-  let currentSort = 'date-desc';
+  let currentArticlesPerPage = ARTICLES_PER_PAGE_MOBILE;
+  let currentSearchTerm = "";
+  let currentTag = "all";
+  let currentSort = "date-desc";
   let totalCount = 0;
   let allArticles = [];
 
   // Function to get current page size based on screen width
   function getCurrentPageSize() {
-    if (typeof window !== 'undefined') {
-      return window.innerWidth >= 1024 ? ARTICLES_PER_PAGE_DESKTOP : ARTICLES_PER_PAGE_MOBILE;
+    if (typeof window !== "undefined") {
+      return window.innerWidth >= 1024
+        ? ARTICLES_PER_PAGE_DESKTOP
+        : ARTICLES_PER_PAGE_MOBILE;
     }
     return ARTICLES_PER_PAGE_MOBILE;
   }
 
-  // Update current page size and refresh if needed
-  function updatePageSize() {
-    const newPageSize = getCurrentPageSize();
-    if (newPageSize !== currentArticlesPerPage) {
-      currentArticlesPerPage = newPageSize;
-      // Recalculate current page to maintain position
-      const currentPosition = (currentPage - 1) * (newPageSize === ARTICLES_PER_PAGE_DESKTOP ? ARTICLES_PER_PAGE_MOBILE : ARTICLES_PER_PAGE_DESKTOP);
-      currentPage = Math.floor(currentPosition / newPageSize) + 1;
-      fetchAndDisplayArticles();
+  // DOM elements
+  const searchInput = document.getElementById(
+    "search-input",
+  ) as HTMLInputElement;
+  const articlesContainer = document.getElementById("articles-container");
+  const resultsCount = document.getElementById("results-count");
+  const noResults = document.getElementById("no-results");
+  const pagination = document.getElementById("pagination");
+  const clearFiltersBtn = document.getElementById("clear-filters-btn");
+  const tagFilters = document.querySelectorAll(".tag-filter");
+
+  // Initialize
+  function init() {
+    // Read URL parameters on load
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlTag = urlParams.get("category") || urlParams.get("tag");
+    const urlSearch = urlParams.get("q");
+    const urlPage = urlParams.get("page");
+
+    // Apply URL parameters
+    if (urlTag && urlTag !== "all") {
+      currentTag = urlTag;
+      tagFilters.forEach((b) => b.classList.remove("active"));
+      const matchingTag = document.querySelector(`[data-tag="${urlTag}"]`);
+      if (matchingTag) {
+        matchingTag.classList.add("active");
+      }
     }
+    if (urlSearch) {
+      currentSearchTerm = urlSearch;
+      if (searchInput) searchInput.value = urlSearch;
+    }
+    if (urlPage) {
+      currentPage = parseInt(urlPage) || 1;
+    }
+
+    // Event Listeners
+    searchInput?.addEventListener(
+      "input",
+      debounce((e) => {
+        currentSearchTerm = (e.target as HTMLInputElement).value;
+        currentPage = 1;
+        updateURL();
+        fetchAndDisplayArticles();
+      }, 500),
+    );
+
+    tagFilters.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        // Update active state
+        tagFilters.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        currentTag = btn.getAttribute("data-tag") || "all";
+        currentPage = 1;
+        updateURL();
+        fetchAndDisplayArticles();
+      });
+    });
+
+    clearFiltersBtn?.addEventListener("click", () => {
+      currentSearchTerm = "";
+      currentTag = "all";
+      currentPage = 1;
+      if (searchInput) searchInput.value = "";
+      tagFilters.forEach((b) => b.classList.remove("active"));
+      document.querySelector('[data-tag="all"]')?.classList.add("active");
+      updateURL();
+      fetchAndDisplayArticles();
+    });
+
+    // Initial fetch
+    fetchAndDisplayArticles();
   }
 
-  // DOM elements
-  const searchInput = document.getElementById('search-input') as HTMLInputElement;
-  const sortSelect = document.getElementById('sort-select') as HTMLSelectElement;
-  const articlesContainer = document.getElementById('articles-container');
-  const resultsCount = document.getElementById('results-count');
-  const noResults = document.getElementById('no-results');
-  const pagination = document.getElementById('pagination');
-  const clearFilters = document.getElementById('clear-filters');
+  // Update URL without page reload
+  function updateURL() {
+    const params = new URLSearchParams();
 
-  // Fetch articles from backend with current filters
+    if (currentSearchTerm) {
+      params.set("q", currentSearchTerm);
+    }
+    if (currentTag && currentTag !== "all") {
+      params.set("category", currentTag);
+    }
+    if (currentPage > 1) {
+      params.set("page", currentPage.toString());
+    }
+
+    const newURL = params.toString()
+      ? `${window.location.pathname}?${params.toString()}`
+      : window.location.pathname;
+
+    window.history.pushState({}, "", newURL);
+  }
+
+  // Debounce helper
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  // Fetch articles from backend
   async function fetchAndDisplayArticles() {
     try {
       // Show loading state
       if (articlesContainer) {
-        articlesContainer.innerHTML = '<div class="col-span-full flex justify-center items-center py-12"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>';
+        articlesContainer.innerHTML = `
+          <div class="col-span-full flex flex-col justify-center items-center py-32">
+            <div class="relative w-16 h-16">
+              <div class="absolute inset-0 border-4 border-purple-100 dark:border-purple-900/30 rounded-full"></div>
+              <div class="absolute inset-0 border-4 border-purple-600 rounded-full border-t-transparent animate-spin"></div>
+            </div>
+            <p class="mt-4 text-gray-500 dark:text-gray-400 font-medium animate-pulse">Loading articles...</p>
+          </div>
+        `;
       }
-      
-      // Update page size based on screen size
+
       currentArticlesPerPage = getCurrentPageSize();
-      
-      // Build API URL with current filters
+
       const params = new URLSearchParams({
-        paginate: '1',
+        paginate: "1",
         page_size: currentArticlesPerPage.toString(),
-        page: currentPage.toString()
+        page: currentPage.toString(),
       });
-      
-      // Add search query if present
-      if (currentSearchTerm) {
-        params.set('q', currentSearchTerm);
-      }
-      
-      // Add tag filter if not 'all'
-      if (currentTag !== 'all') {
-        params.set('tags', currentTag);
-      }
-      
+
+      if (currentSearchTerm) params.set("q", currentSearchTerm);
+      if (currentTag !== "all") params.set("tags", currentTag);
+
       const response = await fetch(`${API_BASE}?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch articles');
-      
+      if (!response.ok) throw new Error("Failed to fetch articles");
+
       const data = await response.json();
       allArticles = data.results || [];
       totalCount = data.count || 0;
-      
+
       displayArticles();
       updateResultsCount();
       updatePagination();
-      
     } catch (error) {
-      console.error('Error fetching articles:', error);
-      showNoResults();
+      console.error("Error fetching articles:", error);
+      if (articlesContainer) articlesContainer.innerHTML = "";
+      noResults?.classList.remove("hidden");
     }
   }
 
-  // Display articles from backend response
+  // Display articles
   function displayArticles() {
-    // Clear current articles
-    if (articlesContainer) {
-      articlesContainer.innerHTML = '';
-    }
-    
+    if (articlesContainer) articlesContainer.innerHTML = "";
+
     if (allArticles.length === 0) {
-      showNoResults();
+      noResults?.classList.remove("hidden");
+      pagination?.classList.add("hidden");
       return;
     }
-    
-    // Create article elements from backend data
+
+    noResults?.classList.add("hidden");
+    pagination?.classList.remove("hidden");
+
     allArticles.forEach((post, index) => {
       const article = createArticleElement(post, index);
       articlesContainer?.appendChild(article);
     });
-    
-    // Hide no results
-    noResults?.classList.add('hidden');
-    pagination?.classList.remove('hidden');
   }
-  
-  // Create article element from post data
+
+  // Create article element
   function createArticleElement(post: any, index: number) {
-    const article = document.createElement('article');
-    article.className = 'group relative';
-    article.style.animationDelay = `${index * 0.1}s`;
-    
+    const article = document.createElement("article");
+    article.className = "group relative flex flex-col h-full";
+    article.style.animation = `fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards ${index * 0.1}s`;
+    article.style.opacity = "0";
+
     const postTags = post.tags || [];
-    
+    const date = new Date(post.created_at).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+
     article.innerHTML = `
-      <!-- Gradient border effect -->
-      <div class="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-blue-500/20 to-purple-500/20 rounded-xl opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-500"></div>
-      
-      <a href="/blog/${post.slug}" class="relative block p-6 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-xl border border-gray-200/50 dark:border-gray-700/50 hover:border-purple-300 dark:hover:border-purple-400/50 hover:shadow-2xl hover:shadow-purple-500/10 dark:hover:shadow-purple-500/20 transition-all duration-300 hover:transform hover:-translate-y-2 hover:scale-105">
-        <div class="flex flex-col gap-6">
-          <!-- Image section with smart background and loading states -->
-          ${post.image_url ? `
-            <div class="relative aspect-video overflow-hidden rounded-xl md:block group-hover:shadow-lg transition-shadow duration-300 bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 dark:from-gray-700 dark:via-gray-800 dark:to-gray-700" data-image-container>
-              <!-- Loading placeholder -->
-              <div class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/30 to-blue-900/30 animate-pulse" data-image-placeholder>
-                <div class="text-center">
-                  <div class="w-12 h-12 mx-auto mb-3 rounded-lg bg-gradient-to-br from-purple-200 to-blue-200 dark:from-purple-800 to-blue-800 flex items-center justify-center">
-                    <svg class="w-6 h-6 text-purple-600 dark:text-purple-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  <div class="text-sm text-gray-600 dark:text-gray-400 font-medium">Loading image...</div>
-                </div>
-              </div>
-              
-              <!-- Hover overlay -->
-              <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
-              
-              <!-- Main image -->
-              <img 
-                src="${post.image_url}" 
-                alt="${post.title}"
-                class="w-full h-full object-contain opacity-0 transition-all duration-500 group-hover:scale-105"
-                loading="lazy"
-                data-smart-image
-                crossorigin="anonymous"
-                onload="handleImageLoad(this)"
-                onerror="handleImageError(this)"
-              />
-              
-              <!-- Decorative corner accent -->
-              <div class="absolute top-3 right-3 w-6 h-6 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full opacity-0 group-hover:opacity-80 transition-opacity duration-300 z-20"></div>
+      <a href="/blog/${post.slug}" class="relative flex flex-col h-full bg-white dark:bg-[#131B2E] border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-2 group-hover:border-purple-500/20 dark:group-hover:border-purple-500/20">
+        <!-- Image Container -->
+        <div class="relative aspect-[16/9] overflow-hidden bg-gray-100 dark:bg-gray-800">
+          ${
+            post.image_url
+              ? `
+            <img 
+              src="${post.image_url}" 
+              alt="${post.title}"
+              class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              loading="lazy"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-[#131B2E]/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          `
+              : `
+            <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-500/5 to-blue-500/5">
+              <span class="text-4xl filter grayscale group-hover:grayscale-0 transition-all duration-500">📝</span>
             </div>
-          ` : `
-            <div class="aspect-video bg-gradient-to-br from-purple-500/20 via-blue-500/20 to-indigo-500/20 relative overflow-hidden rounded-xl hidden md:block border border-purple-200/30 dark:border-purple-400/30">
-              <div class="absolute inset-0 bg-gradient-to-t from-black/30 via-black/10 to-transparent"></div>
-              <div class="absolute inset-0 flex items-center justify-center p-6">
-                <div class="text-center">
-                  <div class="text-4xl mb-3 opacity-60">📝</div>
-                  <h3 class="text-lg font-bold text-gray-800 dark:text-gray-200 mb-3 line-clamp-2">${post.title}</h3>
-                  <div class="flex flex-wrap gap-2 justify-center">
-                    ${postTags.slice(0, 2).map(tag => `
-                      <span class="px-3 py-1 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-700 dark:text-gray-300 text-xs font-medium rounded-full border border-gray-200/50 dark:border-gray-600/50">
-                        ${tag}
-                      </span>
-                    `).join('')}
-                  </div>
-                </div>
-              </div>
-            </div>
-          `}
+          `
+          }
           
-          <!-- Content section -->
-          <div class="flex-1">
-            <!-- Tags with gradient backgrounds -->
-            <div class="flex flex-wrap gap-2 mb-4">
-              ${postTags.slice(0, 3).map((tag, tagIndex) => {
-                const gradients = [
-                  'from-purple-100 to-blue-100 border-purple-300 dark:from-purple-900/30 dark:to-blue-900/30 dark:border-purple-400/50 text-purple-800 dark:text-purple-300',
-                  'from-blue-100 to-indigo-100 border-blue-300 dark:from-blue-900/30 dark:to-indigo-900/30 dark:border-blue-400/50 text-blue-800 dark:text-blue-300',
-                  'from-indigo-100 to-purple-100 border-indigo-300 dark:from-indigo-900/30 dark:to-purple-900/30 dark:border-indigo-400/50 text-indigo-800 dark:text-indigo-300'
-                ];
-                return `
-                  <span class="px-3 py-1.5 bg-gradient-to-r ${gradients[tagIndex % gradients.length]} border rounded-full text-xs font-semibold hover:scale-105 transition-transform duration-200">
-                    ${tag}
-                  </span>
-                `;
-              }).join('')}
+          <!-- Category Badge -->
+          ${
+            postTags[0]
+              ? `
+            <div class="absolute top-4 left-4 z-10">
+              <span class="px-3 py-1.5 bg-white/90 dark:bg-[#0B1120]/90 backdrop-blur-md text-xs font-bold text-purple-600 dark:text-purple-400 rounded-lg shadow-lg border border-white/20 dark:border-white/10 tracking-wide uppercase">
+                ${postTags[0]}
+              </span>
             </div>
-            
-            <!-- Title with enhanced styling -->
-            <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300 line-clamp-2 leading-tight">
-              ${post.title}
-            </h3>
-            
-            <!-- Description -->
-            <p class="text-gray-600 dark:text-gray-400 text-base mb-4 line-clamp-3 leading-relaxed">
-              ${post.description}
-            </p>
-            
-            <!-- Metadata with enhanced styling -->
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-500">
-                <div class="flex items-center gap-1">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                  </svg>
-                  <span class="font-medium">${new Date(post.created_at).toLocaleDateString('en-US', { 
-                    month: 'short', 
-                    day: 'numeric' 
-                  })}</span>
-                </div>
-                <span class="text-purple-400 dark:text-purple-500">•</span>
-                <div class="flex items-center gap-1">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>
-                  <span class="font-medium">5 min read</span>
-                </div>
+          `
+              : ""
+          }
+        </div>
+
+        <!-- Content -->
+        <div class="flex-1 p-6 flex flex-col">
+          <div class="flex items-center gap-3 text-xs font-medium text-gray-500 dark:text-gray-400 mb-4">
+            <span class="flex items-center gap-1.5 bg-gray-50 dark:bg-white/5 px-2.5 py-1 rounded-md">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              ${date}
+            </span>
+            <span class="flex items-center gap-1.5 bg-gray-50 dark:bg-white/5 px-2.5 py-1 rounded-md">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              ${post.readingTime || "5 min read"}
+            </span>
+          </div>
+
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 leading-tight group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+            ${post.title}
+          </h3>
+
+          <p class="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 mb-6 flex-1 leading-relaxed">
+            ${post.description}
+          </p>
+
+          <div class="flex items-center justify-between pt-5 border-t border-gray-100 dark:border-gray-800 mt-auto">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-xs text-white font-bold shadow-md">
+                ${post.author?.name?.charAt(0) || "T"}
               </div>
-              
-              <!-- Read more indicator -->
-              <div class="flex items-center gap-2 text-sm font-semibold text-purple-600 dark:text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <span>Read more</span>
-                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-                </svg>
-              </div>
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                ${post.author?.name || "TakoVibe Team"}
+              </span>
             </div>
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 group-hover:bg-purple-600 group-hover:text-white dark:group-hover:bg-purple-500 dark:group-hover:text-white transition-all duration-300">
+              <svg class="w-4 h-4 transform group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </span>
           </div>
         </div>
       </a>
     `;
-    
+
     return article;
   }
-  
-  // Smart image loading with color extraction
-  (window as any).handleImageLoad = function(img: HTMLImageElement) {
-    try {
-      // Extract dominant colors from image
-      extractImageColors(img, (colors) => {
-        const container = img.closest('[data-image-container]') as HTMLElement;
-        const placeholder = container?.querySelector('[data-image-placeholder]') as HTMLElement;
-        
-        if (container && colors.length > 0) {
-          // Create gradient background from extracted colors
-          const gradient = createSmartGradient(colors);
-          container.style.background = gradient;
-        }
-        
-        // Hide placeholder and show image
-        if (placeholder) {
-          placeholder.style.opacity = '0';
-          setTimeout(() => {
-            placeholder.style.display = 'none';
-          }, 300);
-        }
-        
-        // Show image with fade-in effect
-        img.style.opacity = '1';
-      });
-    } catch (error) {
-      const container = img.closest('[data-image-container]') as HTMLElement;
-      const placeholder = container?.querySelector('[data-image-placeholder]') as HTMLElement;
-      
-      if (placeholder) {
-        placeholder.style.display = 'none';
-      }
-      img.style.opacity = '1';
-    }
-  };
-  
-  (window as any).handleImageError = function(img: HTMLImageElement) {
-    const container = img.closest('[data-image-container]') as HTMLElement;
-    const placeholder = container?.querySelector('[data-image-placeholder]') as HTMLElement;
-    
-    if (placeholder) {
-      // Update placeholder to show error state
-      placeholder.innerHTML = `
-        <div class="text-center">
-          <div class="w-12 h-12 mx-auto mb-3 rounded-lg bg-gradient-to-br from-red-200 to-orange-200 dark:from-red-800 to-orange-800 flex items-center justify-center">
-            <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
-          </div>
-          <div class="text-sm text-gray-600 dark:text-gray-400 font-medium">Image unavailable</div>
-        </div>
-      `;
-      placeholder.classList.remove('animate-pulse');
-    }
-    
-    // Hide the failed image
-    img.style.display = 'none';
-  };
-  
-  // Extract dominant colors from image
-  function extractImageColors(img: HTMLImageElement, callback: (colors: string[]) => void) {
-    try {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
-      if (!ctx) {
-        callback([]);
-        return;
-      }
-      
-      // Set small canvas size for performance
-      canvas.width = 100;
-      canvas.height = 100;
-      
-      // Draw image to canvas
-      ctx.drawImage(img, 0, 0, 100, 100);
-      
-      // Get image data
-      const imageData = ctx.getImageData(0, 0, 100, 100);
-      const data = imageData.data;
-      
-      // Extract colors (sample every 10th pixel for performance)
-      const colorCounts: { [key: string]: number } = {};
-      
-      for (let i = 0; i < data.length; i += 40) { // Sample every 10th pixel (4 bytes per pixel)
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
-        const alpha = data[i + 3];
-        
-        // Skip transparent or very light/dark pixels
-        if (alpha < 128 || (r + g + b) < 50 || (r + g + b) > 650) continue;
-        
-        // Group similar colors
-        const colorKey = `${Math.floor(r/30)*30},${Math.floor(g/30)*30},${Math.floor(b/30)*30}`;
-        colorCounts[colorKey] = (colorCounts[colorKey] || 0) + 1;
-      }
-      
-      // Get top 3 most frequent colors
-      const sortedColors = Object.entries(colorCounts)
-        .sort(([,a], [,b]) => b - a)
-        .slice(0, 3)
-        .map(([color]) => `rgb(${color})`);
-      
-      callback(sortedColors);
-    } catch (error) {
-      console.log('Color extraction error:', error);
-      callback([]);
-    }
-  }
-  
-  // Create smart gradient from extracted colors
-  function createSmartGradient(colors: string[]): string {
-    if (colors.length === 0) {
-      return 'linear-gradient(135deg, #f3f4f6, #e5e7eb)';
-    }
-    
-    if (colors.length === 1) {
-      // Single color - create tonal variations
-      const baseColor = colors[0];
-      return `linear-gradient(135deg, ${baseColor}, ${adjustColorBrightness(baseColor, -20)}, ${adjustColorBrightness(baseColor, 20)})`;
-    }
-    
-    if (colors.length === 2) {
-      return `linear-gradient(135deg, ${colors[0]}, ${colors[1]})`;
-    }
-    
-    // Multiple colors
-    return `linear-gradient(135deg, ${colors[0]}, ${colors[1]}, ${colors[2]})`;
-  }
-  
-  // Adjust color brightness
-  function adjustColorBrightness(color: string, percent: number): string {
-    const rgb = color.match(/\d+/g);
-    if (!rgb) return color;
-    
-    const r = Math.max(0, Math.min(255, parseInt(rgb[0]) + percent));
-    const g = Math.max(0, Math.min(255, parseInt(rgb[1]) + percent));
-    const b = Math.max(0, Math.min(255, parseInt(rgb[2]) + percent));
-    
-    return `rgb(${r}, ${g}, ${b})`;
-  }
-  
-  // Show no results message
-  function showNoResults() {
-    noResults?.classList.remove('hidden');
-    pagination?.classList.add('hidden');
-  }
-  
-  // Update results count
+
+  // Update results count text
   function updateResultsCount() {
     if (resultsCount) {
-      resultsCount.textContent = `Showing ${totalCount} article${totalCount === 1 ? '' : 's'}`;
-    }
-    
-    // Update the "All Articles" button count
-    const allButton = document.querySelector('[data-tag="all"] .tag-count');
-    if (allButton && currentTag === 'all') {
-      allButton.textContent = totalCount.toString();
+      resultsCount.textContent = `Showing ${allArticles.length} of ${totalCount} articles`;
     }
   }
 
-  // Search functionality using backend API
-  async function performSearch(e: Event) {
-    const searchTerm = (e.target as HTMLInputElement)?.value || '';
-    if (currentSearchTerm !== searchTerm) {
-      currentSearchTerm = searchTerm;
-      currentPage = 1; // Reset to first page on new search
-      await fetchAndDisplayArticles();
-    }
-  }
-
-  // Tag filtering using backend API
-  async function filterByTag(tag: string) {
-    if (currentTag !== tag) {
-      // Update active tag button
-      document.querySelectorAll('.tag-filter').forEach(btn => {
-        btn.classList.remove('active');
-      });
-      document.querySelector(`[data-tag="${tag}"]`)?.classList.add('active');
-      
-      currentTag = tag;
-      currentPage = 1; // Reset to first page on new filter
-      
-      // Show/hide clear filters button
-      const searchTerm = searchInput?.value || '';
-      if (tag !== 'all' || searchTerm) {
-        clearFilters?.classList.remove('hidden');
-      } else {
-        clearFilters?.classList.add('hidden');
-      }
-      
-      await fetchAndDisplayArticles();
-    }
-  }
-
-  // Pagination
+  // Update pagination
   function updatePagination() {
-    const totalPages = Math.max(1, Math.ceil(totalCount / currentArticlesPerPage));
-    
-    if (!pagination || totalPages <= 1) {
-      if (pagination) pagination.innerHTML = '';
-      return;
-    }
+    if (!pagination) return;
 
-    let paginationHTML = '';
+    const totalPages = Math.ceil(totalCount / currentArticlesPerPage);
+    pagination.innerHTML = "";
+
+    if (totalPages <= 1) return;
+
+    // Container for pagination
+    const nav = document.createElement("nav");
+    nav.className =
+      "inline-flex items-center p-1.5 bg-white dark:bg-[#131B2E] border border-gray-200 dark:border-gray-700/50 rounded-2xl shadow-lg shadow-gray-200/50 dark:shadow-black/20";
 
     // Previous button
-    paginationHTML += `
-      <button 
-        onclick="changePage(${currentPage - 1})" 
-        ${currentPage === 1 ? 'disabled' : ''}
-        class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white transition-colors"
-      >
-        Previous
-      </button>
-    `;
+    const prevBtn = createPaginationButton(
+      `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>`,
+      currentPage > 1,
+      () => {
+        if (currentPage > 1) {
+          currentPage--;
+          fetchAndDisplayArticles();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      },
+    );
+    nav.appendChild(prevBtn);
 
     // Page numbers
-    const startPage = Math.max(1, currentPage - 2);
-    const endPage = Math.min(totalPages, currentPage + 2);
+    for (let i = 1; i <= totalPages; i++) {
+      if (
+        i === 1 ||
+        i === totalPages ||
+        (i >= currentPage - 1 && i <= currentPage + 1)
+      ) {
+        const pageBtn = createPaginationButton(i.toString(), true, () => {
+          currentPage = i;
+          updateURL();
+          fetchAndDisplayArticles();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
 
-    // First page button (if not in range)
-    if (startPage > 1) {
-      paginationHTML += `
-        <button 
-          onclick="changePage(1)" 
-          class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white transition-colors"
-        >
-          1
-        </button>
-      `;
-      if (startPage > 2) {
-        paginationHTML += `<span class="px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400">...</span>`;
+        if (i === currentPage) {
+          pageBtn.className =
+            "w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold bg-purple-600 text-white shadow-md shadow-purple-600/20 transition-all scale-105";
+        } else {
+          pageBtn.className =
+            "w-10 h-10 flex items-center justify-center rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-all";
+        }
+        nav.appendChild(pageBtn);
+      } else if (
+        (i === currentPage - 2 && currentPage > 3) ||
+        (i === currentPage + 2 && currentPage < totalPages - 2)
+      ) {
+        const dots = document.createElement("span");
+        dots.className =
+          "w-10 h-10 flex items-center justify-center text-gray-400";
+        dots.textContent = "...";
+        nav.appendChild(dots);
       }
-    }
-
-    // Page number buttons
-    for (let i = startPage; i <= endPage; i++) {
-      const isCurrentPage = i === currentPage;
-      paginationHTML += `
-        <button 
-          onclick="changePage(${i})" 
-          class="px-3 py-2 text-sm font-medium border transition-colors ${
-            isCurrentPage 
-              ? 'text-white bg-indigo-600 border-indigo-600 shadow-sm cursor-default dark:bg-indigo-500 dark:border-indigo-500' 
-              : 'text-gray-500 bg-white border-gray-300 hover:bg-gray-50 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white'
-          }"
-          ${isCurrentPage ? 'aria-current="page"' : ''}
-        >
-          ${i}
-        </button>
-      `;
-    }
-
-    // Last page button (if not in range)
-    if (endPage < totalPages) {
-      if (endPage < totalPages - 1) {
-        paginationHTML += `<span class="px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400">...</span>`;
-      }
-      paginationHTML += `
-        <button 
-          onclick="changePage(${totalPages})" 
-          class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white transition-colors"
-        >
-          ${totalPages}
-        </button>
-      `;
     }
 
     // Next button
-    paginationHTML += `
-      <button 
-        onclick="changePage(${currentPage + 1})" 
-        ${currentPage === totalPages ? 'disabled' : ''}
-        class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white transition-colors"
-      >
-        Next
-      </button>
-    `;
-
-    pagination.innerHTML = paginationHTML;
-  }
-
-  // Global function for pagination buttons
-  (window as any).changePage = async function(page: number) {
-    // Validate page number
-    const totalPages = Math.max(1, Math.ceil(totalCount / currentArticlesPerPage));
-    if (page < 1 || page > totalPages || page === currentPage) {
-      return;
-    }
-    
-    currentPage = page;
-    await fetchAndDisplayArticles();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  // Event listeners
-  searchInput?.addEventListener('input', performSearch);
-  
-  sortSelect?.addEventListener('change', async (e) => {
-    currentSort = (e.target as HTMLSelectElement).value;
-    await fetchAndDisplayArticles();
-  });
-
-  // Tag filter event listeners
-  document.querySelectorAll('.tag-filter').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const tag = (e.currentTarget as HTMLElement).dataset.tag || 'all';
-      filterByTag(tag);
-    });
-  });
-
-  // Clear filters
-  clearFilters?.addEventListener('click', async () => {
-    currentSearchTerm = '';
-    currentTag = 'all';
-    currentPage = 1;
-    if (searchInput) searchInput.value = '';
-    if (sortSelect) sortSelect.value = 'date-desc';
-    currentSort = 'date-desc';
-    
-    document.querySelectorAll('.tag-filter').forEach(btn => {
-      btn.classList.remove('active');
-    });
-    document.querySelector('[data-tag="all"]')?.classList.add('active');
-    
-    clearFilters.classList.add('hidden');
-    await fetchAndDisplayArticles();
-  });
-
-  // Keyboard shortcuts
-  document.addEventListener('keydown', (e) => {
-    if (e.ctrlKey || e.metaKey) {
-      switch (e.key) {
-        case 'k':
-          e.preventDefault();
-          searchInput?.focus();
-          break;
-        case '/':
-          e.preventDefault();
-          searchInput?.focus();
-          break;
-      }
-    }
-  });
-
-  // Initialize
-  document.addEventListener('DOMContentLoaded', async () => {
-    // Check for category or tag parameter in URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const categoryParam = urlParams.get('category');
-    const tagParam = urlParams.get('tag');
-    
-    if (categoryParam || tagParam) {
-      // Apply the category/tag filter
-      const selectedTag = categoryParam || tagParam;
-      currentTag = selectedTag;
-      
-      // Find the tag button (case-insensitive search)
-      const tagButton = Array.from(document.querySelectorAll('.tag-filter')).find(btn => {
-        const btnTag = (btn as HTMLElement).dataset.tag;
-        return btnTag && btnTag.toLowerCase() === selectedTag.toLowerCase();
-      });
-      
-      if (tagButton) {
-        // Remove active from all buttons first
-        document.querySelectorAll('.tag-filter').forEach(btn => btn.classList.remove('active'));
-        // Add active to the matched button
-        tagButton.classList.add('active');
-        // Update currentTag to match the actual button's data-tag value
-        currentTag = (tagButton as HTMLElement).dataset.tag || selectedTag;
-      }
-    }
-    
-    // Initial load
-    await fetchAndDisplayArticles();
-    
-    // Add window resize listener for responsive pagination
-    let resizeTimeout: ReturnType<typeof setTimeout>;
-    window.addEventListener('resize', () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(updatePageSize, 300);
-    });
-    
-    // Update URL when changing categories
-    document.querySelectorAll('.tag-filter').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const tag = (e.currentTarget as HTMLElement).dataset.tag || 'all';
-        if (tag === 'all') {
-          // Remove category parameter if selecting 'all'
-          const url = new URL(window.location.href);
-          url.searchParams.delete('category');
-          window.history.pushState({}, '', url);
-        } else {
-          // Update URL with new category
-          const url = new URL(window.location.href);
-          url.searchParams.set('category', tag);
-          window.history.pushState({}, '', url);
+    const nextBtn = createPaginationButton(
+      `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>`,
+      currentPage < totalPages,
+      () => {
+        if (currentPage < totalPages) {
+          currentPage++;
+          fetchAndDisplayArticles();
+          window.scrollTo({ top: 0, behavior: "smooth" });
         }
-      });
-    });
-    
-    // Add keyboard shortcut hint
-    if (searchInput) {
-      searchInput.placeholder = 'Search articles... (Ctrl+K)';
-    }
-
-    // Setup image placeholder functionality
-    setupImagePlaceholders();
-  });
-
-  // Image placeholder functionality
-  function setupImagePlaceholders() {
-    // Handle existing images
-    document.querySelectorAll('img').forEach(setupImageErrorHandling);
-    
-    // Setup mutation observer for dynamically added images
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === Node.ELEMENT_NODE) {
-            const element = node as Element;
-            const images = element.querySelectorAll ? element.querySelectorAll('img') : [];
-            images.forEach(setupImageErrorHandling);
-            if (element.tagName === 'IMG') {
-              setupImageErrorHandling(element as HTMLImageElement);
-            }
-          }
-        });
-      });
-    });
-    
-    observer.observe(document.body, { childList: true, subtree: true });
-  }
-
-  function setupImageErrorHandling(img: HTMLImageElement) {
-    if (img.dataset.placeholderSetup) return; // Already setup
-    
-    img.dataset.placeholderSetup = 'true';
-    img.dataset.loading = 'true';
-    
-    const handleLoad = () => {
-      img.dataset.loading = 'false';
-      img.dataset.loaded = 'true';
-    };
-    
-    const handleError = () => {
-      img.dataset.loading = 'false';
-      img.dataset.error = 'true';
-      
-      // Create placeholder
-      const placeholder = createImagePlaceholder(img);
-      img.parentNode?.insertBefore(placeholder, img);
-    };
-    
-    // Remove existing listeners to avoid duplicates
-    img.removeEventListener('load', handleLoad);
-    img.removeEventListener('error', handleError);
-    
-    // Add new listeners
-    img.addEventListener('load', handleLoad);
-    img.addEventListener('error', handleError);
-    
-    // Check if image is already loaded
-    if (img.complete) {
-      if (img.naturalWidth === 0) {
-        handleError();
-      } else {
-        handleLoad();
-      }
-    }
-  }
-
-  function createImagePlaceholder(originalImg: HTMLImageElement): HTMLElement {
-    const placeholder = document.createElement('div');
-    placeholder.className = `image-placeholder ${originalImg.className}`;
-    
-    // Copy dimensions and styles
-    const computedStyle = window.getComputedStyle(originalImg);
-    placeholder.style.width = originalImg.offsetWidth ? `${originalImg.offsetWidth}px` : computedStyle.width;
-    placeholder.style.height = originalImg.offsetHeight ? `${originalImg.offsetHeight}px` : computedStyle.height;
-    placeholder.style.aspectRatio = computedStyle.aspectRatio || 'auto';
-    
-    // Get random tech theme
-    const theme = getTechTheme();
-    
-    // Create placeholder content with particles
-    placeholder.innerHTML = `
-      <div class="tech-particles">
-        ${generateParticles()}
-      </div>
-      <div class="image-placeholder-content">
-        <div class="tech-icon-container">
-          ${theme.icon}
-        </div>
-        <div class="placeholder-title">${theme.title}</div>
-        <div class="placeholder-subtitle">${theme.subtitle}</div>
-      </div>
-    `;
-    
-    return placeholder;
-  }
-
-  function getTechTheme() {
-    const themes = [
-      {
-        title: "Code Loading...",
-        subtitle: "Compiling content",
-        icon: `<svg class="tech-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
-              </svg>`
       },
-      {
-        title: "AI Processing...",
-        subtitle: "Generating visuals",
-        icon: `<svg class="tech-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-              </svg>`
-      },
-      {
-        title: "Cloud Syncing...",
-        subtitle: "Fetching data",
-        icon: `<svg class="tech-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
-              </svg>`
-      },
-      {
-        title: "Neural Net...",
-        subtitle: "Computing pixels",
-        icon: `<svg class="tech-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-              </svg>`
-      }
-    ];
-    
-    return themes[Math.floor(Math.random() * themes.length)];
+    );
+    nav.appendChild(nextBtn);
+
+    pagination.appendChild(nav);
   }
 
-  function generateParticles(): string {
-    let particles = '';
-    for (let i = 0; i < 6; i++) {
-      const delay = Math.random() * 4;
-      const left = Math.random() * 100;
-      particles += `<div class="particle" style="left: ${left}%; animation-delay: ${delay}s;"></div>`;
+  function createPaginationButton(html, enabled, onClick) {
+    const btn = document.createElement("button");
+    btn.innerHTML = html;
+
+    if (enabled) {
+      btn.className =
+        "w-10 h-10 flex items-center justify-center rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-all";
+      btn.addEventListener("click", onClick);
+    } else {
+      btn.className =
+        "w-10 h-10 flex items-center justify-center rounded-xl text-gray-300 dark:text-gray-700 cursor-not-allowed";
     }
-    return particles;
+    return btn;
   }
+
+  // Initialize on load
+  init();
+
+  // Handle view transitions if enabled
+  document.addEventListener("astro:page-load", init);
 </script>
