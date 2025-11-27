@@ -15,23 +15,10 @@ export default defineConfig({
   // Enable hybrid mode for API endpoints while keeping static pages
   output: 'hybrid',
   adapter: node(
-    { mode: "standalone"}
+    { mode: "standalone" }
   ),
   build: {
-    inlineStylesheets: 'auto',
-  },
-  vite: {
-    // Remove console.log and development code in production
-    define: {
-      __DEV__: process.env.NODE_ENV === 'development',
-    },
-    esbuild: {
-      drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
-    },
-    build: {
-      cssMinify: false,           // skip LightningCSS (uses Rust)
-      minify: false,              // skip esbuild minification
-    },
+    inlineStylesheets: 'always',
   },
   integrations: [
     react(),
@@ -57,10 +44,10 @@ export default defineConfig({
     sitemap({
       filter: (page) => {
         // Only exclude auth and system pages
-        return !page.includes('/auth/') && 
-               !page.includes('/Auth/') && 
-               !page.includes('/_') && 
-               !page.includes('/admin/');
+        return !page.includes('/auth/') &&
+          !page.includes('/Auth/') &&
+          !page.includes('/_') &&
+          !page.includes('/admin/');
       },
       customPages: [
         'https://takovibe.com/blog/',
@@ -71,7 +58,7 @@ export default defineConfig({
         // Base configuration
         let priority = 0.7;
         let changefreq = 'weekly';
-        
+
         // Get the file's last modified date if it's a content file
         let lastmod = new Date();
         if (item.url.includes('/blog/')) {

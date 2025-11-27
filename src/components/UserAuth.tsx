@@ -9,7 +9,7 @@ interface User {
     email: string;
 }
 
-const Auth: React.FC = () => {
+const UserAuth: React.FC = () => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -162,4 +162,4 @@ const Auth: React.FC = () => {
     );
 };
 
-export default Auth;
+export default UserAuth;
