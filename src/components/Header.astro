@@ -1,6 +1,6 @@
 ---
 import Search from "./SearchBar.astro";
-import Auth from "./Auth.tsx";
+import UserAuth from "./UserAuth.tsx";
 import LiveIndicator from "./LiveIndicator.astro";
 
 // Get current path for active navigation
@@ -83,9 +83,7 @@ const navItems = [
       </div>
 
       <!-- Center: Navigation (Desktop) -->
-      <nav
-        class="hidden lg:flex items-center justify-center gap-1 absolute left-1/2 -translate-x-1/2"
-      >
+      <nav class="hidden lg:flex flex-1 items-center justify-center gap-1 px-4">
         {
           navItems.map((item) => {
             const isActive =
@@ -95,7 +93,7 @@ const navItems = [
             return (
               <a
                 href={item.href}
-                class={`px-5 py-2.5 rounded-full text-base font-medium transition-all duration-200 ${
+                class={`px-5 py-2.5 rounded-full text-base font-medium transition-all duration-200 whitespace-nowrap ${
                   isActive
                     ? "bg-purple-50 dark:bg-purple-900/10 text-purple-600 dark:text-purple-400"
                     : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/50"
@@ -111,14 +109,14 @@ const navItems = [
       <!-- Right: Search & Auth -->
       <div class="flex items-center gap-2 sm:gap-3 shrink-0">
         <!-- Desktop Search -->
-        <div class="hidden md:block w-64 xl:w-72">
+        <div class="hidden xl:block w-64">
           <Search variant="header" />
         </div>
 
         <!-- Mobile Search Toggle -->
         <button
           id="mobileSearchBtn"
-          class="md:hidden w-10 h-10 grid place-items-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors"
+          class="xl:hidden w-10 h-10 grid place-items-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors"
           aria-label="Open search"
         >
           <svg
@@ -140,7 +138,7 @@ const navItems = [
         </div>
 
         <div class="auth-wrapper" onclick="event.stopPropagation();">
-          <Auth client:idle />
+          <UserAuth client:idle />
         </div>
       </div>
     </div>
