@@ -1,6 +1,6 @@
 ---
 import Search from "./SearchBar.astro";
-import Auth from "./Auth.astro";
+import Auth from "./Auth.tsx";
 import LiveIndicator from "./LiveIndicator.astro";
 
 // Get current path for active navigation
@@ -140,7 +140,7 @@ const navItems = [
         </div>
 
         <div class="auth-wrapper" onclick="event.stopPropagation();">
-          <Auth />
+          <Auth client:idle />
         </div>
       </div>
     </div>
