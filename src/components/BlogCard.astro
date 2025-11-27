@@ -149,7 +149,7 @@ const formattedDate = new Date(date);
           <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
           
           <img 
-            src={image} 
+            src={image.includes('imagekit.io') ? `${image}?tr=w-600` : image} 
             alt={title}
             class="w-full h-full object-contain opacity-0 transition-all duration-500 group-hover:scale-105"
             loading="lazy"
