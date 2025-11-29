@@ -287,6 +287,16 @@ try {
                   class={`group relative overflow-hidden rounded-2xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 ${gridClass}`}
                   style={`animation-delay: ${index * 0.1}s`}
                 >
+                  <!-- Save Button -->
+                  <button
+                    class="save-btn absolute top-4 right-4 z-20 p-2 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-sm border border-gray-200 dark:border-gray-700 text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-all duration-300 hover:scale-110"
+                    data-blog-id={post.slug}
+                    aria-label="Save for later"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+                    </svg>
+                  </button>
                   {/* Featured article with image */}
                   {isFeatured && post.image_url ? (
                     <>

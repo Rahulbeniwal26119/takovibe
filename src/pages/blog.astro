@@ -350,6 +350,11 @@ const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
 <script>
   // API endpoints
   const API_BASE = "https://backend.takovibe.com/api/blogs/blogs/";
+  import {
+    saveBookmark,
+    removeBookmark,
+    checkBookmarkStatus,
+  } from "../utils/bookmarks";
 
   let currentPage = 1;
   const ARTICLES_PER_PAGE_MOBILE = 6;
@@ -541,6 +546,87 @@ const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
       const article = createArticleElement(post, index);
       articlesContainer?.appendChild(article);
     });
+
+    // Setup save buttons after rendering
+    setupSaveButtons();
+  }
+
+  // Setup save buttons logic
+  import { showToast } from "../utils/toast";
+
+  function setupSaveButtons() {
+    const saveBtns = document.querySelectorAll(".save-btn");
+
+    saveBtns.forEach(async (btn) => {
+      const blogId = btn.getAttribute("data-blog-id");
+      if (!blogId) return;
+
+      // Check initial status
+      const { isBookmarked, bookmarkId } = await checkBookmarkStatus(blogId);
+      updateSaveButtonState(btn, isBookmarked);
+      if (bookmarkId)
+        btn.setAttribute("data-bookmark-id", bookmarkId.toString());
+
+      btn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+          showToast("Please login to save articles for later.", "info");
+          return;
+        }
+
+        const currentIsBookmarked = btn.classList.contains("text-purple-600");
+        const currentBookmarkId = btn.getAttribute("data-bookmark-id");
+
+        // Optimistic UI update
+        updateSaveButtonState(btn, !currentIsBookmarked);
+
+        let success = false;
+        if (currentIsBookmarked && currentBookmarkId) {
+          success = await removeBookmark(parseInt(currentBookmarkId));
+          if (success) {
+            btn.removeAttribute("data-bookmark-id");
+            showToast("Article removed from saved list", "success");
+          }
+        } else {
+          success = await saveBookmark(blogId);
+          if (success) showToast("Article saved for later", "success");
+        }
+
+        if (!success) {
+          // Revert UI if failed
+          updateSaveButtonState(btn, currentIsBookmarked);
+          showToast("Failed to update bookmark. Please try again.", "error");
+        } else {
+          // Re-fetch to get ID
+          const { isBookmarked: newStatus, bookmarkId: newId } =
+            await checkBookmarkStatus(blogId);
+          if (newId) btn.setAttribute("data-bookmark-id", newId.toString());
+        }
+      });
+    });
+  }
+
+  function updateSaveButtonState(btn: Element, isSaved: boolean) {
+    if (isSaved) {
+      btn.classList.add("text-purple-600", "dark:text-purple-400");
+      btn.classList.remove("text-gray-400");
+      btn.innerHTML = `
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+        </svg>
+      `;
+    } else {
+      btn.classList.remove("text-purple-600", "dark:text-purple-400");
+      btn.classList.add("text-gray-400");
+      btn.innerHTML = `
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+        </svg>
+      `;
+    }
   }
 
   // Create article element
@@ -635,6 +721,17 @@ const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
           </div>
         </div>
       </a>
+
+      <!-- Save Button -->
+      <button
+        class="save-btn absolute top-4 right-4 z-20 p-2 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-sm border border-gray-200 dark:border-gray-700 text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-all duration-300 hover:scale-110"
+        data-blog-id="${post.slug}"
+        aria-label="Save for later"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+        </svg>
+      </button>
     `;
 
     return article;

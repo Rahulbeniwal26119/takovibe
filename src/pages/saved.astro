@@ -1,0 +1,362 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout
+    title="Saved Articles | TakoVibe"
+    description="Your collection of saved articles and tutorials."
+    author="Rahul Beniwal"
+>
+    <div class="min-h-screen bg-gray-50 dark:bg-[#0B1120]">
+        <!-- Hero Section -->
+        <section class="relative py-24 overflow-hidden">
+            <div
+                class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-100 via-gray-50 to-gray-50 dark:from-purple-900/20 dark:via-[#0B1120] dark:to-[#0B1120]"
+            >
+            </div>
+
+            <div class="relative z-10 max-w-7xl mx-auto px-6 text-center">
+                <div
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-white/50 dark:bg-white/5 backdrop-blur-md text-purple-700 dark:text-purple-300 rounded-full text-sm font-medium mb-8 border border-purple-200/50 dark:border-white/10 shadow-sm"
+                >
+                    <span class="text-base">🔖</span>
+                    <span>Your Library</span>
+                </div>
+
+                <h1
+                    class="text-4xl md:text-5xl font-bold mb-6 text-gray-900 dark:text-white"
+                >
+                    Saved <span
+                        class="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent"
+                        >Articles</span
+                    >
+                </h1>
+
+                <!-- Search and Sort -->
+                <div
+                    class="max-w-2xl mx-auto mt-12 flex flex-col sm:flex-row gap-4"
+                >
+                    <div class="relative flex-1">
+                        <input
+                            type="text"
+                            id="search-input"
+                            placeholder="Search your saved articles..."
+                            class="w-full pl-12 pr-4 py-3 bg-white dark:bg-[#131B2E] border border-gray-200 dark:border-gray-700/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all shadow-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                        />
+                        <svg
+                            class="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                            ></path>
+                        </svg>
+                    </div>
+
+                    <select
+                        id="sort-select"
+                        class="px-4 py-3 bg-white dark:bg-[#131B2E] border border-gray-200 dark:border-gray-700/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 text-gray-900 dark:text-white cursor-pointer"
+                    >
+                        <option value="date-desc">Newest Saved</option>
+                        <option value="date-asc">Oldest Saved</option>
+                        <option value="title-asc">Title (A-Z)</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content -->
+        <div class="max-w-7xl mx-auto px-6 pb-32">
+            <!-- Loading State -->
+            <div
+                id="loading-state"
+                class="flex flex-col items-center justify-center py-20"
+            >
+                <div
+                    class="w-12 h-12 border-4 border-purple-200 dark:border-purple-900 rounded-full border-t-purple-600 animate-spin mb-4"
+                >
+                </div>
+                <p class="text-gray-500 dark:text-gray-400">
+                    Loading your library...
+                </p>
+            </div>
+
+            <!-- Empty State (Hidden by default) -->
+            <div id="empty-state" class="hidden text-center py-20">
+                <div
+                    class="w-20 h-20 mx-auto mb-6 bg-gray-100 dark:bg-gray-800/50 rounded-full flex items-center justify-center"
+                >
+                    <svg
+                        class="w-10 h-10 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                        ></path>
+                    </svg>
+                </div>
+                <h3
+                    class="text-xl font-bold text-gray-900 dark:text-white mb-2"
+                >
+                    No saved articles yet
+                </h3>
+                <p class="text-gray-500 dark:text-gray-400 mb-8">
+                    Start reading and bookmark articles to see them here.
+                </p>
+                <a
+                    href="/blog"
+                    class="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl transition-colors"
+                >
+                    Browse Articles
+                </a>
+            </div>
+
+            <!-- Not Logged In State (Hidden by default) -->
+            <div id="login-state" class="hidden text-center py-20">
+                <h3
+                    class="text-xl font-bold text-gray-900 dark:text-white mb-2"
+                >
+                    Please Log In
+                </h3>
+                <p class="text-gray-500 dark:text-gray-400 mb-8">
+                    You need to be logged in to view your saved articles.
+                </p>
+                <a
+                    href="/auth/signin"
+                    class="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl transition-colors"
+                >
+                    Log In
+                </a>
+            </div>
+
+            <!-- Articles Grid -->
+            <div
+                id="articles-grid"
+                class="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+            >
+                <!-- Articles injected here -->
+            </div>
+        </div>
+    </div>
+</Layout>
+
+<script>
+    import { fetchBookmarks, removeBookmark } from "../utils/bookmarks";
+    import { showToast } from "../utils/toast";
+
+    let bookmarks = [];
+    let filteredBookmarks = [];
+
+    const container = document.getElementById("articles-grid");
+    const loadingState = document.getElementById("loading-state");
+    const emptyState = document.getElementById("empty-state");
+    const loginState = document.getElementById("login-state");
+    const searchInput = document.getElementById(
+        "search-input",
+    ) as HTMLInputElement;
+    const sortSelect = document.getElementById(
+        "sort-select",
+    ) as HTMLSelectElement;
+
+    async function init() {
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+            loadingState.classList.add("hidden");
+            loginState.classList.remove("hidden");
+            return;
+        }
+
+        try {
+            bookmarks = await fetchBookmarks();
+            filteredBookmarks = [...bookmarks];
+            renderBookmarks();
+        } catch (error) {
+            console.error("Failed to load bookmarks:", error);
+            showToast("Failed to load your saved articles", "error");
+        } finally {
+            loadingState.classList.add("hidden");
+        }
+    }
+
+    function renderBookmarks() {
+        if (!container) return;
+        container.innerHTML = "";
+
+        if (filteredBookmarks.length === 0) {
+            if (bookmarks.length === 0) {
+                emptyState.classList.remove("hidden");
+            } else {
+                container.innerHTML = `
+            <div class="col-span-full text-center py-12 text-gray-500 dark:text-gray-400">
+                No matches found for your search.
+            </div>
+          `;
+            }
+            return;
+        }
+
+        emptyState.classList.add("hidden");
+
+        filteredBookmarks.forEach((bookmark, index) => {
+            const post = bookmark.blog;
+            const article = document.createElement("article");
+            article.className = "group relative flex flex-col h-full";
+            article.style.animation = `fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards ${index * 0.1}s`;
+            article.style.opacity = "0";
+
+            const date = new Date(post.created_at).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+            });
+
+            article.innerHTML = `
+        <a href="/blog/${post.slug}" class="relative flex flex-col h-full bg-white dark:bg-[#131B2E] border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-2 group-hover:border-purple-500/20 dark:group-hover:border-purple-500/20">
+          <div class="relative aspect-[16/9] overflow-hidden bg-gray-100 dark:bg-gray-800">
+            ${
+                post.image_url
+                    ? `
+              <img src="${post.image_url}" alt="${post.title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
+              <div class="absolute inset-0 bg-gradient-to-t from-[#131B2E]/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            `
+                    : `
+              <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-500/5 to-blue-500/5">
+                <span class="text-4xl filter grayscale group-hover:grayscale-0 transition-all duration-500">📝</span>
+              </div>
+            `
+            }
+          </div>
+
+          <div class="flex-1 p-6 flex flex-col">
+            <div class="flex items-center gap-3 text-xs font-medium text-gray-500 dark:text-gray-400 mb-4">
+              <span class="flex items-center gap-1.5 bg-gray-50 dark:bg-white/5 px-2.5 py-1 rounded-md">
+                ${date}
+              </span>
+              <span class="flex items-center gap-1.5 bg-gray-50 dark:bg-white/5 px-2.5 py-1 rounded-md">
+                ${post.readingTime || "5 min read"}
+              </span>
+            </div>
+
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 leading-tight group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+              ${post.title}
+            </h3>
+
+            <p class="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 mb-6 flex-1 leading-relaxed">
+              ${post.description}
+            </p>
+
+            <div class="flex items-center justify-between pt-5 border-t border-gray-100 dark:border-gray-800 mt-auto">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-xs text-white font-bold shadow-md">
+                  ${post.author?.name?.charAt(0) || "T"}
+                </div>
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  ${post.author?.name || "TakoVibe Team"}
+                </span>
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <button
+          class="unsave-btn absolute top-4 right-4 z-20 p-2 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-sm border border-gray-200 dark:border-gray-700 text-purple-600 dark:text-purple-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-all duration-300 hover:scale-110"
+          data-bookmark-id="${bookmark.id}"
+          title="Remove from saved"
+        >
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+          </svg>
+        </button>
+      `;
+
+            container.appendChild(article);
+        });
+
+        setupUnsaveButtons();
+    }
+
+    function setupUnsaveButtons() {
+        document.querySelectorAll(".unsave-btn").forEach((btn) => {
+            btn.addEventListener("click", async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (!confirm("Remove this article from your saved list?"))
+                    return;
+
+                const id = btn.getAttribute("data-bookmark-id");
+                if (!id) return;
+
+                const success = await removeBookmark(parseInt(id));
+                if (success) {
+                    // Remove from local state and re-render
+                    bookmarks = bookmarks.filter((b) => b.id !== parseInt(id));
+                    filterAndSort(); // Re-apply filters
+                    showToast("Article removed from saved list", "success");
+                } else {
+                    showToast("Failed to remove bookmark.", "error");
+                }
+            });
+        });
+    }
+
+    function filterAndSort() {
+        const term = searchInput.value.toLowerCase();
+        const sort = sortSelect.value;
+
+        filteredBookmarks = bookmarks.filter(
+            (b) =>
+                b.blog.title.toLowerCase().includes(term) ||
+                b.blog.description.toLowerCase().includes(term),
+        );
+
+        filteredBookmarks.sort((a, b) => {
+            if (sort === "date-desc") {
+                return (
+                    new Date(b.created_at).getTime() -
+                    new Date(a.created_at).getTime()
+                );
+            } else if (sort === "date-asc") {
+                return (
+                    new Date(a.created_at).getTime() -
+                    new Date(b.created_at).getTime()
+                );
+            } else if (sort === "title-asc") {
+                return a.blog.title.localeCompare(b.blog.title);
+            }
+            return 0;
+        });
+
+        renderBookmarks();
+    }
+
+    searchInput.addEventListener("input", filterAndSort);
+    sortSelect.addEventListener("change", filterAndSort);
+
+    // Initialize
+    init();
+    document.addEventListener("astro:page-load", init);
+</script>
+
+<style>
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
