@@ -1,7 +1,6 @@
 ---
 import Search from "./SearchBar.astro";
 import UserAuth from "./UserAuth.tsx";
-import LiveIndicator from "./LiveIndicator.astro";
 
 // Get current path for active navigation
 const currentPath = Astro.url.pathname;
@@ -73,14 +72,6 @@ const navItems = [
             TakoVibe
           </span>
         </a>
-
-        <div class="hidden xl:block ml-2">
-          <LiveIndicator
-            seriesName="Application Security"
-            message="Live"
-            href="/series/application-security/"
-          />
-        </div>
       </div>
 
       <!-- Center: Navigation (Desktop) -->

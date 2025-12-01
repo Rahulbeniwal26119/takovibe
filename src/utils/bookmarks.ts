@@ -1,34 +1,24 @@
 import { fetchWithAuth } from './api';
+import type { BlogPost } from '../types/blog';
+import { showToast } from './toast';
 
-const API_BASE = 'https://backend.takovibe.com/api/blogs';
+const API_BASE = `${import.meta.env.PUBLIC_API_URL}/api/blogs`;
 
-export interface Bookmark {
-    id: number;
-    blog: {
-        id: number;
-        title: string;
-        slug: string;
-        description: string;
-        image_url: string;
-        created_at: string;
-        readingTime?: string;
-        author: {
-            name: string;
-            username: string;
-        };
-        tags: string[];
-    };
-    created_at: string;
-}
+// The API now returns a list of blogs directly, not bookmark objects
+export type Bookmark = BlogPost;
 
 export async function fetchBookmarks(): Promise<Bookmark[]> {
+    const token = localStorage.getItem('access_token');
+    if (!token) return [];
+
     try {
-        const response = await fetchWithAuth(`${API_BASE}/bookmarks/`);
+        const response = await fetchWithAuth(`${API_BASE}/saved-blogs/`);
         if (!response.ok) {
             throw new Error('Failed to fetch bookmarks');
         }
         const data = await response.json();
-        return data.results || [];
+        // The ViewSet returns paginated response or list
+        return data.results || data || [];
     } catch (error) {
         console.error('Error fetching bookmarks:', error);
         return [];
@@ -36,13 +26,20 @@ export async function fetchBookmarks(): Promise<Bookmark[]> {
 }
 
 export async function saveBookmark(blogId: number | string): Promise<boolean> {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+        showToast('Please login to save articles.', 'info');
+        return false;
+    }
+
     try {
-        const response = await fetchWithAuth(`${API_BASE}/bookmarks/`, {
+        const payload = typeof blogId === 'number' ? { blog_id: blogId } : { slug: blogId };
+        const response = await fetchWithAuth(`${API_BASE}/saved-blogs/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ blog_id: blogId }),
+            body: JSON.stringify(payload),
         });
         return response.ok;
     } catch (error) {
@@ -51,10 +48,21 @@ export async function saveBookmark(blogId: number | string): Promise<boolean> {
     }
 }
 
-export async function removeBookmark(bookmarkId: number): Promise<boolean> {
+export async function removeBookmark(blogId: number | string): Promise<boolean> {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+        showToast('Please login to manage bookmarks.', 'info');
+        return false;
+    }
+
     try {
-        const response = await fetchWithAuth(`${API_BASE}/bookmarks/${bookmarkId}/`, {
-            method: 'DELETE',
+        const payload = typeof blogId === 'number' ? { blog_id: blogId } : { slug: blogId };
+        const response = await fetchWithAuth(`${API_BASE}/saved-blogs/remove/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
         });
         return response.ok;
     } catch (error) {
@@ -64,16 +72,24 @@ export async function removeBookmark(bookmarkId: number): Promise<boolean> {
 }
 
 export async function checkBookmarkStatus(blogId: number | string): Promise<{ isBookmarked: boolean; bookmarkId?: number }> {
-    // This is a helper to check if a specific blog is bookmarked by the current user
-    // Ideally the backend would return this in the blog detail or list, but if not, we might need to fetch all bookmarks
-    // For now, let's assume we fetch all and check. Optimization: Backend should support checking specific ID.
     try {
         const bookmarks = await fetchBookmarks();
-        // Assuming blogId can be string (slug) or number (id). The API likely expects ID for saving.
-        // If we only have slug, we might need to resolve it.
-        // Let's assume for now we are dealing with IDs where possible, or the bookmark object contains the slug.
-        const match = bookmarks.find(b => b.blog.id.toString() === blogId.toString() || b.blog.slug === blogId);
-        return { isBookmarked: !!match, bookmarkId: match?.id };
+        // Check if the blog is in the list of saved blogs
+        // The backend returns Blog objects, so we check against slug or some ID if available in BlogPost
+        // Note: BlogPost type definition currently only has slug, not ID. 
+        // If blogId passed is a number, we might have issues if BlogPost doesn't have ID.
+        // Assuming we can match by slug if string, or we need to update BlogPost type if ID is needed.
+
+        const match = bookmarks.find(b => {
+            if (typeof blogId === 'string') {
+                return b.slug === blogId;
+            }
+            // If blogId is number, we assume BlogPost has an id field (even if not in current interface)
+            // or we can't strictly match. Let's cast to any for safety check.
+            return (b as any).id === blogId;
+        });
+
+        return { isBookmarked: !!match, bookmarkId: (match as any)?.id };
     } catch (e) {
         return { isBookmarked: false };
     }

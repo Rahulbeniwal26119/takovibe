@@ -89,14 +89,7 @@ const UserAuth: React.FC = () => {
         <div className="auth-container flex items-center gap-4">
             {user ? (
                 <div className="flex items-center gap-3">
-                    <a
-                        href="/saved"
-                        className="hidden sm:block text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-                        aria-label="Saved Articles"
-                    >
-                        Saved
-                    </a>
-                    <div className="hidden sm:block w-px h-4 bg-gray-200 dark:bg-gray-700"></div>
+
                     <img
                         src={user.image || getInitialsAvatar(user.name)}
                         alt={user.name}

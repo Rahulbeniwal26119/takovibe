@@ -1,0 +1,105 @@
+---
+interface Props {
+    message?: string;
+    href?: string;
+    badge?: string;
+}
+
+const {
+    message = "Application Security Series is now Live!",
+    href = "/series/application-security/",
+    badge = "LIVE",
+} = Astro.props;
+---
+
+<div
+    id="announcement-banner"
+    class="relative z-[80] bg-gradient-to-r from-purple-900 via-indigo-900 to-purple-900 text-white overflow-hidden transition-all duration-300"
+>
+    <div class="absolute inset-0 bg-[url('/images/grid.svg')] opacity-20"></div>
+    <div
+        class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer"
+    >
+    </div>
+
+    <div
+        class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 relative flex items-center justify-center gap-3 text-sm"
+    >
+        <a
+            href={href}
+            class="flex items-center gap-3 group hover:opacity-90 transition-opacity"
+        >
+            <span class="flex h-2 w-2 relative">
+                <span
+                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"
+                ></span>
+                <span
+                    class="relative inline-flex rounded-full h-2 w-2 bg-red-500"
+                ></span>
+            </span>
+
+            <span
+                class="px-2 py-0.5 rounded text-[10px] font-bold bg-white/10 border border-white/20 tracking-wider"
+            >
+                {badge}
+            </span>
+
+            <span class="font-medium tracking-wide">
+                {message}
+                <span
+                    class="inline-block ml-1 transition-transform group-hover:translate-x-1"
+                    >→</span
+                >
+            </span>
+        </a>
+
+        <button
+            id="close-banner"
+            class="absolute right-2 sm:right-4 p-1 rounded-full hover:bg-white/10 transition-colors"
+            aria-label="Close banner"
+        >
+            <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    </div>
+</div>
+
+<script>
+    const banner = document.getElementById("announcement-banner");
+    const closeBtn = document.getElementById("close-banner");
+
+    // Check if previously closed
+    if (sessionStorage.getItem("banner-closed") === "true") {
+        banner?.remove();
+    }
+
+    closeBtn?.addEventListener("click", () => {
+        banner?.classList.add("-translate-y-full", "opacity-0");
+        setTimeout(() => banner?.remove(), 300);
+        sessionStorage.setItem("banner-closed", "true");
+    });
+</script>
+
+<style>
+    @keyframes shimmer {
+        0% {
+            transform: translateX(-100%);
+        }
+        100% {
+            transform: translateX(100%);
+        }
+    }
+    .animate-shimmer {
+        animation: shimmer 3s infinite linear;
+    }
+</style>

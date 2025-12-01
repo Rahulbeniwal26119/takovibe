@@ -34,9 +34,10 @@ import Layout from "../layouts/Layout.astro";
 
                 <!-- Search and Sort -->
                 <div
-                    class="max-w-2xl mx-auto mt-12 flex flex-col sm:flex-row gap-4"
+                    class="max-w-2xl mx-auto mt-12 flex flex-col sm:flex-row gap-4 justify-end"
                 >
-                    <div class="relative flex-1">
+                    <!-- Search hidden for now -->
+                    <!-- <div class="relative flex-1">
                         <input
                             type="text"
                             id="search-input"
@@ -56,16 +57,16 @@ import Layout from "../layouts/Layout.astro";
                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                             ></path>
                         </svg>
-                    </div>
+                    </div> -->
 
-                    <select
+                    <!-- <select
                         id="sort-select"
                         class="px-4 py-3 bg-white dark:bg-[#131B2E] border border-gray-200 dark:border-gray-700/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 text-gray-900 dark:text-white cursor-pointer"
                     >
                         <option value="date-desc">Newest Saved</option>
                         <option value="date-asc">Oldest Saved</option>
                         <option value="title-asc">Title (A-Z)</option>
-                    </select>
+                    </select> -->
                 </div>
             </div>
         </section>
@@ -132,7 +133,7 @@ import Layout from "../layouts/Layout.astro";
                     You need to be logged in to view your saved articles.
                 </p>
                 <a
-                    href="/auth/signin"
+                    href="/login"
                     class="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl transition-colors"
                 >
                     Log In
@@ -163,10 +164,10 @@ import Layout from "../layouts/Layout.astro";
     const loginState = document.getElementById("login-state");
     const searchInput = document.getElementById(
         "search-input",
-    ) as HTMLInputElement;
+    ) as HTMLInputElement | null;
     const sortSelect = document.getElementById(
         "sort-select",
-    ) as HTMLSelectElement;
+    ) as HTMLSelectElement | null;
 
     async function init() {
         const token = localStorage.getItem("access_token");
@@ -207,8 +208,8 @@ import Layout from "../layouts/Layout.astro";
 
         emptyState.classList.add("hidden");
 
-        filteredBookmarks.forEach((bookmark, index) => {
-            const post = bookmark.blog;
+        filteredBookmarks.forEach((post, index) => {
+            // The API returns BlogPost objects directly now
             const article = document.createElement("article");
             article.className = "group relative flex flex-col h-full";
             article.style.animation = `fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards ${index * 0.1}s`;
@@ -270,7 +271,7 @@ import Layout from "../layouts/Layout.astro";
 
         <button
           class="unsave-btn absolute top-4 right-4 z-20 p-2 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-sm border border-gray-200 dark:border-gray-700 text-purple-600 dark:text-purple-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-all duration-300 hover:scale-110"
-          data-bookmark-id="${bookmark.id}"
+          data-blog-id="${post.id}"
           title="Remove from saved"
         >
           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -291,10 +292,7 @@ import Layout from "../layouts/Layout.astro";
                 e.preventDefault();
                 e.stopPropagation();
 
-                if (!confirm("Remove this article from your saved list?"))
-                    return;
-
-                const id = btn.getAttribute("data-bookmark-id");
+                const id = btn.getAttribute("data-blog-id");
                 if (!id) return;
 
                 const success = await removeBookmark(parseInt(id));
@@ -311,13 +309,13 @@ import Layout from "../layouts/Layout.astro";
     }
 
     function filterAndSort() {
-        const term = searchInput.value.toLowerCase();
-        const sort = sortSelect.value;
+        const term = searchInput ? searchInput.value.toLowerCase() : "";
+        const sort = sortSelect ? sortSelect.value : "date-desc";
 
         filteredBookmarks = bookmarks.filter(
-            (b) =>
-                b.blog.title.toLowerCase().includes(term) ||
-                b.blog.description.toLowerCase().includes(term),
+            (post) =>
+                post.title.toLowerCase().includes(term) ||
+                post.description.toLowerCase().includes(term),
         );
 
         filteredBookmarks.sort((a, b) => {
@@ -332,7 +330,7 @@ import Layout from "../layouts/Layout.astro";
                     new Date(b.created_at).getTime()
                 );
             } else if (sort === "title-asc") {
-                return a.blog.title.localeCompare(b.blog.title);
+                return a.title.localeCompare(b.title);
             }
             return 0;
         });
@@ -340,8 +338,12 @@ import Layout from "../layouts/Layout.astro";
         renderBookmarks();
     }
 
-    searchInput.addEventListener("input", filterAndSort);
-    sortSelect.addEventListener("change", filterAndSort);
+    if (searchInput) {
+        searchInput.addEventListener("input", filterAndSort);
+    }
+    if (sortSelect) {
+        sortSelect.addEventListener("change", filterAndSort);
+    }
 
     // Initialize
     init();
