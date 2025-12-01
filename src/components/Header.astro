@@ -220,6 +220,25 @@ const navItems = [
           );
         })
       }
+
+      <!-- Mobile Auth Links -->
+      <div
+        id="mobile-auth-links"
+        class="pt-4 mt-4 border-t border-gray-100 dark:border-gray-800/50 space-y-2 hidden"
+      >
+        <a
+          href="/login"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-white transition-colors"
+        >
+          Log in
+        </a>
+        <a
+          href="/signup"
+          class="flex items-center justify-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 transition-colors shadow-sm shadow-purple-500/20"
+        >
+          Sign up
+        </a>
+      </div>
     </nav>
 
     <!-- Drawer Footer -->
@@ -395,6 +414,22 @@ const navItems = [
       },
       { passive: true },
     );
+
+    // Check auth status for mobile menu
+    const checkMobileAuth = () => {
+      const user = localStorage.getItem("user");
+      const mobileAuthLinks = document.getElementById("mobile-auth-links");
+
+      if (!user && mobileAuthLinks) {
+        mobileAuthLinks.classList.remove("hidden");
+      } else if (mobileAuthLinks) {
+        mobileAuthLinks.classList.add("hidden");
+      }
+    };
+
+    checkMobileAuth();
+    // Re-check when drawer opens
+    openBtn?.addEventListener("click", checkMobileAuth);
   });
 </script>
 

@@ -1,0 +1,29 @@
+---
+interface Props {
+    siteKey?: string;
+    theme?: "light" | "dark" | "auto";
+    size?: "normal" | "compact" | "flexible";
+}
+
+const {
+    siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ||
+        "1x00000000000000000000AA", // Default to testing key if not set
+    theme = "auto",
+    size = "normal",
+} = Astro.props;
+---
+
+<div
+    class="cf-turnstile"
+    data-sitekey={siteKey}
+    data-theme={theme}
+    data-size={size}
+    data-response-field-name="turnstile_token"
+>
+</div>
+
+<script
+    is:inline
+    src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+    async
+    defer></script>
