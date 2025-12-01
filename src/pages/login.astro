@@ -328,6 +328,14 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
         json: () => Promise<any>;
     }
 
+    declare global {
+        interface Window {
+            turnstile?: {
+                reset: () => void;
+            };
+        }
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
         const urlParams = new URLSearchParams(window.location.search);
         const mode = urlParams.get("mode");
@@ -451,6 +459,9 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                 const formData = new FormData(form);
                 const data = Object.fromEntries(formData.entries());
 
+                console.log("Submitting to:", endpoint);
+                console.log("Payload:", JSON.stringify(data, null, 2));
+
                 try {
                     const response = await fetch(`${API_URL}${endpoint}`, {
                         method: "POST",
@@ -461,12 +472,19 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                     });
 
                     const resData = await response.json();
+                    console.log("Response:", resData);
 
                     if (response.ok && resData.code === 0) {
+                        // Try to find token in various places
+                        const token =
+                            resData.token ||
+                            resData.access ||
+                            (resData.data &&
+                                (resData.data.token || resData.data.access));
                         const authData = resData.data || {};
-                        const token = authData.token || authData.access;
 
                         if (token) {
+                            console.log("Token received:", token);
                             localStorage.setItem("access_token", token);
 
                             let userObj = null;
@@ -485,9 +503,10 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                                     if (profileResp.ok) {
                                         const profileData =
                                             await profileResp.json();
-                                        // Assuming profileData.data contains the user info based on common patterns
-                                        // or it might be the root object. Let's handle both if possible or default to root
-                                        // But based on previous response structure, it's likely { code: 0, data: { ... } }
+                                        console.log(
+                                            "Profile Data:",
+                                            profileData,
+                                        );
                                         const userData =
                                             profileData.data || profileData;
                                         userObj = {
@@ -498,6 +517,11 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                                                 userData.avatar ||
                                                 "",
                                         };
+                                    } else {
+                                        console.warn(
+                                            "Profile fetch failed:",
+                                            profileResp.status,
+                                        );
                                     }
                                 } catch (err) {
                                     console.warn(
@@ -513,19 +537,31 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                                         email: authData.user.email,
                                         image: "",
                                     };
+                                } else if (authData.first_name) {
+                                    // Sometimes user data is at the top level of data
+                                    userObj = {
+                                        name: `${authData.first_name} ${authData.last_name}`.trim(),
+                                        email: authData.email,
+                                        image: "",
+                                    };
                                 }
                             }
 
                             if (userObj) {
+                                console.log("Storing user:", userObj);
                                 localStorage.setItem(
                                     "user",
                                     JSON.stringify(userObj),
                                 );
+                            } else {
+                                console.warn("No user object created");
                             }
 
                             window.location.href = "/";
                         } else {
+                            console.warn("No token in response data");
                             if (endpoint.includes("signup")) {
+                                // Fallback only if absolutely no token found
                                 switchMode("login");
                                 alert(
                                     "Account created successfully! Please sign in.",
@@ -535,11 +571,16 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                             }
                         }
                     } else {
-                        // Error case
+                        console.error("API Error:", resData);
                         errorDiv?.classList.remove("hidden");
                         if (errorMessage)
                             errorMessage.textContent =
                                 resData.message || "Authentication failed";
+
+                        // Reset Turnstile
+                        if (window.turnstile) {
+                            window.turnstile.reset();
+                        }
                     }
                 } catch (error) {
                     console.error("Auth error:", error);
@@ -547,6 +588,11 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                     if (errorMessage)
                         errorMessage.textContent =
                             "An unexpected error occurred. Please try again.";
+
+                    // Reset Turnstile
+                    if (window.turnstile) {
+                        window.turnstile.reset();
+                    }
                 } finally {
                     submitBtn.textContent = originalText;
                     (submitBtn as HTMLButtonElement).disabled = false;

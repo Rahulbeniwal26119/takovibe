@@ -54,7 +54,10 @@ const UserAuth: React.FC = () => {
                         alt={user.name}
                         className="w-9 h-9 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm"
                         onError={(e) => {
-                            (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`;
+                            // Simple gray placeholder with user icon
+                            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%239CA3AF"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
+                            (e.target as HTMLImageElement).src = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+                            (e.target as HTMLImageElement).className = "w-9 h-9 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm bg-gray-100 dark:bg-gray-800 p-1";
                         }}
                     />
                     <button

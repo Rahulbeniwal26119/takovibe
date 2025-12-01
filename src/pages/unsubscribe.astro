@@ -73,49 +73,8 @@ import Layout from "../layouts/Layout.astro";
                 </p>
 
                 <form id="unsubscribe-form" class="space-y-4">
-                    <div class="space-y-3">
-                        <label
-                            class="flex items-center space-x-3 p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer group"
-                        >
-                            <input
-                                type="checkbox"
-                                name="unsubscribe_type"
-                                value="weekly_updates"
-                                class="w-5 h-5 text-purple-600 rounded border-gray-300 focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:focus:ring-offset-gray-900"
-                            />
-                            <div class="flex-1">
-                                <span
-                                    class="block text-sm font-medium text-gray-900 dark:text-white group-hover:text-purple-400 transition-colors"
-                                    >Weekly Updates</span
-                                >
-                                <span
-                                    class="block text-xs text-gray-500 dark:text-gray-400"
-                                    >Get a summary of the week's top stories.</span
-                                >
-                            </div>
-                        </label>
-
-                        <label
-                            class="flex items-center space-x-3 p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer group"
-                        >
-                            <input
-                                type="checkbox"
-                                name="unsubscribe_type"
-                                value="new_features"
-                                class="w-5 h-5 text-purple-600 rounded border-gray-300 focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:focus:ring-offset-gray-900"
-                            />
-                            <div class="flex-1">
-                                <span
-                                    class="block text-sm font-medium text-gray-900 dark:text-white group-hover:text-purple-400 transition-colors"
-                                    >New Feature Updates</span
-                                >
-                                <span
-                                    class="block text-xs text-gray-500 dark:text-gray-400"
-                                    >Be the first to know about new tools and
-                                    features.</span
-                                >
-                            </div>
-                        </label>
+                    <div id="categories-container" class="space-y-3">
+                        <!-- Categories will be populated here -->
                     </div>
 
                     <div class="pt-4">
@@ -232,31 +191,6 @@ import Layout from "../layouts/Layout.astro";
         json: () => Promise<any>;
     }
 
-    // Mock API function
-    const mockApiCall = (
-        endpoint: string,
-        method: string,
-        data: any,
-    ): Promise<ApiResponse> => {
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                if (Math.random() > 0.1) {
-                    // 90% success rate
-                    resolve({
-                        ok: true,
-                        json: () => Promise.resolve({ message: "Success" }),
-                    });
-                } else {
-                    resolve({
-                        ok: false,
-                        json: () =>
-                            Promise.resolve({ message: "Mock error occurred" }),
-                    });
-                }
-            }, 1000);
-        });
-    };
-
     async function initPage() {
         const params = new URLSearchParams(window.location.search);
         const email = params.get("email");
@@ -270,33 +204,81 @@ import Layout from "../layouts/Layout.astro";
         const form = document.getElementById(
             "unsubscribe-form",
         ) as HTMLFormElement;
+        const categoriesContainer = document.getElementById(
+            "categories-container",
+        );
 
-        if (!email) {
-            // Signature check removed for easier testing/mocking if needed, or keep strict
-            // For now, let's assume we need at least an email to identify the user
-            // In a real app, signature verification is crucial
+        if (!email || !signature) {
+            loadingState?.classList.add("hidden");
+            errorState?.classList.remove("hidden");
+            if (errorMessage)
+                errorMessage.textContent = "Invalid link parameters.";
+            return;
         }
 
-        // Simulate fetching user preferences
-        setTimeout(() => {
-            loadingState?.classList.add("hidden");
-            if (email) {
+        // Fetch User Preferences
+        try {
+            const response = await fetch(
+                `${API_URL}/api/users/unsubscribe/?email=${encodeURIComponent(email)}&signature=${encodeURIComponent(signature)}`,
+            );
+            const resData = await response.json();
+
+            if (response.ok && resData.code === 0) {
+                const { categories, unsubscribed_ids } = resData.data;
+
+                // Render Categories
+                if (categoriesContainer && categories.length > 0) {
+                    categoriesContainer.innerHTML = categories
+                        .map(
+                            (cat) => `
+                        <label class="flex items-center space-x-3 p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer group">
+                            <input
+                                type="checkbox"
+                                name="categories"
+                                value="${cat.id}"
+                                ${unsubscribed_ids.includes(cat.id) ? "checked" : ""}
+                                class="w-5 h-5 text-purple-600 rounded border-gray-300 focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:focus:ring-offset-gray-900"
+                            />
+                            <div class="flex-1">
+                                <span class="block text-sm font-medium text-gray-900 dark:text-white group-hover:text-purple-400 transition-colors">
+                                    ${cat.name}
+                                </span>
+                                <span class="block text-xs text-gray-500 dark:text-gray-400">
+                                    ${cat.description || ""}
+                                </span>
+                            </div>
+                        </label>
+                    `,
+                        )
+                        .join("");
+                } else if (categoriesContainer) {
+                    categoriesContainer.innerHTML =
+                        "<p class='text-gray-500'>No subscription categories found.</p>";
+                }
+
+                loadingState?.classList.add("hidden");
                 preferencesForm?.classList.remove("hidden");
             } else {
-                // If no email param, maybe show error or just show form (assuming logged in context?
-                // but usually unsubscribe links have tokens).
-                // Let's show error if no email for this specific flow.
-                errorState?.classList.remove("hidden");
-                if (errorMessage)
-                    errorMessage.textContent = "Invalid link parameters.";
+                throw new Error(
+                    resData.message || "Failed to load preferences",
+                );
             }
-        }, 800);
+        } catch (error) {
+            console.error("Fetch error:", error);
+            loadingState?.classList.add("hidden");
+            errorState?.classList.remove("hidden");
+            if (errorMessage)
+                errorMessage.textContent =
+                    "Failed to load your preferences. Please try again.";
+        }
 
         form?.addEventListener("submit", async (e) => {
             e.preventDefault();
 
             const formData = new FormData(form);
-            const selectedOptions = formData.getAll("unsubscribe_type");
+            const selectedCategories = formData
+                .getAll("categories")
+                .map((id) => parseInt(id));
 
             // Show loading again or button loading state
             const submitBtn = form.querySelector("button[type='submit']");
@@ -306,15 +288,19 @@ import Layout from "../layouts/Layout.astro";
                 (submitBtn as HTMLButtonElement).disabled = true;
 
                 try {
-                    // Use mock API instead of real fetch for now
-                    // const response = await fetch(`${API_URL}/api/user/unsubscribe/`, { ... });
-                    const response = await mockApiCall(
-                        `${API_URL}/api/user/unsubscribe/`,
-                        "POST",
+                    const response = await fetch(
+                        `${API_URL}/api/users/unsubscribe/`,
                         {
-                            email,
-                            signature,
-                            preferences: selectedOptions,
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({
+                                email,
+                                signature,
+                                categories: selectedCategories,
+                                unsubscribe_all: false,
+                            }),
                         },
                     );
 
