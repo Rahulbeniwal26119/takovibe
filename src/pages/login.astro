@@ -67,28 +67,12 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                     </button>
                 </div>
 
-                <!-- Google Button -->
-                <button
-                    id="google-auth-btn"
-                    type="button"
-                    class="w-full flex items-center justify-center px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200 transform hover:scale-[1.01]"
+                <!-- Google Button Container -->
+                <div
+                    id="google-btn-container"
+                    class="w-full flex justify-center"
                 >
-                    <svg class="h-5 w-5 mr-3" viewBox="0 0 24 24">
-                        <path
-                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                            fill="#4285F4"></path>
-                        <path
-                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                            fill="#34A853"></path>
-                        <path
-                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                            fill="#FBBC05"></path>
-                        <path
-                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                            fill="#EA4335"></path>
-                    </svg>
-                    Continue with Google
-                </button>
+                </div>
 
                 <div class="relative my-6">
                     <div class="absolute inset-0 flex items-center">
@@ -475,31 +459,53 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                     console.log("Response:", resData);
 
                     if (response.ok && resData.code === 0) {
-                        // Try to find token in various places
+                        // Try to find token in various places, prioritizing auth_token
+                        const data = resData.data || {};
                         const token =
-                            resData.token ||
+                            data.auth_token ||
+                            data.access ||
+                            data.token ||
+                            resData.auth_token ||
                             resData.access ||
-                            (resData.data &&
-                                (resData.data.token || resData.data.access));
-                        const authData = resData.data || {};
+                            resData.token;
 
                         if (token) {
                             console.log("Token received:", token);
                             localStorage.setItem("access_token", token);
 
-                            let userObj = null;
+                            // Set 7-day expiration
+                            const expiryDate = new Date();
+                            expiryDate.setDate(expiryDate.getDate() + 7);
+                            localStorage.setItem(
+                                "token_expiry",
+                                expiryDate.toISOString(),
+                            );
+
+                            // Initialize userObj from response data if available
+                            let userObj = data.user;
+
+                            // Normalize user object from response if needed
+                            if (userObj) {
+                                userObj = {
+                                    name: `${userObj.first_name || ""} ${userObj.last_name || ""}`.trim(),
+                                    email: userObj.email,
+                                    image:
+                                        userObj.image || userObj.avatar || "",
+                                };
+                            }
 
                             if (endpoint.includes("login")) {
-                                // Fetch user profile
+                                // Fetch user profile to get complete details
                                 try {
                                     const profileResp = await fetch(
                                         `${API_URL}/api/users/me/`,
                                         {
                                             headers: {
-                                                Authorization: `Bearer ${token}`,
+                                                Authorization: `Token ${token}`,
                                             },
                                         },
                                     );
+
                                     if (profileResp.ok) {
                                         const profileData =
                                             await profileResp.json();
@@ -509,8 +515,14 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                                         );
                                         const userData =
                                             profileData.data || profileData;
+
+                                        // Handle response format: { name: "...", ... } vs { first_name: "...", last_name: "...", ... }
+                                        const name =
+                                            userData.name ||
+                                            `${userData.first_name || ""} ${userData.last_name || ""}`.trim();
+
                                         userObj = {
-                                            name: `${userData.first_name} ${userData.last_name}`.trim(),
+                                            name: name,
                                             email: userData.email,
                                             image:
                                                 userData.image ||
@@ -530,20 +542,15 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                                     );
                                 }
                             } else {
-                                // Signup returns user object directly
-                                if (authData.user) {
-                                    userObj = {
-                                        name: `${authData.user.first_name} ${authData.user.last_name}`.trim(),
-                                        email: authData.user.email,
-                                        image: "",
-                                    };
-                                } else if (authData.first_name) {
-                                    // Sometimes user data is at the top level of data
-                                    userObj = {
-                                        name: `${authData.first_name} ${authData.last_name}`.trim(),
-                                        email: authData.email,
-                                        image: "",
-                                    };
+                                // Signup logic (usually returns user object)
+                                if (!userObj) {
+                                    if (data.first_name) {
+                                        userObj = {
+                                            name: `${data.first_name} ${data.last_name}`.trim(),
+                                            email: data.email,
+                                            image: "",
+                                        };
+                                    }
                                 }
                             }
 
@@ -607,59 +614,81 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
             handleAuth(e, "/api/users/signup/", signupForm),
         );
 
-        // Google Auth using GIS
-        const googleBtn = document.getElementById("google-auth-btn");
         const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID;
 
-        googleBtn?.addEventListener("click", () => {
-            // @ts-ignore
-            if (typeof google === "undefined" || !google.accounts) {
-                console.error("Google Identity Services not loaded");
-                return;
+        function handleGoogleCredentialResponse(response: any) {
+            if (response.credential) {
+                handleGoogleLogin(response.credential);
             }
+        }
 
+        // @ts-ignore
+        window.onGoogleLibraryLoad = () => {
             // @ts-ignore
-            const client = google.accounts.oauth2.initCodeClient({
+            google.accounts.id.initialize({
                 client_id: GOOGLE_CLIENT_ID,
-                scope: "email profile openid",
-                ux_mode: "popup",
-                callback: (response: any) => {
-                    if (response.code) {
-                        handleGoogleLogin(response.code);
-                    }
-                },
+                callback: handleGoogleCredentialResponse,
+                auto_select: false,
+                cancel_on_tap_outside: true,
             });
 
-            client.requestCode();
-        });
+            // Render the Google Sign-In button
+            // @ts-ignore
+            google.accounts.id.renderButton(
+                document.getElementById("google-btn-container"),
+                {
+                    theme: "outline",
+                    size: "large",
+                    width:
+                        document.getElementById("google-btn-container")
+                            ?.clientWidth || 350,
+                    logo_alignment: "left",
+                },
+            );
+        };
 
-        async function handleGoogleLogin(code: string) {
+        // Check if Google script is already loaded
+        // @ts-ignore
+        if (typeof google !== "undefined" && google.accounts) {
+            // @ts-ignore
+            window.onGoogleLibraryLoad();
+        }
+
+        async function handleGoogleLogin(idToken: string) {
             try {
-                const response = await fetch(
-                    `${API_URL}/api/users/google/login/`,
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({ code }),
+                // Backend expects the token in the 'code' field based on the error log
+                const response = await fetch(`${API_URL}/api/users/google/`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
                     },
-                );
+                    body: JSON.stringify({ code: idToken }),
+                });
 
                 const resData = await response.json();
                 console.log("Google Login Response:", resData);
 
+                const data = resData.data || {};
                 const token =
-                    resData.token ||
+                    data.auth_token ||
+                    data.access ||
+                    data.token ||
+                    resData.auth_token ||
                     resData.access ||
-                    (resData.data &&
-                        (resData.data.token || resData.data.access));
+                    resData.token;
 
                 if (response.ok && token) {
                     localStorage.setItem("access_token", token);
 
-                    let userObj =
-                        resData.user || (resData.data && resData.data.user);
+                    // Set 7-day expiration
+                    const expiryDate = new Date();
+                    expiryDate.setDate(expiryDate.getDate() + 7);
+                    localStorage.setItem(
+                        "token_expiry",
+                        expiryDate.toISOString(),
+                    );
+
+                    let userObj = resData.user || data.user;
 
                     if (!userObj) {
                         // Fetch user profile if not provided
@@ -668,7 +697,7 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                                 `${API_URL}/api/users/me/`,
                                 {
                                     headers: {
-                                        Authorization: `Bearer ${token}`,
+                                        Authorization: `Token ${token}`,
                                     },
                                 },
                             );
@@ -676,8 +705,14 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                                 const profileData = await profileResp.json();
                                 const userData =
                                     profileData.data || profileData;
+
+                                // Handle response format: { name: "...", ... } vs { first_name: "...", last_name: "...", ... }
+                                const name =
+                                    userData.name ||
+                                    `${userData.first_name || ""} ${userData.last_name || ""}`.trim();
+
                                 userObj = {
-                                    name: `${userData.first_name} ${userData.last_name}`.trim(),
+                                    name: name,
                                     email: userData.email,
                                     image:
                                         userData.image || userData.avatar || "",

@@ -49,8 +49,16 @@ const UserAuth: React.FC = () => {
         const checkAuthStatus = () => {
             const token = localStorage.getItem('access_token');
             const storedUser = localStorage.getItem('user');
+            const tokenExpiry = localStorage.getItem('token_expiry');
 
             if (token && storedUser) {
+                // Check for expiration
+                if (tokenExpiry && new Date() > new Date(tokenExpiry)) {
+                    console.log('Session expired');
+                    handleLogout();
+                    return;
+                }
+
                 try {
                     setUser(JSON.parse(storedUser));
                 } catch (e) {
@@ -68,6 +76,7 @@ const UserAuth: React.FC = () => {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
         localStorage.removeItem('user');
+        localStorage.removeItem('token_expiry');
         setUser(null);
         window.location.href = '/';
     };
