@@ -9,6 +9,37 @@ interface User {
     email: string;
 }
 
+const getInitialsAvatar = (name: string) => {
+    const safeName = name || 'User';
+    const initials = safeName
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+
+    const colors = [
+        '#EF5350', '#EC407A', '#AB47BC', '#7E57C2', '#5C6BC0',
+        '#42A5F5', '#29B6F6', '#26C6DA', '#26A69A', '#66BB6A',
+        '#9CCC65', '#D4E157', '#FFEE58', '#FFCA28', '#FFA726',
+        '#FF7043', '#8D6E63', '#BDBDBD', '#78909C'
+    ];
+
+    const charCode = safeName.charCodeAt(0) || 0;
+    const color = colors[charCode % colors.length];
+
+    const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+        <rect width="100" height="100" fill="${color}" />
+        <text x="50" y="50" dy=".35em" fill="white" font-family="Arial" font-size="40" text-anchor="middle">${initials}</text>
+    </svg>
+    `;
+
+    // Use Base64 encoding to avoid issues with browser extensions and special characters
+    const base64 = btoa(unescape(encodeURIComponent(svg)));
+    return `data:image/svg+xml;base64,${base64}`;
+};
+
 const UserAuth: React.FC = () => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
@@ -50,14 +81,11 @@ const UserAuth: React.FC = () => {
             {user ? (
                 <div className="flex items-center gap-3">
                     <img
-                        src={user.image || ''}
+                        src={user.image || getInitialsAvatar(user.name)}
                         alt={user.name}
                         className="w-9 h-9 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm"
                         onError={(e) => {
-                            // Simple gray placeholder with user icon
-                            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%239CA3AF"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
-                            (e.target as HTMLImageElement).src = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
-                            (e.target as HTMLImageElement).className = "w-9 h-9 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm bg-gray-100 dark:bg-gray-800 p-1";
+                            (e.target as HTMLImageElement).src = getInitialsAvatar(user.name);
                         }}
                     />
                     <button

@@ -607,13 +607,115 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
             handleAuth(e, "/api/users/signup/", signupForm),
         );
 
-        // Google Auth (Mock - to be replaced or kept as mock if backend not ready)
+        // Google Auth using GIS
         const googleBtn = document.getElementById("google-auth-btn");
-        googleBtn?.addEventListener("click", async () => {
-            alert("Google login is not yet connected to the backend.");
+        const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID;
+
+        googleBtn?.addEventListener("click", () => {
+            // @ts-ignore
+            if (typeof google === "undefined" || !google.accounts) {
+                console.error("Google Identity Services not loaded");
+                return;
+            }
+
+            // @ts-ignore
+            const client = google.accounts.oauth2.initCodeClient({
+                client_id: GOOGLE_CLIENT_ID,
+                scope: "email profile openid",
+                ux_mode: "popup",
+                callback: (response: any) => {
+                    if (response.code) {
+                        handleGoogleLogin(response.code);
+                    }
+                },
+            });
+
+            client.requestCode();
         });
+
+        async function handleGoogleLogin(code: string) {
+            try {
+                const response = await fetch(
+                    `${API_URL}/api/users/google/login/`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ code }),
+                    },
+                );
+
+                const resData = await response.json();
+                console.log("Google Login Response:", resData);
+
+                const token =
+                    resData.token ||
+                    resData.access ||
+                    (resData.data &&
+                        (resData.data.token || resData.data.access));
+
+                if (response.ok && token) {
+                    localStorage.setItem("access_token", token);
+
+                    let userObj =
+                        resData.user || (resData.data && resData.data.user);
+
+                    if (!userObj) {
+                        // Fetch user profile if not provided
+                        try {
+                            const profileResp = await fetch(
+                                `${API_URL}/api/users/me/`,
+                                {
+                                    headers: {
+                                        Authorization: `Bearer ${token}`,
+                                    },
+                                },
+                            );
+                            if (profileResp.ok) {
+                                const profileData = await profileResp.json();
+                                const userData =
+                                    profileData.data || profileData;
+                                userObj = {
+                                    name: `${userData.first_name} ${userData.last_name}`.trim(),
+                                    email: userData.email,
+                                    image:
+                                        userData.image || userData.avatar || "",
+                                };
+                            }
+                        } catch (err) {
+                            console.warn("Failed to fetch user profile", err);
+                        }
+                    }
+
+                    if (userObj) {
+                        localStorage.setItem("user", JSON.stringify(userObj));
+                    }
+
+                    window.location.href = "/";
+                } else {
+                    console.error("Google login failed:", resData);
+                    const errorDiv = document.getElementById("auth-error");
+                    const errorMessage =
+                        document.getElementById("error-message");
+                    if (errorDiv) errorDiv.classList.remove("hidden");
+                    if (errorMessage)
+                        errorMessage.textContent =
+                            resData.message || "Google login failed";
+                }
+            } catch (error) {
+                console.error("Google login error:", error);
+                const errorDiv = document.getElementById("auth-error");
+                const errorMessage = document.getElementById("error-message");
+                if (errorDiv) errorDiv.classList.remove("hidden");
+                if (errorMessage)
+                    errorMessage.textContent =
+                        "An unexpected error occurred. Please try again.";
+            }
+        }
     });
 </script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <style>
     @keyframes blob {

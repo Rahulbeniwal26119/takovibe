@@ -239,208 +239,309 @@ const navItems = [
           Sign up
         </a>
       </div>
+
+      <!-- Mobile User Profile (Hidden by default) -->
+      <div
+        id="mobile-user-profile"
+        class="pt-4 mt-4 border-t border-gray-100 dark:border-gray-800/50 hidden"
+      >
+        <div class="flex items-center gap-3 px-4 mb-4">
+          <img
+            id="mobile-user-avatar"
+            src=""
+            alt="User"
+            class="w-10 h-10 rounded-full border border-gray-200 dark:border-gray-700"
+          />
+          <div>
+            <div
+              id="mobile-user-name"
+              class="font-medium text-gray-900 dark:text-white"
+            >
+            </div>
+            <div
+              id="mobile-user-email"
+              class="text-xs text-gray-500 dark:text-gray-400"
+            >
+            </div>
+          </div>
+        </div>
+        <button
+          id="mobile-logout-btn"
+          class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          Log out
+        </button>
+      </div>
+
+      <!-- Drawer Footer -->
+      <div class="p-4 border-t border-gray-100 dark:border-gray-800/50">
+        <div class="flex items-center justify-center gap-4 text-gray-400">
+          <a
+            href="#"
+            class="hover:text-purple-500 transition-colors"
+            aria-label="Twitter"
+            ><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"
+              ><path
+                d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"
+              ></path></svg
+            ></a
+          >
+          <a
+            href="#"
+            class="hover:text-purple-500 transition-colors"
+            aria-label="GitHub"
+            ><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"
+              ><path
+                d="M12 0c-6.626 0-12 5.373-12 12 0 3.368 1.376 6.391 3.6 8.613 2.222 2.222 5.245 3.6 8.613 3.6 3.362 0 6.38-1.372 8.6-3.594 2.22-2.22 3.594-5.238 3.594-8.6 0-6.627-5.373-12-12-12zm0 21.6c-5.298 0-9.6-4.302-9.6-9.6s4.302-9.6 9.6-9.6 9.6 4.302 9.6 9.6-4.302 9.6-9.6 9.6z"
+              ></path></svg
+            ></a
+          >
+        </div>
+      </div>
     </nav>
 
-    <!-- Drawer Footer -->
-    <div class="p-4 border-t border-gray-100 dark:border-gray-800/50">
-      <div class="flex items-center justify-center gap-4 text-gray-400">
-        <a
-          href="#"
-          class="hover:text-purple-500 transition-colors"
-          aria-label="Twitter"
-          ><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"
-            ><path
-              d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"
-            ></path></svg
-          ></a
+    <!-- MOBILE SEARCH OVERLAY -->
+    <div
+      id="mobileSearchOverlay"
+      class="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300 lg:hidden"
+    >
+      <div class="flex items-start justify-center pt-24 px-4">
+        <div
+          id="mobileSearchModal"
+          class="w-full max-w-lg bg-white dark:bg-[#1a1d26] rounded-2xl shadow-2xl transform scale-95 transition-all duration-300 border border-gray-200 dark:border-gray-800"
         >
-        <a
-          href="#"
-          class="hover:text-purple-500 transition-colors"
-          aria-label="GitHub"
-          ><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"
-            ><path
-              d="M12 0c-6.626 0-12 5.373-12 12 0 3.368 1.376 6.391 3.6 8.613 2.222 2.222 5.245 3.6 8.613 3.6 3.362 0 6.38-1.372 8.6-3.594 2.22-2.22 3.594-5.238 3.594-8.6 0-6.627-5.373-12-12-12zm0 21.6c-5.298 0-9.6-4.302-9.6-9.6s4.302-9.6 9.6-9.6 9.6 4.302 9.6 9.6-4.302 9.6-9.6 9.6z"
-            ></path></svg
-          ></a
-        >
+          <div
+            class="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between"
+          >
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Search
+            </h3>
+            <button
+              id="closeMobileSearchBtn"
+              class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-colors"
+              aria-label="Close search"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+          <div class="p-4">
+            {Astro.url.pathname !== "/blog" && <Search variant="modal" />}
+          </div>
+        </div>
       </div>
     </div>
   </aside>
 
-  <!-- MOBILE SEARCH OVERLAY -->
-  <div
-    id="mobileSearchOverlay"
-    class="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300 lg:hidden"
-  >
-    <div class="flex items-start justify-center pt-24 px-4">
-      <div
-        id="mobileSearchModal"
-        class="w-full max-w-lg bg-white dark:bg-[#1a1d26] rounded-2xl shadow-2xl transform scale-95 transition-all duration-300 border border-gray-200 dark:border-gray-800"
-      >
-        <div
-          class="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between"
-        >
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-            Search
-          </h3>
-          <button
-            id="closeMobileSearchBtn"
-            class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-colors"
-            aria-label="Close search"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
-        </div>
-        <div class="p-4">
-          {Astro.url.pathname !== "/blog" && <Search variant="modal" />}
-        </div>
-      </div>
-    </div>
-  </div>
-</header>
+  <script is:inline>
+    document.addEventListener("DOMContentLoaded", () => {
+      const drawer = document.querySelector("#drawer");
+      const backdrop = document.querySelector("#drawerBackdrop");
+      const openBtn = document.querySelector("#openDrawerBtn");
+      const closeBtn = document.querySelector("#closeDrawerBtn");
+      const header = document.getElementById("site-header");
 
-<script is:inline>
-  document.addEventListener("DOMContentLoaded", () => {
-    const drawer = document.querySelector("#drawer");
-    const backdrop = document.querySelector("#drawerBackdrop");
-    const openBtn = document.querySelector("#openDrawerBtn");
-    const closeBtn = document.querySelector("#closeDrawerBtn");
-    const header = document.getElementById("site-header");
+      // Mobile search elements
+      const mobileSearchBtn = document.querySelector("#mobileSearchBtn");
+      const mobileSearchOverlay = document.querySelector(
+        "#mobileSearchOverlay",
+      );
+      const mobileSearchModal = document.querySelector("#mobileSearchModal");
+      const closeMobileSearchBtn = document.querySelector(
+        "#closeMobileSearchBtn",
+      );
 
-    // Mobile search elements
-    const mobileSearchBtn = document.querySelector("#mobileSearchBtn");
-    const mobileSearchOverlay = document.querySelector("#mobileSearchOverlay");
-    const mobileSearchModal = document.querySelector("#mobileSearchModal");
-    const closeMobileSearchBtn = document.querySelector(
-      "#closeMobileSearchBtn",
-    );
-
-    function openDrawer() {
-      drawer?.classList.remove("-translate-x-full");
-      backdrop?.classList.remove("pointer-events-none", "opacity-0");
-      backdrop?.classList.add("opacity-100");
-      document.body.style.overflow = "hidden";
-    }
-
-    function closeDrawer() {
-      drawer?.classList.add("-translate-x-full");
-      backdrop?.classList.add("pointer-events-none", "opacity-0");
-      backdrop?.classList.remove("opacity-100");
-      document.body.style.overflow = "";
-    }
-
-    function openMobileSearch() {
-      mobileSearchOverlay?.classList.remove("pointer-events-none", "opacity-0");
-      mobileSearchModal?.classList.remove("scale-95");
-      mobileSearchModal?.classList.add("scale-100");
-      document.body.style.overflow = "hidden";
-
-      setTimeout(() => {
-        const searchInput = document.querySelector("#modal-search-input");
-        if (searchInput) searchInput.focus();
-      }, 300);
-    }
-
-    function closeMobileSearch() {
-      mobileSearchOverlay?.classList.add("pointer-events-none", "opacity-0");
-      mobileSearchModal?.classList.remove("scale-100");
-      mobileSearchModal?.classList.add("scale-95");
-      document.body.style.overflow = "";
-    }
-
-    // Event Listeners
-    openBtn?.addEventListener("click", (e) => {
-      e.stopPropagation();
-      openDrawer();
-    });
-
-    closeBtn?.addEventListener("click", closeDrawer);
-    backdrop?.addEventListener("click", closeDrawer);
-
-    mobileSearchBtn?.addEventListener("click", (e) => {
-      e.stopPropagation();
-      openMobileSearch();
-    });
-
-    closeMobileSearchBtn?.addEventListener("click", closeMobileSearch);
-    mobileSearchOverlay?.addEventListener("click", (e) => {
-      if (e.target === mobileSearchOverlay) closeMobileSearch();
-    });
-
-    // Close on Escape
-    window.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") {
-        closeDrawer();
-        closeMobileSearch();
+      function openDrawer() {
+        drawer?.classList.remove("-translate-x-full");
+        backdrop?.classList.remove("pointer-events-none", "opacity-0");
+        backdrop?.classList.add("opacity-100");
+        document.body.style.overflow = "hidden";
       }
-    });
 
-    // Scroll Behavior
-    let lastScrollY = window.scrollY;
-    let isScrollingDown = false;
+      function closeDrawer() {
+        drawer?.classList.add("-translate-x-full");
+        backdrop?.classList.add("pointer-events-none", "opacity-0");
+        backdrop?.classList.remove("opacity-100");
+        document.body.style.overflow = "";
+      }
 
-    window.addEventListener(
-      "scroll",
-      () => {
-        if (window.innerWidth < 1024) return; // Only on desktop
+      function openMobileSearch() {
+        mobileSearchOverlay?.classList.remove(
+          "pointer-events-none",
+          "opacity-0",
+        );
+        mobileSearchModal?.classList.remove("scale-95");
+        mobileSearchModal?.classList.add("scale-100");
+        document.body.style.overflow = "hidden";
 
-        const currentScrollY = window.scrollY;
+        setTimeout(() => {
+          const searchInput = document.querySelector("#modal-search-input");
+          if (searchInput) searchInput.focus();
+        }, 300);
+      }
 
-        if (currentScrollY > lastScrollY && currentScrollY > 100) {
-          if (!isScrollingDown) {
-            header.style.transform = "translateY(-100%)";
-            isScrollingDown = true;
+      function closeMobileSearch() {
+        mobileSearchOverlay?.classList.add("pointer-events-none", "opacity-0");
+        mobileSearchModal?.classList.remove("scale-100");
+        mobileSearchModal?.classList.add("scale-95");
+        document.body.style.overflow = "";
+      }
+
+      // Event Listeners
+      openBtn?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openDrawer();
+      });
+
+      closeBtn?.addEventListener("click", closeDrawer);
+      backdrop?.addEventListener("click", closeDrawer);
+
+      mobileSearchBtn?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openMobileSearch();
+      });
+
+      closeMobileSearchBtn?.addEventListener("click", closeMobileSearch);
+      mobileSearchOverlay?.addEventListener("click", (e) => {
+        if (e.target === mobileSearchOverlay) closeMobileSearch();
+      });
+
+      // Close on Escape
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          closeDrawer();
+          closeMobileSearch();
+        }
+      });
+
+      // Scroll Behavior
+      let lastScrollY = window.scrollY;
+      let isScrollingDown = false;
+
+      window.addEventListener(
+        "scroll",
+        () => {
+          if (window.innerWidth < 1024) return; // Only on desktop
+
+          const currentScrollY = window.scrollY;
+
+          if (currentScrollY > lastScrollY && currentScrollY > 100) {
+            if (!isScrollingDown) {
+              header.style.transform = "translateY(-100%)";
+              isScrollingDown = true;
+            }
+          } else {
+            if (isScrollingDown) {
+              header.style.transform = "translateY(0)";
+              isScrollingDown = false;
+            }
+          }
+          lastScrollY = currentScrollY;
+        },
+        { passive: true },
+      );
+
+      // Check auth status for mobile menu
+      const checkMobileAuth = () => {
+        const userStr = localStorage.getItem("user");
+        const mobileAuthLinks = document.getElementById("mobile-auth-links");
+        const mobileUserProfile = document.getElementById(
+          "mobile-user-profile",
+        );
+        const mobileUserName = document.getElementById("mobile-user-name");
+        const mobileUserEmail = document.getElementById("mobile-user-email");
+        const mobileUserAvatar = document.getElementById("mobile-user-avatar");
+
+        if (userStr) {
+          // User is logged in
+          try {
+            const user = JSON.parse(userStr);
+            if (mobileAuthLinks) mobileAuthLinks.classList.add("hidden");
+            if (mobileUserProfile) mobileUserProfile.classList.remove("hidden");
+
+            if (mobileUserName) mobileUserName.textContent = user.name;
+            if (mobileUserEmail) mobileUserEmail.textContent = user.email;
+            if (mobileUserAvatar) {
+              if (!user.image) {
+                const safeName = user.name || "User";
+                const initial = safeName.charAt(0).toUpperCase();
+                // Simple random color generator based on name
+                const colors = [
+                  "#EF5350",
+                  "#EC407A",
+                  "#AB47BC",
+                  "#7E57C2",
+                  "#5C6BC0",
+                  "#42A5F5",
+                ];
+                const color = colors[safeName.charCodeAt(0) % colors.length];
+                const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="${color}"/><text x="50" y="50" dy=".35em" fill="white" font-family="Arial" font-size="40" text-anchor="middle">${initial}</text></svg>`;
+                const base64 = btoa(unescape(encodeURIComponent(svg)));
+                mobileUserAvatar.src = `data:image/svg+xml;base64,${base64}`;
+              } else {
+                mobileUserAvatar.src = user.image;
+              }
+            }
+          } catch (e) {
+            console.error("Error parsing user data", e);
+            localStorage.removeItem("user");
           }
         } else {
-          if (isScrollingDown) {
-            header.style.transform = "translateY(0)";
-            isScrollingDown = false;
-          }
+          // User is logged out
+          if (mobileAuthLinks) mobileAuthLinks.classList.remove("hidden");
+          if (mobileUserProfile) mobileUserProfile.classList.add("hidden");
         }
-        lastScrollY = currentScrollY;
-      },
-      { passive: true },
-    );
+      };
 
-    // Check auth status for mobile menu
-    const checkMobileAuth = () => {
-      const user = localStorage.getItem("user");
-      const mobileAuthLinks = document.getElementById("mobile-auth-links");
+      // Logout handler
+      const mobileLogoutBtn = document.getElementById("mobile-logout-btn");
+      mobileLogoutBtn?.addEventListener("click", () => {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("user");
+        window.location.href = "/";
+      });
 
-      if (!user && mobileAuthLinks) {
-        mobileAuthLinks.classList.remove("hidden");
-      } else if (mobileAuthLinks) {
-        mobileAuthLinks.classList.add("hidden");
-      }
-    };
+      checkMobileAuth();
+      // Re-check when drawer opens
+      openBtn?.addEventListener("click", checkMobileAuth);
+    });
+  </script>
 
-    checkMobileAuth();
-    // Re-check when drawer opens
-    openBtn?.addEventListener("click", checkMobileAuth);
-  });
-</script>
+  <style>
+    /* Ensure content isn't hidden behind fixed header */
+    :global(body) {
+      padding-top: 0; /* Reset */
+    }
 
-<style>
-  /* Ensure content isn't hidden behind fixed header */
-  :global(body) {
-    padding-top: 0; /* Reset */
-  }
-
-  /* Add padding to main content wrapper instead if needed, 
+    /* Add padding to main content wrapper instead if needed, 
      but sticky header usually sits on top. 
      If using fixed, we need padding. 
      Here we use sticky, so it takes space in flow. */
-</style>
+  </style>
+</header>
