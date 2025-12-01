@@ -9,6 +9,37 @@ interface User {
     email: string;
 }
 
+const getInitialsAvatar = (name: string) => {
+    const safeName = name || 'User';
+    const initials = safeName
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+
+    const colors = [
+        '#EF5350', '#EC407A', '#AB47BC', '#7E57C2', '#5C6BC0',
+        '#42A5F5', '#29B6F6', '#26C6DA', '#26A69A', '#66BB6A',
+        '#9CCC65', '#D4E157', '#FFEE58', '#FFCA28', '#FFA726',
+        '#FF7043', '#8D6E63', '#BDBDBD', '#78909C'
+    ];
+
+    const charCode = safeName.charCodeAt(0) || 0;
+    const color = colors[charCode % colors.length];
+
+    const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+        <rect width="100" height="100" fill="${color}" />
+        <text x="50" y="50" dy=".35em" fill="white" font-family="Arial" font-size="40" text-anchor="middle">${initials}</text>
+    </svg>
+    `;
+
+    // Use Base64 encoding to avoid issues with browser extensions and special characters
+    const base64 = btoa(unescape(encodeURIComponent(svg)));
+    return `data:image/svg+xml;base64,${base64}`;
+};
+
 const UserAuth: React.FC = () => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
@@ -18,8 +49,16 @@ const UserAuth: React.FC = () => {
         const checkAuthStatus = () => {
             const token = localStorage.getItem('access_token');
             const storedUser = localStorage.getItem('user');
+            const tokenExpiry = localStorage.getItem('token_expiry');
 
             if (token && storedUser) {
+                // Check for expiration
+                if (tokenExpiry && new Date() > new Date(tokenExpiry)) {
+                    console.log('Session expired');
+                    handleLogout();
+                    return;
+                }
+
                 try {
                     setUser(JSON.parse(storedUser));
                 } catch (e) {
@@ -33,110 +72,21 @@ const UserAuth: React.FC = () => {
         checkAuthStatus();
     }, []);
 
-    useEffect(() => {
-        // Load Google Sign-In script if not logged in
-        if (!user && !loading && GOOGLE_CLIENT_ID) {
-            // Define the global callback
-            (window as any).handleGoogleSignIn = async (response: any) => {
-                try {
-                    if (!response.credential) {
-                        console.error('No credential received');
-                        return;
-                    }
-
-                    const backendResponse = await fetch(`${API_URL}/api/users/google-login/`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                        },
-                        credentials: 'include',
-                        body: JSON.stringify({
-                            token: response.credential
-                        })
-                    });
-
-                    if (!backendResponse.ok) {
-                        throw new Error(`Authentication failed: ${backendResponse.status}`);
-                    }
-
-                    let data = await backendResponse.json();
-                    data = data.data;
-
-                    // Store auth data
-                    localStorage.setItem('access_token', data.access || data.token);
-                    localStorage.setItem('refresh_token', data.refresh || data.refresh);
-                    localStorage.setItem('user', JSON.stringify(data.user || data));
-
-                    // Update state
-                    setUser(data.user || data);
-
-                    // Remove Google Sign-In script to clean up
-                    const gisScript = document.querySelector('script[src*="gsi/client"]');
-                    if (gisScript) {
-                        gisScript.remove();
-                    }
-
-                } catch (error) {
-                    console.error('Authentication error:', error);
-                }
-            };
-
-            // Inject script
-            const script = document.createElement('script');
-            script.src = 'https://accounts.google.com/gsi/client';
-            script.async = true;
-            script.defer = true;
-            script.onload = () => {
-                // Initialize Google Sign-In
-                if ((window as any).google) {
-                    (window as any).google.accounts.id.initialize({
-                        client_id: GOOGLE_CLIENT_ID,
-                        callback: (window as any).handleGoogleSignIn,
-                        context: 'signin',
-                        auto_select: false,
-                        use_fedcm_for_prompt: false
-                    });
-                    (window as any).google.accounts.id.renderButton(
-                        document.getElementById('google-signin-btn'),
-                        {
-                            type: 'icon',
-                            shape: 'circle',
-                            theme: 'filled_black',
-                            size: 'large'
-                        }
-                    );
-                }
-            };
-            document.head.appendChild(script);
-
-            return () => {
-                // Cleanup global function and script on unmount/change
-                delete (window as any).handleGoogleSignIn;
-                const scriptTag = document.querySelector('script[src*="gsi/client"]');
-                if (scriptTag) scriptTag.remove();
-            };
-        }
-    }, [user, loading]);
-
     const handleLogout = () => {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
         localStorage.removeItem('user');
+        localStorage.removeItem('token_expiry');
         setUser(null);
-        window.location.reload();
+        window.location.href = '/';
     };
-
-    if (!GOOGLE_CLIENT_ID) {
-        return <div className="text-gray-500 text-sm">Auth unavailable</div>;
-    }
 
     if (loading) {
         return <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 animate-pulse"></div>;
     }
 
     return (
-        <div className="auth-container">
+        <div className="auth-container flex items-center gap-4">
             {user ? (
                 <div className="flex items-center gap-3">
                     <a
@@ -148,11 +98,11 @@ const UserAuth: React.FC = () => {
                     </a>
                     <div className="hidden sm:block w-px h-4 bg-gray-200 dark:bg-gray-700"></div>
                     <img
-                        src={user.image || ''}
+                        src={user.image || getInitialsAvatar(user.name)}
                         alt={user.name}
                         className="w-9 h-9 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm"
                         onError={(e) => {
-                            (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`;
+                            (e.target as HTMLImageElement).src = getInitialsAvatar(user.name);
                         }}
                     />
                     <button
@@ -164,7 +114,20 @@ const UserAuth: React.FC = () => {
                     </button>
                 </div>
             ) : (
-                <div id="google-signin-btn" className="h-[40px] min-w-[40px]"></div>
+                <div className="flex items-center gap-3">
+                    <a
+                        href="/login"
+                        className="text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                    >
+                        Log in
+                    </a>
+                    <a
+                        href="/signup"
+                        className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-full transition-colors shadow-sm shadow-purple-500/20"
+                    >
+                        Sign up
+                    </a>
+                </div>
             )}
         </div>
     );

@@ -1,0 +1,779 @@
+---
+import Layout from "../layouts/Layout.astro";
+import TurnstileWidget from "../components/TurnstileWidget.astro";
+---
+
+<Layout title="Welcome to TakoVibe" description="Sign in or create an account">
+    <div class="min-h-screen flex bg-white dark:bg-[#171923]">
+        <!-- Left Side - Auth Forms -->
+        <div
+            class="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 lg:p-16 relative overflow-hidden"
+        >
+            <!-- Background Decoration for Mobile/Tablet -->
+            <div
+                class="absolute inset-0 pointer-events-none opacity-30 dark:opacity-20 lg:hidden"
+            >
+                <div
+                    class="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(159,122,234,0.15),transparent_70%)]"
+                >
+                </div>
+            </div>
+
+            <div class="w-full max-w-md space-y-8 relative z-10">
+                <!-- Logo & Header -->
+                <div class="text-center mb-8">
+                    <a href="/" class="inline-block mb-4 group">
+                        <div class="relative">
+                            <div
+                                class="absolute inset-0 bg-purple-500/20 rounded-full blur-md group-hover:bg-purple-500/30 transition-colors"
+                            >
+                            </div>
+                            <img
+                                src="/images/logo.svg"
+                                alt="TakoVibe"
+                                class="relative w-12 h-12 rounded-full shadow-sm transform group-hover:scale-105 transition-transform duration-300"
+                            />
+                        </div>
+                    </a>
+                    <h2
+                        id="auth-title"
+                        class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white"
+                    >
+                        Welcome back
+                    </h2>
+                    <p
+                        id="auth-subtitle"
+                        class="mt-2 text-sm text-gray-600 dark:text-gray-400"
+                    >
+                        Please enter your details to sign in.
+                    </p>
+                </div>
+
+                <!-- Auth Toggle -->
+                <div
+                    class="flex p-1 bg-gray-100 dark:bg-gray-800 rounded-xl mb-8"
+                >
+                    <button
+                        id="tab-login"
+                        class="flex-1 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+                    >
+                        Sign In
+                    </button>
+                    <button
+                        id="tab-signup"
+                        class="flex-1 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                    >
+                        Sign Up
+                    </button>
+                </div>
+
+                <!-- Google Button Container -->
+                <div
+                    id="google-btn-container"
+                    class="w-full flex justify-center"
+                >
+                </div>
+
+                <div class="relative my-6">
+                    <div class="absolute inset-0 flex items-center">
+                        <div
+                            class="w-full border-t border-gray-200 dark:border-gray-700"
+                        >
+                        </div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span
+                            class="px-4 bg-white dark:bg-[#171923] text-gray-500 dark:text-gray-400"
+                        >
+                            Or continue with email
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Login Form -->
+                <form id="login-form" class="space-y-5">
+                    <div>
+                        <label
+                            for="login-email"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                        >
+                            Email address
+                        </label>
+                        <input
+                            id="login-email"
+                            name="email"
+                            type="email"
+                            autocomplete="email"
+                            required
+                            class="appearance-none block w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-800 dark:text-white transition-all duration-200"
+                            placeholder="you@example.com"
+                        />
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label
+                                for="login-password"
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                            >
+                                Password
+                            </label>
+                            <a
+                                href="#"
+                                class="text-sm font-medium text-purple-600 hover:text-purple-500 dark:text-purple-400"
+                            >
+                                Forgot password?
+                            </a>
+                        </div>
+                        <input
+                            id="login-password"
+                            name="password"
+                            type="password"
+                            autocomplete="current-password"
+                            required
+                            class="appearance-none block w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-800 dark:text-white transition-all duration-200"
+                            placeholder="••••••••"
+                        />
+                    </div>
+
+                    <div class="flex justify-center">
+                        <TurnstileWidget />
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200 transform hover:scale-[1.02]"
+                    >
+                        Sign In
+                    </button>
+                </form>
+
+                <!-- Signup Form (Hidden by default) -->
+                <form id="signup-form" class="space-y-5 hidden">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label
+                                for="signup-firstname"
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                            >
+                                First Name
+                            </label>
+                            <input
+                                id="signup-firstname"
+                                name="first_name"
+                                type="text"
+                                required
+                                class="appearance-none block w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-800 dark:text-white transition-all duration-200"
+                            />
+                        </div>
+                        <div>
+                            <label
+                                for="signup-lastname"
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                            >
+                                Last Name
+                            </label>
+                            <input
+                                id="signup-lastname"
+                                name="last_name"
+                                type="text"
+                                required
+                                class="appearance-none block w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-800 dark:text-white transition-all duration-200"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label
+                            for="signup-email"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                        >
+                            Email address
+                        </label>
+                        <input
+                            id="signup-email"
+                            name="email"
+                            type="email"
+                            autocomplete="email"
+                            required
+                            class="appearance-none block w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-800 dark:text-white transition-all duration-200"
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            for="signup-password"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                        >
+                            Password
+                        </label>
+                        <input
+                            id="signup-password"
+                            name="password"
+                            type="password"
+                            autocomplete="new-password"
+                            required
+                            class="appearance-none block w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-800 dark:text-white transition-all duration-200"
+                        />
+                    </div>
+
+                    <div class="flex justify-center">
+                        <TurnstileWidget />
+                    </div>
+
+                    <div
+                        id="auth-error"
+                        class="hidden rounded-xl bg-red-50 dark:bg-red-900/20 p-4 border border-red-100 dark:border-red-800"
+                    >
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg
+                                    class="h-5 w-5 text-red-400"
+                                    viewBox="0 0 20 20"
+                                    fill="currentColor"
+                                >
+                                    <path
+                                        fill-rule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                        clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3
+                                    class="text-sm font-medium text-red-800 dark:text-red-200"
+                                    id="error-message"
+                                >
+                                    Authentication failed
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200 transform hover:scale-[1.02]"
+                    >
+                        Create Account
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right Side - Illustration -->
+        <div class="hidden lg:block lg:w-1/2 relative bg-[#171923]">
+            <div
+                class="absolute inset-0 flex items-center justify-center p-12 overflow-hidden"
+            >
+                <div class="relative w-full max-w-2xl">
+                    <!-- Decorative blobs -->
+                    <div
+                        class="absolute top-0 -left-4 w-72 h-72 bg-purple-500/20 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-blob"
+                    >
+                    </div>
+                    <div
+                        class="absolute top-0 -right-4 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-blob animation-delay-2000"
+                    >
+                    </div>
+                    <div
+                        class="absolute -bottom-8 left-20 w-72 h-72 bg-pink-500/20 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-blob animation-delay-4000"
+                    >
+                    </div>
+
+                    <img
+                        src="https://ik.imagekit.io/takovibe/auth%20image"
+                        alt="Collaboration"
+                        class="relative z-10 w-full h-auto object-contain drop-shadow-2xl transform hover:scale-[1.02] transition-transform duration-500"
+                    />
+                </div>
+            </div>
+            <div
+                class="absolute bottom-0 left-0 right-0 p-12 text-center z-20 bg-gradient-to-t from-[#171923] via-[#171923]/80 to-transparent"
+            >
+                <h3 class="text-3xl font-bold text-white mb-4 tracking-tight">
+                    Join our community
+                </h3>
+                <p
+                    class="text-gray-400 max-w-md mx-auto text-lg leading-relaxed"
+                >
+                    Connect with thousands of developers and creators building
+                    the future of tech.
+                </p>
+            </div>
+        </div>
+    </div>
+</Layout>
+
+<script>
+    const API_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
+
+    interface ApiResponse {
+        ok: boolean;
+        status: number;
+        json: () => Promise<any>;
+    }
+
+    declare global {
+        interface Window {
+            turnstile?: {
+                reset: () => void;
+            };
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get("mode");
+
+        const loginForm = document.getElementById(
+            "login-form",
+        ) as HTMLFormElement;
+        const signupForm = document.getElementById(
+            "signup-form",
+        ) as HTMLFormElement;
+        const tabLogin = document.getElementById("tab-login");
+        const tabSignup = document.getElementById("tab-signup");
+        const authTitle = document.getElementById("auth-title");
+        const authSubtitle = document.getElementById("auth-subtitle");
+        const errorDiv = document.getElementById("auth-error");
+        const errorMessage = document.getElementById("error-message");
+
+        function switchMode(newMode: "login" | "signup") {
+            if (newMode === "signup") {
+                loginForm.classList.add("hidden");
+                signupForm.classList.remove("hidden");
+                tabLogin?.classList.remove(
+                    "bg-white",
+                    "dark:bg-gray-700",
+                    "text-gray-900",
+                    "dark:text-white",
+                    "shadow-sm",
+                );
+                tabLogin?.classList.add(
+                    "text-gray-500",
+                    "dark:text-gray-400",
+                    "hover:text-gray-900",
+                    "dark:hover:text-white",
+                );
+                tabSignup?.classList.add(
+                    "bg-white",
+                    "dark:bg-gray-700",
+                    "text-gray-900",
+                    "dark:text-white",
+                    "shadow-sm",
+                );
+                tabSignup?.classList.remove(
+                    "text-gray-500",
+                    "dark:text-gray-400",
+                    "hover:text-gray-900",
+                    "dark:hover:text-white",
+                );
+                if (authTitle) authTitle.textContent = "Create an account";
+                if (authSubtitle)
+                    authSubtitle.textContent =
+                        "Join our community and start your journey.";
+
+                // Update URL without reload
+                const url = new URL(window.location.href);
+                url.searchParams.set("mode", "signup");
+                window.history.pushState({}, "", url);
+            } else {
+                signupForm.classList.add("hidden");
+                loginForm.classList.remove("hidden");
+                tabSignup?.classList.remove(
+                    "bg-white",
+                    "dark:bg-gray-700",
+                    "text-gray-900",
+                    "dark:text-white",
+                    "shadow-sm",
+                );
+                tabSignup?.classList.add(
+                    "text-gray-500",
+                    "dark:text-gray-400",
+                    "hover:text-gray-900",
+                    "dark:hover:text-white",
+                );
+                tabLogin?.classList.add(
+                    "bg-white",
+                    "dark:bg-gray-700",
+                    "text-gray-900",
+                    "dark:text-white",
+                    "shadow-sm",
+                );
+                tabLogin?.classList.remove(
+                    "text-gray-500",
+                    "dark:text-gray-400",
+                    "hover:text-gray-900",
+                    "dark:hover:text-white",
+                );
+                if (authTitle) authTitle.textContent = "Welcome back";
+                if (authSubtitle)
+                    authSubtitle.textContent =
+                        "Please enter your details to sign in.";
+
+                // Update URL without reload
+                const url = new URL(window.location.href);
+                url.searchParams.delete("mode");
+                window.history.pushState({}, "", url);
+            }
+            errorDiv?.classList.add("hidden");
+        }
+
+        tabLogin?.addEventListener("click", () => switchMode("login"));
+        tabSignup?.addEventListener("click", () => switchMode("signup"));
+
+        if (mode === "signup") {
+            switchMode("signup");
+        }
+
+        // Handle Form Submissions
+        async function handleAuth(
+            e: Event,
+            endpoint: string,
+            form: HTMLFormElement,
+        ) {
+            e.preventDefault();
+            errorDiv?.classList.add("hidden");
+
+            const submitBtn = form.querySelector("button[type='submit']");
+            if (submitBtn) {
+                const originalText = submitBtn.textContent;
+                submitBtn.textContent = "Processing...";
+                (submitBtn as HTMLButtonElement).disabled = true;
+
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+
+                console.log("Submitting to:", endpoint);
+                console.log("Payload:", JSON.stringify(data, null, 2));
+
+                try {
+                    const response = await fetch(`${API_URL}${endpoint}`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(data),
+                    });
+
+                    const resData = await response.json();
+                    console.log("Response:", resData);
+
+                    if (response.ok && resData.code === 0) {
+                        // Try to find token in various places, prioritizing auth_token
+                        const data = resData.data || {};
+                        const token =
+                            data.auth_token ||
+                            data.access ||
+                            data.token ||
+                            resData.auth_token ||
+                            resData.access ||
+                            resData.token;
+
+                        if (token) {
+                            console.log("Token received:", token);
+                            localStorage.setItem("access_token", token);
+
+                            // Set 7-day expiration
+                            const expiryDate = new Date();
+                            expiryDate.setDate(expiryDate.getDate() + 7);
+                            localStorage.setItem(
+                                "token_expiry",
+                                expiryDate.toISOString(),
+                            );
+
+                            // Initialize userObj from response data if available
+                            let userObj = data.user;
+
+                            // Normalize user object from response if needed
+                            if (userObj) {
+                                userObj = {
+                                    name: `${userObj.first_name || ""} ${userObj.last_name || ""}`.trim(),
+                                    email: userObj.email,
+                                    image:
+                                        userObj.image || userObj.avatar || "",
+                                };
+                            }
+
+                            if (endpoint.includes("login")) {
+                                // Fetch user profile to get complete details
+                                try {
+                                    const profileResp = await fetch(
+                                        `${API_URL}/api/users/me/`,
+                                        {
+                                            headers: {
+                                                Authorization: `Token ${token}`,
+                                            },
+                                        },
+                                    );
+
+                                    if (profileResp.ok) {
+                                        const profileData =
+                                            await profileResp.json();
+                                        console.log(
+                                            "Profile Data:",
+                                            profileData,
+                                        );
+                                        const userData =
+                                            profileData.data || profileData;
+
+                                        // Handle response format: { name: "...", ... } vs { first_name: "...", last_name: "...", ... }
+                                        const name =
+                                            userData.name ||
+                                            `${userData.first_name || ""} ${userData.last_name || ""}`.trim();
+
+                                        userObj = {
+                                            name: name,
+                                            email: userData.email,
+                                            image:
+                                                userData.image ||
+                                                userData.avatar ||
+                                                "",
+                                        };
+                                    } else {
+                                        console.warn(
+                                            "Profile fetch failed:",
+                                            profileResp.status,
+                                        );
+                                    }
+                                } catch (err) {
+                                    console.warn(
+                                        "Failed to fetch user profile",
+                                        err,
+                                    );
+                                }
+                            } else {
+                                // Signup logic (usually returns user object)
+                                if (!userObj) {
+                                    if (data.first_name) {
+                                        userObj = {
+                                            name: `${data.first_name} ${data.last_name}`.trim(),
+                                            email: data.email,
+                                            image: "",
+                                        };
+                                    }
+                                }
+                            }
+
+                            if (userObj) {
+                                console.log("Storing user:", userObj);
+                                localStorage.setItem(
+                                    "user",
+                                    JSON.stringify(userObj),
+                                );
+                            } else {
+                                console.warn("No user object created");
+                            }
+
+                            window.location.href = "/";
+                        } else {
+                            console.warn("No token in response data");
+                            if (endpoint.includes("signup")) {
+                                // Fallback only if absolutely no token found
+                                switchMode("login");
+                                alert(
+                                    "Account created successfully! Please sign in.",
+                                );
+                            } else {
+                                window.location.href = "/";
+                            }
+                        }
+                    } else {
+                        console.error("API Error:", resData);
+                        errorDiv?.classList.remove("hidden");
+                        if (errorMessage)
+                            errorMessage.textContent =
+                                resData.message || "Authentication failed";
+
+                        // Reset Turnstile
+                        if (window.turnstile) {
+                            window.turnstile.reset();
+                        }
+                    }
+                } catch (error) {
+                    console.error("Auth error:", error);
+                    errorDiv?.classList.remove("hidden");
+                    if (errorMessage)
+                        errorMessage.textContent =
+                            "An unexpected error occurred. Please try again.";
+
+                    // Reset Turnstile
+                    if (window.turnstile) {
+                        window.turnstile.reset();
+                    }
+                } finally {
+                    submitBtn.textContent = originalText;
+                    (submitBtn as HTMLButtonElement).disabled = false;
+                }
+            }
+        }
+
+        loginForm?.addEventListener("submit", (e) =>
+            handleAuth(e, "/api/users/login/", loginForm),
+        );
+        signupForm?.addEventListener("submit", (e) =>
+            handleAuth(e, "/api/users/signup/", signupForm),
+        );
+
+        const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID;
+
+        function handleGoogleCredentialResponse(response: any) {
+            if (response.credential) {
+                handleGoogleLogin(response.credential);
+            }
+        }
+
+        // @ts-ignore
+        window.onGoogleLibraryLoad = () => {
+            // @ts-ignore
+            google.accounts.id.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                callback: handleGoogleCredentialResponse,
+                auto_select: false,
+                cancel_on_tap_outside: true,
+            });
+
+            // Render the Google Sign-In button
+            // @ts-ignore
+            google.accounts.id.renderButton(
+                document.getElementById("google-btn-container"),
+                {
+                    theme: "outline",
+                    size: "large",
+                    width:
+                        document.getElementById("google-btn-container")
+                            ?.clientWidth || 350,
+                    logo_alignment: "left",
+                },
+            );
+        };
+
+        // Check if Google script is already loaded
+        // @ts-ignore
+        if (typeof google !== "undefined" && google.accounts) {
+            // @ts-ignore
+            window.onGoogleLibraryLoad();
+        }
+
+        async function handleGoogleLogin(idToken: string) {
+            try {
+                // Backend expects the token in the 'code' field based on the error log
+                const response = await fetch(`${API_URL}/api/users/google/`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ code: idToken }),
+                });
+
+                const resData = await response.json();
+                console.log("Google Login Response:", resData);
+
+                const data = resData.data || {};
+                const token =
+                    data.auth_token ||
+                    data.access ||
+                    data.token ||
+                    resData.auth_token ||
+                    resData.access ||
+                    resData.token;
+
+                if (response.ok && token) {
+                    localStorage.setItem("access_token", token);
+
+                    // Set 7-day expiration
+                    const expiryDate = new Date();
+                    expiryDate.setDate(expiryDate.getDate() + 7);
+                    localStorage.setItem(
+                        "token_expiry",
+                        expiryDate.toISOString(),
+                    );
+
+                    let userObj = resData.user || data.user;
+
+                    if (!userObj) {
+                        // Fetch user profile if not provided
+                        try {
+                            const profileResp = await fetch(
+                                `${API_URL}/api/users/me/`,
+                                {
+                                    headers: {
+                                        Authorization: `Token ${token}`,
+                                    },
+                                },
+                            );
+                            if (profileResp.ok) {
+                                const profileData = await profileResp.json();
+                                const userData =
+                                    profileData.data || profileData;
+
+                                // Handle response format: { name: "...", ... } vs { first_name: "...", last_name: "...", ... }
+                                const name =
+                                    userData.name ||
+                                    `${userData.first_name || ""} ${userData.last_name || ""}`.trim();
+
+                                userObj = {
+                                    name: name,
+                                    email: userData.email,
+                                    image:
+                                        userData.image || userData.avatar || "",
+                                };
+                            }
+                        } catch (err) {
+                            console.warn("Failed to fetch user profile", err);
+                        }
+                    }
+
+                    if (userObj) {
+                        localStorage.setItem("user", JSON.stringify(userObj));
+                    }
+
+                    window.location.href = "/";
+                } else {
+                    console.error("Google login failed:", resData);
+                    const errorDiv = document.getElementById("auth-error");
+                    const errorMessage =
+                        document.getElementById("error-message");
+                    if (errorDiv) errorDiv.classList.remove("hidden");
+                    if (errorMessage)
+                        errorMessage.textContent =
+                            resData.message || "Google login failed";
+                }
+            } catch (error) {
+                console.error("Google login error:", error);
+                const errorDiv = document.getElementById("auth-error");
+                const errorMessage = document.getElementById("error-message");
+                if (errorDiv) errorDiv.classList.remove("hidden");
+                if (errorMessage)
+                    errorMessage.textContent =
+                        "An unexpected error occurred. Please try again.";
+            }
+        }
+    });
+</script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<style>
+    @keyframes blob {
+        0% {
+            transform: translate(0px, 0px) scale(1);
+        }
+        33% {
+            transform: translate(30px, -50px) scale(1.1);
+        }
+        66% {
+            transform: translate(-20px, 20px) scale(0.9);
+        }
+        100% {
+            transform: translate(0px, 0px) scale(1);
+        }
+    }
+    .animate-blob {
+        animation: blob 7s infinite;
+    }
+    .animation-delay-2000 {
+        animation-delay: 2s;
+    }
+    .animation-delay-4000 {
+        animation-delay: 4s;
+    }
+</style>
