@@ -90,6 +90,34 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                     </div>
                 </div>
 
+                <div
+                    id="auth-error"
+                    class="hidden rounded-xl bg-red-50 dark:bg-red-900/20 p-4 border border-red-100 dark:border-red-800 mb-6"
+                >
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg
+                                class="h-5 w-5 text-red-400"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                            >
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                    clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3
+                                class="text-sm font-medium text-red-800 dark:text-red-200"
+                                id="error-message"
+                            >
+                                Authentication failed
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Login Form -->
                 <form id="login-form" class="space-y-5">
                     <div>
@@ -119,7 +147,7 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                                 Password
                             </label>
                             <a
-                                href="#"
+                                href="/forgot-password"
                                 class="text-sm font-medium text-purple-600 hover:text-purple-500 dark:text-purple-400"
                             >
                                 Forgot password?
@@ -219,34 +247,6 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
 
                     <div class="flex justify-center">
                         <TurnstileWidget />
-                    </div>
-
-                    <div
-                        id="auth-error"
-                        class="hidden rounded-xl bg-red-50 dark:bg-red-900/20 p-4 border border-red-100 dark:border-red-800"
-                    >
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <svg
-                                    class="h-5 w-5 text-red-400"
-                                    viewBox="0 0 20 20"
-                                    fill="currentColor"
-                                >
-                                    <path
-                                        fill-rule="evenodd"
-                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                        clip-rule="evenodd"></path>
-                                </svg>
-                            </div>
-                            <div class="ml-3">
-                                <h3
-                                    class="text-sm font-medium text-red-800 dark:text-red-200"
-                                    id="error-message"
-                                >
-                                    Authentication failed
-                                </h3>
-                            </div>
-                        </div>
                     </div>
 
                     <button
@@ -443,9 +443,6 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                 const formData = new FormData(form);
                 const data = Object.fromEntries(formData.entries());
 
-                console.log("Submitting to:", endpoint);
-                console.log("Payload:", JSON.stringify(data, null, 2));
-
                 try {
                     const response = await fetch(`${API_URL}${endpoint}`, {
                         method: "POST",
@@ -456,7 +453,6 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                     });
 
                     const resData = await response.json();
-                    console.log("Response:", resData);
 
                     if (response.ok && resData.code === 0) {
                         // Try to find token in various places, prioritizing auth_token
@@ -470,7 +466,6 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                             resData.token;
 
                         if (token) {
-                            console.log("Token received:", token);
                             localStorage.setItem("access_token", token);
 
                             // Set 7-day expiration
@@ -509,10 +504,6 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                                     if (profileResp.ok) {
                                         const profileData =
                                             await profileResp.json();
-                                        console.log(
-                                            "Profile Data:",
-                                            profileData,
-                                        );
                                         const userData =
                                             profileData.data || profileData;
 
@@ -555,7 +546,6 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                             }
 
                             if (userObj) {
-                                console.log("Storing user:", userObj);
                                 localStorage.setItem(
                                     "user",
                                     JSON.stringify(userObj),
@@ -580,9 +570,37 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                     } else {
                         console.error("API Error:", resData);
                         errorDiv?.classList.remove("hidden");
+
+                        let msg = resData.message || resData.detail;
+                        if (
+                            !msg &&
+                            resData.non_field_errors &&
+                            Array.isArray(resData.non_field_errors)
+                        ) {
+                            msg = resData.non_field_errors[0];
+                        }
+                        if (!msg && typeof resData === "object") {
+                            // Try to find first error message in object values
+                            const values = Object.values(resData);
+                            if (values.length > 0) {
+                                const firstVal = values[0];
+                                if (typeof firstVal === "string")
+                                    msg = firstVal;
+                                else if (
+                                    Array.isArray(firstVal) &&
+                                    firstVal.length > 0
+                                )
+                                    msg = firstVal[0];
+                            }
+                        }
+
+                        if (response.status === 429) {
+                            msg = "Too many requests. Please try again later.";
+                        }
+
                         if (errorMessage)
                             errorMessage.textContent =
-                                resData.message || "Authentication failed";
+                                msg || "Authentication failed";
 
                         // Reset Turnstile
                         if (window.turnstile) {
@@ -666,8 +684,6 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                 });
 
                 const resData = await response.json();
-                console.log("Google Login Response:", resData);
-
                 const data = resData.data || {};
                 const token =
                     data.auth_token ||

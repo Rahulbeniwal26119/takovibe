@@ -2,8 +2,6 @@ import chokidar from 'chokidar';
 import fs from 'fs';
 import path from 'path';
 
-console.log('🔍 Watching MDX files for escaped brackets...\n');
-
 const watcher = chokidar.watch('src/content/blog/**/*.mdx', {
   persistent: true,
   ignoreInitial: false,
@@ -25,7 +23,6 @@ function fixBrackets(filePath) {
     // Only write if something changed
     if (content !== originalContent) {
       fs.writeFileSync(filePath, content, 'utf-8');
-      console.log(`✅ Fixed brackets in: ${path.basename(filePath)}`);
     }
   } catch (error) {
     console.error(`❌ Error fixing ${filePath}:`, error.message);
@@ -36,11 +33,9 @@ watcher
   .on('add', fixBrackets)
   .on('change', fixBrackets)
   .on('ready', () => {
-    console.log('✓ Watching for file changes...\n');
   });
 
 process.on('SIGINT', () => {
-  console.log('\n👋 Stopping file watcher...');
   watcher.close();
   process.exit(0);
 });
