@@ -3,7 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import SeriesCard from "../components/SeriesCard.astro";
 
 // Enable Server-Side Rendering
-export const prerender = false;
+// export const prerender = false;
 
 // Get API URL from environment
 const API_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
@@ -34,7 +34,8 @@ const completedSeries = seriesData.filter(
     (series) => series.is_completed && !series.is_deactivated,
 );
 const plannedSeries = seriesData.filter(
-    (series) => !series.is_live && !series.is_deactivated,
+    (series) =>
+        !series.is_live && !series.is_completed && !series.is_deactivated,
 );
 const deactivatedSeries = seriesData.filter((series) => series.is_deactivated);
 ---
