@@ -1,18 +1,24 @@
 ---
-import { getCollection } from 'astro:content';
-import NewsletterCTA from './NewsletterCTA.astro';
+import { getCollection } from "astro:content";
+import NewsletterCTA from "./NewsletterCTA.astro";
 const currentYear = new Date().getFullYear();
 const apiUrl = import.meta.env.PUBLIC_API_URL;
 ---
 
-<footer class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-t border-blue-200/50 dark:border-blue-700/30">
+<footer
+  class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-t border-blue-200/50 dark:border-blue-700/30"
+>
   <!-- Brand Section -->
   <div class="bg-blue-600 dark:bg-blue-800 text-white">
     <div class="max-w-7xl mx-auto px-6 py-8">
       <div class="text-center">
-        <h2 class="text-2xl sm:text-3xl font-light mb-3">Stay Connected with <span class="font-medium text-blue-200">TakoVibe</span></h2>
+        <h2 class="text-2xl sm:text-3xl font-light mb-3">
+          Stay Connected with <span class="font-medium text-blue-200"
+            >TakoVibe</span>
+        </h2>
         <p class="text-blue-100 text-sm sm:text-base max-w-2xl mx-auto">
-          Join our community of developers, designers, and tech enthusiasts. Get the latest insights, tutorials, and updates delivered to your inbox.
+          Join our community of developers, designers, and tech enthusiasts. Get
+          the latest insights, tutorials, and updates delivered to your inbox.
         </p>
       </div>
     </div>
@@ -22,38 +28,71 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
     <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
       <!-- Brand Section -->
       <div class="col-span-1 md:col-span-4">
-        <div class="bg-white/80 dark:bg-blue-900/50 backdrop-blur-sm rounded-xl p-6 border border-blue-200/50 dark:border-blue-700/30">
+        <div
+          class="bg-white/80 dark:bg-blue-900/50 backdrop-blur-sm rounded-xl p-6 border border-blue-200/50 dark:border-blue-700/30"
+        >
           <div class="flex items-center gap-3 mb-4">
-            <div class="p-2 bg-gradient-to-br from-blue-600/10 to-indigo-600/10 dark:from-blue-500/20 dark:to-indigo-500/20 rounded-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+            <div
+              class="p-2 bg-gradient-to-br from-blue-600/10 to-indigo-600/10 dark:from-blue-500/20 dark:to-indigo-500/20 rounded-lg"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-8 w-8 text-blue-600 dark:text-blue-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
+                ></path>
               </svg>
             </div>
-            <h2 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
+            <h2
+              class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400"
+            >
               TakoVibe
             </h2>
           </div>
-          <p class="text-blue-700 dark:text-blue-300 mb-6 text-sm leading-relaxed">
-            Exploring the depths of software engineering, system design, and technology innovations. Join me on this journey of continuous learning and discovery.
+          <p
+            class="text-blue-700 dark:text-blue-300 mb-6 text-sm leading-relaxed"
+          >
+            Exploring the depths of software engineering, system design, and
+            technology innovations. Join me on this journey of continuous
+            learning and discovery.
           </p>
           <div class="flex items-center gap-4">
-            <a 
-              href="https://linkedin.com/in/rahulbeniwal26119" 
+            <a
+              href="https://linkedin.com/in/rahulbeniwal26119"
               class="group flex items-center gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
             >
               <span class="sr-only">LinkedIn</span>
-              <svg class="h-5 w-5 transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M19 0h-14c-2.76 0-5 2.24-5 5v14c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24 5-5v-14c0-2.76-2.24-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.27c-.966 0-1.75-.79-1.75-1.75s.784-1.75 1.75-1.75 1.75.79 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.27h-3v-5.6c0-3.37-4-3.12-4 0v5.6h-3v-11h3v1.76c1.4-2.59 7-2.78 7 2.47v6.77z"/>
+              <svg
+                class="h-5 w-5 transition-transform group-hover:scale-110"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 0h-14c-2.76 0-5 2.24-5 5v14c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24 5-5v-14c0-2.76-2.24-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.27c-.966 0-1.75-.79-1.75-1.75s.784-1.75 1.75-1.75 1.75.79 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.27h-3v-5.6c0-3.37-4-3.12-4 0v5.6h-3v-11h3v1.76c1.4-2.59 7-2.78 7 2.47v6.77z"
+                ></path>
               </svg>
               <span class="text-sm font-medium">LinkedIn</span>
             </a>
-            <a 
-              href="https://github.com/Rahulbeniwal26119" 
+            <a
+              href="https://github.com/Rahulbeniwal26119"
               class="group flex items-center gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
             >
               <span class="sr-only">GitHub</span>
-              <svg class="h-5 w-5 transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+              <svg
+                class="h-5 w-5 transition-transform group-hover:scale-110"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
+                ></path>
               </svg>
               <span class="text-sm font-medium">GitHub</span>
             </a>
@@ -75,20 +114,40 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
 
       <!-- Newsletter Section -->
       <div class="col-span-1 md:col-span-8">
-        <div id="newsletter-wrapper" class="bg-gradient-to-br from-blue-100/50 to-indigo-100/50 dark:from-blue-800/20 dark:to-indigo-800/20 backdrop-blur-sm rounded-xl p-8 border border-blue-200/50 dark:border-blue-700/30 shadow-xl">
+        <div
+          id="newsletter-wrapper"
+          class="bg-gradient-to-br from-blue-100/50 to-indigo-100/50 dark:from-blue-800/20 dark:to-indigo-800/20 backdrop-blur-sm rounded-xl p-8 border border-blue-200/50 dark:border-blue-700/30 shadow-xl"
+        >
           <div id="subscribe-form">
             <div class="flex items-center gap-3 mb-4">
               <div class="p-2 bg-blue-600/10 dark:bg-blue-500/20 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-6 w-6 text-blue-600 dark:text-blue-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                  ></path>
                 </svg>
               </div>
               <div>
-                <h3 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">Join the Upcoming Newsletter</h3>
-                <p class="text-sm text-blue-700 dark:text-blue-300">Get weekly insights and tutorials</p>
+                <h3
+                  class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400"
+                >
+                  Join the Upcoming Newsletter
+                </h3>
+                <p class="text-sm text-blue-700 dark:text-blue-300">
+                  Get weekly insights and tutorials
+                </p>
               </div>
             </div>
-            
+
             <form class="space-y-4">
               <label for="email-address" class="sr-only">Email address</label>
               <div class="flex flex-col sm:flex-row gap-3">
@@ -102,7 +161,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
                   placeholder="Enter your email address"
                 />
                 <button
-                  type="submit" 
+                  type="submit"
                   onclick="toggle_newsletter_subscription(event)"
                   class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 font-medium shadow-lg shadow-blue-500/25 hover:shadow-blue-500/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-blue-900"
                 >
@@ -111,15 +170,31 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
               </div>
             </form>
           </div>
-          <div id="unsubscribed-message" style="display: none;" class="text-center py-2">
-            <div class="flex items-center justify-center gap-2 text-green-600 dark:text-green-400 mb-2">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <div
+            id="unsubscribed-message"
+            style="display: none;"
+            class="text-center py-2"
+          >
+            <div
+              class="flex items-center justify-center gap-2 text-green-600 dark:text-green-400 mb-2"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
               <p class="font-medium">You're subscribed to the newsletter!</p>
             </div>
-            <button 
-              id="unsubscribe-button" 
+            <button
+              id="unsubscribe-button"
               class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium hover:underline transition-colors duration-200"
             >
               Unsubscribe
@@ -133,71 +208,98 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
     <div class="mt-12 pt-8 border-t border-blue-200/50 dark:border-blue-800/50">
       <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
         <div class="flex items-center gap-2">
-          <div class="h-8 w-8 rounded-full bg-gradient-to-br from-blue-600/20 to-indigo-600/20 flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+          <div
+            class="h-8 w-8 rounded-full bg-gradient-to-br from-blue-600/20 to-indigo-600/20 flex items-center justify-center"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4 text-blue-600 dark:text-blue-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
+              ></path>
             </svg>
           </div>
           <p class="text-sm text-blue-700 dark:text-blue-300">
-            © {currentYear} <span class="font-medium bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">TakoVibe</span>
+            © {currentYear}
+            <span
+              class="font-medium bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400"
+              >TakoVibe</span
+            >
           </p>
         </div>
         <div class="flex items-center gap-6">
-          <a href="/privacy" class="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">Privacy Policy</a>
-          <a href="/terms" class="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">Terms of Service</a>
-          <span class="text-sm text-blue-600 dark:text-blue-400">Made with ❤️ in India</span>
+          <a
+            href="/privacy"
+            class="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+            >Privacy Policy</a
+          >
+          <a
+            href="/terms"
+            class="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+            >Terms of Service</a
+          >
+          <span class="text-sm text-blue-600 dark:text-blue-400"
+            >Made with ❤️ in India</span
+          >
         </div>
       </div>
     </div>
   </div>
 </footer>
-<script define:vars={{apiUrl}}>
-
+<script define:vars={{ apiUrl }}>
   document.addEventListener("DOMContentLoaded", async () => {
-      const email = await get_email();
-      document.getElementById('email-address').value = email;
-      const opt_out = await get_subscription_status();
-      console.log("opt_out", opt_out);
-      const form = document.getElementById('subscribe-form');
-      form.value = email;
-      // stop page be be reload on submit
-      document.getElementById('subscribe-form').addEventListener('submit', async function(event) {
+    const email = await get_email();
+    document.getElementById("email-address").value = email;
+    const opt_out = await get_subscription_status();
+    console.log("opt_out", opt_out);
+    const form = document.getElementById("subscribe-form");
+    form.value = email;
+    // stop page be be reload on submit
+    document
+      .getElementById("subscribe-form")
+      .addEventListener("submit", async function (event) {
         console.log("event", event);
         event.preventDefault();
-       });
-      if (!opt_out) {
-        document.getElementById('subscribe-form').style.display = 'none';
-        document.getElementById('unsubscribed-message').style.display = 'block';
-      } else {
-        const user_details = localStorage.getItem('user') || null;
-        if (user_details) {
-          const user_details_json = JSON.parse(user_details);
-          const email = user_details_json.email;
-          const form_email = document.getElementById('email-address').value;
-          if (!form_email) {
-            // set login email to the form email 
-            document.getElementById('email-address').value = email;
-          }
+      });
+    if (!opt_out) {
+      document.getElementById("subscribe-form").style.display = "none";
+      document.getElementById("unsubscribed-message").style.display = "block";
+    } else {
+      const user_details = localStorage.getItem("user") || null;
+      if (user_details) {
+        const user_details_json = JSON.parse(user_details);
+        const email = user_details_json.email;
+        const form_email = document.getElementById("email-address").value;
+        if (!form_email) {
+          // set login email to the form email
+          document.getElementById("email-address").value = email;
         }
       }
-    });
+    }
+  });
 
-   async function get_email() {
-    const user_details = localStorage.getItem('user') || null;
+  async function get_email() {
+    const user_details = localStorage.getItem("user") || null;
     if (user_details) {
       const user_details_json = JSON.parse(user_details);
       return user_details_json.email;
+    } else {
+      return document.getElementById("email-address").value;
     }
-    else {
-      return document.getElementById('email-address').value;
-    }
-   }
+  }
 
   async function get_subscription_status() {
-    const email = document.getElementById('email-address').value;
-    const url = `${apiUrl}/api/users/newsletter-subscription/` + `?email=${email}`;
+    const email = document.getElementById("email-address").value;
+    const url = `${apiUrl}/api/users/newsletter/` + `?email=${email}`;
     const response = await fetch(url, {
-      method: 'GET',
+      method: "GET",
     });
     if (response.ok) {
       const data = await response.json();
@@ -207,43 +309,44 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
     return false;
   }
 
-  window.toggle_newsletter_subscription = async function toggle_newsletter_subscription(event) {
-    console.log("toggle_newsletter_subscription", event);
-    event.preventDefault();
-    console.log("event", event);
+  window.toggle_newsletter_subscription =
+    async function toggle_newsletter_subscription(event) {
+      console.log("toggle_newsletter_subscription", event);
+      event.preventDefault();
+      console.log("event", event);
 
-    const url = `${apiUrl}/api/users/newsletter-subscription/`;
-    const email = document.getElementById('email-address').value;
+      const url = `${apiUrl}/api/users/newsletter/`;
+      const email = document.getElementById("email-address").value;
 
-    const response = await fetch(url, {
-      method: 'POST',
-      body: JSON.stringify({ email: email }),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    if (response.ok) {
-      const data = await response.json();
-      var data_json = data.data;
-      const opt_out = data_json.opt_out;
-      if (opt_out) {
-        document.getElementById('subscribe-form').style.display = 'block';
-        document.getElementById('unsubscribed-message').style.display = 'none';
+      const response = await fetch(url, {
+        method: "POST",
+        body: JSON.stringify({ email: email }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        var data_json = data.data;
+        const opt_out = data_json.opt_out;
+        if (opt_out) {
+          document.getElementById("subscribe-form").style.display = "block";
+          document.getElementById("unsubscribed-message").style.display =
+            "none";
+        } else {
+          document.getElementById("subscribe-form").style.display = "none";
+          document.getElementById("unsubscribed-message").style.display =
+            "block";
+        }
       } else {
-        document.getElementById('subscribe-form').style.display = 'none';
-        document.getElementById('unsubscribed-message').style.display = 'block';
+        console.error("Newsletter subscription failed");
       }
-    } else {
-      console.error('Newsletter subscription failed');
-    }
-  }
+    };
 
-  const unsubscribe_button = document.getElementById('unsubscribe-button');
-  unsubscribe_button.addEventListener('click', async (event) => {
+  const unsubscribe_button = document.getElementById("unsubscribe-button");
+  unsubscribe_button.addEventListener("click", async (event) => {
     event.preventDefault();
     await toggle_newsletter_subscription(event);
     window.location.reload();
   });
 </script>
-
-
