@@ -1,8 +1,12 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import SeriesCard from "../components/SeriesCard.astro";
+
+// Enable Server-Side Rendering
+export const prerender = false;
 
 // Get API URL from environment
-const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
 
 // Fetch series data from API
 let seriesData = [];
@@ -16,42 +20,23 @@ try {
     const data = await response.json();
     seriesData = data.results || [];
 } catch (e) {
-    console.error('Failed to fetch series data:', e);
+    console.error("Failed to fetch series data:", e);
     error = e.message;
     seriesData = [];
 }
 
-// Separate active and planned series
-const activeSeries = seriesData.filter(series => series.is_live);
-const plannedSeries = seriesData.filter(series => !series.is_live);
-
-// Helper function to get series icon
-const getSeriesIcon = (topics = []) => {
-    const topicLower = topics.join(' ').toLowerCase();
-    if (topicLower.includes('ai') || topicLower.includes('machine learning')) return "🤖";
-    if (topicLower.includes('system') || topicLower.includes('design')) return "🏗️";
-    if (topicLower.includes('python')) return "🐍";
-    if (topicLower.includes('javascript') || topicLower.includes('react')) return "⚛️";
-    if (topicLower.includes('security')) return "🔒";
-    if (topicLower.includes('performance')) return "⚡";
-    return "📚";
-};
-
-// Helper function to capitalize text
-const capitalize = (text) => {
-    return text ? text.charAt(0).toUpperCase() + text.slice(1) : '';
-};
-
-// Helper function to format date
-const formatDate = (dateString) => {
-    if (!dateString) return 'TBD';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-        month: 'long', 
-        day: 'numeric', 
-        year: 'numeric' 
-    });
-};
+// Categorize series
+const liveSeries = seriesData.filter(
+    (series) =>
+        series.is_live && !series.is_completed && !series.is_deactivated,
+);
+const completedSeries = seriesData.filter(
+    (series) => series.is_completed && !series.is_deactivated,
+);
+const plannedSeries = seriesData.filter(
+    (series) => !series.is_live && !series.is_deactivated,
+);
+const deactivatedSeries = seriesData.filter((series) => series.is_deactivated);
 ---
 
 <Layout
@@ -61,21 +46,23 @@ const formatDate = (dateString) => {
     tags={["series", "tutorials", "learning paths", "programming"]}
 >
     <div class="min-h-screen bg-gray-50 dark:bg-[#0B1120]">
-        
         <!-- Hero Section -->
         <section class="relative py-24 lg:py-32 overflow-hidden">
             <!-- Animated Background -->
             <div
                 class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-100 via-gray-50 to-gray-50 dark:from-purple-900/20 dark:via-[#0B1120] dark:to-[#0B1120]"
-            ></div>
+            >
+            </div>
 
             <!-- Blobs -->
             <div
                 class="absolute top-0 left-1/4 w-96 h-96 bg-purple-400/20 dark:bg-purple-500/10 rounded-full blur-3xl animate-blob"
-            ></div>
+            >
+            </div>
             <div
                 class="absolute top-0 right-1/4 w-96 h-96 bg-blue-400/20 dark:bg-blue-500/10 rounded-full blur-3xl animate-blob animation-delay-2000"
-            ></div>
+            >
+            </div>
 
             <div class="relative z-10 max-w-6xl mx-auto px-6 text-center">
                 <div
@@ -88,349 +75,289 @@ const formatDate = (dateString) => {
                 <h1
                     class="text-5xl md:text-6xl lg:text-7xl font-bold mb-8 animate-fade-in-up animation-delay-200 tracking-tight"
                 >
-                    <span class="block text-gray-900 dark:text-white mb-2">Series Collection</span>
+                    <span class="block text-gray-900 dark:text-white mb-2"
+                        >Series Collection</span
+                    >
                     <span
                         class="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent animate-gradient"
-                    >Structured Learning</span>
+                        >Structured Learning</span
+                    >
                 </h1>
 
                 <p
                     class="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed animate-fade-in-up animation-delay-400 mb-8"
                 >
-                    Follow comprehensive series that build knowledge progressively through curated content and real-world examples.
+                    Follow comprehensive series that build knowledge
+                    progressively through curated content and real-world
+                    examples.
                 </p>
 
                 <!-- Stats -->
-                <div class="flex flex-wrap items-center justify-center gap-6 text-gray-500 dark:text-gray-400 animate-fade-in-up animation-delay-600">
+                <div
+                    class="flex flex-wrap items-center justify-center gap-6 text-gray-500 dark:text-gray-400 animate-fade-in-up animation-delay-600"
+                >
                     <div class="flex items-center gap-2">
-                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                        <span class="font-medium">{activeSeries.length}</span>
-                        <span>live series</span>
+                        <div
+                            class="w-2 h-2 bg-green-500 rounded-full animate-pulse"
+                        >
+                        </div>
+                        <span class="font-medium">{liveSeries.length}</span>
+                        <span>live</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <div class="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                        <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <span class="font-medium">{completedSeries.length}</span
+                        >
+                        <span>completed</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 bg-amber-500 rounded-full"></div>
                         <span class="font-medium">{plannedSeries.length}</span>
-                        <span>coming soon</span>
+                        <span>planned</span>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- Error Message -->
-        {error && (
-            <section class="px-6 mb-8">
-                <div class="max-w-4xl mx-auto p-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl">
-                    <div class="flex items-center gap-3 text-red-700 dark:text-red-400">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
-                        </svg>
-                        <span class="font-bold">Unable to load series data</span>
-                    </div>
-                </div>
-            </section>
-        )}
-
-        <!-- Active Series Section -->
-        {activeSeries.length > 0 && (
-            <section class="py-16 px-6">
-                <div class="max-w-7xl mx-auto">
-                    <div class="text-center mb-12">
-                        <div class="inline-flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-900/20 rounded-full mb-4">
-                            <span class="text-xl">🔥</span>
-                            <span class="font-bold text-green-700 dark:text-green-300">Active Series</span>
+        {
+            error && (
+                <section class="px-6 mb-8">
+                    <div class="max-w-4xl mx-auto p-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl">
+                        <div class="flex items-center gap-3 text-red-700 dark:text-red-400">
+                            <svg
+                                class="w-6 h-6"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                                />
+                            </svg>
+                            <span class="font-bold">
+                                Unable to load series data
+                            </span>
                         </div>
-                        <p class="text-gray-600 dark:text-gray-400">
-                            Click on any series to start your learning journey
-                        </p>
                     </div>
+                </section>
+            )
+        }
 
-                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {activeSeries.map((series) => {
-                            const icon = getSeriesIcon(series.topic_covered || []);
-                            const totalArticles = series.planned_articles || 0;
-                            const publishedArticles = series.total_published_articles || 0;
-                            const progress = totalArticles > 0 ? (publishedArticles / totalArticles) * 100 : 0;
-                            const isOngoing = totalArticles === 0 || totalArticles === null;
-                            const isComplete = !isOngoing && publishedArticles >= totalArticles;
-                            
-                            return (
-                                <div class="group relative flex flex-col bg-white dark:bg-[#131B2E] border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-2 hover:border-purple-500/20 dark:hover:border-purple-500/20">
-                                    <!-- Header Bar with Status -->
-                                    <div class={`h-2 ${isComplete ? 'bg-gradient-to-r from-green-500 via-emerald-500 to-green-600' : 'bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500'}`}></div>
-                                    
-                                    <div class="p-6 flex-1 flex flex-col">
-                                        <!-- Icon & Badge -->
-                                        <div class="flex items-start justify-between mb-4">
-                                            <div class="w-14 h-14 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
-                                                {icon}
-                                            </div>
-                                            <div class="flex flex-col items-end gap-2">
-                                                <span class={`px-3 py-1 text-xs font-bold rounded-full flex items-center gap-1.5 ${
-                                                    isComplete 
-                                                        ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                                                        : 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                                                }`}>
-                                                    <div class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                                                    {isComplete ? 'Complete' : 'Live'}
-                                                </span>
-                                                {isOngoing && (
-                                                    <span class="px-2.5 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-bold rounded-full">
-                                                        Ongoing
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
+        <!-- Live Series Section -->
+        {
+            liveSeries.length > 0 && (
+                <section class="py-16 px-6">
+                    <div class="max-w-7xl mx-auto">
+                        <div class="text-center mb-12">
+                            <div class="inline-flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-900/20 rounded-full mb-4">
+                                <span class="text-xl">🔥</span>
+                                <span class="font-bold text-green-700 dark:text-green-300">
+                                    Live Series
+                                </span>
+                            </div>
+                            <p class="text-gray-600 dark:text-gray-400">
+                                Ongoing series with regular updates
+                            </p>
+                        </div>
 
-                                        <!-- Title & Level -->
-                                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2 leading-tight">
-                                            {series.title}
-                                        </h3>
-                                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4 flex items-center gap-2">
-                                            <span class="px-2.5 py-1 bg-gray-100 dark:bg-white/5 rounded-md font-medium">
-                                                {capitalize(series.start_level)} → {capitalize(series.end_level)}
-                                            </span>
-                                        </p>
-
-                                        <!-- Description -->
-                                        <p class="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 mb-6 flex-1">
-                                            {series.description || 'Comprehensive learning path designed to build your expertise step by step.'}
-                                        </p>
-
-                                        <!-- Stats Grid -->
-                                        <div class="grid grid-cols-2 gap-3 mb-4">
-                                            <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-3 text-center">
-                                                <div class="text-2xl font-bold text-green-600 dark:text-green-400">{publishedArticles}</div>
-                                                <div class="text-xs text-gray-600 dark:text-gray-400 font-medium">Published</div>
-                                            </div>
-                                            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3 text-center">
-                                                <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{totalArticles > 0 ? totalArticles : '∞'}</div>
-                                                <div class="text-xs text-gray-600 dark:text-gray-400 font-medium">Total</div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Progress Bar (only for non-ongoing series) -->
-                                        {!isOngoing && (
-                                            <div class="mb-4">
-                                                <div class="flex justify-between items-center mb-2 text-xs">
-                                                    <span class="text-gray-600 dark:text-gray-400 font-medium">Progress</span>
-                                                    <span class="font-bold text-purple-600 dark:text-purple-400">{Math.round(progress)}%</span>
-                                                </div>
-                                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                                    <div 
-                                                        class={`h-2 rounded-full transition-all duration-500 ${
-                                                            isComplete 
-                                                                ? 'bg-gradient-to-r from-green-500 to-emerald-500'
-                                                                : 'bg-gradient-to-r from-purple-500 to-blue-500'
-                                                        }`}
-                                                        style={`width: ${Math.min(progress, 100)}%`}
-                                                    ></div>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        <!-- Topics -->
-                                        {series.topic_covered && series.topic_covered.length > 0 && (
-                                            <div class="flex flex-wrap gap-2 mb-4">
-                                                {series.topic_covered.slice(0, 3).map(topic => (
-                                                    <span class="text-xs px-2.5 py-1 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded-md font-medium">
-                                                        {topic}
-                                                    </span>
-                                                ))}
-                                                {series.topic_covered.length > 3 && (
-                                                    <span class="text-xs px-2.5 py-1 bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 rounded-md font-medium">
-                                                        +{series.topic_covered.length - 3}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        )}
-
-                                        <!-- Action Buttons -->
-                                        <div class="flex gap-2 pt-4 border-t border-gray-100 dark:border-gray-800 mt-auto">
-                                            <a 
-                                                href={`/series/${series.slug}`}
-                                                class="flex-1 text-center py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg text-sm"
-                                            >
-                                                🚀 View Series
-                                            </a>
-                                            {series.latest_article && (
-                                                <a 
-                                                    href={`/blog/${series.latest_article.slug}`}
-                                                    class="flex-1 text-center py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg text-sm"
-                                                    title={series.latest_article.title}
-                                                >
-                                                    📖 Latest
-                                                </a>
-                                            )}
-                                        </div>
-
-                                        {/* Latest Article Info */}
-                                        {series.latest_article && (
-                                            <div class="mt-3 p-3 bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800 rounded-lg">
-                                                <div class="flex items-start gap-2">
-                                                    <svg class="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                    </svg>
-                                                    <div class="flex-1 min-w-0">
-                                                        <p class="text-xs font-semibold text-green-700 dark:text-green-300 mb-0.5">Latest Article:</p>
-                                                        <p class="text-xs text-gray-700 dark:text-gray-300 line-clamp-1">{series.latest_article.title}</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })}
+                        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {liveSeries.map((series) => (
+                                <SeriesCard
+                                    series={series}
+                                    status="live"
+                                    badgeColor="bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+                                    badgeText="Live"
+                                />
+                            ))}
+                        </div>
                     </div>
-                </div>
-            </section>
-        )}
+                </section>
+            )
+        }
+
+        <!-- Completed Series Section -->
+        {
+            completedSeries.length > 0 && (
+                <section class="py-16 px-6 bg-white/50 dark:bg-white/5">
+                    <div class="max-w-7xl mx-auto">
+                        <div class="text-center mb-12">
+                            <div class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-full mb-4">
+                                <span class="text-xl">✅</span>
+                                <span class="font-bold text-blue-700 dark:text-blue-300">
+                                    Completed Series
+                                </span>
+                            </div>
+                            <p class="text-gray-600 dark:text-gray-400">
+                                Fully released series ready for binge-reading
+                            </p>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {completedSeries.map((series) => (
+                                <SeriesCard
+                                    series={series}
+                                    status="completed"
+                                    badgeColor="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+                                    badgeText="Completed"
+                                />
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            )
+        }
 
         <!-- Planned Series Section -->
-        {plannedSeries.length > 0 && (
-            <section class="py-16 px-6">
-                <div class="max-w-7xl mx-auto">
-                    <div class="text-center mb-12">
-                        <div class="inline-flex items-center gap-2 px-4 py-2 bg-purple-50 dark:bg-purple-900/20 rounded-full mb-4">
-                            <span class="text-xl">🚀</span>
-                            <span class="font-bold text-purple-700 dark:text-purple-300">Coming Soon</span>
+        {
+            plannedSeries.length > 0 && (
+                <section class="py-16 px-6">
+                    <div class="max-w-7xl mx-auto">
+                        <div class="text-center mb-12">
+                            <div class="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-900/20 rounded-full mb-4">
+                                <span class="text-xl">🚀</span>
+                                <span class="font-bold text-amber-700 dark:text-amber-300">
+                                    Coming Soon
+                                </span>
+                            </div>
+                            <p class="text-gray-600 dark:text-gray-400">
+                                Preview upcoming series and get notified when
+                                they launch
+                            </p>
                         </div>
-                        <p class="text-gray-600 dark:text-gray-400">
-                            Preview upcoming series and get notified when they launch
-                        </p>
+
+                        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {plannedSeries.map((series) => (
+                                <SeriesCard
+                                    series={series}
+                                    status="planned"
+                                    badgeColor="bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300"
+                                    badgeText="Planned"
+                                />
+                            ))}
+                        </div>
                     </div>
+                </section>
+            )
+        }
 
-                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {plannedSeries.map((series) => {
-                            const icon = getSeriesIcon(series.topic_covered || []);
-                            const totalArticles = series.planned_articles || 0;
-                            const releaseDate = formatDate(series.release_date);
-                            
-                            return (
-                                <div class="group relative flex flex-col bg-white dark:bg-[#131B2E] border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden opacity-90 hover:opacity-100 transition-all duration-500">
-                                    <!-- Header Bar -->
-                                    <div class="h-2 bg-gradient-to-r from-amber-400 via-orange-500 to-amber-400"></div>
-                                    
-                                    <div class="p-6 flex-1 flex flex-col">
-                                        <!-- Icon & Badge -->
-                                        <div class="flex items-start justify-between mb-4">
-                                            <div class="w-14 h-14 bg-amber-100 dark:bg-amber-900/20 rounded-xl flex items-center justify-center text-2xl grayscale group-hover:grayscale-0 transition-all">
-                                                {icon}
-                                            </div>
-                                            <span class="px-3 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-bold rounded-full">
-                                                Planned
-                                            </span>
-                                        </div>
+        <!-- Deactivated Series Section (Optional/Admin view) -->
+        {
+            deactivatedSeries.length > 0 && (
+                <section class="py-16 px-6 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+                    <div class="max-w-7xl mx-auto">
+                        <div class="text-center mb-12">
+                            <div class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-full mb-4">
+                                <span class="text-xl">📦</span>
+                                <span class="font-bold text-gray-700 dark:text-gray-300">
+                                    Archived
+                                </span>
+                            </div>
+                        </div>
 
-                                        <!-- Title & Level -->
-                                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2 leading-tight">
-                                            {series.title}
-                                        </h3>
-                                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4 flex items-center gap-2">
-                                            <span class="px-2.5 py-1 bg-gray-100 dark:bg-white/5 rounded-md font-medium">
-                                                {capitalize(series.start_level)} → {capitalize(series.end_level)}
-                                            </span>
-                                        </p>
-
-                                        <!-- Description -->
-                                        <p class="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 mb-6 flex-1">
-                                            {series.description || 'Comprehensive learning path designed to build your expertise step by step.'}
-                                        </p>
-
-                                        <!-- Stats -->
-                                        <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mb-4 text-center">
-                                            <div class="text-3xl font-bold text-amber-600 dark:text-amber-400 mb-1">{totalArticles}</div>
-                                            <div class="text-sm text-gray-600 dark:text-gray-400 font-medium">Articles Planned</div>
-                                        </div>
-
-                                        <!-- Release Date Info -->
-                                        {series.release_date && (
-                                            <div class="mb-4 p-3 bg-purple-50 dark:bg-purple-900/10 border border-purple-200 dark:border-purple-800 rounded-lg">
-                                                <div class="flex items-center gap-2">
-                                                    <svg class="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                                    </svg>
-                                                    <div>
-                                                        <p class="text-xs font-semibold text-purple-700 dark:text-purple-300">Launch Date</p>
-                                                        <p class="text-xs text-gray-700 dark:text-gray-300">{releaseDate}</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        <!-- Topics -->
-                                        {series.topic_covered && series.topic_covered.length > 0 && (
-                                            <div class="flex flex-wrap gap-2 mb-4">
-                                                {series.topic_covered.slice(0, 3).map(topic => (
-                                                    <span class="text-xs px-2.5 py-1 bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 rounded-md font-medium">
-                                                        {topic}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        <!-- Coming Soon Label -->
-                                        <div class="flex items-center justify-center pt-4 border-t border-gray-100 dark:border-gray-800 mt-auto">
-                                            <span class="text-sm font-medium text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                </svg>
-                                                Coming Soon
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {deactivatedSeries.map((series) => (
+                                <SeriesCard
+                                    series={series}
+                                    status="deactivated"
+                                    badgeColor="bg-gray-100 dark:bg-gray-800 text-gray-500"
+                                    badgeText="Archived"
+                                />
+                            ))}
+                        </div>
                     </div>
-                </div>
-            </section>
-        )}
+                </section>
+            )
+        }
 
         <!-- Empty State -->
-        {seriesData.length === 0 && !error && (
-            <section class="py-20 px-6">
-                <div class="max-w-4xl mx-auto text-center">
-                    <div class="text-8xl mb-6">📚</div>
-                    <h3 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">No Series Available Yet</h3>
-                    <p class="text-xl text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-8">
-                        We're working on creating amazing learning series for you. Check back soon!
-                    </p>
-                    <a href="/blog" class="inline-flex items-center gap-2 px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl shadow-lg transition-all hover:-translate-y-0.5">
-                        <span>Browse All Articles</span>
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                        </svg>
-                    </a>
-                </div>
-            </section>
-        )}
+        {
+            seriesData.length === 0 && !error && (
+                <section class="py-20 px-6">
+                    <div class="max-w-4xl mx-auto text-center">
+                        <div class="text-8xl mb-6">📚</div>
+                        <h3 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+                            No Series Available Yet
+                        </h3>
+                        <p class="text-xl text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-8">
+                            We're working on creating amazing learning series
+                            for you. Check back soon!
+                        </p>
+                        <a
+                            href="/blog"
+                            class="inline-flex items-center gap-2 px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl shadow-lg transition-all hover:-translate-y-0.5"
+                        >
+                            <span>Browse All Articles</span>
+                            <svg
+                                class="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M17 8l4 4m0 0l-4 4m4-4H3"
+                                />
+                            </svg>
+                        </a>
+                    </div>
+                </section>
+            )
+        }
 
         <!-- CTA Section -->
         <section class="py-20 px-6">
             <div class="max-w-4xl mx-auto">
-                <div class="bg-white/50 dark:bg-[#131B2E]/50 backdrop-blur-xl rounded-3xl p-12 border border-gray-200 dark:border-gray-700/50 text-center shadow-2xl">
+                <div
+                    class="bg-white/50 dark:bg-[#131B2E]/50 backdrop-blur-xl rounded-3xl p-12 border border-gray-200 dark:border-gray-700/50 text-center shadow-2xl"
+                >
                     <div class="flex items-center justify-center gap-3 mb-6">
                         <span class="text-4xl">💡</span>
                         <span class="text-4xl">🎯</span>
                         <span class="text-4xl">🚀</span>
                     </div>
-                    
-                    <h3 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+
+                    <h3
+                        class="text-3xl font-bold text-gray-900 dark:text-white mb-4"
+                    >
                         Want to suggest a series topic?
                     </h3>
-                    <p class="text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto text-lg">
-                        Have an idea for a comprehensive series you'd like to see? We're always looking for topics that would benefit the developer community.
+                    <p
+                        class="text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto text-lg"
+                    >
+                        Have an idea for a comprehensive series you'd like to
+                        see? We're always looking for topics that would benefit
+                        the developer community.
                     </p>
-                    
+
                     <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                        <a href="/contact" class="px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl shadow-lg shadow-purple-600/20 hover:shadow-purple-600/40 transition-all duration-300 hover:-translate-y-1 flex items-center justify-center gap-2">
+                        <a
+                            href="/contact"
+                            class="px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl shadow-lg shadow-purple-600/20 hover:shadow-purple-600/40 transition-all duration-300 hover:-translate-y-1 flex items-center justify-center gap-2"
+                        >
                             <span>Contact Us</span>
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                            <svg
+                                class="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
                             </svg>
                         </a>
-                        <a href="/blog" class="px-8 py-4 bg-white dark:bg-[#0B1120] border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:border-purple-500 transition-all duration-300 hover:-translate-y-1">
+                        <a
+                            href="/blog"
+                            class="px-8 py-4 bg-white dark:bg-[#0B1120] border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:border-purple-500 transition-all duration-300 hover:-translate-y-1"
+                        >
                             Browse All Articles
                         </a>
                     </div>

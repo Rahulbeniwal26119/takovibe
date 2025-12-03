@@ -1,0 +1,249 @@
+---
+const { series, status, badgeColor, badgeText } = Astro.props;
+
+// Helper function to get series icon
+const getSeriesIcon = (topics = []) => {
+    const topicLower = topics.join(" ").toLowerCase();
+    if (topicLower.includes("ai") || topicLower.includes("machine learning"))
+        return "🤖";
+    if (topicLower.includes("system") || topicLower.includes("design"))
+        return "🏗️";
+    if (topicLower.includes("python")) return "🐍";
+    if (topicLower.includes("javascript") || topicLower.includes("react"))
+        return "⚛️";
+    if (topicLower.includes("security")) return "🔒";
+    if (topicLower.includes("performance")) return "⚡";
+    return "📚";
+};
+
+// Helper function to capitalize text
+const capitalize = (text) => {
+    return text ? text.charAt(0).toUpperCase() + text.slice(1) : "";
+};
+
+// Helper function to format date
+const formatDate = (dateString) => {
+    if (!dateString) return "TBD";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+    });
+};
+
+const icon = getSeriesIcon(series.topic_covered || []);
+const totalArticles = series.planned_articles || 0;
+const publishedArticles = series.total_published_articles || 0;
+const progress =
+    totalArticles > 0 ? (publishedArticles / totalArticles) * 100 : 0;
+const isOngoing = status === "live";
+const isComplete = status === "completed";
+const isPlanned = status === "planned";
+---
+
+<div
+    class="group relative flex flex-col bg-white dark:bg-[#131B2E] border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-2 hover:border-purple-500/20 dark:hover:border-purple-500/20"
+>
+    {/* Header Bar with Status */}
+    <div
+        class={`h-2 ${
+            isComplete
+                ? "bg-gradient-to-r from-green-500 via-emerald-500 to-green-600"
+                : isOngoing
+                  ? "bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500"
+                  : isPlanned
+                    ? "bg-gradient-to-r from-amber-400 via-orange-500 to-amber-400"
+                    : "bg-gray-400"
+        }`}
+    >
+    </div>
+
+    <div class="p-6 flex-1 flex flex-col">
+        {/* Icon & Badge */}
+        <div class="flex items-start justify-between mb-4">
+            <div
+                class={`w-14 h-14 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform ${
+                    isPlanned
+                        ? "bg-amber-100 dark:bg-amber-900/20 grayscale group-hover:grayscale-0"
+                        : "bg-purple-100 dark:bg-purple-900/30"
+                }`}
+            >
+                {icon}
+            </div>
+            <span
+                class={`px-3 py-1 text-xs font-bold rounded-full flex items-center gap-1.5 ${badgeColor}`}
+            >
+                {
+                    isOngoing && (
+                        <div class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                    )
+                }
+                {badgeText}
+            </span>
+        </div>
+
+        {/* Title & Level */}
+        <h3
+            class="text-xl font-bold text-gray-900 dark:text-white mb-2 leading-tight"
+        >
+            {series.title}
+        </h3>
+        <p
+            class="text-sm text-gray-600 dark:text-gray-400 mb-4 flex items-center gap-2"
+        >
+            <span
+                class="px-2.5 py-1 bg-gray-100 dark:bg-white/5 rounded-md font-medium"
+            >
+                {capitalize(series.start_level)} → {
+                    capitalize(series.end_level)
+                }
+            </span>
+        </p>
+
+        {/* Description */}
+        <p
+            class="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 mb-6 flex-1"
+        >
+            {
+                series.description ||
+                    "Comprehensive learning path designed to build your expertise step by step."
+            }
+        </p>
+
+        {/* Stats Grid */}
+        <div class="grid grid-cols-2 gap-3 mb-4">
+            <div
+                class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-3 text-center"
+            >
+                <div
+                    class="text-2xl font-bold text-green-600 dark:text-green-400"
+                >
+                    {publishedArticles}
+                </div>
+                <div
+                    class="text-xs text-gray-600 dark:text-gray-400 font-medium"
+                >
+                    Published
+                </div>
+            </div>
+            <div
+                class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3 text-center"
+            >
+                <div
+                    class="text-2xl font-bold text-blue-600 dark:text-blue-400"
+                >
+                    {totalArticles > 0 ? totalArticles : "∞"}
+                </div>
+                <div
+                    class="text-xs text-gray-600 dark:text-gray-400 font-medium"
+                >
+                    Total
+                </div>
+            </div>
+        </div>
+
+        {/* Progress Bar (only for live/completed) */}
+        {
+            !isPlanned && (
+                <div class="mb-4">
+                    <div class="flex justify-between items-center mb-2 text-xs">
+                        <span class="text-gray-600 dark:text-gray-400 font-medium">
+                            Progress
+                        </span>
+                        <span class="font-bold text-purple-600 dark:text-purple-400">
+                            {Math.round(progress)}%
+                        </span>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div
+                            class={`h-2 rounded-full transition-all duration-500 ${
+                                isComplete
+                                    ? "bg-gradient-to-r from-green-500 to-emerald-500"
+                                    : "bg-gradient-to-r from-purple-500 to-blue-500"
+                            }`}
+                            style={`width: ${Math.min(progress, 100)}%`}
+                        />
+                    </div>
+                </div>
+            )
+        }
+
+        {/* Release Date for Planned */}
+        {
+            isPlanned && series.release_date && (
+                <div class="mb-4 p-3 bg-purple-50 dark:bg-purple-900/10 border border-purple-200 dark:border-purple-800 rounded-lg">
+                    <div class="flex items-center gap-2">
+                        <svg
+                            class="w-4 h-4 text-purple-600 dark:text-purple-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
+                        </svg>
+                        <div>
+                            <p class="text-xs font-semibold text-purple-700 dark:text-purple-300">
+                                Launch Date
+                            </p>
+                            <p class="text-xs text-gray-700 dark:text-gray-300">
+                                {formatDate(series.release_date)}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )
+        }
+
+        {/* Topics */}
+        {
+            series.topic_covered && series.topic_covered.length > 0 && (
+                <div class="flex flex-wrap gap-2 mb-4">
+                    {series.topic_covered.slice(0, 3).map((topic) => (
+                        <span class="text-xs px-2.5 py-1 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded-md font-medium">
+                            {topic}
+                        </span>
+                    ))}
+                    {series.topic_covered.length > 3 && (
+                        <span class="text-xs px-2.5 py-1 bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 rounded-md font-medium">
+                            +{series.topic_covered.length - 3}
+                        </span>
+                    )}
+                </div>
+            )
+        }
+
+        {/* Action Buttons */}
+        <div
+            class="flex gap-2 pt-4 border-t border-gray-100 dark:border-gray-800 mt-auto"
+        >
+            <a
+                href={`/series/${series.slug}`}
+                class={`flex-1 text-center py-3 font-semibold rounded-xl transition-all shadow-md hover:shadow-lg text-sm ${
+                    isPlanned
+                        ? "bg-gray-100 dark:bg-gray-800 text-gray-500 cursor-not-allowed"
+                        : "bg-purple-600 hover:bg-purple-700 text-white"
+                }`}
+                onclick={isPlanned ? "event.preventDefault()" : ""}
+            >
+                {isPlanned ? "Coming Soon" : "🚀 View Series"}
+            </a>
+            {
+                !isPlanned && series.latest_article && (
+                    <a
+                        href={`/blog/${series.latest_article.slug}`}
+                        class="flex-1 text-center py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg text-sm"
+                        title={series.latest_article.title}
+                    >
+                        📖 Latest
+                    </a>
+                )
+            }
+        </div>
+    </div>
+</div>

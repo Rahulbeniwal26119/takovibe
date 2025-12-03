@@ -23,6 +23,7 @@ interface ApiBlogPost {
   description: string;
   image_url: string;
   is_published: boolean;
+  series?: any;
 }
 
 // Fetch blog posts and tags from API
@@ -899,9 +900,16 @@ try {
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
       const data = await response.json();
-      const allSeries = data.results || []; // Show all series, not just live ones
+      const allSeries = data.results || [];
 
-      if (allSeries.length === 0) {
+      // Filter series: show_on_featured=true AND (is_live=true OR is_completed=true) AND is_deactivated=false
+      const featuredSeries = allSeries.filter(series => 
+        series.show_on_featured && 
+        (series.is_live || series.is_completed) && 
+        !series.is_deactivated
+      );
+
+      if (featuredSeries.length === 0) {
         container.innerHTML = `
           <div class="col-span-full text-center py-8">
             <div class="text-4xl mb-3">🚀</div>
@@ -923,7 +931,7 @@ try {
       }
 
       // Display series as a simple list
-      const displaySeries = allSeries.slice(0, 10); // Show more series in list format
+      const displaySeries = featuredSeries.slice(0, 10); // Show top 10 featured series
 
       container.innerHTML = displaySeries.map((series, index) => {
         const articlesCount = series.articles_count || 0;
