@@ -257,8 +257,21 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
   document.addEventListener("DOMContentLoaded", async () => {
     const email = await get_email();
     document.getElementById("email-address").value = email;
-    const opt_out = await get_subscription_status();
-    console.log("opt_out", opt_out);
+
+    // Defer subscription check to avoid blocking main thread
+    const checkSubscription = async () => {
+      const opt_out = await get_subscription_status();
+      if (!opt_out) {
+        document.getElementById("subscribe-form").style.display = "none";
+        document.getElementById("unsubscribed-message").style.display = "block";
+      }
+    };
+
+    if ("requestIdleCallback" in window) {
+      requestIdleCallback(() => checkSubscription());
+    } else {
+      setTimeout(checkSubscription, 1000);
+    }
     const form = document.getElementById("subscribe-form");
     form.value = email;
     // stop page be be reload on submit
