@@ -22,6 +22,7 @@ interface Props {
     modified_date?: string;
     no_footer?: boolean;
     no_header?: boolean;
+    minimal?: boolean;
 }
 
 const {
@@ -36,6 +37,7 @@ const {
     modified_date,
     no_footer = false,
     no_header = false,
+    minimal = false,
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
@@ -185,7 +187,7 @@ const structuredData = {
         class="text-gray-900 dark:text-gray-100 min-h-screen overflow-x-hidden zen-body notranslate"
     >
         <AnnouncementBanner />
-        {!no_header && <Header />}
+        {!no_header && !minimal && <Header />}
         <ReadingProgress />
 
         <main

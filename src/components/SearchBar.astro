@@ -1,36 +1,39 @@
 ---
-import { searchArticles, type SearchResult } from '../utils/search';
+import { searchArticles, type SearchResult } from "../utils/search";
 
 interface Props {
-  variant?: 'header' | 'blog' | 'mobile' | 'modal';
+  variant?: "header" | "blog" | "mobile" | "modal";
 }
 
-const { variant = 'header' } = Astro.props;
+const { variant = "header" } = Astro.props;
 
 // Make searchArticles available to client-side script
-const searchEndpoint = 'https://backend.takovibe.com/api/blogs/blogs/';
+const searchEndpoint = "https://backend.takovibe.com/api/blogs/blogs/";
 ---
 
 <div class="pace-y-1">
   <!-- Pro tip (only show for header variant) -->
 
-
   <!-- Search Input -->
   <div class="search-container relative">
     <div class="relative">
-      <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+      <div
+        class="absolute inset-y-0 left-3 flex items-center pointer-events-none"
+      >
         <span class="text-current opacity-40 text-sm">🔍</span>
       </div>
       <input
         type="text"
         id={`${variant}-search-input`}
-        placeholder={variant === 'blog' ? 'Press / anytime to search blogs': 'Press / to search blogs'}
+        placeholder={variant === "blog"
+          ? "Press / anytime to search blogs"
+          : "Press / to search blogs"}
         class={`w-full pl-9 pr-4 py-2 rounded-lg border transition-all ${
-          variant === 'header' 
-            ? 'bg-[#171923] hover:bg-[#1A202C] focus:bg-[#1A202C] text-white/90 placeholder-white/40 border-purple-500/30 focus:border-purple-500/50'
-            : variant === 'blog'
-            ? 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 hover:border-purple-500/50 focus:border-purple-500'
-            : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 hover:border-purple-500/50 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20'
+          variant === "header"
+            ? "bg-gray-100 dark:bg-slate-900 border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:bg-white dark:focus:bg-slate-950 focus:border-purple-500 dark:focus:border-purple-500"
+            : variant === "blog"
+              ? "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 hover:border-purple-500/50 focus:border-purple-500"
+              : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 hover:border-purple-500/50 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
         }`}
         data-variant={variant}
       />
@@ -54,87 +57,105 @@ const searchEndpoint = 'https://backend.takovibe.com/api/blogs/blogs/';
     author: Author;
   }
 
-  const searchEndpoint = 'https://backend.takovibe.com/api/blogs/blogs/';
+  const searchEndpoint = "https://backend.takovibe.com/api/blogs/blogs/";
 
   async function searchArticles(query: string): Promise<SearchResult[]> {
     if (!query.trim()) return [];
-    
+
     try {
-      const response = await fetch(`${searchEndpoint}?q=${encodeURIComponent(query)}`);
-      
+      const response = await fetch(
+        `${searchEndpoint}?q=${encodeURIComponent(query)}`,
+      );
+
       if (!response.ok) {
         throw new Error(`Search request failed: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
-      
+
       // Handle different response formats
       if (Array.isArray(data)) {
         return data; // Direct array response
       } else if (data.results && Array.isArray(data.results)) {
         return data.results; // Paginated response
       } else {
-        console.warn('Unexpected API response format:', data);
+        console.warn("Unexpected API response format:", data);
         return [];
       }
     } catch (error) {
-      console.error('Search error:', error);
+      console.error("Search error:", error);
       throw error;
     }
   }
 
   let searchTimeout: number | null = null;
   let searchResultsContainer: HTMLElement | null = null;
-  
+
   function createSearchResults(variant: string) {
     // Get the specific search container for this variant
-    const searchContainer = document.querySelector(`#${variant}-search-input`)?.closest('.search-container');
+    const searchContainer = document
+      .querySelector(`#${variant}-search-input`)
+      ?.closest(".search-container");
     if (!searchContainer) {
       console.error(`Search container not found for variant: ${variant}`);
       return;
     }
 
     // Check if results container already exists for this variant
-    let existingContainer = searchContainer.querySelector('.search-results-container');
+    let existingContainer = searchContainer.querySelector(
+      ".search-results-container",
+    );
     if (existingContainer) {
       searchResultsContainer = existingContainer as HTMLElement;
       return;
     }
 
     // Create search results container
-    searchResultsContainer = document.createElement('div');
-    searchResultsContainer.className = 'search-results-container absolute left-0 right-0 top-full mt-1 bg-[#1A202C] border border-purple-500/30 rounded-lg shadow-lg max-h-[80vh] overflow-y-auto z-50 hidden';
+    searchResultsContainer = document.createElement("div");
+    // Default classes, specific styling handled in showSearchResults
+    searchResultsContainer.className =
+      "search-results-container absolute left-0 right-0 top-full mt-1 rounded-lg shadow-lg max-h-[80vh] overflow-y-auto z-50 hidden";
     searchContainer.appendChild(searchResultsContainer);
-    
+
     console.log(`Created search results container for variant: ${variant}`);
   }
 
   function showSearchResults(results: any[], variant: string) {
     // Ensure we have the right search results container for this variant
-    const searchContainer = document.querySelector(`#${variant}-search-input`)?.closest('.search-container');
-    const currentSearchResultsContainer = searchContainer?.querySelector('.search-results-container') as HTMLElement;
-    
+    const searchContainer = document
+      .querySelector(`#${variant}-search-input`)
+      ?.closest(".search-container");
+    const currentSearchResultsContainer = searchContainer?.querySelector(
+      ".search-results-container",
+    ) as HTMLElement;
+
     if (!currentSearchResultsContainer) {
-      console.error(`Search results container not found for variant: ${variant}`);
+      console.error(
+        `Search results container not found for variant: ${variant}`,
+      );
       return;
     }
 
-    // Style based on variant
-    const isDarkVariant = variant === 'header';
-    const bgClass = isDarkVariant ? 'bg-[#1A202C]' : 'bg-white dark:bg-gray-800';
-    const borderClass = isDarkVariant ? 'border-purple-500/30' : 'border-gray-200 dark:border-gray-700';
+    // Style based on variant but respect dark mode
+    // We use standard Tailwind dark mode classes instead of conditional JS logic based on variant
+    const bgClass = "bg-white dark:bg-slate-900";
+    const borderClass = "border-gray-200 dark:border-gray-700";
 
     currentSearchResultsContainer.className = `search-results-container absolute left-0 right-0 top-full mt-1 ${bgClass} border ${borderClass} rounded-lg shadow-lg max-h-[80vh] overflow-y-auto z-50`;
 
     // Get current search query for "Search All" option
-    const searchInput = document.querySelector(`#${variant}-search-input`) as HTMLInputElement;
-    const currentQuery = searchInput?.value?.trim() || '';
+    const searchInput = document.querySelector(
+      `#${variant}-search-input`,
+    ) as HTMLInputElement;
+    const currentQuery = searchInput?.value?.trim() || "";
 
     if (results.length === 0) {
       currentSearchResultsContainer.innerHTML = `
-        <div class="p-4 text-center ${isDarkVariant ? 'text-white/60' : 'text-gray-500 dark:text-gray-400'}">
+        <div class="p-4 text-center text-gray-500 dark:text-gray-400">
           No results found
-          ${currentQuery ? `
+          ${
+            currentQuery
+              ? `
             <div class="mt-2">
               <a href="/blog?q=${encodeURIComponent(currentQuery)}" 
                  class="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors">
@@ -142,27 +163,29 @@ const searchEndpoint = 'https://backend.takovibe.com/api/blogs/blogs/';
                 Search all posts for "${currentQuery}"
               </a>
             </div>
-          ` : ''}
+          `
+              : ""
+          }
         </div>
       `;
     } else {
-      const textClass = isDarkVariant ? 'text-white' : 'text-gray-900 dark:text-white';
-      const mutedTextClass = isDarkVariant ? 'text-white/60' : 'text-gray-600 dark:text-gray-300';
-      const hoverClass = isDarkVariant ? 'hover:bg-white/5' : 'hover:bg-gray-50 dark:hover:bg-gray-700';
-      const borderBottomClass = isDarkVariant ? 'border-purple-500/10' : 'border-gray-100 dark:border-gray-700';
+      const textClass = "text-gray-900 dark:text-white";
+      const mutedTextClass = "text-gray-600 dark:text-gray-400";
+      const hoverClass = "hover:bg-gray-50 dark:hover:bg-gray-800";
+      const borderBottomClass = "border-gray-100 dark:border-gray-800";
 
       // Add "Search All" option at the top
-      let searchAllOption = '';
+      let searchAllOption = "";
       if (currentQuery) {
         searchAllOption = `
           <a href="/blog?q=${encodeURIComponent(currentQuery)}" 
-             class="block p-4 ${hoverClass} border-b ${borderBottomClass} bg-purple-500/5 hover:bg-purple-500/10 transition-colors">
+             class="block p-4 ${hoverClass} border-b ${borderBottomClass} bg-purple-50 dark:bg-purple-900/10 hover:bg-purple-100 dark:hover:bg-purple-900/20 transition-colors">
             <div class="flex items-center gap-3">
               <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
                 <span class="w-4 h-4 text-purple-600 dark:text-purple-400">🔍</span>
               </div>
               <div class="flex-1">
-                <h3 class="${textClass} font-medium">Search all posts for "${currentQuery}"</h3>
+              <h3 class="${textClass} font-medium">Search all posts for "${currentQuery}"</h3>
                 <p class="text-sm ${mutedTextClass}">View all ${results.length}+ results on blog page</p>
               </div>
               <div class="text-xs ${mutedTextClass}">
@@ -173,44 +196,62 @@ const searchEndpoint = 'https://backend.takovibe.com/api/blogs/blogs/';
         `;
       }
 
-      currentSearchResultsContainer.innerHTML = searchAllOption + results.slice(0, 5).map(result => `
+      currentSearchResultsContainer.innerHTML =
+        searchAllOption +
+        results
+          .slice(0, 5)
+          .map(
+            (result) => `
         <a href="${result.uri}" class="block p-4 ${hoverClass} border-b ${borderBottomClass} last:border-0">
           <div class="flex items-center gap-4 mb-2">
             <div class="flex-1">
               <div class="flex gap-2 mb-1">
-                ${result.tags.slice(0, 2).map(tag => `
-                  <span class="text-xs px-2 py-0.5 bg-purple-500/10 text-purple-300 rounded">${tag.replace(/"/g, '')}</span>
-                `).join('')}
+                ${result.tags
+                  .slice(0, 2)
+                  .map(
+                    (tag) => `
+                  <span class="text-xs px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded">${tag.replace(/"/g, "")}</span>
+                `,
+                  )
+                  .join("")}
               </div>
               <h3 class="${textClass} font-medium mb-1">${result.title}</h3>
               <p class="text-sm ${mutedTextClass} line-clamp-2">${result.description}</p>
             </div>
-            ${result.image_url ? `
+            ${
+              result.image_url
+                ? `
               <div class="w-16 h-16 flex-shrink-0 hidden md:block">
                 <img src="${result.image_url}" alt="${result.title}" class="w-full h-full object-cover rounded-lg"/>
               </div>
-            ` : ''}
+            `
+                : ""
+            }
           </div>
-          <div class="flex items-center gap-3 text-xs ${isDarkVariant ? 'text-white/40' : 'text-gray-500 dark:text-gray-400'}">
-            <span>${new Date(result.created_at).toLocaleDateString('en-US', { 
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric'
+          <div class="flex items-center gap-3 text-xs ${mutedTextClass}">
+            <span>${new Date(result.created_at).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
             })}</span>
-            <span>by ${result.author.name || result.author.username || 'Author'}</span>
+            <span>by ${result.author.name || result.author.username || "Author"}</span>
           </div>
         </a>
-      `).join('');
+      `,
+          )
+          .join("");
     }
 
-    currentSearchResultsContainer.classList.remove('hidden');
+    currentSearchResultsContainer.classList.remove("hidden");
   }
 
   function hideSearchResults() {
     // Hide all search results containers
-    document.querySelectorAll('.search-results-container').forEach(container => {
-      container.classList.add('hidden');
-    });
+    document
+      .querySelectorAll(".search-results-container")
+      .forEach((container) => {
+        container.classList.add("hidden");
+      });
   }
 
   async function handleSearch(query: string, variant: string) {
@@ -223,26 +264,43 @@ const searchEndpoint = 'https://backend.takovibe.com/api/blogs/blogs/';
       const results = await searchArticles(query);
       showSearchResults(results, variant);
     } catch (error) {
-      console.error('Search failed:', error);
+      console.error("Search failed:", error);
     }
   }
 
   function initSearch() {
-    const headerSearchInput = document.getElementById('header-search-input') as HTMLInputElement | null;
-    const blogSearchInput = document.getElementById('blog-search-input') as HTMLInputElement | null;
-    const mobileSearchInput = document.getElementById('mobile-search-input') as HTMLInputElement | null;
-    const modalSearchInput = document.getElementById('modal-search-input') as HTMLInputElement | null;
-    
-    if (!headerSearchInput && !blogSearchInput && !mobileSearchInput && !modalSearchInput) return;
+    const headerSearchInput = document.getElementById(
+      "header-search-input",
+    ) as HTMLInputElement | null;
+    const blogSearchInput = document.getElementById(
+      "blog-search-input",
+    ) as HTMLInputElement | null;
+    const mobileSearchInput = document.getElementById(
+      "mobile-search-input",
+    ) as HTMLInputElement | null;
+    const modalSearchInput = document.getElementById(
+      "modal-search-input",
+    ) as HTMLInputElement | null;
 
-    const setupSearchInput = (searchInput: HTMLInputElement, variant: string) => {
+    if (
+      !headerSearchInput &&
+      !blogSearchInput &&
+      !mobileSearchInput &&
+      !modalSearchInput
+    )
+      return;
+
+    const setupSearchInput = (
+      searchInput: HTMLInputElement,
+      variant: string,
+    ) => {
       // Create search results container for this variant
       createSearchResults(variant);
-      
+
       // Handle input with debounce
-      searchInput.addEventListener('input', (e) => {
+      searchInput.addEventListener("input", (e) => {
         const query = (e.target as HTMLInputElement).value;
-        
+
         if (searchTimeout) {
           clearTimeout(searchTimeout);
         }
@@ -253,11 +311,11 @@ const searchEndpoint = 'https://backend.takovibe.com/api/blogs/blogs/';
       });
 
       // Handle keyboard navigation
-      searchInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
+      searchInput.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
           searchInput.blur();
           hideSearchResults();
-        } else if (e.key === 'Enter') {
+        } else if (e.key === "Enter") {
           const query = searchInput.value.trim();
           if (query) {
             // Navigate to blog page with search query
@@ -269,10 +327,14 @@ const searchEndpoint = 'https://backend.takovibe.com/api/blogs/blogs/';
 
     // Set up all search inputs
     if (headerSearchInput) {
-      setupSearchInput(headerSearchInput, 'header');
+      setupSearchInput(headerSearchInput, "header");
       // Only add '/' shortcut for header search
-      document.addEventListener('keydown', (e) => {
-        if (e.key === '/' && document.activeElement !== headerSearchInput && !document.activeElement?.closest('.blog-search')) {
+      document.addEventListener("keydown", (e) => {
+        if (
+          e.key === "/" &&
+          document.activeElement !== headerSearchInput &&
+          !document.activeElement?.closest(".blog-search")
+        ) {
           e.preventDefault();
           headerSearchInput.focus();
         }
@@ -280,29 +342,29 @@ const searchEndpoint = 'https://backend.takovibe.com/api/blogs/blogs/';
     }
 
     if (blogSearchInput) {
-      setupSearchInput(blogSearchInput, 'blog');
-      blogSearchInput.classList.add('blog-search');
+      setupSearchInput(blogSearchInput, "blog");
+      blogSearchInput.classList.add("blog-search");
     }
 
     if (mobileSearchInput) {
-      setupSearchInput(mobileSearchInput, 'mobile');
+      setupSearchInput(mobileSearchInput, "mobile");
     }
 
     if (modalSearchInput) {
-      setupSearchInput(modalSearchInput, 'modal');
+      setupSearchInput(modalSearchInput, "modal");
     }
 
     // Close search results when clicking outside
-    document.addEventListener('click', (e) => {
+    document.addEventListener("click", (e) => {
       const target = e.target as HTMLElement;
-      if (!target.closest('.search-container')) {
+      if (!target.closest(".search-container")) {
         hideSearchResults();
       }
     });
   }
 
   // Initialize search functionality
-  document.addEventListener('DOMContentLoaded', initSearch);
+  document.addEventListener("DOMContentLoaded", initSearch);
 </script>
 
 <style>
@@ -329,19 +391,19 @@ const searchEndpoint = 'https://backend.takovibe.com/api/blogs/blogs/';
 
   /* Custom styles for header search */
   .header-search input {
-    @apply bg-[#171923] text-white/90;
+    @apply bg-gray-100 dark:bg-slate-900 text-gray-900 dark:text-white;
   }
 
   .header-search .search-results {
-    @apply bg-[#1A202C] border-purple-500/30;
+    @apply bg-white dark:bg-slate-900 border-gray-200 dark:border-gray-700;
   }
 
   /* Custom autofill styles */
   .header-search input:-webkit-autofill,
   .header-search input:-webkit-autofill:hover,
   .header-search input:-webkit-autofill:focus {
-    -webkit-text-fill-color: white;
-    -webkit-box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.05) inset;
+    -webkit-text-fill-color: var(--tw-text-opacity);
+    -webkit-box-shadow: 0 0 0px 1000px var(--tw-bg-opacity) inset;
     transition: background-color 5000s ease-in-out 0s;
   }
 

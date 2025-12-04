@@ -2,7 +2,9 @@
 pre code.hljs {
   display: block;
   overflow-x: auto;
-  padding: 1em;
+  padding: 1.5em;
+  border-radius: 0.75rem;
+  line-height: 1.6;
 }
 
 code.hljs {
@@ -14,6 +16,7 @@ code.hljs {
   background: #0d1117;
 }
 
+/* ... (keep existing hljs colors) ... */
 .hljs-doctag,
 .hljs-keyword,
 .hljs-meta .hljs-keyword,
@@ -104,30 +107,52 @@ code.hljs {
 /* Custom styles for the code block wrapper */
 .code-block {
   position: relative;
-  margin: 1rem 0;
+  margin: 2rem 0;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .code-block select {
   background-color: #1f2937;
   color: #e5e7eb;
   border: 1px solid #374151;
-  border-radius: 0.25rem;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
   cursor: pointer;
   outline: none;
+  transition: all 0.2s;
+}
+
+.code-block select:hover {
+  border-color: #4b5563;
 }
 
 .code-block pre {
   margin: 0;
-  border-radius: 0.5rem;
+  border-radius: 0;
   background-color: #0d1117;
   font-family: 'JetBrains Mono', monospace;
 }
 
+/* Editor Typography & Layout */
+.ProseMirror {
+  outline: none;
+  min-height: 300px;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  color: #9ca3af;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
 /* Light mode overrides for editor */
 .light-mode-editor {
-  color: #374151 !important;
+  color: #334155 !important; /* slate-700 */
 }
 
 .light-mode-editor h1,
@@ -135,111 +160,131 @@ code.hljs {
 .light-mode-editor h3,
 .light-mode-editor h4,
 .light-mode-editor h5,
-.light-mode-editor h6,
+.light-mode-editor h6 {
+  color: #0f172a !important; /* slate-900 */
+  font-weight: 800 !important;
+  letter-spacing: -0.025em !important;
+}
+
 .light-mode-editor strong,
-.light-mode-editor b,
-.light-mode-editor code,
+.light-mode-editor b {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+.light-mode-editor code {
+  color: #0f172a !important;
+  background-color: #f1f5f9 !important; /* slate-100 */
+  padding: 0.2em 0.4em;
+  border-radius: 0.25rem;
+  font-weight: 500;
+}
+
 .light-mode-editor blockquote {
-  color: #111827 !important;
+  color: #475569 !important; /* slate-600 */
+  border-left-color: #cbd5e1 !important; /* slate-300 */
+  font-style: italic;
 }
 
 .light-mode-editor a {
-  color: #9333ea !important;
-  /* Purple-600 */
+  color: #7c3aed !important; /* violet-600 */
+  text-decoration: underline;
+  text-decoration-color: #ddd6fe;
+  text-underline-offset: 2px;
 }
 
 /* Light Mode Overrides for Components */
 
 /* Code Block */
+.light-mode-editor .code-block {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  border: 1px solid #e2e8f0; /* slate-200 */
+}
+
 .light-mode-editor .code-block pre {
-  background-color: #f3f4f6 !important;
-  /* gray-100 */
-  border: 1px solid #e5e7eb !important;
-  /* gray-200 */
+  background-color: #f8fafc !important; /* slate-50 */
 }
 
 .light-mode-editor .code-block code {
-  color: #1f2937 !important;
-  /* gray-800 */
+  color: #334155 !important; /* slate-700 */
   background-color: transparent !important;
+  padding: 0;
 }
 
 .light-mode-editor .code-block .group button {
   background-color: #ffffff !important;
-  border-color: #e5e7eb !important;
-  color: #4b5563 !important;
-  /* gray-600 */
+  border-color: #e2e8f0 !important;
+  color: #64748b !important; /* slate-500 */
 }
 
 .light-mode-editor .code-block .group button:hover {
-  background-color: #f9fafb !important;
-  /* gray-50 */
+  background-color: #f1f5f9 !important; /* slate-100 */
+  color: #0f172a !important;
 }
 
 .light-mode-editor .code-block select {
   background-color: #ffffff !important;
-  color: #374151 !important;
-  border-color: #e5e7eb !important;
+  color: #334155 !important;
+  border-color: #e2e8f0 !important;
 }
 
 .light-mode-editor .code-block .bg-\[\#0d1117\] {
-  background-color: #f9fafb !important;
-  /* Output area bg */
-  border-color: #e5e7eb !important;
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
 }
 
 .light-mode-editor .code-block textarea {
-  color: #374151 !important;
+  color: #334155 !important;
+  background-color: transparent !important;
 }
 
 /* Image Component */
-.light-mode-editor .image-component>div {
-  background-color: #f9fafb !important;
-  /* gray-50 */
-  border-color: #e5e7eb !important;
+.light-mode-editor .image-component > div {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
 }
 
 .light-mode-editor .image-component input {
-  color: #374151 !important;
+  color: #334155 !important;
 }
 
 .light-mode-editor .image-component input::placeholder {
-  color: #9ca3af !important;
+  color: #94a3b8 !important; /* slate-400 */
 }
 
 /* Quiz Component */
 .light-mode-editor .quiz-component {
   background-color: #ffffff !important;
-  border-color: #e5e7eb !important;
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
 }
 
 .light-mode-editor .quiz-component label {
-  color: #374151 !important;
+  color: #334155 !important;
 }
 
 .light-mode-editor .quiz-component input {
-  color: #1f2937 !important;
-  border-color: #d1d5db !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+  background-color: #f8fafc !important;
 }
 
 .light-mode-editor .quiz-component button.text-gray-400 {
-  color: #9ca3af !important;
+  color: #94a3b8 !important;
 }
 
 .light-mode-editor .quiz-component button.text-gray-400:hover {
-  color: #4b5563 !important;
+  color: #475569 !important;
 }
 
 /* Table */
 .light-mode-editor table th {
-  background-color: #f3f4f6 !important;
-  /* gray-100 */
-  border-color: #e5e7eb !important;
-  color: #111827 !important;
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
 }
 
 .light-mode-editor table td {
-  border-color: #e5e7eb !important;
-  color: #374151 !important;
+  border-color: #e2e8f0 !important;
+  color: #334155 !important;
 }
