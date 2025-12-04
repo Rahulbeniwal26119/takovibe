@@ -262,13 +262,35 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                     body: JSON.stringify(data),
                 });
 
+                const responseData = await response.json();
+
                 if (!response.ok) {
+                    // Handle validation errors
+                    if (responseData && typeof responseData === 'object') {
+                        const errors = Object.entries(responseData)
+                            .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
+                            .join('\n');
+                        throw new Error(errors || `Save failed: ${response.statusText}`);
+                    }
                     throw new Error(`Save failed: ${response.statusText}`);
+                }
+
+                // Update frontmatter with server response (e.g. slug, date, id)
+                if (responseData.frontmatter) {
+                    setFrontmatter(prev => ({ ...prev, ...responseData.frontmatter }));
                 }
             }
 
             setLastSaved(new Date());
             setHasUnsavedChanges(false);
+
+            // Show success feedback (could be enhanced with a toast later)
+            const saveStatus = document.getElementById('save-status');
+            if (saveStatus) {
+                saveStatus.classList.add('text-green-500', 'font-bold');
+                setTimeout(() => saveStatus.classList.remove('text-green-500', 'font-bold'), 2000);
+            }
+
         } catch (error: any) {
             console.error("Failed to save:", error);
             setSaveError(error.message || "Failed to save");
@@ -385,15 +407,23 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
     // ... (existing code)
 
     return (
-        <div className={`w-full mx-auto min-h-[80vh] relative transition-all duration-300 ${theme === 'dark' ? 'bg-transparent' : 'bg-white rounded-2xl shadow-xl shadow-gray-200 overflow-hidden'}`}>
-            {/* Save Status Bar */}
-            <div className={`sticky top-0 z-40 flex items-center justify-end gap-4 px-6 py-3 backdrop-blur-md ${theme === 'dark' ? 'bg-transparent' : 'bg-white/90 border-b border-gray-100'}`}>
-                <div className={`flex items-center gap-2 text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                    {/* ... (existing status items) */}
+
+        <div className={`w-full mx-auto min-h-[90vh] relative transition-all duration-500 ${theme === 'dark' ? 'bg-slate-900/50' : 'bg-white/90'} backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden`}>
+            {/* Decorative Background Elements */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className={`absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full blur-3xl opacity-20 ${theme === 'dark' ? 'bg-purple-600' : 'bg-purple-400'}`} />
+                <div className={`absolute top-[10%] -right-[10%] w-[40%] h-[40%] rounded-full blur-3xl opacity-20 ${theme === 'dark' ? 'bg-blue-600' : 'bg-blue-400'}`} />
+            </div>
+
+            {/* Save Status Bar & Toolbar */}
+            <div className={`sticky top-0 z-40 flex items-center justify-between px-6 py-4 backdrop-blur-xl border-b transition-colors duration-300 ${theme === 'dark' ? 'bg-slate-900/70 border-white/10' : 'bg-white/80 border-slate-200/50'}`}>
+
+                {/* Left: Status Indicators */}
+                <div id="save-status" className={`flex items-center gap-3 text-sm font-medium px-4 py-2 rounded-full transition-all duration-300 ${theme === 'dark' ? 'bg-white/5 text-gray-300' : 'bg-slate-100/50 text-slate-600'}`}>
                     {isSaving ? (
                         <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            <span>Saving...</span>
+                            <Loader2 className="w-4 h-4 animate-spin text-purple-500" />
+                            <span className="text-purple-500">Saving...</span>
                         </>
                     ) : saveError ? (
                         <>
@@ -401,399 +431,397 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                             <span className="text-red-500">{saveError}</span>
                         </>
                     ) : hasUnsavedChanges ? (
-                        <span className="text-amber-500">Unsaved changes</span>
+                        <>
+                            <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                            <span className="text-amber-500">Unsaved changes</span>
+                        </>
                     ) : lastSaved ? (
                         <>
-                            <Cloud className="w-4 h-4 text-green-500" />
-                            <span>Saved {lastSaved.toLocaleTimeString()}</span>
+                            <Cloud className="w-4 h-4 text-emerald-500" />
+                            <span className="text-emerald-500">Saved {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                         </>
                     ) : (
-                        <span>Ready to save</span>
+                        <span className="text-gray-400">Ready to write</span>
                     )}
                 </div>
 
-                {/* Theme Toggle */}
-                <button
-                    onClick={toggleTheme}
-                    className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-gray-800 text-gray-400' : 'hover:bg-gray-100 text-gray-600'}`}
-                    title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
-                >
-                    {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-                </button>
+                {/* Right: Actions */}
+                <div className="flex items-center gap-3">
+                    {/* Theme Toggle */}
+                    <button
+                        onClick={toggleTheme}
+                        className={`p-2.5 rounded-xl transition-all duration-300 ${theme === 'dark'
+                            ? 'bg-white/5 hover:bg-white/10 text-yellow-400 hover:text-yellow-300 hover:shadow-lg hover:shadow-yellow-500/20'
+                            : 'bg-slate-100 hover:bg-white text-slate-600 hover:text-purple-600 hover:shadow-lg hover:shadow-purple-500/20'}`}
+                        title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
+                    >
+                        {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+                    </button>
 
-                <button
-                    onClick={handleSave}
-                    disabled={isSaving || !hasUnsavedChanges || validationErrors.length > 0}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${hasUnsavedChanges || validationErrors.length > 0
-                        ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-md hover:shadow-lg'
-                        : `${theme === 'dark' ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-400'} cursor-not-allowed`
-                        }`}
-                >
-                    <Save className="w-4 h-4" />
-                    Sync
-                </button>
+                    {/* Save Button */}
+                    <button
+                        onClick={handleSave}
+                        disabled={isSaving || !hasUnsavedChanges || validationErrors.length > 0}
+                        className={`group relative flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold transition-all duration-300 ${hasUnsavedChanges || validationErrors.length > 0
+                            ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white shadow-lg hover:shadow-purple-500/30 hover:-translate-y-0.5'
+                            : `${theme === 'dark' ? 'bg-white/5 text-gray-500' : 'bg-slate-100 text-slate-400'} cursor-not-allowed`
+                            }`}
+                    >
+                        <Save className={`w-4 h-4 ${hasUnsavedChanges ? 'group-hover:animate-bounce' : ''}`} />
+                        <span>Sync</span>
+
+                        {/* Validation Tooltip */}
+                        {validationErrors.length > 0 && (
+                            <div className="absolute top-full right-0 mt-2 w-48 p-3 bg-red-500 text-white text-xs rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                Missing: {validationErrors.join(', ')}
+                            </div>
+                        )}
+                    </button>
+                </div>
             </div>
 
             {/* Inline Frontmatter Form */}
-            <div className={`px-8 md:px-12 pt-8 mb-8 space-y-6 ${theme === 'dark' ? '' : 'border-b pb-8 border-gray-100'}`}>
-                {/* Title */}
-                <input
-                    type="text"
-                    value={frontmatter.title}
-                    onChange={(e) => {
-                        setFrontmatter({ ...frontmatter, title: e.target.value });
-                        if (validationErrors.includes('title')) setValidationErrors(prev => prev.filter(f => f !== 'title'));
-                    }}
+            <div className={`px-8 md:px-12 pt-8 mb-8 space-y-8 ${theme === 'dark' ? '' : 'border-b pb-8 border-slate-100'}`}>
+                {/* Title & Description Group */}
+                <div className="space-y-4">
+                    <div className="relative group">
+                        <input
+                            type="text"
+                            value={frontmatter.title}
+                            onChange={(e) => {
+                                setFrontmatter({ ...frontmatter, title: e.target.value });
+                                if (validationErrors.includes('title')) setValidationErrors(prev => prev.filter(f => f !== 'title'));
+                            }}
+                            className={getInputClass('title', `w-full text-5xl font-extrabold bg-transparent border-none outline-none p-0 placeholder-opacity-40 transition-all duration-300 ${theme === 'dark' ? 'text-white placeholder-gray-500' : 'text-slate-900 placeholder-slate-300'}`)}
+                            placeholder="Untitled Post"
+                        />
+                        {!frontmatter.title && <span className="absolute top-2 -left-4 text-red-500 text-xl opacity-50">*</span>}
+                    </div>
 
-                    className={getInputClass('title', `w-full text-4xl font-bold bg-transparent border-none outline-none rounded-lg px-2 -mx-2 ${theme === 'dark' ? 'text-white placeholder-gray-600' : 'text-gray-900 placeholder-gray-300'}`)}
-                    placeholder="Post Title *"
-                />
+                    <div className="relative group">
+                        <textarea
+                            value={frontmatter.description}
+                            onChange={(e) => {
+                                setFrontmatter({ ...frontmatter, description: e.target.value });
+                                if (validationErrors.includes('description')) setValidationErrors(prev => prev.filter(f => f !== 'description'));
+                            }}
+                            className={getInputClass('description', `w-full text-xl bg-transparent border-none outline-none resize-none p-0 placeholder-opacity-50 transition-all duration-300 ${theme === 'dark' ? 'text-gray-300 placeholder-gray-600' : 'text-slate-600 placeholder-slate-400'}`)}
+                            placeholder="Add a short description..."
+                            rows={1}
+                            style={{ minHeight: 'auto', height: 'auto' }}
+                            onInput={(e) => {
+                                const target = e.target as HTMLTextAreaElement;
+                                target.style.height = 'auto';
+                                target.style.height = `${target.scrollHeight}px`;
+                            }}
+                        />
+                        {!frontmatter.description && <span className="absolute top-1 -left-4 text-red-500 text-lg opacity-50">*</span>}
+                    </div>
+                </div>
 
-                {/* Description */}
-                <textarea
-                    value={frontmatter.description}
-                    onChange={(e) => {
-                        setFrontmatter({ ...frontmatter, description: e.target.value });
-                        if (validationErrors.includes('description')) setValidationErrors(prev => prev.filter(f => f !== 'description'));
-                    }}
+                {/* Meta Grid - Collapsible or clean layout */}
+                <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 rounded-2xl border transition-all duration-300 ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-slate-50/80 border-slate-200 shadow-sm'}`}>
 
-                    className={getInputClass('description', `w-full text-xl bg-transparent border-none outline-none resize-none rounded-lg px-2 -mx-2 ${theme === 'dark' ? 'text-gray-400 placeholder-gray-600' : 'text-gray-600 placeholder-gray-300'}`)}
-                    placeholder="Write a short description... *"
-                    rows={2}
-                />
-
-                {/* Meta Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    {/* Row 1: Author & Date */}
-                    <div className="space-y-4">
-                        <div className={`flex items-center gap-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                            <RequiredLabel label="Author" />
+                    {/* Column 1: Core Info */}
+                    <div className="space-y-5">
+                        <div className="space-y-1.5">
+                            <label className={`flex items-center gap-1 text-xs font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-500' : 'text-slate-500'}`}>
+                                Author <span className="text-red-500">*</span>
+                            </label>
                             <input
                                 type="text"
                                 value={frontmatter.author}
-                                onChange={(e) => {
-                                    setFrontmatter({ ...frontmatter, author: e.target.value });
-                                    if (validationErrors.includes('author')) setValidationErrors(prev => prev.filter(f => f !== 'author'));
-                                }}
-                                className={getInputClass('author', `flex-1 bg-transparent border-b border-transparent focus:border-purple-500 outline-none transition-colors py-1 ${theme === 'dark' ? 'hover:border-gray-700 text-gray-300' : 'hover:border-gray-200 text-gray-900'}`)}
-                                placeholder="Author Name"
+                                onChange={(e) => setFrontmatter({ ...frontmatter, author: e.target.value })}
+                                className={`w-full bg-transparent border-b transition-colors py-1 focus:outline-none ${theme === 'dark' ? 'border-gray-700 focus:border-purple-500 text-gray-200' : 'border-slate-300 focus:border-purple-500 text-slate-700'}`}
+                                placeholder="Name"
                             />
                         </div>
-                        <div className={`flex items-center gap-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                            <RequiredLabel label="Date" />
+                        <div className="space-y-1.5">
+                            <label className={`flex items-center gap-1 text-xs font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-500' : 'text-slate-500'}`}>
+                                Publish Date <span className="text-red-500">*</span>
+                            </label>
                             <input
                                 type="date"
                                 value={frontmatter.date}
-                                onChange={(e) => {
-                                    setFrontmatter({ ...frontmatter, date: e.target.value });
-                                    if (validationErrors.includes('date')) setValidationErrors(prev => prev.filter(f => f !== 'date'));
-                                }}
-                                className={getInputClass('date', `flex-1 bg-transparent border-b border-transparent focus:border-purple-500 outline-none transition-colors py-1 ${theme === 'dark' ? 'hover:border-gray-700 text-gray-300' : 'hover:border-gray-200 text-gray-900'}`)}
+                                onChange={(e) => setFrontmatter({ ...frontmatter, date: e.target.value })}
+                                className={`w-full bg-transparent border-b transition-colors py-1 focus:outline-none ${theme === 'dark' ? 'border-gray-700 focus:border-purple-500 text-gray-200' : 'border-slate-300 focus:border-purple-500 text-slate-700'}`}
                             />
                         </div>
                     </div>
 
-                    {/* Row 2: Slug & Type */}
-                    <div className="space-y-4">
-                        <div className={`flex items-center gap-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                            <RequiredLabel label="Slug" />
+                    {/* Column 2: SEO & Organization */}
+                    <div className="space-y-5">
+                        <div className="space-y-1.5">
+                            <label className={`flex items-center gap-1 text-xs font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-500' : 'text-slate-500'}`}>
+                                Slug <span className="text-red-500">*</span>
+                            </label>
                             <input
                                 type="text"
                                 value={frontmatter.slug}
-                                onChange={(e) => {
-                                    setFrontmatter({ ...frontmatter, slug: e.target.value });
-                                    if (validationErrors.includes('slug')) setValidationErrors(prev => prev.filter(f => f !== 'slug'));
-                                }}
-                                className={getInputClass('slug', `flex-1 bg-transparent border-b border-transparent focus:border-purple-500 outline-none transition-colors py-1 ${theme === 'dark' ? 'hover:border-gray-700 text-gray-300' : 'hover:border-gray-200 text-gray-900'}`)}
-                                placeholder="post-slug"
+                                onChange={(e) => setFrontmatter({ ...frontmatter, slug: e.target.value })}
+                                className={`w-full bg-transparent border-b transition-colors py-1 focus:outline-none ${theme === 'dark' ? 'border-gray-700 focus:border-purple-500 text-gray-200' : 'border-slate-300 focus:border-purple-500 text-slate-700'}`}
+                                placeholder="post-url-slug"
                             />
                         </div>
-                        <div className={`flex items-center gap-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                            <span className="w-24">Type</span>
-                            <select
-                                value={frontmatter.type}
-                                onChange={(e) => setFrontmatter({ ...frontmatter, type: e.target.value })}
-                                className={`flex-1 bg-transparent border-b border-transparent focus:border-purple-500 outline-none transition-colors py-1 ${theme === 'dark' ? 'hover:border-gray-700 text-gray-300' : 'hover:border-gray-200 text-gray-900'}`}
-                            >
-                                <option value="article">Article</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* Row 3: Tags & Keywords */}
-                    <div className="space-y-4">
-                        <div className={`flex items-center gap-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                            <RequiredLabel label="Tags" />
+                        <div className="space-y-1.5">
+                            <label className={`flex items-center gap-1 text-xs font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-500' : 'text-slate-500'}`}>
+                                Tags <span className="text-red-500">*</span>
+                            </label>
                             <input
                                 type="text"
                                 value={frontmatter.tags}
-                                onChange={(e) => {
-                                    setFrontmatter({ ...frontmatter, tags: e.target.value });
-                                    if (validationErrors.includes('tags')) setValidationErrors(prev => prev.filter(f => f !== 'tags'));
-                                }}
-                                className={getInputClass('tags', `flex-1 bg-transparent border-b border-transparent focus:border-purple-500 outline-none transition-colors py-1 ${theme === 'dark' ? 'hover:border-gray-700 text-gray-300' : 'hover:border-gray-200 text-gray-900'}`)}
-                                placeholder="tech, coding"
-                            />
-                        </div>
-                        <div className={`flex items-center gap-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                            <span className="w-24">Keywords</span>
-                            <input
-                                type="text"
-                                value={frontmatter.keywords}
-                                onChange={(e) => setFrontmatter({ ...frontmatter, keywords: e.target.value })}
-                                className={`flex-1 bg-transparent border-b border-transparent focus:border-purple-500 outline-none transition-colors py-1 ${theme === 'dark' ? 'hover:border-gray-700 text-gray-300' : 'hover:border-gray-200 text-gray-900'}`}
-                                placeholder="seo, search, terms"
+                                onChange={(e) => setFrontmatter({ ...frontmatter, tags: e.target.value })}
+                                className={`w-full bg-transparent border-b transition-colors py-1 focus:outline-none ${theme === 'dark' ? 'border-gray-700 focus:border-purple-500 text-gray-200' : 'border-slate-300 focus:border-purple-500 text-slate-700'}`}
+                                placeholder="react, astro, web"
                             />
                         </div>
                     </div>
 
-                    {/* Row 4: Series & Order */}
-                    <div className="space-y-4">
-                        <div className={`flex items-center gap-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                            <span className="w-24">Series</span>
-                            <input
-                                type="text"
-                                value={frontmatter.series}
-                                onChange={(e) => setFrontmatter({ ...frontmatter, series: e.target.value })}
-                                className={`flex-1 bg-transparent border-b border-transparent focus:border-purple-500 outline-none transition-colors py-1 ${theme === 'dark' ? 'hover:border-gray-700 text-gray-300' : 'hover:border-gray-200 text-gray-900'}`}
-                                placeholder="Series Name (Optional)"
-                            />
+                    {/* Column 3: Series & Media */}
+                    <div className="space-y-5">
+                        <div className="space-y-1.5">
+                            <label className={`flex items-center gap-1 text-xs font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-500' : 'text-slate-500'}`}>
+                                Cover Image URL <span className="text-red-500">*</span>
+                            </label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={frontmatter.image}
+                                    onChange={(e) => setFrontmatter({ ...frontmatter, image: e.target.value })}
+                                    className={`w-full bg-transparent border-b transition-colors py-1 focus:outline-none ${theme === 'dark' ? 'border-gray-700 focus:border-purple-500 text-gray-200' : 'border-slate-300 focus:border-purple-500 text-slate-700'}`}
+                                    placeholder="https://..."
+                                />
+                                {frontmatter.image && (
+                                    <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0 border border-gray-500/20">
+                                        <img src={frontmatter.image} alt="Preview" className="w-full h-full object-cover" />
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                        <div className={`flex items-center gap-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                            <span className="w-24">Order</span>
-                            <input
-                                type="number"
-                                value={frontmatter.seriesOrder}
-                                onChange={(e) => setFrontmatter({ ...frontmatter, seriesOrder: parseInt(e.target.value) || 0 })}
-                                className={`flex-1 bg-transparent border-b border-transparent focus:border-purple-500 outline-none transition-colors py-1 ${theme === 'dark' ? 'hover:border-gray-700 text-gray-300' : 'hover:border-gray-200 text-gray-900'}`}
-                                placeholder="1"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Row 5: Reading Time & Image */}
-                    <div className="space-y-4">
-                        <div className={`flex items-center gap-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                            <span className="w-24">Read Time</span>
-                            <input
-                                type="text"
-                                value={frontmatter.readingTime}
-                                onChange={(e) => setFrontmatter({ ...frontmatter, readingTime: e.target.value })}
-                                className={`flex-1 bg-transparent border-b border-transparent focus:border-purple-500 outline-none transition-colors py-1 ${theme === 'dark' ? 'hover:border-gray-700 text-gray-300' : 'hover:border-gray-200 text-gray-900'}`}
-                                placeholder="5 min"
-                            />
-                        </div>
-                        <div className={`flex items-center gap-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                            <RequiredLabel label="Image" />
-                            <input
-                                type="text"
-                                value={frontmatter.image}
-                                onChange={(e) => {
-                                    setFrontmatter({ ...frontmatter, image: e.target.value });
-                                    if (validationErrors.includes('image')) setValidationErrors(prev => prev.filter(f => f !== 'image'));
-                                }}
-                                className={`flex-1 bg-transparent border-b border-transparent focus:border-purple-500 outline-none transition-colors py-1 ${theme === 'dark' ? 'hover:border-gray-700 text-gray-300' : 'hover:border-gray-200 text-gray-900'}`}
-                                placeholder="https://..."
-                            />
+                        <div className="flex gap-4">
+                            <div className="space-y-1.5 flex-1">
+                                <label className={`text-xs font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-500' : 'text-slate-500'}`}>Series</label>
+                                <input
+                                    type="text"
+                                    value={frontmatter.series}
+                                    onChange={(e) => setFrontmatter({ ...frontmatter, series: e.target.value })}
+                                    className={`w-full bg-transparent border-b transition-colors py-1 focus:outline-none ${theme === 'dark' ? 'border-gray-700 focus:border-purple-500 text-gray-200' : 'border-slate-300 focus:border-purple-500 text-slate-700'}`}
+                                    placeholder="Optional"
+                                />
+                            </div>
+                            <div className="space-y-1.5 w-20">
+                                <label className={`text-xs font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-500' : 'text-slate-500'}`}>Order</label>
+                                <input
+                                    type="number"
+                                    value={frontmatter.seriesOrder}
+                                    onChange={(e) => setFrontmatter({ ...frontmatter, seriesOrder: parseInt(e.target.value) || 0 })}
+                                    className={`w-full bg-transparent border-b transition-colors py-1 focus:outline-none ${theme === 'dark' ? 'border-gray-700 focus:border-purple-500 text-gray-200' : 'border-slate-300 focus:border-purple-500 text-slate-700'}`}
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
+
             {/* Floating Menu (Medium-style) */}
-            {editor && (
-                <FloatingMenu
-                    editor={editor}
-                    tippyOptions={{ duration: 100 }}
-                    shouldShow={({ state }) => {
-                        const { selection } = state;
-                        const { $from } = selection;
-                        // Only show on empty paragraphs
-                        return selection.empty && $from.parent.type.name === 'paragraph' && $from.parent.content.size === 0;
-                    }}
-                    className="flex items-center"
-                >
-                    <div className="relative flex items-center">
-                        <button
-                            onClick={() => setIsMenuOpen(!isMenuOpen)}
-                            className={`p-1 rounded-full border transition-all duration-200 ${isMenuOpen
-                                ? `rotate-45 border-gray-400 text-gray-600 ${theme === 'dark' ? 'bg-gray-800 text-gray-300' : 'bg-white'}`
-                                : `border-gray-300 text-gray-400 hover:border-gray-400 hover:text-gray-600 ${theme === 'dark' ? 'border-gray-600 text-gray-500 hover:text-gray-300' : ''}`
-                                }`}
-                        >
-                            <Plus className="w-5 h-5" />
-                        </button>
+            {
+                editor && (
+                    <FloatingMenu
+                        editor={editor}
+                        tippyOptions={{ duration: 100 }}
+                        shouldShow={({ state }) => {
+                            const { selection } = state;
+                            const { $from } = selection;
+                            // Only show on empty paragraphs
+                            return selection.empty && $from.parent.type.name === 'paragraph' && $from.parent.content.size === 0;
+                        }}
+                        className="flex items-center"
+                    >
+                        <div className="relative flex items-center">
+                            <button
+                                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                className={`p-1 rounded-full border transition-all duration-200 ${isMenuOpen
+                                    ? `rotate-45 border-gray-400 text-gray-600 ${theme === 'dark' ? 'bg-gray-800 text-gray-300' : 'bg-white'}`
+                                    : `border-gray-300 text-gray-400 hover:border-gray-400 hover:text-gray-600 ${theme === 'dark' ? 'border-gray-600 text-gray-500 hover:text-gray-300' : ''}`
+                                    }`}
+                            >
+                                <Plus className="w-5 h-5" />
+                            </button>
 
-                        {isMenuOpen && (
-                            <div className={`absolute left-10 top-1/2 -translate-y-1/2 flex items-center gap-2 shadow-xl border rounded-lg p-2 animate-in fade-in slide-in-from-left-2 z-50 min-w-[200px] ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                                <div className="flex flex-col gap-1 w-full">
-                                    <MenuButton onClick={() => setShowImageInput(true)} icon={ImageIcon} label="Image" />
-                                    <MenuButton onClick={addQuiz} icon={HelpCircle} label="Quiz" />
-                                    <MenuButton onClick={addTable} icon={TableIcon} label="Table" />
-                                    <MenuButton onClick={addCodeBlock} icon={Code} label="Code Block" />
+                            {isMenuOpen && (
+                                <div className={`absolute left-10 top-1/2 -translate-y-1/2 flex items-center gap-2 shadow-xl border rounded-lg p-2 animate-in fade-in slide-in-from-left-2 z-50 min-w-[200px] ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                                    <div className="flex flex-col gap-1 w-full">
+                                        <MenuButton onClick={() => setShowImageInput(true)} icon={ImageIcon} label="Image" />
+                                        <MenuButton onClick={addQuiz} icon={HelpCircle} label="Quiz" />
+                                        <MenuButton onClick={addTable} icon={TableIcon} label="Table" />
+                                        <MenuButton onClick={addCodeBlock} icon={Code} label="Code Block" />
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
 
-                        {/* Image Input Popover */}
-                        {showImageInput && (
-                            <div className={`absolute left-10 top-1/2 -translate-y-1/2 rounded-xl shadow-xl border p-3 z-[60] animate-in fade-in slide-in-from-left-2 w-80 ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                                <div className="flex gap-2 items-center">
-                                    <input
-                                        type="text"
-                                        value={imageUrl}
-                                        onChange={(e) => setImageUrl(e.target.value)}
-                                        placeholder="Paste image URL..."
-                                        className={`flex-1 px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500 bg-transparent ${theme === 'dark' ? 'border-gray-600 text-white' : 'border-gray-300'}`}
-                                        autoFocus
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter') handleAddImage();
-                                            if (e.key === 'Escape') setShowImageInput(false);
-                                        }}
-                                    />
-                                    <button
-                                        onClick={handleAddImage}
-                                        className="p-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                                    >
-                                        <Check className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                        onClick={() => setShowImageInput(false)}
-                                        className={`p-2 text-gray-500 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </button>
+                            {/* Image Input Popover */}
+                            {showImageInput && (
+                                <div className={`absolute left-10 top-1/2 -translate-y-1/2 rounded-xl shadow-xl border p-3 z-[60] animate-in fade-in slide-in-from-left-2 w-80 ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                                    <div className="flex gap-2 items-center">
+                                        <input
+                                            type="text"
+                                            value={imageUrl}
+                                            onChange={(e) => setImageUrl(e.target.value)}
+                                            placeholder="Paste image URL..."
+                                            className={`flex-1 px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500 bg-transparent ${theme === 'dark' ? 'border-gray-600 text-white' : 'border-gray-300'}`}
+                                            autoFocus
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') handleAddImage();
+                                                if (e.key === 'Escape') setShowImageInput(false);
+                                            }}
+                                        />
+                                        <button
+                                            onClick={handleAddImage}
+                                            className="p-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                                        >
+                                            <Check className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => setShowImageInput(false)}
+                                            className={`p-2 text-gray-500 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                    </div>
-                </FloatingMenu>
-            )}
+                            )}
+                        </div>
+                    </FloatingMenu>
+                )
+            }
 
             {/* Floating Bubble Menu (Text Formatting) */}
-            {editor && (
-                <BubbleMenu
-                    editor={editor}
-                    tippyOptions={{ duration: 100, maxWidth: 'none' }}
-                    className={`flex items-center flex-wrap gap-1 shadow-lg border rounded-lg p-1 max-w-[90vw] ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
-                >
-                    <button
-                        onClick={() => editor.chain().focus().toggleBold().run()}
-                        className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('bold')
-                            ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
-                            : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
-                            }`}
-                        title="Bold"
+            {
+                editor && (
+                    <BubbleMenu
+                        editor={editor}
+                        tippyOptions={{ duration: 100, maxWidth: 'none' }}
+                        className={`flex items-center flex-wrap gap-1 shadow-lg border rounded-lg p-1 max-w-[90vw] ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
                     >
-                        <Bold className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => editor.chain().focus().toggleItalic().run()}
-                        className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('italic')
-                            ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
-                            : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
-                            }`}
-                        title="Italic"
-                    >
-                        <Italic className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => editor.chain().focus().toggleUnderline().run()}
-                        className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('underline')
-                            ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
-                            : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
-                            }`}
-                        title="Underline"
-                    >
-                        <UnderlineIcon className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => editor.chain().focus().toggleStrike().run()}
-                        className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('strike')
-                            ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
-                            : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
-                            }`}
-                        title="Strikethrough"
-                    >
-                        <Strikethrough className="w-4 h-4" />
-                    </button>
-                    <div className={`w-px h-4 mx-1 ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'}`} />
-                    <button
-                        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-                        className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('heading', { level: 1 })
-                            ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
-                            : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
-                            }`}
-                        title="Heading 1"
-                    >
-                        <Heading1 className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-                        className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('heading', { level: 2 })
-                            ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
-                            : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
-                            }`}
-                        title="Heading 2"
-                    >
-                        <Heading2 className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-                        className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('heading', { level: 3 })
-                            ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
-                            : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
-                            }`}
-                        title="Heading 3"
-                    >
-                        <Heading3 className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}
-                        className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('heading', { level: 4 })
-                            ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
-                            : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
-                            }`}
-                        title="Heading 4"
-                    >
-                        <Heading4 className="w-4 h-4" />
-                    </button>
-                    <div className={`w-px h-4 mx-1 ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'}`} />
-                    <button
-                        onClick={() => editor.chain().focus().toggleBulletList().run()}
-                        className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('bulletList')
-                            ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
-                            : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
-                            }`}
-                        title="Bullet List"
-                    >
-                        <List className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => editor.chain().focus().toggleOrderedList().run()}
-                        className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('orderedList')
-                            ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
-                            : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
-                            }`}
-                        title="Ordered List"
-                    >
-                        <ListOrdered className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => editor.chain().focus().toggleBlockquote().run()}
-                        className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('blockquote')
-                            ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
-                            : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
-                            }`}
-                        title="Quote"
-                    >
-                        <Quote className="w-4 h-4" />
-                    </button>
-                </BubbleMenu>
-            )}
+                        <button
+                            onClick={() => editor.chain().focus().toggleBold().run()}
+                            className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('bold')
+                                ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
+                                : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
+                                }`}
+                            title="Bold"
+                        >
+                            <Bold className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => editor.chain().focus().toggleItalic().run()}
+                            className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('italic')
+                                ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
+                                : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
+                                }`}
+                            title="Italic"
+                        >
+                            <Italic className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => editor.chain().focus().toggleUnderline().run()}
+                            className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('underline')
+                                ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
+                                : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
+                                }`}
+                            title="Underline"
+                        >
+                            <UnderlineIcon className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => editor.chain().focus().toggleStrike().run()}
+                            className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('strike')
+                                ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
+                                : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
+                                }`}
+                            title="Strikethrough"
+                        >
+                            <Strikethrough className="w-4 h-4" />
+                        </button>
+                        <div className={`w-px h-4 mx-1 ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'}`} />
+                        <button
+                            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+                            className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('heading', { level: 1 })
+                                ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
+                                : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
+                                }`}
+                            title="Heading 1"
+                        >
+                            <Heading1 className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+                            className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('heading', { level: 2 })
+                                ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
+                                : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
+                                }`}
+                            title="Heading 2"
+                        >
+                            <Heading2 className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+                            className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('heading', { level: 3 })
+                                ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
+                                : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
+                                }`}
+                            title="Heading 3"
+                        >
+                            <Heading3 className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}
+                            className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('heading', { level: 4 })
+                                ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
+                                : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
+                                }`}
+                            title="Heading 4"
+                        >
+                            <Heading4 className="w-4 h-4" />
+                        </button>
+                        <div className={`w-px h-4 mx-1 ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'}`} />
+                        <button
+                            onClick={() => editor.chain().focus().toggleBulletList().run()}
+                            className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('bulletList')
+                                ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
+                                : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
+                                }`}
+                            title="Bullet List"
+                        >
+                            <List className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                            className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('orderedList')
+                                ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
+                                : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
+                                }`}
+                            title="Ordered List"
+                        >
+                            <ListOrdered className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => editor.chain().focus().toggleBlockquote().run()}
+                            className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('blockquote')
+                                ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
+                                : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
+                                }`}
+                            title="Quote"
+                        >
+                            <Quote className="w-4 h-4" />
+                        </button>
+                    </BubbleMenu>
+                )
+            }
 
             {/* Editor Content */}
             <EditorContent editor={editor} />
-        </div>
+        </div >
     );
 };

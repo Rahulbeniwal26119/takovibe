@@ -1,0 +1,246 @@
+---
+export const prerender = false;
+import Layout from "../../layouts/Layout.astro";
+import { BlogEditor } from "../../components/editor/BlogEditor";
+
+const { slug } = Astro.params;
+const API_URL = "http://localhost:8000";
+
+// HARDCODED TEST DATA
+const post = {
+    content: {
+        type: "doc",
+        content: [
+            {
+                type: "heading",
+                attrs: { level: 1 },
+                content: [
+                    { type: "text", text: "Start writing your story..." },
+                ],
+            },
+            {
+                type: "quizComponent",
+                attrs: {
+                    question: "What is your question?",
+                    options: ["Option 1", "Option 2"],
+                    correctIndex: 0,
+                },
+            },
+            {
+                type: "image",
+                attrs: {
+                    src: "https://ik.imagekit.io/bhu1voux5/Template%20Injection?updatedAt=1763188980710",
+                    alt: null,
+                    title: null,
+                    caption: "Testing",
+                },
+            },
+            {
+                type: "table",
+                content: [
+                    {
+                        type: "tableRow",
+                        content: [
+                            {
+                                type: "tableHeader",
+                                attrs: {
+                                    colspan: 1,
+                                    rowspan: 1,
+                                    colwidth: null,
+                                },
+                                content: [
+                                    {
+                                        type: "paragraph",
+                                        content: [{ type: "text", text: "A" }],
+                                    },
+                                ],
+                            },
+                            {
+                                type: "tableHeader",
+                                attrs: {
+                                    colspan: 1,
+                                    rowspan: 1,
+                                    colwidth: null,
+                                },
+                                content: [
+                                    {
+                                        type: "paragraph",
+                                        content: [{ type: "text", text: "B" }],
+                                    },
+                                ],
+                            },
+                            {
+                                type: "tableHeader",
+                                attrs: {
+                                    colspan: 1,
+                                    rowspan: 1,
+                                    colwidth: null,
+                                },
+                                content: [
+                                    {
+                                        type: "paragraph",
+                                        content: [{ type: "text", text: "C" }],
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        type: "tableRow",
+                        content: [
+                            {
+                                type: "tableCell",
+                                attrs: {
+                                    colspan: 1,
+                                    rowspan: 1,
+                                    colwidth: null,
+                                },
+                                content: [
+                                    {
+                                        type: "paragraph",
+                                        content: [{ type: "text", text: "A" }],
+                                    },
+                                ],
+                            },
+                            {
+                                type: "tableCell",
+                                attrs: {
+                                    colspan: 1,
+                                    rowspan: 1,
+                                    colwidth: null,
+                                },
+                                content: [
+                                    {
+                                        type: "paragraph",
+                                        content: [{ type: "text", text: "B" }],
+                                    },
+                                ],
+                            },
+                            {
+                                type: "tableCell",
+                                attrs: {
+                                    colspan: 1,
+                                    rowspan: 1,
+                                    colwidth: null,
+                                },
+                                content: [
+                                    {
+                                        type: "paragraph",
+                                        content: [{ type: "text", text: "C" }],
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        type: "tableRow",
+                        content: [
+                            {
+                                type: "tableCell",
+                                attrs: {
+                                    colspan: 1,
+                                    rowspan: 1,
+                                    colwidth: null,
+                                },
+                                content: [{ type: "paragraph" }],
+                            },
+                            {
+                                type: "tableCell",
+                                attrs: {
+                                    colspan: 1,
+                                    rowspan: 1,
+                                    colwidth: null,
+                                },
+                                content: [{ type: "paragraph" }],
+                            },
+                            {
+                                type: "tableCell",
+                                attrs: {
+                                    colspan: 1,
+                                    rowspan: 1,
+                                    colwidth: null,
+                                },
+                                content: [{ type: "paragraph" }],
+                            },
+                        ],
+                    },
+                ],
+            },
+            {
+                type: "codeBlock",
+                attrs: {
+                    language: "python",
+                    output: "sys.version",
+                    showOutput: true,
+                },
+                content: [{ type: "text", text: "import sys" }],
+            },
+            {
+                type: "heading",
+                attrs: { level: 1 },
+                content: [
+                    {
+                        type: "text",
+                        marks: [
+                            { type: "bold" },
+                            { type: "italic" },
+                            { type: "strike" },
+                            { type: "underline" },
+                        ],
+                        text: "Conslution",
+                    },
+                ],
+            },
+            { type: "paragraph" },
+        ],
+    },
+    frontmatter: {
+        title: "r",
+        description: "r",
+        slug: "rahul-test",
+        image: "https://google.com/",
+        tags: "r",
+        keywords: "",
+        author: "r",
+        date: "2025-12-04",
+        type: "article",
+        series: "",
+        seriesOrder: 0,
+        readingTime: "",
+        layout: "../../layouts/BlogPost.astro",
+    },
+};
+
+// Prepare initial content for the editor
+// The editor expects { content: JSON, frontmatter: Object }
+// The API returns { content: JSON, frontmatter: Object, ...other_fields }
+// We need to ensure the structure matches what BlogEditor expects
+const initialContent = {
+    content: post.content,
+    frontmatter: post.frontmatter,
+};
+---
+
+<Layout title={`Edit: ${post.frontmatter.title}`} no_footer={true}>
+    <div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+        <div class="max-w-[1400px] mx-auto px-4 sm:px-6">
+            <div class="mb-8 flex items-center justify-between">
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+                    Editing: {post.frontmatter.title}
+                </h1>
+                <a
+                    href={`/post/${slug}`}
+                    class="text-sm text-purple-600 hover:text-purple-500 dark:text-purple-400"
+                >
+                    View Post &rarr;
+                </a>
+            </div>
+
+            <BlogEditor
+                client:only="react"
+                initialContent={initialContent}
+                apiEndpoint={`${API_URL}/api/blogs/${slug}/`}
+            />
+        </div>
+    </div>
+</Layout>

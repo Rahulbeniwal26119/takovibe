@@ -10,6 +10,7 @@ import { BlogEditor } from "../components/editor/BlogEditor";
         <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
             <BlogEditor
                 client:only="react"
+                apiEndpoint="http://localhost:8000/api/posts/"
                 onChange={(data) => console.log("Editor Change:", data)}
             />
         </div>

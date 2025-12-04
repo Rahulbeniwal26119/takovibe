@@ -4,7 +4,7 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
 ---
 
 <Layout title="Welcome to TakoVibe" description="Sign in or create an account">
-    <div class="min-h-screen flex bg-white dark:bg-[#171923]">
+    <div class="min-h-screen flex bg-white dark:bg-slate-950">
         <!-- Left Side - Auth Forms -->
         <div
             class="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 lg:p-16 relative overflow-hidden"
@@ -83,7 +83,7 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                     </div>
                     <div class="relative flex justify-center text-sm">
                         <span
-                            class="px-4 bg-white dark:bg-[#171923] text-gray-500 dark:text-gray-400"
+                            class="px-4 bg-white dark:bg-slate-950 text-gray-500 dark:text-gray-400"
                         >
                             Or continue with email
                         </span>
@@ -260,22 +260,24 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
         </div>
 
         <!-- Right Side - Illustration -->
-        <div class="hidden lg:block lg:w-1/2 relative bg-[#171923]">
+        <div
+            class="hidden lg:block lg:w-1/2 relative bg-gray-50 dark:bg-slate-950 transition-colors duration-300"
+        >
             <div
                 class="absolute inset-0 flex items-center justify-center p-12 overflow-hidden"
             >
                 <div class="relative w-full max-w-2xl">
                     <!-- Decorative blobs -->
                     <div
-                        class="absolute top-0 -left-4 w-72 h-72 bg-purple-500/20 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-blob"
+                        class="absolute top-0 -left-4 w-72 h-72 bg-purple-500/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-30 animate-blob"
                     >
                     </div>
                     <div
-                        class="absolute top-0 -right-4 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-blob animation-delay-2000"
+                        class="absolute top-0 -right-4 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-30 animate-blob animation-delay-2000"
                     >
                     </div>
                     <div
-                        class="absolute -bottom-8 left-20 w-72 h-72 bg-pink-500/20 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-blob animation-delay-4000"
+                        class="absolute -bottom-8 left-20 w-72 h-72 bg-pink-500/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-30 animate-blob animation-delay-4000"
                     >
                     </div>
 
@@ -287,13 +289,15 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                 </div>
             </div>
             <div
-                class="absolute bottom-0 left-0 right-0 p-12 text-center z-20 bg-gradient-to-t from-[#171923] via-[#171923]/80 to-transparent"
+                class="absolute bottom-0 left-0 right-0 p-12 text-center z-20 bg-gradient-to-t from-gray-50 via-gray-50/80 dark:from-slate-950 dark:via-slate-950/80 to-transparent"
             >
-                <h3 class="text-3xl font-bold text-white mb-4 tracking-tight">
+                <h3
+                    class="text-3xl font-bold text-gray-900 dark:text-white mb-4 tracking-tight"
+                >
                     Join our community
                 </h3>
                 <p
-                    class="text-gray-400 max-w-md mx-auto text-lg leading-relaxed"
+                    class="text-gray-600 dark:text-gray-400 max-w-md mx-auto text-lg leading-relaxed"
                 >
                     Connect with thousands of developers and creators building
                     the future of tech.
