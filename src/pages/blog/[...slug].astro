@@ -25,6 +25,87 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props;
 const { Content, headings } = await post.render();
+
+import fs from "node:fs";
+import path from "node:path";
+
+// Get the last modified date
+const getLastModified = () => {
+  try {
+    const filePath = path.join(process.cwd(), "src/content/blog", post.id);
+    const stats = fs.statSync(filePath);
+    return stats.mtime.toISOString();
+  } catch (e) {
+    return post.data.date.toISOString();
+  }
+};
+
+const lastModified = getLastModified();
+const publishDate = new Date(post.data.date).toISOString();
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site).toString();
+
+const articleStructuredData = {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  headline: post.data.title,
+  datePublished: publishDate,
+  dateModified: lastModified,
+  author: {
+    "@type": "Person",
+    name: post.data.author,
+    url: "https://takovibe.com/about/",
+  },
+  description: post.data.description,
+  image: {
+    "@type": "ImageObject",
+    url: post.data.image?.startsWith("http")
+      ? post.data.image
+      : `https://takovibe.com${post.data.image}`,
+    height: "630",
+    width: "1200",
+  },
+  url: canonicalUrl,
+  mainEntityOfPage: {
+    "@type": "WebPage",
+    "@id": canonicalUrl,
+  },
+  keywords: post.data.tags?.join(", "),
+  publisher: {
+    "@type": "Organization",
+    name: "TakoVibe",
+    logo: {
+      "@type": "ImageObject",
+      url: "https://takovibe.com/images/logo.svg",
+      width: "192",
+      height: "192",
+    },
+  },
+};
+
+const breadcrumbStructuredData = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: "https://takovibe.com",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Blog",
+      item: "https://takovibe.com/blog",
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: post.data.title,
+      item: canonicalUrl,
+    },
+  ],
+};
 ---
 
 <Layout
@@ -33,9 +114,21 @@ const { Content, headings } = await post.render();
   type="article"
   author={post.data.author}
   tags={post.data.tags}
-  published_date={post.data.date}
+  published_date={publishDate}
+  modified_date={lastModified}
   no_footer={true}
 >
+  <!-- Structured Data -->
+  <script
+    type="application/ld+json"
+    slot="head"
+    set:html={JSON.stringify(articleStructuredData)}
+  />
+  <script
+    type="application/ld+json"
+    slot="head"
+    set:html={JSON.stringify(breadcrumbStructuredData)}
+  />
   <ReadingProgress />
   <SelectionPopover />
 
