@@ -1,6 +1,6 @@
 ---
-import Layout from './Layout.astro';
-import Header from '../components/Header.astro';
+import Layout from "./Layout.astro";
+import Header from "../components/Header.astro";
 
 interface Props {
   frontmatter: {
@@ -11,7 +11,7 @@ interface Props {
     image: string;
     tags?: string[];
     canonical?: string;
-    type?: 'article' | 'website';
+    type?: "article" | "website";
   };
 }
 
@@ -22,17 +22,26 @@ interface LayoutProps {
   image: string;
   author: string;
   tags?: string[];
-  type?: 'article' | 'website';
+  type?: "article" | "website";
   publishDate?: string;
   modifiedDate?: string;
   canonicalUrl?: string;
   no_footer?: boolean;
 }
 
-import fs from 'node:fs';
-import path from 'node:path';
+import fs from "node:fs";
+import path from "node:path";
 
-const { title, date, author, description, image, tags, canonical, type = 'article' } = Astro.props.frontmatter;
+const {
+  title,
+  date,
+  author,
+  description,
+  image,
+  tags,
+  canonical,
+  type = "article",
+} = Astro.props.frontmatter;
 
 // Get the publish date from frontmatter
 const publishDate = new Date(date).toISOString();
@@ -41,11 +50,18 @@ const publishDate = new Date(date).toISOString();
 const getLastModified = () => {
   try {
     // Convert the current file's URL to a file path
-    const filePath = path.join(process.cwd(), 'src/content/blog', path.basename(Astro.url.pathname) + '.mdx');
+    const filePath = path.join(
+      process.cwd(),
+      "src/content/blog",
+      path.basename(Astro.url.pathname) + ".mdx",
+    );
     const stats = fs.statSync(filePath);
     return stats.mtime.toISOString();
   } catch (e) {
-    console.warn(`Could not get last modified date for ${Astro.url.pathname}`, e);
+    console.warn(
+      `Could not get last modified date for ${Astro.url.pathname}`,
+      e,
+    );
     return publishDate; // Fallback to publish date if we can't get mtime
   }
 };
@@ -57,66 +73,67 @@ const canonicalUrl = canonical || `https://takovibe.com${Astro.url.pathname}`;
 const articleStructuredData = {
   "@context": "https://schema.org",
   "@type": "BlogPosting",
-  "headline": title,
-  "datePublished": publishDate,
-  "dateModified": lastModified,
-  "author": {
+  headline: title,
+  datePublished: publishDate,
+  dateModified: lastModified,
+  author: {
     "@type": "Person",
-    "name": author,
-    "url": "https://takovibe.com/about/"
+    name: author,
+    url: "https://takovibe.com/about/",
   },
-  "description": description,
-  "image": {
+  description: description,
+  image: {
     "@type": "ImageObject",
-    "url": image?.startsWith('http') ? image : `https://takovibe.com${image}`,
-    "height": "630",
-    "width": "1200"
+    url: image?.startsWith("http") ? image : `https://takovibe.com${image}`,
+    height: "630",
+    width: "1200",
   },
-  "url": canonicalUrl,
-  "mainEntityOfPage": {
+  url: canonicalUrl,
+  mainEntityOfPage: {
     "@type": "WebPage",
-    "@id": canonicalUrl
+    "@id": canonicalUrl,
   },
-  "keywords": tags?.join(', '),
-  "publisher": {
+  keywords: tags?.join(", "),
+  publisher: {
     "@type": "Organization",
-    "name": "TakoVibe",
-    "logo": {
+    name: "TakoVibe",
+    logo: {
       "@type": "ImageObject",
-      "url": "https://takovibe.com/images/logo.svg",
-      "width": "192",
-      "height": "192"
-    }
-  }
+      url: "https://takovibe.com/images/logo.svg",
+      width: "192",
+      height: "192",
+    },
+  },
 };
 
 // Breadcrumb structured data
 const breadcrumbStructuredData = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
-  "itemListElement": [
+  itemListElement: [
     {
       "@type": "ListItem",
-      "position": 1,
-      "name": "Home",
-      "item": "https://takovibe.com"
+      position: 1,
+      name: "Home",
+      item: "https://takovibe.com",
     },
     {
       "@type": "ListItem",
-      "position": 2,
-      "name": "Blog",
-      "item": "https://takovibe.com/blog"
+      position: 2,
+      name: "Blog",
+      item: "https://takovibe.com/blog",
     },
     {
       "@type": "ListItem",
-      "position": 3,
-      "name": title,
-      "item": canonicalUrl
-    }
-  ]
+      position: 3,
+      name: title,
+      item: canonicalUrl,
+    },
+  ],
 };
 ---
-<Layout 
+
+<Layout
   title={title}
   type="article"
   description={description}
@@ -125,67 +142,85 @@ const breadcrumbStructuredData = {
   published_date={publishDate}
   modified_date={lastModified}
   no_footer={true}
-  no_header={true}
+  no_footer={true}
 >
   <!-- Robots Meta -->
-  <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1" slot="head" />
-  
+  <meta
+    name="robots"
+    content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1"
+    slot="head"
+  />
+
   <!-- SEO Meta Tags -->
   <link rel="canonical" href={canonicalUrl} slot="head" />
   <meta property="article:published_time" content={publishDate} slot="head" />
   <meta property="article:modified_time" content={lastModified} slot="head" />
   <meta property="article:author" content={author} slot="head" />
-  {tags?.map(tag => (
-    <meta property="article:tag" content={tag} slot="head" />
-  ))}
-  
+  {
+    tags?.map((tag) => (
+      <meta property="article:tag" content={tag} slot="head" />
+    ))
+  }
+
   <!-- Structured Data -->
-  <script type="application/ld+json" slot="head" set:html={JSON.stringify(articleStructuredData)}></script>
-  
+  <script
+    type="application/ld+json"
+    slot="head"
+    set:html={JSON.stringify(articleStructuredData)}
+  />
+
   <!-- Breadcrumb Structured Data -->
-  <script type="application/ld+json" slot="head" set:html={JSON.stringify(breadcrumbStructuredData)}></script>
+  <script
+    type="application/ld+json"
+    slot="head"
+    set:html={JSON.stringify(breadcrumbStructuredData)}
+  />
 
   <article>
     <div class="prose dark:prose-invert max-w-none">
+      <!-- Content -->
+      <div class="prose prose-lg dark:prose-invert max-w-none">
+        <div class="space-y-6">
+          <slot />
+        </div>
+      </div>
 
-    <!-- Content -->
-    <div class="prose prose-lg prose-invert max-w-none">
-      <div class="space-y-6">
-        <slot />
+      <!-- Table of Contents (optional) -->
+      <div class="hidden lg:block fixed top-32 right-8 w-64">
+        <nav class="space-y-2 text-sm">
+          <!-- Add TOC items here -->
+        </nav>
       </div>
     </div>
-
-    <!-- Table of Contents (optional) -->
-    <div class="hidden lg:block fixed top-32 right-8 w-64">
-      <nav class="space-y-2 text-sm">
-        <!-- Add TOC items here -->
-      </nav>
-    </div>
   </article>
-</Layout>
 
-<style is:global>
-  .prose h2 {
-    @apply text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#FFB4B4] to-[#B4D4FF] mt-12 mb-6;
-  }
+  <style is:global>
+    .prose h2 {
+      @apply text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 dark:from-[#FFB4B4] dark:to-[#B4D4FF] mt-12 mb-6;
+    }
 
-  .prose h3 {
-    @apply text-2xl font-semibold text-gray-200 mt-8 mb-4;
-  }
+    .prose h3 {
+      @apply text-2xl font-semibold text-gray-900 dark:text-gray-200 mt-8 mb-4;
+    }
 
-  .prose p {
-    @apply text-gray-300 leading-relaxed mb-6;
-  }
+    .prose p {
+      @apply text-gray-900 dark:text-gray-300 leading-relaxed mb-6;
+    }
 
-  .prose code {
-    @apply bg-gray-800 px-1.5 py-0.5 rounded text-pink-400;
-  }
+    .prose code {
+      @apply bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-purple-600 dark:text-pink-400;
+    }
 
-  .prose pre {
-    @apply bg-gray-900 rounded-lg p-4 my-6;
-  }
+    .prose pre {
+      @apply bg-gray-900 rounded-lg p-4 my-6;
+    }
 
-  .prose ul {
-    @apply list-disc list-inside text-gray-300 space-y-2 ml-4;
-  }
-</style>
+    .prose pre code {
+      @apply bg-transparent p-0 text-gray-100;
+    }
+
+    .prose ul {
+      @apply list-disc list-inside text-gray-900 dark:text-gray-300 space-y-2 ml-4;
+    }
+  </style></Layout
+>
