@@ -1,7 +1,8 @@
 ---
 interface Props {
   post: {
-    url: string;
+    uri?: string;
+    url?: string;
     slug: string;
     data: {
       title: string;
@@ -18,7 +19,7 @@ interface Props {
 const { post } = Astro.props;
 const { title, date, author, description, image, tags, readingTime } =
   post.data;
-const postUrl = `/blog/${post.slug}`;
+const postUrl = post.uri || `/blog/${post.slug}`;
 
 const formattedDate = new Date(date).toLocaleDateString("en-US", {
   month: "short",

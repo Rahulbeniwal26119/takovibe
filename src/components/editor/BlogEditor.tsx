@@ -51,13 +51,15 @@ interface BlogEditorProps {
     onChange?: (json: any) => void;
     onSave?: (data: { content: any; frontmatter: any }) => Promise<void>;
     apiEndpoint?: string;
+    method?: 'POST' | 'PUT' | 'PATCH';
 }
 
 export const BlogEditor: React.FC<BlogEditorProps> = ({
     initialContent,
     onChange,
     onSave,
-    apiEndpoint = 'http://localhost:8000/api/posts/',
+    apiEndpoint = import.meta.env.PUBLIC_API_URL ? `${import.meta.env.PUBLIC_API_URL}/api/posts/` : 'http://localhost:8000/api/posts/',
+    method = 'POST',
 }) => {
     const [frontmatter, setFrontmatter] = useState({
         title: '',
@@ -77,19 +79,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
     const [showImageInput, setShowImageInput] = useState(false);
     const [imageUrl, setImageUrl] = useState('');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [theme, setTheme] = useState<'light' | 'dark'>('dark');
 
-    // Initialize theme
-    useEffect(() => {
-        if (typeof document !== 'undefined') {
-            const isDark = document.documentElement.classList.contains('dark');
-            setTheme(isDark ? 'dark' : 'light');
-        }
-    }, []);
-
-    const toggleTheme = () => {
-        setTheme(prev => prev === 'light' ? 'dark' : 'light');
-    };
 
     // Auto-save state
     const [isSaving, setIsSaving] = useState(false);
@@ -213,7 +203,8 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
         editorProps: {
             attributes: {
                 class:
-                    `prose prose-lg max-w-none focus:outline-none min-h-[500px] px-8 md:px-12 pb-12 ${theme === 'dark' ? 'prose-invert' : 'light-mode-editor'}`,
+                    `prose prose-lg max-w-none focus:outline-none min-h-[80vh] px-8 md:px-12 pb-12 dark:prose-invert light-mode-editor`,
+                'data-gramm': 'false',
             },
         },
         onUpdate: ({ editor }) => {
@@ -255,7 +246,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                 await onSave(data);
             } else if (apiEndpoint) {
                 const response = await fetchWithAuth(apiEndpoint, {
-                    method: 'POST',
+                    method: method,
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -384,7 +375,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
     const MenuButton = ({ onClick, icon: Icon, label }: any) => (
         <button
             onClick={onClick}
-            className={`flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors w-full text-left ${theme === 'dark' ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`}
+            className="flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors w-full text-left text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
             title={label}
         >
             <Icon className="w-4 h-4" />
@@ -408,18 +399,18 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
 
     return (
 
-        <div className={`w-full mx-auto min-h-[90vh] relative transition-all duration-500 ${theme === 'dark' ? 'bg-slate-900/50' : 'bg-white/90'} backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden`}>
+        <div className="w-full mx-auto min-h-[90vh] relative transition-all duration-500 bg-white/90 dark:bg-slate-900/50 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
             {/* Decorative Background Elements */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className={`absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full blur-3xl opacity-20 ${theme === 'dark' ? 'bg-purple-600' : 'bg-purple-400'}`} />
-                <div className={`absolute top-[10%] -right-[10%] w-[40%] h-[40%] rounded-full blur-3xl opacity-20 ${theme === 'dark' ? 'bg-blue-600' : 'bg-blue-400'}`} />
+                <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full blur-3xl opacity-20 bg-purple-400 dark:bg-purple-600" />
+                <div className="absolute top-[10%] -right-[10%] w-[40%] h-[40%] rounded-full blur-3xl opacity-20 bg-blue-400 dark:bg-blue-600" />
             </div>
 
             {/* Save Status Bar & Toolbar */}
-            <div className={`sticky top-0 z-40 flex items-center justify-between px-6 py-4 backdrop-blur-xl border-b transition-colors duration-300 ${theme === 'dark' ? 'bg-slate-900/70 border-white/10' : 'bg-white/80 border-slate-200/50'}`}>
+            <div className="sticky top-0 z-40 flex items-center justify-between px-6 py-4 backdrop-blur-xl border-b transition-colors duration-300 bg-white/80 dark:bg-slate-900/70 border-slate-200/50 dark:border-white/10">
 
                 {/* Left: Status Indicators */}
-                <div id="save-status" className={`flex items-center gap-3 text-sm font-medium px-4 py-2 rounded-full transition-all duration-300 ${theme === 'dark' ? 'bg-white/5 text-gray-300' : 'bg-slate-100/50 text-slate-600'}`}>
+                <div id="save-status" className="flex items-center gap-3 text-sm font-medium px-4 py-2 rounded-full transition-all duration-300 bg-slate-100/50 dark:bg-white/5 text-slate-600 dark:text-gray-300">
                     {isSaving ? (
                         <>
                             <Loader2 className="w-4 h-4 animate-spin text-purple-500" />
@@ -447,24 +438,13 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
 
                 {/* Right: Actions */}
                 <div className="flex items-center gap-3">
-                    {/* Theme Toggle */}
-                    <button
-                        onClick={toggleTheme}
-                        className={`p-2.5 rounded-xl transition-all duration-300 ${theme === 'dark'
-                            ? 'bg-white/5 hover:bg-white/10 text-yellow-400 hover:text-yellow-300 hover:shadow-lg hover:shadow-yellow-500/20'
-                            : 'bg-slate-100 hover:bg-white text-slate-600 hover:text-purple-600 hover:shadow-lg hover:shadow-purple-500/20'}`}
-                        title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
-                    >
-                        {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-                    </button>
-
                     {/* Save Button */}
                     <button
                         onClick={handleSave}
                         disabled={isSaving || !hasUnsavedChanges || validationErrors.length > 0}
                         className={`group relative flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold transition-all duration-300 ${hasUnsavedChanges || validationErrors.length > 0
                             ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white shadow-lg hover:shadow-purple-500/30 hover:-translate-y-0.5'
-                            : `${theme === 'dark' ? 'bg-white/5 text-gray-500' : 'bg-slate-100 text-slate-400'} cursor-not-allowed`
+                            : 'bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-gray-500 cursor-not-allowed'
                             }`}
                     >
                         <Save className={`w-4 h-4 ${hasUnsavedChanges ? 'group-hover:animate-bounce' : ''}`} />
@@ -481,7 +461,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
             </div>
 
             {/* Inline Frontmatter Form */}
-            <div className={`px-8 md:px-12 pt-8 mb-8 space-y-8 ${theme === 'dark' ? '' : 'border-b pb-8 border-slate-100'}`}>
+            <div className="px-8 md:px-12 pt-8 mb-8 space-y-8 border-b pb-8 border-slate-100 dark:border-transparent">
                 {/* Title & Description Group */}
                 <div className="space-y-4">
                     <div className="relative group">
@@ -492,7 +472,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                 setFrontmatter({ ...frontmatter, title: e.target.value });
                                 if (validationErrors.includes('title')) setValidationErrors(prev => prev.filter(f => f !== 'title'));
                             }}
-                            className={getInputClass('title', `w-full text-5xl font-extrabold bg-transparent border-none outline-none p-0 placeholder-opacity-40 transition-all duration-300 ${theme === 'dark' ? 'text-white placeholder-gray-500' : 'text-slate-900 placeholder-slate-300'}`)}
+                            className={getInputClass('title', "w-full text-5xl font-extrabold bg-transparent border-none outline-none p-0 placeholder-opacity-40 transition-all duration-300 text-slate-900 placeholder-slate-300 dark:text-white dark:placeholder-gray-500")}
                             placeholder="Untitled Post"
                         />
                         {!frontmatter.title && <span className="absolute top-2 -left-4 text-red-500 text-xl opacity-50">*</span>}
@@ -505,7 +485,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                 setFrontmatter({ ...frontmatter, description: e.target.value });
                                 if (validationErrors.includes('description')) setValidationErrors(prev => prev.filter(f => f !== 'description'));
                             }}
-                            className={getInputClass('description', `w-full text-xl bg-transparent border-none outline-none resize-none p-0 placeholder-opacity-50 transition-all duration-300 ${theme === 'dark' ? 'text-gray-300 placeholder-gray-600' : 'text-slate-600 placeholder-slate-400'}`)}
+                            className={getInputClass('description', "w-full text-xl bg-transparent border-none outline-none resize-none p-0 placeholder-opacity-50 transition-all duration-300 text-slate-600 placeholder-slate-400 dark:text-gray-300 dark:placeholder-gray-600")}
                             placeholder="Add a short description..."
                             rows={1}
                             style={{ minHeight: 'auto', height: 'auto' }}
@@ -520,31 +500,31 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                 </div>
 
                 {/* Meta Grid - Collapsible or clean layout */}
-                <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 rounded-2xl border transition-all duration-300 ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-slate-50/80 border-slate-200 shadow-sm'}`}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 rounded-2xl border transition-all duration-300 bg-slate-50/80 border-slate-200 shadow-sm dark:bg-white/5 dark:border-white/10">
 
                     {/* Column 1: Core Info */}
                     <div className="space-y-5">
                         <div className="space-y-1.5">
-                            <label className={`flex items-center gap-1 text-xs font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-500' : 'text-slate-500'}`}>
+                            <label className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-gray-500">
                                 Author <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="text"
                                 value={frontmatter.author}
                                 onChange={(e) => setFrontmatter({ ...frontmatter, author: e.target.value })}
-                                className={`w-full bg-transparent border-b transition-colors py-1 focus:outline-none ${theme === 'dark' ? 'border-gray-700 focus:border-purple-500 text-gray-200' : 'border-slate-300 focus:border-purple-500 text-slate-700'}`}
+                                className="w-full bg-transparent border-b transition-colors py-1 focus:outline-none border-slate-300 focus:border-purple-500 text-slate-700 dark:border-gray-700 dark:focus:border-purple-500 dark:text-gray-200"
                                 placeholder="Name"
                             />
                         </div>
                         <div className="space-y-1.5">
-                            <label className={`flex items-center gap-1 text-xs font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-500' : 'text-slate-500'}`}>
+                            <label className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-gray-500">
                                 Publish Date <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="date"
                                 value={frontmatter.date}
                                 onChange={(e) => setFrontmatter({ ...frontmatter, date: e.target.value })}
-                                className={`w-full bg-transparent border-b transition-colors py-1 focus:outline-none ${theme === 'dark' ? 'border-gray-700 focus:border-purple-500 text-gray-200' : 'border-slate-300 focus:border-purple-500 text-slate-700'}`}
+                                className="w-full bg-transparent border-b transition-colors py-1 focus:outline-none border-slate-300 focus:border-purple-500 text-slate-700 dark:border-gray-700 dark:focus:border-purple-500 dark:text-gray-200"
                             />
                         </div>
                     </div>
@@ -552,26 +532,26 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                     {/* Column 2: SEO & Organization */}
                     <div className="space-y-5">
                         <div className="space-y-1.5">
-                            <label className={`flex items-center gap-1 text-xs font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-500' : 'text-slate-500'}`}>
+                            <label className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-gray-500">
                                 Slug <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="text"
                                 value={frontmatter.slug}
                                 onChange={(e) => setFrontmatter({ ...frontmatter, slug: e.target.value })}
-                                className={`w-full bg-transparent border-b transition-colors py-1 focus:outline-none ${theme === 'dark' ? 'border-gray-700 focus:border-purple-500 text-gray-200' : 'border-slate-300 focus:border-purple-500 text-slate-700'}`}
+                                className="w-full bg-transparent border-b transition-colors py-1 focus:outline-none border-slate-300 focus:border-purple-500 text-slate-700 dark:border-gray-700 dark:focus:border-purple-500 dark:text-gray-200"
                                 placeholder="post-url-slug"
                             />
                         </div>
                         <div className="space-y-1.5">
-                            <label className={`flex items-center gap-1 text-xs font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-500' : 'text-slate-500'}`}>
+                            <label className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-gray-500">
                                 Tags <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="text"
                                 value={frontmatter.tags}
                                 onChange={(e) => setFrontmatter({ ...frontmatter, tags: e.target.value })}
-                                className={`w-full bg-transparent border-b transition-colors py-1 focus:outline-none ${theme === 'dark' ? 'border-gray-700 focus:border-purple-500 text-gray-200' : 'border-slate-300 focus:border-purple-500 text-slate-700'}`}
+                                className="w-full bg-transparent border-b transition-colors py-1 focus:outline-none border-slate-300 focus:border-purple-500 text-slate-700 dark:border-gray-700 dark:focus:border-purple-500 dark:text-gray-200"
                                 placeholder="react, astro, web"
                             />
                         </div>
@@ -580,7 +560,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                     {/* Column 3: Series & Media */}
                     <div className="space-y-5">
                         <div className="space-y-1.5">
-                            <label className={`flex items-center gap-1 text-xs font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-500' : 'text-slate-500'}`}>
+                            <label className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-gray-500">
                                 Cover Image URL <span className="text-red-500">*</span>
                             </label>
                             <div className="flex gap-2">
@@ -588,7 +568,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                     type="text"
                                     value={frontmatter.image}
                                     onChange={(e) => setFrontmatter({ ...frontmatter, image: e.target.value })}
-                                    className={`w-full bg-transparent border-b transition-colors py-1 focus:outline-none ${theme === 'dark' ? 'border-gray-700 focus:border-purple-500 text-gray-200' : 'border-slate-300 focus:border-purple-500 text-slate-700'}`}
+                                    className="w-full bg-transparent border-b transition-colors py-1 focus:outline-none border-slate-300 focus:border-purple-500 text-slate-700 dark:border-gray-700 dark:focus:border-purple-500 dark:text-gray-200"
                                     placeholder="https://..."
                                 />
                                 {frontmatter.image && (
@@ -600,22 +580,22 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                         </div>
                         <div className="flex gap-4">
                             <div className="space-y-1.5 flex-1">
-                                <label className={`text-xs font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-500' : 'text-slate-500'}`}>Series</label>
+                                <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-gray-500">Series</label>
                                 <input
                                     type="text"
                                     value={frontmatter.series}
                                     onChange={(e) => setFrontmatter({ ...frontmatter, series: e.target.value })}
-                                    className={`w-full bg-transparent border-b transition-colors py-1 focus:outline-none ${theme === 'dark' ? 'border-gray-700 focus:border-purple-500 text-gray-200' : 'border-slate-300 focus:border-purple-500 text-slate-700'}`}
+                                    className="w-full bg-transparent border-b transition-colors py-1 focus:outline-none border-slate-300 focus:border-purple-500 text-slate-700 dark:border-gray-700 dark:focus:border-purple-500 dark:text-gray-200"
                                     placeholder="Optional"
                                 />
                             </div>
                             <div className="space-y-1.5 w-20">
-                                <label className={`text-xs font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-gray-500' : 'text-slate-500'}`}>Order</label>
+                                <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-gray-500">Order</label>
                                 <input
                                     type="number"
                                     value={frontmatter.seriesOrder}
                                     onChange={(e) => setFrontmatter({ ...frontmatter, seriesOrder: parseInt(e.target.value) || 0 })}
-                                    className={`w-full bg-transparent border-b transition-colors py-1 focus:outline-none ${theme === 'dark' ? 'border-gray-700 focus:border-purple-500 text-gray-200' : 'border-slate-300 focus:border-purple-500 text-slate-700'}`}
+                                    className="w-full bg-transparent border-b transition-colors py-1 focus:outline-none border-slate-300 focus:border-purple-500 text-slate-700 dark:border-gray-700 dark:focus:border-purple-500 dark:text-gray-200"
                                 />
                             </div>
                         </div>
@@ -642,15 +622,15 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                             <button
                                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                                 className={`p-1 rounded-full border transition-all duration-200 ${isMenuOpen
-                                    ? `rotate-45 border-gray-400 text-gray-600 ${theme === 'dark' ? 'bg-gray-800 text-gray-300' : 'bg-white'}`
-                                    : `border-gray-300 text-gray-400 hover:border-gray-400 hover:text-gray-600 ${theme === 'dark' ? 'border-gray-600 text-gray-500 hover:text-gray-300' : ''}`
+                                    ? 'rotate-45 border-gray-400 text-gray-600 bg-white dark:bg-gray-800 dark:text-gray-300'
+                                    : 'border-gray-300 text-gray-400 hover:border-gray-400 hover:text-gray-600 dark:border-gray-600 dark:text-gray-500 dark:hover:text-gray-300'
                                     }`}
                             >
                                 <Plus className="w-5 h-5" />
                             </button>
 
                             {isMenuOpen && (
-                                <div className={`absolute left-10 top-1/2 -translate-y-1/2 flex items-center gap-2 shadow-xl border rounded-lg p-2 animate-in fade-in slide-in-from-left-2 z-50 min-w-[200px] ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                                <div className="absolute left-10 top-1/2 -translate-y-1/2 flex items-center gap-2 shadow-xl border rounded-lg p-2 animate-in fade-in slide-in-from-left-2 z-50 min-w-[200px] bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700">
                                     <div className="flex flex-col gap-1 w-full">
                                         <MenuButton onClick={() => setShowImageInput(true)} icon={ImageIcon} label="Image" />
                                         <MenuButton onClick={addQuiz} icon={HelpCircle} label="Quiz" />
@@ -662,14 +642,14 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
 
                             {/* Image Input Popover */}
                             {showImageInput && (
-                                <div className={`absolute left-10 top-1/2 -translate-y-1/2 rounded-xl shadow-xl border p-3 z-[60] animate-in fade-in slide-in-from-left-2 w-80 ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                                <div className="absolute left-10 top-1/2 -translate-y-1/2 rounded-xl shadow-xl border p-3 z-[60] animate-in fade-in slide-in-from-left-2 w-80 bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700">
                                     <div className="flex gap-2 items-center">
                                         <input
                                             type="text"
                                             value={imageUrl}
                                             onChange={(e) => setImageUrl(e.target.value)}
                                             placeholder="Paste image URL..."
-                                            className={`flex-1 px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500 bg-transparent ${theme === 'dark' ? 'border-gray-600 text-white' : 'border-gray-300'}`}
+                                            className="flex-1 px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500 bg-transparent border-gray-300 dark:border-gray-600 dark:text-white"
                                             autoFocus
                                             onKeyDown={(e) => {
                                                 if (e.key === 'Enter') handleAddImage();
@@ -684,7 +664,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                         </button>
                                         <button
                                             onClick={() => setShowImageInput(false)}
-                                            className={`p-2 text-gray-500 rounded-lg transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+                                            className="p-2 text-gray-500 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
                                         >
                                             <X className="w-4 h-4" />
                                         </button>
@@ -702,13 +682,13 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                     <BubbleMenu
                         editor={editor}
                         tippyOptions={{ duration: 100, maxWidth: 'none' }}
-                        className={`flex items-center flex-wrap gap-1 shadow-lg border rounded-lg p-1 max-w-[90vw] ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+                        className="flex items-center flex-wrap gap-1 shadow-lg border rounded-lg p-1 max-w-[90vw] bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700"
                     >
                         <button
                             onClick={() => editor.chain().focus().toggleBold().run()}
-                            className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('bold')
-                                ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
-                                : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
+                            className={`p-2 rounded transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${editor.isActive('bold')
+                                ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20'
+                                : 'text-gray-600 dark:text-gray-300'
                                 }`}
                             title="Bold"
                         >
@@ -716,9 +696,9 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                         </button>
                         <button
                             onClick={() => editor.chain().focus().toggleItalic().run()}
-                            className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('italic')
-                                ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
-                                : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
+                            className={`p-2 rounded transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${editor.isActive('italic')
+                                ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20'
+                                : 'text-gray-600 dark:text-gray-300'
                                 }`}
                             title="Italic"
                         >
@@ -726,9 +706,9 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                         </button>
                         <button
                             onClick={() => editor.chain().focus().toggleUnderline().run()}
-                            className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('underline')
-                                ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
-                                : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
+                            className={`p-2 rounded transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${editor.isActive('underline')
+                                ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20'
+                                : 'text-gray-600 dark:text-gray-300'
                                 }`}
                             title="Underline"
                         >
@@ -736,20 +716,20 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                         </button>
                         <button
                             onClick={() => editor.chain().focus().toggleStrike().run()}
-                            className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('strike')
-                                ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
-                                : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
+                            className={`p-2 rounded transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${editor.isActive('strike')
+                                ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20'
+                                : 'text-gray-600 dark:text-gray-300'
                                 }`}
                             title="Strikethrough"
                         >
                             <Strikethrough className="w-4 h-4" />
                         </button>
-                        <div className={`w-px h-4 mx-1 ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'}`} />
+                        <div className="w-px h-4 mx-1 bg-gray-200 dark:bg-gray-700" />
                         <button
                             onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-                            className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('heading', { level: 1 })
-                                ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
-                                : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
+                            className={`p-2 rounded transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${editor.isActive('heading', { level: 1 })
+                                ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20'
+                                : 'text-gray-600 dark:text-gray-300'
                                 }`}
                             title="Heading 1"
                         >
@@ -757,9 +737,9 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                         </button>
                         <button
                             onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-                            className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('heading', { level: 2 })
-                                ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
-                                : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
+                            className={`p-2 rounded transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${editor.isActive('heading', { level: 2 })
+                                ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20'
+                                : 'text-gray-600 dark:text-gray-300'
                                 }`}
                             title="Heading 2"
                         >
@@ -767,9 +747,9 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                         </button>
                         <button
                             onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-                            className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('heading', { level: 3 })
-                                ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
-                                : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
+                            className={`p-2 rounded transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${editor.isActive('heading', { level: 3 })
+                                ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20'
+                                : 'text-gray-600 dark:text-gray-300'
                                 }`}
                             title="Heading 3"
                         >
@@ -777,20 +757,20 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                         </button>
                         <button
                             onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}
-                            className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('heading', { level: 4 })
-                                ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
-                                : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
+                            className={`p-2 rounded transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${editor.isActive('heading', { level: 4 })
+                                ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20'
+                                : 'text-gray-600 dark:text-gray-300'
                                 }`}
                             title="Heading 4"
                         >
                             <Heading4 className="w-4 h-4" />
                         </button>
-                        <div className={`w-px h-4 mx-1 ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'}`} />
+                        <div className="w-px h-4 mx-1 bg-gray-200 dark:bg-gray-700" />
                         <button
                             onClick={() => editor.chain().focus().toggleBulletList().run()}
-                            className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('bulletList')
-                                ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
-                                : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
+                            className={`p-2 rounded transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${editor.isActive('bulletList')
+                                ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20'
+                                : 'text-gray-600 dark:text-gray-300'
                                 }`}
                             title="Bullet List"
                         >
@@ -798,9 +778,9 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                         </button>
                         <button
                             onClick={() => editor.chain().focus().toggleOrderedList().run()}
-                            className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('orderedList')
-                                ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
-                                : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
+                            className={`p-2 rounded transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${editor.isActive('orderedList')
+                                ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20'
+                                : 'text-gray-600 dark:text-gray-300'
                                 }`}
                             title="Ordered List"
                         >
@@ -808,9 +788,9 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                         </button>
                         <button
                             onClick={() => editor.chain().focus().toggleBlockquote().run()}
-                            className={`p-2 rounded transition-colors ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} ${editor.isActive('blockquote')
-                                ? `text-purple-600 ${theme === 'dark' ? 'bg-purple-900/20' : 'bg-purple-50'}`
-                                : `${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`
+                            className={`p-2 rounded transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${editor.isActive('blockquote')
+                                ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20'
+                                : 'text-gray-600 dark:text-gray-300'
                                 }`}
                             title="Quote"
                         >

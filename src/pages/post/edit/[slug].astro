@@ -1,0 +1,35 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+import { EditPostLoader } from "../../../components/editor/EditPostLoader";
+
+export const prerender = false;
+const { slug } = Astro.params;
+
+if (!slug) {
+    return Astro.redirect("/404");
+}
+---
+
+<Layout
+    title="Edit Story - TakoVibe"
+    description="Edit your story."
+    no_footer={true}
+>
+    <div
+        id="editor-container"
+        class="min-h-screen bg-gray-50 dark:bg-slate-950 pt-20 pb-12"
+    >
+        <div class="max-w-[1200px] mx-auto px-4">
+            <EditPostLoader client:only="react" slug={slug} />
+        </div>
+    </div>
+</Layout>
+
+<script>
+    // Simple client-side auth check
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+        const returnUrl = encodeURIComponent(window.location.pathname);
+        window.location.href = `/login?redirect=${returnUrl}`;
+    }
+</script>

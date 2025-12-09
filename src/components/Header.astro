@@ -75,31 +75,159 @@ const navItems = [
       </div>
 
       <!-- Center: Navigation (Desktop) -->
-      <nav class="hidden lg:flex flex-1 items-center justify-center gap-1 px-4">
-        {
-          navItems.map((item) => {
-            const isActive =
-              item.href === "/"
-                ? currentPath === "/"
-                : currentPath.startsWith(item.href);
-            return (
+      <nav class="hidden lg:flex flex-1 items-center justify-center gap-2 px-4">
+        <a
+          href="/"
+          class={`px-5 py-2.5 rounded-full text-base font-medium transition-all duration-200 whitespace-nowrap ${
+            currentPath === "/"
+              ? "bg-purple-50 dark:bg-purple-900/10 text-purple-600 dark:text-purple-400"
+              : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/50"
+          }`}
+        >
+          Home
+        </a>
+        <a
+          href="/blog"
+          class={`px-5 py-2.5 rounded-full text-base font-medium transition-all duration-200 whitespace-nowrap ${
+            currentPath.startsWith("/blog")
+              ? "bg-purple-50 dark:bg-purple-900/10 text-purple-600 dark:text-purple-400"
+              : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/50"
+          }`}
+        >
+          Blog
+        </a>
+
+        <!-- Write for Us CTA -->
+        <a
+          href="/post/new"
+          class="flex items-center gap-2 px-5 py-2.5 rounded-full text-base font-medium transition-all duration-200 whitespace-nowrap text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/10 group"
+        >
+          <svg
+            class="w-4 h-4 text-purple-500 group-hover:scale-110 transition-transform"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            ><path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+            ></path></svg
+          >
+          Write with Us
+        </a>
+
+        <!-- More Dropdown -->
+        <div class="relative group">
+          <button
+            class="flex items-center gap-1 px-5 py-2.5 rounded-full text-base font-medium transition-all duration-200 whitespace-nowrap text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/50"
+          >
+            More
+            <svg
+              class="w-4 h-4 transition-transform group-hover:rotate-180"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              ><path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 9l-7 7-7-7"></path></svg
+            >
+          </button>
+
+          <!-- Dropdown Menu -->
+          <div
+            class="absolute top-full left-1/2 -translate-x-1/2 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 w-48"
+          >
+            <div
+              class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden p-1"
+            >
               <a
-                href={item.href}
-                class={`px-5 py-2.5 rounded-full text-base font-medium transition-all duration-200 whitespace-nowrap ${
-                  isActive
-                    ? "bg-purple-50 dark:bg-purple-900/10 text-purple-600 dark:text-purple-400"
-                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/50"
-                }`}
+                href="/about"
+                class="block px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
               >
-                {item.label}
+                About
               </a>
-            );
-          })
-        }
+              <a
+                href="/categories"
+                class="block px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+              >
+                Categories
+              </a>
+              <a
+                href="/series"
+                class="block px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+              >
+                Series
+              </a>
+              <a
+                href="/saved"
+                class="block px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+              >
+                Saved
+              </a>
+              <div class="h-px bg-gray-100 dark:bg-gray-800 my-1"></div>
+              <a
+                href="/contact"
+                class="block px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+              >
+                Contact
+              </a>
+            </div>
+          </div>
+        </div>
       </nav>
 
       <!-- Right: Search & Auth -->
-      <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+      <div class="flex items-center gap-1 sm:gap-2 shrink-0">
+        <!-- Write Button (Mobile) -->
+        <a
+          href="/post/new"
+          class="lg:hidden w-10 h-10 grid place-items-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors"
+          aria-label="Write with us"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+            ></path>
+          </svg>
+        </a>
+
+        <!-- Desktop Search -->
+        <div class="hidden xl:block w-64">
+          <Search variant="header" />
+        </div>
+
+        <!-- Mobile Search Toggle (Visible only on Large screens where drawer is hidden but desktop search is also hidden) -->
+        <button
+          id="mobileSearchBtn"
+          class="hidden lg:block xl:hidden w-10 h-10 grid place-items-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors"
+          aria-label="Open search"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </button>
+
         <!-- Theme Toggle -->
         <button
           id="global-theme-toggle"
@@ -139,37 +267,8 @@ const navItems = [
         <div class="h-6 w-px bg-gray-200 dark:bg-gray-800 hidden sm:block">
         </div>
 
-        <!-- Desktop Search -->
-        <div class="hidden xl:block w-64">
-          <Search variant="header" />
-        </div>
-
-        <!-- Mobile Search Toggle -->
-        <button
-          id="mobileSearchBtn"
-          class="xl:hidden w-10 h-10 grid place-items-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors"
-          aria-label="Open search"
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-        </button>
-
-        <div class="h-6 w-px bg-gray-200 dark:bg-gray-800 hidden sm:block">
-        </div>
-
         <div class="auth-wrapper" onclick="event.stopPropagation();">
-          <UserAuth client:idle />
+          <UserAuth client:only="react" />
         </div>
       </div>
     </div>

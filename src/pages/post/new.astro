@@ -1,0 +1,59 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { BlogEditor } from "../../components/editor/BlogEditor";
+---
+
+<Layout
+    title="Write a Story - TakoVibe"
+    description="Share your knowledge with the community."
+    no_footer={true}
+>
+    <!-- Auth Check & Client-Side Logic -->
+    <div
+        id="editor-container"
+        class="min-h-screen bg-gray-50 dark:bg-slate-950 pt-20 pb-12"
+    >
+        <div class="max-w-[1200px] mx-auto px-4">
+            <!-- Loading State -->
+            <div
+                id="auth-loading"
+                class="flex items-center justify-center min-h-[50vh]"
+            >
+                <div
+                    class="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"
+                >
+                </div>
+            </div>
+
+            <!-- Editor Wrapper (Hidden initially) -->
+            <div
+                id="editor-wrapper"
+                class="hidden animate-in fade-in duration-500"
+            >
+                <BlogEditor client:only="react" />
+            </div>
+        </div>
+    </div>
+</Layout>
+
+<script>
+    const checkAuth = () => {
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+            // Redirect to login with return URL
+            const returnUrl = encodeURIComponent(window.location.pathname);
+            window.location.href = `/login?redirect=${returnUrl}`;
+            return;
+        }
+
+        // Show editor if authenticated
+        const loading = document.getElementById("auth-loading");
+        const wrapper = document.getElementById("editor-wrapper");
+
+        if (loading) loading.style.display = "none";
+        if (wrapper) wrapper.classList.remove("hidden");
+    };
+
+    // Run immediately
+    checkAuth();
+</script>

@@ -8,179 +8,20 @@ import TableOfContents from "../../components/TableOfContents.astro";
 
 const { slug } = Astro.params;
 
-// HARDCODED TEST DATA (Preserving existing test data)
-const post = {
-    content: {
-        type: "doc",
-        content: [
-            {
-                type: "heading",
-                attrs: { level: 1 },
-                content: [
-                    { type: "text", text: "Start writing your story..." },
-                ],
-            },
-            {
-                type: "quizComponent",
-                attrs: {
-                    question: "What is your question?",
-                    options: ["Option 1", "Option 2"],
-                    correctIndex: 0,
-                },
-            },
-            {
-                type: "image",
-                attrs: {
-                    src: "https://ik.imagekit.io/bhu1voux5/Template%20Injection?updatedAt=1763188980710",
-                    alt: null,
-                    title: null,
-                    caption: "Testing",
-                },
-            },
-            {
-                type: "table",
-                content: [
-                    {
-                        type: "tableRow",
-                        content: [
-                            {
-                                type: "tableHeader",
-                                attrs: {
-                                    colspan: 1,
-                                    rowspan: 1,
-                                    colwidth: null,
-                                },
-                                content: [
-                                    {
-                                        type: "paragraph",
-                                        content: [{ type: "text", text: "A" }],
-                                    },
-                                ],
-                            },
-                            {
-                                type: "tableHeader",
-                                attrs: {
-                                    colspan: 1,
-                                    rowspan: 1,
-                                    colwidth: null,
-                                },
-                                content: [
-                                    {
-                                        type: "paragraph",
-                                        content: [{ type: "text", text: "B" }],
-                                    },
-                                ],
-                            },
-                            {
-                                type: "tableHeader",
-                                attrs: {
-                                    colspan: 1,
-                                    rowspan: 1,
-                                    colwidth: null,
-                                },
-                                content: [
-                                    {
-                                        type: "paragraph",
-                                        content: [{ type: "text", text: "C" }],
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                    {
-                        type: "tableRow",
-                        content: [
-                            {
-                                type: "tableCell",
-                                attrs: {
-                                    colspan: 1,
-                                    rowspan: 1,
-                                    colwidth: null,
-                                },
-                                content: [
-                                    {
-                                        type: "paragraph",
-                                        content: [{ type: "text", text: "B" }],
-                                    },
-                                ],
-                            },
-                            {
-                                type: "tableCell",
-                                attrs: {
-                                    colspan: 1,
-                                    rowspan: 1,
-                                    colwidth: null,
-                                },
-                                content: [
-                                    {
-                                        type: "paragraph",
-                                        content: [{ type: "text", text: "C" }],
-                                    },
-                                ],
-                            },
-                            {
-                                type: "tableCell",
-                                attrs: {
-                                    colspan: 1,
-                                    rowspan: 1,
-                                    colwidth: null,
-                                },
-                                content: [
-                                    {
-                                        type: "paragraph",
-                                        content: [{ type: "text", text: "D" }],
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                ],
-            },
-            {
-                type: "codeBlock",
-                attrs: {
-                    language: "python",
-                    output: "sys.version",
-                    showOutput: true,
-                },
-                content: [{ type: "text", text: "import sys" }],
-            },
-            {
-                type: "heading",
-                attrs: { level: 1 },
-                content: [
-                    {
-                        type: "text",
-                        marks: [
-                            { type: "bold" },
-                            { type: "italic" },
-                            { type: "strike" },
-                            { type: "underline" },
-                        ],
-                        text: "Conslution",
-                    },
-                ],
-            },
-            { type: "paragraph" },
-        ],
-    },
-    frontmatter: {
-        title: "Don't Get Scripted: A Practical Guide to Preventing XSS",
-        description:
-            "Learn how to protect your applications from Cross-Site Scripting attacks with this comprehensive guide.",
-        slug: "xss-prevention-guide",
-        image: "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
-        tags: "Security, Web Development, XSS",
-        keywords: "xss, security, javascript",
-        author: "Rahul Beniwal",
-        date: "2025-12-04",
-        type: "article",
-        series: "Application Security",
-        seriesOrder: 1,
-        readingTime: "6 min read",
-        layout: "../../layouts/BlogPost.astro",
-    },
-};
+// Fetch post from API
+let post;
+try {
+    const response = await fetch(
+        `${import.meta.env.PUBLIC_API_URL}/api/posts/${slug}/`,
+    );
+    if (!response.ok) {
+        return Astro.redirect("/404");
+    }
+    post = await response.json();
+} catch (error) {
+    console.error("Failed to fetch post:", error);
+    return Astro.redirect("/404"); // Or show an error page
+}
 
 const { frontmatter, content } = post;
 
@@ -189,14 +30,19 @@ const headings = [];
 if (content && content.content) {
     content.content.forEach((node: any) => {
         if (node.type === "heading") {
-            headings.push({
-                depth: node.attrs.level,
-                slug: node.content[0].text
-                    .toLowerCase()
-                    .replace(/\s+/g, "-")
-                    .replace(/[^\w-]/g, ""),
-                text: node.content[0].text,
-            });
+            // Safe access to text content
+            const text =
+                node.content && node.content[0] ? node.content[0].text : "";
+            if (text) {
+                headings.push({
+                    depth: node.attrs.level,
+                    slug: text
+                        .toLowerCase()
+                        .replace(/\s+/g, "-")
+                        .replace(/[^\w-]/g, ""),
+                    text: text,
+                });
+            }
         }
     });
 }

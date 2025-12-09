@@ -26,8 +26,8 @@ const searchEndpoint = "https://backend.takovibe.com/api/blogs/blogs/";
         type="text"
         id={`${variant}-search-input`}
         placeholder={variant === "blog"
-          ? "Press / anytime to search blogs"
-          : "Press / to search blogs"}
+          ? "Press Ctrl + / anytime to search blogs"
+          : "Press Ctrl + / to search blogs"}
         class={`w-full pl-9 pr-4 py-2 rounded-lg border transition-all ${
           variant === "header"
             ? "bg-gray-100 dark:bg-slate-900 border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:bg-white dark:focus:bg-slate-950 focus:border-purple-500 dark:focus:border-purple-500"
@@ -331,6 +331,7 @@ const searchEndpoint = "https://backend.takovibe.com/api/blogs/blogs/";
       // Only add '/' shortcut for header search
       document.addEventListener("keydown", (e) => {
         if (
+          (e.metaKey || e.ctrlKey) &&
           e.key === "/" &&
           document.activeElement !== headerSearchInput &&
           !document.activeElement?.closest(".blog-search")

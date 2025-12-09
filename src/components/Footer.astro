@@ -14,7 +14,8 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
       <div class="text-center">
         <h2 class="text-2xl sm:text-3xl font-light mb-3">
           Stay Connected with <span class="font-medium text-blue-200"
-            >TakoVibe</span>
+            >TakoVibe</span
+          >
         </h2>
         <p class="text-blue-100 text-sm sm:text-base max-w-2xl mx-auto">
           Join our community of developers, designers, and tech enthusiasts. Get
@@ -264,6 +265,17 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
       if (!opt_out) {
         document.getElementById("subscribe-form").style.display = "none";
         document.getElementById("unsubscribed-message").style.display = "block";
+      } else {
+        const user_details = localStorage.getItem("user") || null;
+        if (user_details) {
+          const user_details_json = JSON.parse(user_details);
+          const email = user_details_json.email;
+          const form_email = document.getElementById("email-address").value;
+          if (!form_email) {
+            // set login email to the form email
+            document.getElementById("email-address").value = email;
+          }
+        }
       }
     };
 
@@ -281,21 +293,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
         console.log("event", event);
         event.preventDefault();
       });
-    if (!opt_out) {
-      document.getElementById("subscribe-form").style.display = "none";
-      document.getElementById("unsubscribed-message").style.display = "block";
-    } else {
-      const user_details = localStorage.getItem("user") || null;
-      if (user_details) {
-        const user_details_json = JSON.parse(user_details);
-        const email = user_details_json.email;
-        const form_email = document.getElementById("email-address").value;
-        if (!form_email) {
-          // set login email to the form email
-          document.getElementById("email-address").value = email;
-        }
-      }
-    }
+    // Removed broken opt_out check from here, moved to checkSubscription
   });
 
   async function get_email() {

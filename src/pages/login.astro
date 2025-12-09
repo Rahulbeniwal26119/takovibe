@@ -558,7 +558,7 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                                 console.warn("No user object created");
                             }
 
-                            window.location.href = "/";
+                            window.location.href = getRedirectUrl();
                         } else {
                             console.warn("No token in response data");
                             if (endpoint.includes("signup")) {
@@ -568,7 +568,7 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                                     "Account created successfully! Please sign in.",
                                 );
                             } else {
-                                window.location.href = "/";
+                                window.location.href = getRedirectUrl();
                             }
                         }
                     } else {
@@ -637,6 +637,12 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
         );
 
         const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID;
+
+        // Redirect helper
+        const getRedirectUrl = () => {
+            const params = new URLSearchParams(window.location.search);
+            return params.get("redirect") || "/";
+        };
 
         function handleGoogleCredentialResponse(response: any) {
             if (response.credential) {
@@ -747,7 +753,7 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                         localStorage.setItem("user", JSON.stringify(userObj));
                     }
 
-                    window.location.href = "/";
+                    window.location.href = getRedirectUrl();
                 } else {
                     console.error("Google login failed:", resData);
                     const errorDiv = document.getElementById("auth-error");

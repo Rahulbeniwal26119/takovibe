@@ -46,7 +46,9 @@ export const QuizExtension = Node.create({
     },
 
     renderHTML({ HTMLAttributes }) {
-        return ['quiz-component', mergeAttributes(HTMLAttributes)];
+        return ['quiz-component', mergeAttributes(HTMLAttributes, {
+            'options': JSON.stringify(HTMLAttributes.options),
+        })];
     },
 
     addNodeView() {

@@ -222,7 +222,7 @@ import Layout from "../layouts/Layout.astro";
             });
 
             article.innerHTML = `
-        <a href="/blog/${post.slug}" class="relative flex flex-col h-full bg-white dark:bg-[#131B2E] border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-2 group-hover:border-purple-500/20 dark:group-hover:border-purple-500/20">
+        <a href="${post.uri || `/blog/${post.slug}`}" class="relative flex flex-col h-full bg-white dark:bg-[#131B2E] border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-2 group-hover:border-purple-500/20 dark:group-hover:border-purple-500/20">
           <div class="relative aspect-[16/9] overflow-hidden bg-gray-100 dark:bg-gray-800">
             ${
                 post.image_url
