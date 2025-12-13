@@ -69,9 +69,13 @@ try {
         .slice(0, 8); // Get top 8 tags
     }
   }
-} catch (error) {
-  console.error("Error fetching data from API:", error);
-  // Keep empty arrays as fallback
+} catch (err) {
+  console.error("Error fetching data from API:", err);
+  // Capture error for display
+  error = err instanceof Error ? err.message : String(err);
+  if (error.includes('fetch failed')) {
+    error = `Backend API connection failed (${API_URL}). Please ensure the backend server is running.`;
+  }
 }
 ---
 
@@ -264,6 +268,28 @@ try {
         </div>
 
         <!-- Bento Grid -->
+        <!-- Error Message -->
+        {error && (
+          <div class="max-w-3xl mx-auto mb-12 animate-fade-in-up">
+            <div class="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-xl p-6 flex flex-col md:flex-row items-center gap-4 text-center md:text-left shadow-lg">
+              <div class="p-3 bg-red-100 dark:bg-red-800/30 rounded-full shrink-0">
+                <span class="text-2xl">⚠️</span>
+              </div>
+              <div class="flex-1">
+                <h3 class="font-bold text-lg text-red-800 dark:text-red-300 mb-1">Back-end Connection Failed</h3>
+                <p class="text-red-600 dark:text-red-400">
+                  {error}
+                </p>
+              </div>
+              <div class="shrink-0">
+                <button onclick="window.location.reload()" class="px-4 py-2 bg-red-100 hover:bg-red-200 dark:bg-red-800/20 dark:hover:bg-red-800/40 text-red-700 dark:text-red-300 rounded-lg text-sm font-medium transition-colors cursor-pointer">
+                  Retry
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {featuredPosts.length > 0 ? (
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
             {featuredPosts.slice(0, 6).map((post, index) => {

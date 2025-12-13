@@ -14,6 +14,7 @@ import Table from "@tiptap/extension-table";
 import TableRow from "@tiptap/extension-table-row";
 import TableCell from "@tiptap/extension-table-cell";
 import TableHeader from "@tiptap/extension-table-header";
+import Heading from "@tiptap/extension-heading";
 import Image from "@tiptap/extension-image";
 import Underline from "@tiptap/extension-underline";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
@@ -23,6 +24,140 @@ import QuizHydrator from "../../components/QuizHydrator";
 
 // Initialize lowlight
 const lowlight = createLowlight(common);
+
+// Import Shiki for VS Code quality highlighting
+import { createHighlighter } from "shiki";
+
+// Initialize highlighter
+// Shiki v1+ uses createHighlighter instead of getHighlighter, or tries to allow both but types might differ.
+// Using createHighlighter is safer for newer versions.
+const highlighter = await createHighlighter({
+    themes: ["github-dark"],
+    langs: ["python", "javascript", "html", "css", "json", "bash"],
+});
+
+// Helper for async replace
+async function replaceAsync(str, regex, asyncFn) {
+    const promises = [];
+    str.replace(regex, (match, ...args) => {
+        const promise = asyncFn(match, ...args);
+        promises.push(promise);
+    });
+    const data = await Promise.all(promises);
+    return str.replace(regex, () => data.shift());
+}
+
+// Custom extension to render output attributes
+const CustomCodeBlock = CodeBlockLowlight.extend({
+    addAttributes() {
+        return {
+            output: {
+                default: null,
+                parseHTML: (element) => element.getAttribute("data-output"),
+                renderHTML: (attributes) => {
+                    if (
+                        attributes.output === null ||
+                        attributes.output === undefined
+                    ) {
+                        return {};
+                    }
+                    return {
+                        "data-output": attributes.output,
+                    };
+                },
+            },
+            showOutput: {
+                default: false,
+                parseHTML: (element) =>
+                    element.getAttribute("data-show-output") === "true",
+                renderHTML: (attributes) => {
+                    if (!attributes.showOutput) {
+                        return {};
+                    }
+                    return {
+                        "data-show-output": "true",
+                    };
+                },
+            },
+            language: {
+                default: null,
+                parseHTML: (element) => {
+                    const classList = element.querySelector("code")?.classList;
+                    const match = classList
+                        ? Array.from(classList).find((cls) =>
+                              cls.startsWith("language-"),
+                          )
+                        : null;
+                    return match ? match.replace("language-", "") : null;
+                },
+                renderHTML: (attributes) => {
+                    // CodeBlockLowlight handles language class on code tag,
+                    // but we might need to ensure it doesn't conflict or get lost.
+                    // Actually, CodeBlockLowlight's own renderHTML should handle language.
+                    return {};
+                },
+            },
+        };
+    },
+});
+
+// Function to highlight code blocks in HTML using Shiki
+async function highlightCodeBlocks(html) {
+    return replaceAsync(
+        html,
+        // Capture the opening pre tag attributes in group 1
+        /<pre([^>]*)><code[^>]*class="[^"]*language-([a-zA-Z0-9_-]+)[^"]*"[^>]*>([\s\S]*?)<\/code><\/pre>/g,
+        async (match, preAttrs, lang, content) => {
+            try {
+                // Decode entities to get raw code
+                const decoded = content
+                    .replace(/&lt;/g, "<")
+                    .replace(/&gt;/g, ">")
+                    .replace(/&amp;/g, "&")
+                    .replace(/&quot;/g, '"')
+                    .replace(/&apos;/g, "'");
+
+                // Highlight using Shiki
+                let highlighted = await highlighter.codeToHtml(decoded, {
+                    lang: lang,
+                    theme: "github-dark",
+                });
+
+                // Check for data-show-output in preAttrs
+                const showOutputMatch = preAttrs.match(
+                    /data-show-output="true"/,
+                );
+                const outputMatch = preAttrs.match(/data-output="([^"]*)"/);
+
+                if (showOutputMatch && outputMatch) {
+                    const outputText = outputMatch[1]
+                        .replace(/&amp;/g, "&")
+                        .replace(/&quot;/g, '"')
+                        .replace(/&lt;/g, "<")
+                        .replace(/&gt;/g, ">")
+                        .replace(/&#34;/g, '"');
+
+                    const outputHtml = `
+                        <div class="mt-4 bg-[#161b22] rounded-lg border border-gray-700/50 overflow-hidden">
+                            <div class="px-4 py-2 bg-[#0d1117] border-b border-gray-700/50 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                Output
+                            </div>
+                            <div class="p-4 font-mono text-sm text-gray-300 whitespace-pre-wrap">${outputText}</div>
+                        </div>
+                    `;
+
+                    // Append output to the highlighted block
+                    highlighted += outputHtml;
+                }
+
+                return highlighted;
+            } catch (e) {
+                console.error("Highlighting failed", e);
+                return match;
+            }
+        },
+    );
+}
 
 const { slug } = Astro.params;
 
@@ -67,10 +202,63 @@ try {
 
         // Transform Tiptap JSON to HTML
         if (apiData.content) {
+            // Pre-process content to add IDs to headings and extract TOC
+            if (apiData.content.content) {
+                const traverseNodes = (nodes) => {
+                    nodes.forEach((node) => {
+                        if (node.type === "heading") {
+                            const text = node.content?.[0]?.text || "";
+                            const slug = text
+                                .toLowerCase()
+                                .replace(/\s+/g, "-")
+                                .replace(/[^\w-]/g, "");
+
+                            // Add ID to node attributes for Tiptap to render
+                            if (!node.attrs) node.attrs = {};
+                            node.attrs.id = slug;
+
+                            headings.push({
+                                depth: node.attrs.level,
+                                slug: slug,
+                                text: text,
+                            });
+                        }
+                        if (node.content) {
+                            traverseNodes(node.content);
+                        }
+                    });
+                };
+                traverseNodes(apiData.content.content);
+            }
+
+            // Custom Heading extension to render ID
+            // Custom Heading extension to render ID
+            const CustomHeading = Heading.extend({
+                addAttributes() {
+                    return {
+                        ...this.parent?.(),
+                        id: {
+                            default: null,
+                            renderHTML: (attributes) => {
+                                if (!attributes.id) {
+                                    return {};
+                                }
+                                return {
+                                    id: attributes.id,
+                                };
+                            },
+                            parseHTML: (element) => element.getAttribute("id"),
+                        },
+                    };
+                },
+            });
+
             htmlContent = generateHTML(apiData.content, [
                 StarterKit.configure({
                     codeBlock: false,
+                    heading: false, // Disable default heading to use custom one
                 }),
+                CustomHeading,
                 Underline,
                 Table.configure({
                     HTMLAttributes: {
@@ -93,33 +281,14 @@ try {
                         class: "rounded-xl shadow-lg my-8",
                     },
                 }),
-                CodeBlockLowlight.configure({
+                CustomCodeBlock.configure({
                     lowlight,
                 }),
                 QuizExtension,
             ]);
 
-            // Extract headings for TOC
-            if (apiData.content.content) {
-                const traverseNodes = (nodes) => {
-                    nodes.forEach((node) => {
-                        if (node.type === "heading") {
-                            headings.push({
-                                depth: node.attrs.level,
-                                slug:
-                                    node.content?.[0]?.text
-                                        ?.toLowerCase()
-                                        .replace(/\s+/g, "-") || "",
-                                text: node.content?.[0]?.text || "",
-                            });
-                        }
-                        if (node.content) {
-                            traverseNodes(node.content);
-                        }
-                    });
-                };
-                traverseNodes(apiData.content.content);
-            }
+            // Apply syntax highlighting
+            htmlContent = await highlightCodeBlocks(htmlContent);
         }
     }
 } catch (e) {
@@ -664,6 +833,121 @@ const breadcrumbStructuredData = {
 
     .animate-fade-in-up {
         animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+</style>
+<style is:global>
+    /* Global Syntax Highlighting */
+    pre.shiki {
+        background-color: #0d1117 !important;
+        padding: 1.5em;
+        border-radius: 0.75rem;
+        line-height: 1.6;
+        overflow-x: auto;
+    }
+
+    pre code.hljs {
+        display: block;
+        overflow-x: auto;
+        padding: 1.5em;
+        border-radius: 0.75rem;
+        line-height: 1.6;
+        background: #0d1117;
+        color: #c9d1d9 !important; /* Force override of prose colors */
+    }
+
+    /* Ensure span elements inside code blocks don't inherit purple from prose */
+    pre code.hljs span,
+    pre.shiki span {
+        color: inherit;
+    }
+
+    /* Shiki token colors override if needed, but Shiki usually handles this inline. 
+       These are fallbacks or for HLJS if mixed. */
+    .hljs-doctag,
+    .hljs-keyword,
+    .hljs-meta .hljs-keyword,
+    .hljs-template-tag,
+    .hljs-template-variable,
+    .hljs-type,
+    .hljs-variable.language_ {
+        color: #ff7b72 !important;
+    }
+
+    .hljs-title,
+    .hljs-title.class_,
+    .hljs-title.class_.inherited__,
+    .hljs-title.function_ {
+        color: #d2a8ff !important;
+    }
+
+    .hljs-attr,
+    .hljs-attribute,
+    .hljs-literal,
+    .hljs-meta,
+    .hljs-number,
+    .hljs-operator,
+    .hljs-variable,
+    .hljs-selector-attr,
+    .hljs-selector-class,
+    .hljs-selector-id {
+        color: #79c0ff !important;
+    }
+
+    .hljs-regexp,
+    .hljs-string,
+    .hljs-meta .hljs-string {
+        color: #a5d6ff !important;
+    }
+
+    .hljs-built_in,
+    .hljs-symbol {
+        color: #ffa657 !important;
+    }
+
+    .hljs-comment,
+    .hljs-code,
+    .hljs-formula {
+        color: #8b949e !important;
+    }
+
+    .hljs-name,
+    .hljs-quote,
+    .hljs-selector-tag,
+    .hljs-selector-pseudo {
+        color: #7ee787 !important;
+    }
+
+    .hljs-subst {
+        color: #c9d1d9 !important;
+    }
+
+    .hljs-section {
+        color: #1f6feb !important;
+        font-weight: bold;
+    }
+
+    .hljs-bullet {
+        color: #f2cc60 !important;
+    }
+
+    .hljs-emphasis {
+        color: #c9d1d9 !important;
+        font-style: italic;
+    }
+
+    .hljs-strong {
+        color: #c9d1d9 !important;
+        font-weight: bold;
+    }
+
+    .hljs-addition {
+        color: #aff5b4 !important;
+        background-color: #033a16;
+    }
+
+    .hljs-deletion {
+        color: #ffdcd7 !important;
+        background-color: #67060c;
     }
 </style>
 
