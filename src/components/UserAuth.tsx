@@ -83,7 +83,16 @@ const UserAuthContent: React.FC = () => {
                 }
 
                 try {
-                    setUser(JSON.parse(storedUser));
+                    const parsedUser = JSON.parse(storedUser);
+                    if (parsedUser && typeof parsedUser === 'object') {
+                        // Ensure name exists
+                        if (!parsedUser.name) {
+                            parsedUser.name = 'User';
+                        }
+                        setUser(parsedUser);
+                    } else {
+                        localStorage.removeItem('user');
+                    }
                 } catch (e) {
                     console.error('Failed to parse user data', e);
                     localStorage.removeItem('user');
@@ -149,7 +158,7 @@ const UserAuthContent: React.FC = () => {
                         />
                         <div className="hidden md:block text-left">
                             <p className="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                                {user.name.split(' ')[0]}
+                                {(user.name || 'User').split(' ')[0]}
                             </p>
                         </div>
                         <svg className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
