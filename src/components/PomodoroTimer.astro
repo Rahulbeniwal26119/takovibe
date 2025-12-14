@@ -1,270 +1,380 @@
 ---
+
 ---
 
-<div id="pomodoro-container">
-    <div
-        id="pomodoro-toolbar"
-        class="fixed top-16 right-4 bg-gray-800/95 backdrop-blur-sm rounded-lg shadow-lg p-4 w-72 transition-all duration-300 ease-in-out hidden cursor-grab active:cursor-grabbing"
-        style="z-index: 48;"
+<div id="pomodoro-widget" class="fixed bottom-8 right-8 z-50 font-sans">
+    <!-- Main Floating Button (Always Visible) -->
+    <button
+        id="pomodoro-toggle"
+        class="group flex items-center gap-3 px-5 py-3 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-purple-100 dark:border-purple-900/30 rounded-2xl shadow-2xl hover:scale-105 hover:shadow-purple-500/20 transition-all duration-300"
     >
-        <!-- Header with Controls (Always visible) -->
-        <div class="grid grid-cols-[1fr_auto] items-center gap-2">
-            <!-- Left side: Title and Timer -->
-            <div class="flex items-center gap-3">
-                <div class="w-20 min-w-[80px] overflow-hidden">
-                    <p class="text-sm font-medium text-gray-300 truncate">Pomodoro Timer</p>
-                    <p id="miniTimeDisplay" class="text-xs text-gray-400 truncate">25:00</p>
+        <div class="relative">
+            <svg
+                class="w-6 h-6 text-purple-600 dark:text-purple-400 animate-pulse-slow"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span
+                id="timer-active-indicator"
+                class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-slate-900 hidden"
+            ></span>
+        </div>
+        <span
+            id="mini-time"
+            class="text-lg font-bold text-slate-700 dark:text-slate-200 font-mono tracking-wider"
+            >25:00</span
+        >
+    </button>
+
+    <!-- Expanded Control Panel (Popup) -->
+    <div
+        id="pomodoro-panel"
+        class="absolute bottom-full right-0 mb-4 w-72 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-gray-100 dark:border-gray-800 rounded-3xl shadow-2xl transform origin-bottom-right scale-90 opacity-0 pointer-events-none transition-all duration-300 ease-out translate-y-4"
+    >
+        <!-- Header -->
+        <div class="p-6 pb-2 border-b border-gray-100 dark:border-gray-800">
+            <div class="flex items-center justify-between mb-4">
+                <h3
+                    class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-widest"
+                >
+                    Focus Timer
+                </h3>
+                <div class="flex gap-1">
+                    <div class="w-2 h-2 rounded-full bg-red-400"></div>
+                    <div class="w-2 h-2 rounded-full bg-yellow-400"></div>
+                    <div class="w-2 h-2 rounded-full bg-green-400"></div>
                 </div>
-                
-                <button id="miniStartBtn" class="w-8 h-8 flex items-center justify-center text-white rounded-full hover:bg-purple-700 transition-colors bg-purple-600 shadow-lg hover:shadow-purple-500/30">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                    </svg>
-                </button>
             </div>
 
-            <!-- Right side: Reset Position and Minimize buttons -->
-            <div class="flex items-center gap-2">
-                <button id="resetPositionBtn" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-200 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
-                </button>
-                <button id="pomodoroMinimizeBtn" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-200 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
+            <!-- Main Timer Display -->
+            <div class="text-center py-4">
+                <div
+                    id="main-time"
+                    class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-400 dark:to-blue-400 font-mono tracking-tighter"
+                >
+                    25:00
+                </div>
+                <p
+                    id="current-mode"
+                    class="text-sm text-gray-400 font-medium mt-1"
+                >
+                    Ready to Focus
+                </p>
             </div>
         </div>
 
-        <!-- Expanded Content -->
-        <div id="pomodoroContent" class="mt-4">
-            <div class="flex flex-col justify-center items-center">
-                <div class="text-center mb-8">
-                    <span class="text-6xl font-bold text-white" id="timeDisplay">25:00</span>
-                </div>
-                <div class="flex justify-center space-x-2 mb-6">
-                    <button class="px-4 py-2 bg-[#7c3aed] text-white rounded-md hover:bg-[#6d28d9] text-sm" id="workBtn">Work</button>
-                    <button class="px-4 py-2 bg-[#1e293b] text-white rounded-md hover:bg-[#334155] text-sm" id="shortBreakBtn">Short Break</button>
-                    <button class="px-4 py-2 bg-[#1e293b] text-white rounded-md hover:bg-[#334155] text-sm" id="longBreakBtn">Long Break</button>
-                </div>
-                <div class="flex justify-center space-x-4">
-                    <button class="px-6 py-2 bg-[#7c3aed] text-white rounded-md hover:bg-[#6d28d9] text-sm" id="startBtn">Start</button>
-                    <button class="px-6 py-2 bg-[#1e293b] text-white rounded-md hover:bg-[#334155] text-sm" id="resetBtn">Reset</button>
-                </div>
+        <!-- Controls -->
+        <div class="p-4 bg-gray-50/50 dark:bg-black/20 rounded-b-3xl space-y-4">
+            <!-- Mode Selectors -->
+            <div class="flex p-1 bg-gray-200 dark:bg-gray-800 rounded-xl">
+                <button
+                    data-mode="work"
+                    class="mode-btn flex-1 py-1.5 text-xs font-semibold rounded-lg bg-white dark:bg-slate-700 shadow-sm text-gray-800 dark:text-white transition-all"
+                >
+                    Focus
+                </button>
+                <button
+                    data-mode="short"
+                    class="mode-btn flex-1 py-1.5 text-xs font-semibold rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-all"
+                >
+                    Short
+                </button>
+                <button
+                    data-mode="long"
+                    class="mode-btn flex-1 py-1.5 text-xs font-semibold rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-all"
+                >
+                    Long
+                </button>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-3">
+                <button
+                    id="btn-toggle"
+                    class="flex-1 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl font-bold shadow-lg shadow-purple-500/20 active:scale-95 transition-all text-sm flex items-center justify-center gap-2"
+                >
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"
+                        ><path d="M8 5v14l11-7z"></path></svg
+                    >
+                    Start
+                </button>
+                <button
+                    id="btn-reset"
+                    class="px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-slate-700 active:scale-95 transition-all"
+                    title="Reset Timer"
+                >
+                    <svg
+                        class="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        ><path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                        ></path></svg
+                    >
+                </button>
             </div>
         </div>
     </div>
 </div>
 
+<style>
+    .animate-pulse-slow {
+        animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes pulse {
+        0%,
+        100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.7;
+        }
+    }
+</style>
+
 <script>
-    function initializePomodoroTimer() {
-        // Check for existing instances and remove duplicates
-        const existingContainers = document.querySelectorAll("#pomodoro-container");
-        if (existingContainers.length > 1) {
-            for (let i = 1; i < existingContainers.length; i++) {
-                existingContainers[i].remove();
-            }
-        }
-
-        // Show the first instance
-        const pomodoroToolbar = document.querySelector("#pomodoro-toolbar");
-        if (pomodoroToolbar) {
-            pomodoroToolbar.classList.remove('hidden');
-        }
-
-        const pomodoroContent = document.getElementById("pomodoroContent");
-        const pomodoroMinimizeBtn = document.getElementById("pomodoroMinimizeBtn");
-        const minimizeIcon = pomodoroMinimizeBtn?.querySelector("svg");
-        const workBtn = document.getElementById("workBtn");
-        const shortBreakBtn = document.getElementById("shortBreakBtn");
-        const longBreakBtn = document.getElementById("longBreakBtn");
-        const startBtn = document.getElementById("startBtn");
-        const resetBtn = document.getElementById("resetBtn");
-        const timeDisplay = document.getElementById("timeDisplay");
-        const miniTimeDisplay = document.getElementById("miniTimeDisplay");
-        const miniStartBtn = document.getElementById("miniStartBtn");
-        const resetPositionBtn = document.getElementById("resetPositionBtn");
-
-        let timer = null;
+    // Use a closure to keep variables scoped
+    (function () {
         let timeLeft = 25 * 60;
+        let initialTime = 25 * 60;
+        let timerId = null;
         let isRunning = false;
-        let xOffset = 0;
-        let yOffset = 0;
+        let currentMode = "work";
 
-        // Show toolbar initially
-        if (pomodoroToolbar) {
-            pomodoroToolbar.classList.remove('hidden');
+        // DOM Elements
+        const widget = document.getElementById("pomodoro-widget");
+        const panel = document.getElementById("pomodoro-panel");
+        const toggleBtn = document.getElementById("pomodoro-toggle");
+        const miniTime = document.getElementById("mini-time");
+        const mainTime = document.getElementById("main-time");
+        const modeLabel = document.getElementById("current-mode");
+        const startBtn = document.getElementById("btn-toggle");
+        const resetBtn = document.getElementById("btn-reset");
+        const indicator = document.getElementById("timer-active-indicator");
+        const modeBtns = document.querySelectorAll(".mode-btn");
+
+        function init() {
+            toggleBtn?.addEventListener("click", togglePanel);
+            startBtn?.addEventListener("click", toggleTimer);
+            resetBtn?.addEventListener("click", () => reset());
+
+            modeBtns.forEach((btn) => {
+                btn.addEventListener("click", (e) => setMode(e.target));
+            });
+
+            // Close when clicking outside
+            document.addEventListener("click", (e) => {
+                if (
+                    widget &&
+                    e.target instanceof Node &&
+                    !widget.contains(e.target)
+                ) {
+                    closePanel();
+                }
+            });
+
+            // Update display initially
+            updateDisplay();
         }
 
-        // Initially collapse the content
-        if (pomodoroContent) {
-            pomodoroContent.classList.add('hidden');
-        }
-        if (minimizeIcon) {
-            minimizeIcon.style.transform = 'rotate(180deg)';
-        }
-
-        function toggleContent(event) {
-            event.preventDefault();
-            event.stopPropagation();
-            
-            if (pomodoroContent && minimizeIcon) {
-                const isHidden = pomodoroContent.classList.contains('hidden');
-                
-                // Toggle content visibility
-                pomodoroContent.classList.toggle('hidden');
-                
-                // Update icon rotation
-                minimizeIcon.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
+        function togglePanel() {
+            if (panel?.classList.contains("pointer-events-none")) {
+                openPanel();
+            } else {
+                closePanel();
             }
+        }
+
+        function openPanel() {
+            panel?.classList.remove(
+                "opacity-0",
+                "pointer-events-none",
+                "scale-90",
+                "translate-y-4",
+            );
+            panel?.classList.add("opacity-100", "scale-100", "translate-y-0");
+        }
+
+        function closePanel() {
+            panel?.classList.add(
+                "opacity-0",
+                "pointer-events-none",
+                "scale-90",
+                "translate-y-4",
+            );
+            panel?.classList.remove(
+                "opacity-100",
+                "scale-100",
+                "translate-y-0",
+            );
+        }
+
+        function setMode(btn) {
+            const mode = btn.dataset.mode;
+            currentMode = mode;
+
+            // Update UI
+            modeBtns.forEach((b) => {
+                b.classList.remove(
+                    "bg-white",
+                    "dark:bg-slate-700",
+                    "shadow-sm",
+                    "text-gray-800",
+                    "dark:text-white",
+                );
+                b.classList.add("text-gray-500", "dark:text-gray-400");
+            });
+
+            btn.classList.add(
+                "bg-white",
+                "dark:bg-slate-700",
+                "shadow-sm",
+                "text-gray-800",
+                "dark:text-white",
+            );
+            btn.classList.remove(
+                "text-gray-500",
+                "dark:text-gray-400",
+                "hover:text-gray-700",
+            );
+
+            // Set Time
+            if (mode === "work") initialTime = 25 * 60;
+            if (mode === "short") initialTime = 5 * 60;
+            if (mode === "long") initialTime = 15 * 60;
+
+            timeLeft = initialTime;
+            reset(false);
+
+            // Update Label
+            if (modeLabel)
+                modeLabel.innerText =
+                    mode === "work" ? "Ready to Focus" : "Take a Break";
+        }
+
+        function toggleTimer() {
+            if (isRunning) {
+                pause();
+            } else {
+                start();
+            }
+        }
+
+        function start() {
+            isRunning = true;
+            indicator?.classList.remove("hidden");
+
+            if (startBtn) {
+                startBtn.innerHTML = `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg> Pause`;
+                startBtn.classList.replace("from-purple-600", "from-amber-500");
+                startBtn.classList.replace("to-blue-600", "to-orange-500");
+            }
+
+            timerId = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateDisplay();
+                } else {
+                    complete();
+                }
+            }, 1000);
+        }
+
+        function pause() {
+            isRunning = false;
+            clearInterval(timerId);
+            if (startBtn) {
+                startBtn.innerHTML = `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Resume`;
+                startBtn.classList.replace("from-amber-500", "from-purple-600");
+                startBtn.classList.replace("to-orange-500", "to-blue-600");
+            }
+        }
+
+        function reset(stop = true) {
+            if (stop) {
+                isRunning = false;
+                clearInterval(timerId);
+                timeLeft = initialTime;
+            }
+
+            indicator?.classList.add("hidden");
+            updateDisplay();
+
+            if (startBtn) {
+                startBtn.innerHTML = `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Start`;
+                startBtn.classList.replace("from-amber-500", "from-purple-600");
+                startBtn.classList.replace("to-orange-500", "to-blue-600");
+            }
+        }
+
+        function complete() {
+            pause();
+            timeLeft = initialTime;
+            updateDisplay();
+            // Optional: Play sound or notification here
+            const title = document.title;
+            document.title = "⏰ Time's Up!";
+            setTimeout(() => (document.title = title), 5000);
         }
 
         function updateDisplay() {
-            const minutes = Math.floor(timeLeft / 60);
-            const seconds = timeLeft % 60;
-            const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            if (timeDisplay) timeDisplay.textContent = timeString;
-            if (miniTimeDisplay) miniTimeDisplay.textContent = timeString;
-        }
+            const mins = Math.floor(timeLeft / 60)
+                .toString()
+                .padStart(2, "0");
+            const secs = (timeLeft % 60).toString().padStart(2, "0");
+            const display = `${mins}:${secs}`;
 
-        function startTimer() {
-            if (!isRunning) {
-                isRunning = true;
-                if (startBtn) startBtn.textContent = "Pause";
-                timer = setInterval(() => {
-                    if (timeLeft > 0) {
-                        timeLeft--;
-                        updateDisplay();
-                    } else {
-                        clearInterval(timer);
-                        isRunning = false;
-                        if (startBtn) startBtn.textContent = "Start";
-                    }
-                }, 1000);
-            } else {
-                clearInterval(timer);
-                isRunning = false;
-                if (startBtn) startBtn.textContent = "Start";
+            if (miniTime) miniTime.innerText = display;
+            if (mainTime) mainTime.innerText = display;
+
+            // Update Title if running
+            if (isRunning) {
+                document.title = `${display} - Focus`;
             }
         }
 
-        function resetTimer() {
-            clearInterval(timer);
-            isRunning = false;
-            timeLeft = 25 * 60;
-            if (startBtn) startBtn.textContent = "Start";
-            updateDisplay();
+        // Initialize logic
+        document.addEventListener("astro:page-load", init);
+
+        // Fallback for non-ViewTransitions support
+        if (document.readyState === "complete") {
+            init();
+        } else {
+            document.addEventListener("DOMContentLoaded", init);
         }
+    })();
+</script>
 
-        // Dragging functionality
-        let isDragging = false;
-        let currentX;
-        let currentY;
-        let initialX;
-        let initialY;
+<button
+    id="miniStartBtn"
+    class="w-8 h-8 flex items-center justify-center text-white rounded-full hover:bg-purple-700 transition-colors bg-purple-600 shadow-lg hover:shadow-purple-500/30"
+>
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-5 w-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+    >
+        <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+        ></path>
+    </svg>
+</button>
 
-        function dragStart(e) {
-            if (pomodoroToolbar) {
-                pomodoroToolbar.style.cursor = 'grabbing';
-            }
-            if (e.type === "touchstart") {
-                initialX = e.touches[0].clientX - xOffset;
-                initialY = e.touches[0].clientY - yOffset;
-            } else {
-                initialX = e.clientX - xOffset;
-                initialY = e.clientY - yOffset;
-            }
-            isDragging = true;
-        }
-
-        function dragEnd() {
-            isDragging = false;
-            if (pomodoroToolbar) {
-                pomodoroToolbar.style.cursor = 'grab';
-            }
-        }
-
-        function drag(e) {
-            if (isDragging && pomodoroToolbar) {
-                e.preventDefault();
-                
-                if (e.type === "touchmove") {
-                    currentX = e.touches[0].clientX - initialX;
-                    currentY = e.touches[0].clientY - initialY;
-                } else {
-                    currentX = e.clientX - initialX;
-                    currentY = e.clientY - initialY;
-                }
-
-                xOffset = currentX;
-                yOffset = currentY;
-                
-                // Ensure the timer stays within viewport bounds
-                const rect = pomodoroToolbar.getBoundingClientRect();
-                const viewportWidth = window.innerWidth;
-                const viewportHeight = window.innerHeight;
-                
-                if (rect.left < 0) xOffset = -initialX;
-                if (rect.right > viewportWidth) xOffset = viewportWidth - rect.width - initialX;
-                if (rect.top < 0) yOffset = -initialY;
-                if (rect.bottom > viewportHeight) yOffset = viewportHeight - rect.height - initialY;
-
-                setTranslate(xOffset, yOffset, pomodoroToolbar);
-            }
-        }
-
-        function setTranslate(xPos, yPos, el) {
-            el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
-        }
-
-        function resetPosition() {
-            xOffset = 0;
-            yOffset = 0;
-            if (pomodoroToolbar) {
-                pomodoroToolbar.style.transform = 'translate3d(0px, 0px, 0)';
-            }
-        }
-
-        // Add event listeners
-        if (pomodoroToolbar) {
-            pomodoroToolbar.addEventListener("mousedown", dragStart);
-            document.addEventListener("mousemove", drag);
-            document.addEventListener("mouseup", dragEnd);
-            pomodoroToolbar.addEventListener("touchstart", dragStart);
-            document.addEventListener("touchmove", drag);
-            document.addEventListener("touchend", dragEnd);
-        }
-
-        miniStartBtn?.addEventListener("click", startTimer);
-        startBtn?.addEventListener("click", startTimer);
-        resetBtn?.addEventListener("click", resetTimer);
-        resetPositionBtn?.addEventListener("click", resetPosition);
-        
-        workBtn?.addEventListener("click", () => {
-            timeLeft = 25 * 60;
-            updateDisplay();
-        });
-        
-        shortBreakBtn?.addEventListener("click", () => {
-            timeLeft = 5 * 60;
-            updateDisplay();
-        });
-        
-        longBreakBtn?.addEventListener("click", () => {
-            timeLeft = 15 * 60;
-            updateDisplay();
-        });
-
-        // Add event listeners
-        pomodoroMinimizeBtn?.addEventListener("click", toggleContent);
-
-        // Initialize display
-        updateDisplay();
-    }
-
-    // Initialize on both initial load and page transitions
-    window.addEventListener('load', initializePomodoroTimer);
-    document.addEventListener('astro:page-load', initializePomodoroTimer);
-</script> 
+<!-- Right side: Reset Position and Minimize buttons -->

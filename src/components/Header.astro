@@ -663,6 +663,7 @@ const navItems = [
       const checkMobileAuth = () => {
         const userStr = localStorage.getItem("user");
         const mobileAuthLinks = document.getElementById("mobile-auth-links");
+
         const mobileUserProfile = document.getElementById(
           "mobile-user-profile",
         );
@@ -675,6 +676,7 @@ const navItems = [
           try {
             const user = JSON.parse(userStr);
             if (mobileAuthLinks) mobileAuthLinks.classList.add("hidden");
+
             if (mobileUserProfile) mobileUserProfile.classList.remove("hidden");
 
             if (mobileUserName) mobileUserName.textContent = user.name;
@@ -707,6 +709,7 @@ const navItems = [
         } else {
           // User is logged out
           if (mobileAuthLinks) mobileAuthLinks.classList.remove("hidden");
+
           if (mobileUserProfile) mobileUserProfile.classList.add("hidden");
         }
       };

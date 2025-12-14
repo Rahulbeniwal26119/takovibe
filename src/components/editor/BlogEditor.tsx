@@ -41,6 +41,9 @@ import {
     AlertCircle,
     Sun,
     Moon,
+    Eye,
+    Maximize,
+    Minimize,
 } from 'lucide-react';
 
 // Initialize lowlight with common languages
@@ -438,6 +441,37 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
 
                 {/* Right: Actions */}
                 <div className="flex items-center gap-3">
+                    {/* Zen Mode Toggle */}
+                    <button
+                        onClick={() => {
+                            const newMode = !document.body.classList.contains('zen-mode');
+                            document.body.classList.toggle('zen-mode');
+                            // Force re-render to update icon
+                            setValidationErrors(prev => [...prev]);
+                        }}
+                        className={`p-2.5 rounded-xl transition-all duration-300 ${document.body.classList.contains('zen-mode')
+                            ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400'
+                            : 'text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:text-gray-400 dark:hover:text-purple-400 dark:hover:bg-purple-900/20'
+                            }`}
+                        title="Toggle Zen Mode"
+                    >
+                        {document.body.classList.contains('zen-mode') ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
+                    </button>
+
+                    {/* View Button */}
+                    {frontmatter.slug && (
+                        <a
+                            href={`/p/${frontmatter.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:text-gray-400 dark:hover:text-purple-400 dark:hover:bg-purple-900/20 transition-all duration-300"
+                            title="View Live Page"
+                        >
+                            <Eye className="w-5 h-5" />
+                            <span className="hidden sm:inline">View</span>
+                        </a>
+                    )}
+
                     {/* Save Button */}
                     <button
                         onClick={handleSave}

@@ -81,31 +81,87 @@ const UserAuth: React.FC = () => {
         window.location.href = '/';
     };
 
+    const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = React.useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        // Close dropdown when clicking outside
+        function handleClickOutside(event: MouseEvent) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
+    // ... existing loading check ...
+
     if (loading) {
         return <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 animate-pulse"></div>;
     }
 
     return (
-        <div className="auth-container flex items-center gap-4">
+        <div className="auth-container flex items-center gap-4 relative" ref={dropdownRef}>
             {user ? (
-                <div className="flex items-center gap-3">
-
-                    <img
-                        src={user.image || getInitialsAvatar(user.name)}
-                        alt={user.name}
-                        className="w-9 h-9 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm"
-                        onError={(e) => {
-                            (e.target as HTMLImageElement).src = getInitialsAvatar(user.name);
-                        }}
-                    />
+                <>
                     <button
-                        onClick={handleLogout}
-                        className="text-sm font-medium text-red-500 hover:text-red-600 transition-colors"
-                        aria-label="Logout"
+                        onClick={() => setIsOpen(!isOpen)}
+                        className="flex items-center gap-2 focus:outline-none group"
                     >
-                        Logout
+                        <img
+                            src={user.image || getInitialsAvatar(user.name)}
+                            alt={user.name}
+                            className="w-9 h-9 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm transition-transform group-hover:scale-105"
+                            onError={(e) => {
+                                (e.target as HTMLImageElement).src = getInitialsAvatar(user.name);
+                            }}
+                        />
+                        <div className="hidden md:block text-left">
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                                {user.name.split(' ')[0]}
+                            </p>
+                        </div>
+                        <svg className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                        </svg>
                     </button>
-                </div>
+
+                    {/* Dropdown Menu */}
+                    {isOpen && (
+                        <div className="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden py-1 z-50 animate-in fade-in slide-in-from-top-2">
+                            <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-800">
+                                <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{user.name}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
+                            </div>
+
+                            <a
+                                href="/dashboard"
+                                className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                            >
+                                Dashboard
+                            </a>
+
+                            <a
+                                href="/post/new"
+                                className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                            >
+                                New Post
+                            </a>
+
+                            <div className="h-px bg-gray-100 dark:bg-gray-800 my-1"></div>
+
+                            <button
+                                onClick={handleLogout}
+                                className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
+                            >
+                                Logout
+                            </button>
+                        </div>
+                    )}
+                </>
             ) : (
                 <div className="flex items-center gap-3">
                     <a

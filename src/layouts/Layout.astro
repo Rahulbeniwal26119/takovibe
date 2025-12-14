@@ -224,6 +224,32 @@ const structuredData = {
             .dark::view-transition-new(root) {
                 z-index: 1;
             }
+
+            /* Zen Mode Styles - Enhanced */
+            body.zen-mode #site-header,
+            body.zen-mode footer,
+            body.zen-mode .reading-progress,
+            body.zen-mode .announcement-banner {
+                display: none !important;
+            }
+
+            body.zen-mode main {
+                padding-top: 0 !important;
+                z-index: 50;
+            }
+
+            /* Editor Container: Keep background full screen, minimize top padding */
+            body.zen-mode #editor-container {
+                padding-top: 1.5rem !important;
+                max-width: none !important;
+                width: 100% !important;
+            }
+
+            /* Inner Content: Expand significantly */
+            body.zen-mode #editor-container > div {
+                max-width: 95vw !important; /* Almost full width */
+                transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
         </style>
     </head>
     <body
@@ -537,8 +563,9 @@ const structuredData = {
 
     /* Smooth transitions */
     * {
-        transition-property: background-color, border-color, color, fill, stroke,
-            opacity, box-shadow, transform;
+        transition-property:
+            background-color, border-color, color, fill, stroke, opacity,
+            box-shadow, transform;
         transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
         transition-duration: 200ms;
     }

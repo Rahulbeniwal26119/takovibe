@@ -1,6 +1,7 @@
 ---
 import Layout from "../../../layouts/Layout.astro";
 import { EditPostLoader } from "../../../components/editor/EditPostLoader";
+import PomodoroTimer from "../../../components/PomodoroTimer.astro";
 
 export const prerender = false;
 const { slug } = Astro.params;
@@ -23,6 +24,7 @@ if (!slug) {
             <EditPostLoader client:only="react" slug={slug} />
         </div>
     </div>
+    <PomodoroTimer />
 </Layout>
 
 <script>
