@@ -1,0 +1,41 @@
+---
+import AnnouncementBanner from "./AnnouncementBanner.astro";
+---
+
+<AnnouncementBanner
+    id="contributor-banner"
+    storageKey="contributor-banner-closed-v1"
+    badge="WANTED"
+>
+    <div class="flex items-center gap-1 sm:gap-4 text-xs sm:text-sm">
+        <span class="font-medium hidden sm:inline"
+            >We are looking for contributors!</span
+        >
+        <span class="font-medium sm:hidden">Contributors Wanted!</span>
+
+        <div class="flex items-center gap-2 sm:gap-3">
+            <a
+                href="/contact?subject=contribution-writing"
+                class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 transition-all group"
+            >
+                <span class="text-purple-200">✍️</span>
+                <span
+                    class="font-semibold text-purple-100 group-hover:text-white"
+                    >Writing</span
+                >
+            </a>
+
+            <span class="text-white/30 hidden sm:inline">|</span>
+
+            <a
+                href="/contact?subject=contribution-development"
+                class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 transition-all group"
+            >
+                <span class="text-blue-200">💻</span>
+                <span class="font-semibold text-blue-100 group-hover:text-white"
+                    >Dev</span
+                >
+            </a>
+        </div>
+    </div>
+</AnnouncementBanner>

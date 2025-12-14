@@ -3,17 +3,22 @@ interface Props {
     message?: string;
     href?: string;
     badge?: string;
+    storageKey?: string;
+    id?: string;
 }
 
 const {
     message = "Application Security Series is now Live!",
     href = "/series/application-security/",
     badge = "LIVE",
+    storageKey = "banner-closed",
+    id = "announcement-banner",
 } = Astro.props;
 ---
 
 <div
-    id="announcement-banner"
+    id={id}
+    data-storage-key={storageKey}
     class="relative z-[80] bg-gradient-to-r from-purple-900 via-indigo-900 to-purple-900 text-white overflow-hidden transition-all duration-300 min-h-[40px]"
 >
     <div class="absolute inset-0 bg-[url('/images/grid.svg')] opacity-20"></div>
@@ -25,38 +30,37 @@ const {
     <div
         class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 relative flex items-center justify-center gap-3 text-sm"
     >
-        <a
-            href={href}
-            class="flex items-center gap-3 group hover:opacity-90 transition-opacity"
-        >
-            <span class="flex h-2 w-2 relative">
-                <span
-                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"
-                ></span>
-                <span
-                    class="relative inline-flex rounded-full h-2 w-2 bg-red-500"
-                ></span>
-            </span>
-
-            <span
-                class="px-2 py-0.5 rounded text-[10px] font-bold bg-white/10 border border-white/20 tracking-wider"
-            >
-                {badge}
-            </span>
-
-            <span class="font-medium tracking-wide">
-                {message}
-                <span
-                    class="inline-block ml-1 transition-transform group-hover:translate-x-1"
-                    >→</span
+        {
+            Astro.slots.has("default") ? (
+                <slot />
+            ) : (
+                <a
+                    href={href}
+                    class="flex items-center gap-3 group hover:opacity-90 transition-opacity"
                 >
-            </span>
-        </a>
+                    <span class="flex h-2 w-2 relative">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+                    </span>
+
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-white/10 border border-white/20 tracking-wider">
+                        {badge}
+                    </span>
+
+                    <span class="font-medium tracking-wide">
+                        {message}
+                        <span class="inline-block ml-1 transition-transform group-hover:translate-x-1">
+                            →
+                        </span>
+                    </span>
+                </a>
+            )
+        }
 
         <button
-            id="close-banner"
-            class="absolute right-2 sm:right-4 p-1 rounded-full hover:bg-white/10 transition-colors"
+            class="close-banner-btn absolute right-2 sm:right-4 p-1 rounded-full hover:bg-white/10 transition-colors"
             aria-label="Close banner"
+            data-target={id}
         >
             <svg
                 class="w-4 h-4"
@@ -75,19 +79,43 @@ const {
 </div>
 
 <script>
-    const banner = document.getElementById("announcement-banner");
-    const closeBtn = document.getElementById("close-banner");
+    function initBanners() {
+        const banners = document.querySelectorAll(
+            '[id^="announcement-banner"]',
+        );
 
-    // Check if previously closed
-    if (sessionStorage.getItem("banner-closed") === "true") {
-        banner?.remove();
+        banners.forEach((banner) => {
+            const storageKey = banner.getAttribute("data-storage-key");
+            if (storageKey && sessionStorage.getItem(storageKey) === "true") {
+                banner.remove();
+            }
+        });
+
+        const closeBtns = document.querySelectorAll(".close-banner-btn");
+        closeBtns.forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+                const targetId = (e.currentTarget as HTMLElement).getAttribute(
+                    "data-target",
+                );
+                if (!targetId) return;
+
+                const banner = document.getElementById(targetId);
+                const storageKey = banner?.getAttribute("data-storage-key");
+
+                if (banner) {
+                    banner.classList.add("-translate-y-full", "opacity-0");
+                    setTimeout(() => banner.remove(), 300);
+                    if (storageKey) {
+                        sessionStorage.setItem(storageKey, "true");
+                    }
+                }
+            });
+        });
     }
 
-    closeBtn?.addEventListener("click", () => {
-        banner?.classList.add("-translate-y-full", "opacity-0");
-        setTimeout(() => banner?.remove(), 300);
-        sessionStorage.setItem("banner-closed", "true");
-    });
+    // Run on load and after view transitions
+    document.addEventListener("astro:page-load", initBanners);
+    document.addEventListener("DOMContentLoaded", initBanners);
 </script>
 
 <style>

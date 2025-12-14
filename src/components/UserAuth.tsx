@@ -40,7 +40,30 @@ const getInitialsAvatar = (name: string) => {
     return `data:image/svg+xml;base64,${base64}`;
 };
 
-const UserAuth: React.FC = () => {
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
+    constructor(props: { children: React.ReactNode }) {
+        super(props);
+        this.state = { hasError: false };
+    }
+
+    static getDerivedStateFromError() {
+        return { hasError: true };
+    }
+
+    componentDidCatch(error: any, errorInfo: any) {
+        console.error("UserAuth Error:", error, errorInfo);
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return <div className="text-red-500 text-xs">Auth Error</div>;
+        }
+
+        return this.props.children;
+    }
+}
+
+const UserAuthContent: React.FC = () => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -100,7 +123,12 @@ const UserAuth: React.FC = () => {
     // ... existing loading check ...
 
     if (loading) {
-        return <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 animate-pulse"></div>;
+        return (
+            <div className="flex items-center gap-2 animate-pulse">
+                <div className="w-9 h-9 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                <div className="hidden md:block w-20 h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            </div>
+        );
     }
 
     return (
@@ -181,5 +209,11 @@ const UserAuth: React.FC = () => {
         </div>
     );
 };
+
+const UserAuth = () => (
+    <ErrorBoundary>
+        <UserAuthContent />
+    </ErrorBoundary>
+);
 
 export default UserAuth;
