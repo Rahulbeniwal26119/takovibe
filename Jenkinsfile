@@ -31,7 +31,7 @@ pipeline {
                         cd /home/ubuntu/blog &&
                         git pull origin master &&
                         chmod +x build_hybrid.sh &&
-                        ./build_hybrid.sh
+                        sudo ./build_hybrid.sh
                         "
                 '''
                 }
