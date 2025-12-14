@@ -57,7 +57,9 @@ const searchEndpoint = "https://backend.takovibe.com/api/blogs/blogs/";
     author: Author;
   }
 
-  const searchEndpoint = "https://backend.takovibe.com/api/blogs/blogs/";
+  const searchEndpoint =
+    (import.meta.env.PUBLIC_API_URL || "https://backend.takovibe.com") +
+    "/api/blogs/blogs/";
 
   async function searchArticles(query: string): Promise<SearchResult[]> {
     if (!query.trim()) return [];
