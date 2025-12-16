@@ -31,10 +31,10 @@ const getLastModified = () => {
             const stats = fs.statSync(filePath);
             return stats.mtime.toISOString();
         } else {
-            return post.data.date.toISOString();
+            return new Date(post.data.date).toISOString();
         }
     } catch (e) {
-        return post.data.date.toISOString();
+        return new Date(post.data.date).toISOString();
     }
 };
 

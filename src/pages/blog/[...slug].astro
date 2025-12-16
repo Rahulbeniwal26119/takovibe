@@ -20,10 +20,20 @@ let isStatic = false;
 // 1. Try Backend
 try {
   const API_BASE = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
-  const response = await fetch(`${API_BASE}/api/posts/${slug}/`);
+  const apiUrl = `${API_BASE}/api/posts/${slug}/`;
+  console.log(`[Blog Debug] Fetching from URL: ${apiUrl}`);
+
+  const response = await fetch(apiUrl);
+  console.log(`[Blog Debug] Response Status: ${response.status}`);
 
   if (response.ok) {
     const apiData = await response.json();
+    console.log(`[Blog Debug] API Response for ${slug}:`, {
+      id: apiData.id,
+      title: apiData.title,
+      is_legacy: apiData.is_legacy,
+      created_at: apiData.created_at,
+    });
 
     if (!apiData.is_legacy) {
       // Transform API data to match local post structure
@@ -44,6 +54,12 @@ try {
         id: apiData.id,
         authorUsername: apiData.author?.username || "",
       };
+
+      console.log(`[Blog Debug] Post Object created for ${slug}:`, {
+        date: post.data.date,
+        dateType: typeof post.data.date,
+        isValidDate: !isNaN(post.data.date.getTime()),
+      });
 
       if (apiData.content) {
         const result = await processBackendContent(apiData.content);
