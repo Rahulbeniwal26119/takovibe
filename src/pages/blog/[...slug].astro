@@ -24,29 +24,32 @@ try {
 
   if (response.ok) {
     const apiData = await response.json();
-    // Transform API data to match local post structure
-    post = {
-      data: {
-        title: apiData.title,
-        description: apiData.description,
-        author: apiData.author?.name || apiData.author?.username || "Unknown",
-        date: new Date(apiData.created_at),
-        image: apiData.image_url,
-        tags: apiData.tags || [],
-        series: apiData.series || "",
-        readingTime: apiData.reading_time
-          ? `${apiData.reading_time} min read`
-          : "5 min read",
-      },
-      slug: apiData.slug,
-      id: apiData.id,
-      authorUsername: apiData.author?.username || "",
-    };
 
-    if (apiData.content) {
-      const result = await processBackendContent(apiData.content);
-      htmlContent = result.htmlContent;
-      headings = result.headings;
+    if (!apiData.is_legacy) {
+      // Transform API data to match local post structure
+      post = {
+        data: {
+          title: apiData.title,
+          description: apiData.description,
+          author: apiData.author?.name || apiData.author?.username || "Unknown",
+          date: new Date(apiData.created_at),
+          image: apiData.image_url,
+          tags: apiData.tags || [],
+          series: apiData.series || "",
+          readingTime: apiData.reading_time
+            ? `${apiData.reading_time} min read`
+            : "5 min read",
+        },
+        slug: apiData.slug,
+        id: apiData.id,
+        authorUsername: apiData.author?.username || "",
+      };
+
+      if (apiData.content) {
+        const result = await processBackendContent(apiData.content);
+        htmlContent = result.htmlContent;
+        headings = result.headings;
+      }
     }
   }
 } catch (e) {
