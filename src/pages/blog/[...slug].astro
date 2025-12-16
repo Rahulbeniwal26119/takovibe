@@ -1,678 +1,81 @@
 ---
+export const prerender = false;
+
 import { getCollection } from "astro:content";
-import Layout from "../../layouts/Layout.astro";
-import Footer from "../../components/Footer.astro";
-import { Image } from "astro:assets";
-import RelatedPosts from "../../components/RelatedPosts.astro";
-import ReaderToolbar from "../../components/ReaderToolbar.astro";
-import FeedbackWidget from "../../components/FeedbackWidget.astro";
-import ReadingProgress from "../../components/ReadingProgress.astro";
-import TableOfContents from "../../components/TableOfContents.astro";
-import SelectionPopover from "../../components/SelectionPopover.astro";
+import { processBackendContent } from "../../utils/backend-renderer";
+import ArticleTemplate from "../../components/ArticleTemplate.astro";
 
-// Add this function to sanitize the HTML content
-const removeTabIndex = (content: string) => {
-  return content.replace(/tabindex="-1"/g, "");
-};
+const { slug } = Astro.params;
 
-export async function getStaticPaths() {
-  const posts = await getCollection("blog");
-  return posts.map((post) => ({
-    params: { slug: post.slug },
-    props: { post },
-  }));
+if (!slug) {
+  return Astro.redirect("/404");
 }
 
-const { post } = Astro.props;
-const { Content, headings } = await post.render();
+let post = null;
+let headings = [];
+let htmlContent = ""; // For backend content
+let Content = null; // For static content
+let isStatic = false;
 
-import fs from "node:fs";
-import path from "node:path";
+// 1. Try Backend
+try {
+  const API_BASE = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
+  const response = await fetch(`${API_BASE}/api/posts/${slug}/`);
 
-// Get the last modified date
-const getLastModified = () => {
-  try {
-    const filePath = path.join(process.cwd(), "src/content/blog", post.id);
-    const stats = fs.statSync(filePath);
-    return stats.mtime.toISOString();
-  } catch (e) {
-    return post.data.date.toISOString();
+  if (response.ok) {
+    const apiData = await response.json();
+    // Transform API data to match local post structure
+    post = {
+      data: {
+        title: apiData.title,
+        description: apiData.description,
+        author: apiData.author?.name || apiData.author?.username || "Unknown",
+        date: new Date(apiData.created_at),
+        image: apiData.image_url,
+        tags: apiData.tags || [],
+        series: apiData.series || "",
+        readingTime: apiData.reading_time
+          ? `${apiData.reading_time} min read`
+          : "5 min read",
+      },
+      slug: apiData.slug,
+      id: apiData.id,
+      authorUsername: apiData.author?.username || "",
+    };
+
+    if (apiData.content) {
+      const result = await processBackendContent(apiData.content);
+      htmlContent = result.htmlContent;
+      headings = result.headings;
+    }
   }
-};
+} catch (e) {
+  console.error("API post fetch failed:", e);
+}
 
-const lastModified = getLastModified();
-const publishDate = new Date(post.data.date).toISOString();
-const canonicalUrl = new URL(Astro.url.pathname, Astro.site).toString();
+// 2. Try Static Collection if not found
+if (!post) {
+  const blogEntries = await getCollection("blog");
+  const staticPost = blogEntries.find((p) => p.slug === slug);
+  if (staticPost) {
+    post = staticPost;
+    isStatic = true;
+    const rendered = await staticPost.render();
+    Content = rendered.Content;
+    headings = rendered.headings;
+  }
+}
 
-const articleStructuredData = {
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  headline: post.data.title,
-  datePublished: publishDate,
-  dateModified: lastModified,
-  author: {
-    "@type": "Person",
-    name: post.data.author,
-    url: "https://takovibe.com/about/",
-  },
-  description: post.data.description,
-  image: {
-    "@type": "ImageObject",
-    url: post.data.image?.startsWith("http")
-      ? post.data.image
-      : `https://takovibe.com${post.data.image}`,
-    height: "630",
-    width: "1200",
-  },
-  url: canonicalUrl,
-  mainEntityOfPage: {
-    "@type": "WebPage",
-    "@id": canonicalUrl,
-  },
-  keywords: post.data.tags?.join(", "),
-  publisher: {
-    "@type": "Organization",
-    name: "TakoVibe",
-    logo: {
-      "@type": "ImageObject",
-      url: "https://takovibe.com/images/logo.svg",
-      width: "192",
-      height: "192",
-    },
-  },
-};
-
-const breadcrumbStructuredData = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  itemListElement: [
-    {
-      "@type": "ListItem",
-      position: 1,
-      name: "Home",
-      item: "https://takovibe.com",
-    },
-    {
-      "@type": "ListItem",
-      position: 2,
-      name: "Blog",
-      item: "https://takovibe.com/blog",
-    },
-    {
-      "@type": "ListItem",
-      position: 3,
-      name: post.data.title,
-      item: canonicalUrl,
-    },
-  ],
-};
+// 3. Fallback
+if (!post) {
+  return Astro.redirect("/404");
+}
 ---
 
-<Layout
-  title={post.data.title}
-  description={post.data.description}
-  type="article"
-  author={post.data.author}
-  tags={post.data.tags}
-  published_date={publishDate}
-  modified_date={lastModified}
-  no_footer={true}
->
-  <!-- Structured Data -->
-  <script
-    type="application/ld+json"
-    slot="head"
-    set:html={JSON.stringify(articleStructuredData)}
-  />
-  <script
-    type="application/ld+json"
-    slot="head"
-    set:html={JSON.stringify(breadcrumbStructuredData)}
-  />
-  <ReadingProgress />
-  <SelectionPopover />
-
-  <div class="min-h-screen">
-    <!-- Breadcrumbs -->
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 pt-6">
-      <nav
-        class="flex text-sm text-gray-500 dark:text-gray-400 mb-6"
-        aria-label="Breadcrumb"
-      >
-        <ol class="inline-flex items-center space-x-1 md:space-x-3">
-          <li class="inline-flex items-center">
-            <a
-              href="/"
-              class="inline-flex items-center hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-            >
-              <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"
-                ></path>
-              </svg>
-              Home
-            </a>
-          </li>
-          <li>
-            <div class="flex items-center">
-              <svg
-                class="w-6 h-6 text-gray-400"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                  clip-rule="evenodd"></path>
-              </svg>
-              <a
-                href="/blog"
-                class="ml-1 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-                >Blog</a
-              >
-            </div>
-          </li>
-          <li aria-current="page">
-            <div class="flex items-center">
-              <svg
-                class="w-6 h-6 text-gray-400"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                  clip-rule="evenodd"></path>
-              </svg>
-              <span
-                class="ml-1 text-gray-700 dark:text-gray-200 truncate max-w-[200px] sm:max-w-xs"
-                >{post.data.title}</span
-              >
-            </div>
-          </li>
-        </ol>
-      </nav>
-    </div>
-
-    <!-- Main Content Layout -->
-    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 pb-24">
-      <div class="lg:grid lg:grid-cols-12 lg:gap-8 lg:items-start">
-        <!-- Left Sidebar: Table of Contents (Desktop) -->
-        <aside class="hidden lg:block lg:col-span-2">
-          <div class="sticky top-24 max-h-[calc(100vh-6rem)] overflow-y-auto">
-            <TableOfContents headings={headings} />
-          </div>
-        </aside>
-
-        <!-- Main Article Content -->
-        <main class="lg:col-span-10">
-          <!-- Article Header with Gradient Background -->
-          <header class="relative mb-12 overflow-hidden rounded-2xl">
-            <!-- Gradient Background -->
-            <div
-              class="absolute inset-0 bg-gradient-to-br from-purple-600 via-pink-600 to-blue-600"
-            >
-            </div>
-
-            <!-- Decorative Circle -->
-            <div
-              class="absolute top-6 right-6 w-24 h-24 bg-pink-500 rounded-full opacity-80"
-            >
-            </div>
-
-            <!-- Content -->
-            <div
-              class="relative z-10 px-6 sm:px-12 py-12 sm:py-16 text-white max-w-4xl"
-            >
-              <!-- Meta Information -->
-              <div class="flex flex-wrap items-center gap-3 mb-6">
-                {
-                  post.data.series && (
-                    <a
-                      href={`/series/${post.data.series.toLowerCase().replace(/\s+/g, "-")}`}
-                      class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-yellow-400/90 hover:bg-yellow-400 text-yellow-900 border border-yellow-500/50 transition-colors"
-                    >
-                      📚 {post.data.series}
-                    </a>
-                  )
-                }
-                <span
-                  class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-sm border border-white/30"
-                >
-                  📅 Published
-                </span>
-                <span class="text-sm font-medium text-white/90">
-                  {post.data.readingTime || "5 min read"}
-                </span>
-                {
-                  post.data.tags &&
-                    post.data.tags
-                      .slice(0, 2)
-                      .map((tag) => (
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-sm border border-white/30">
-                          #{tag}
-                        </span>
-                      ))
-                }
-              </div>
-
-              <!-- Title -->
-              <h1
-                class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 leading-tight"
-              >
-                {post.data.title}
-              </h1>
-
-              <!-- Author and Date -->
-              <div class="flex items-center gap-4">
-                <div
-                  class="w-12 h-12 bg-pink-500 rounded-full flex items-center justify-center text-white font-bold text-lg"
-                >
-                  {post.data.author.charAt(0)}
-                </div>
-                <div>
-                  <div class="font-semibold text-lg">{post.data.author}</div>
-                  <time
-                    datetime={post.data.date.toString()}
-                    class="text-sm text-white/80"
-                  >
-                    {
-                      new Date(post.data.date).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })
-                    }
-                  </time>
-                </div>
-                <div class="ml-auto hidden sm:flex items-center gap-3">
-                  <button
-                    class="save-btn inline-flex items-center gap-2 px-4 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl font-semibold transition-all border border-white/30 text-white"
-                    data-blog-id={post.slug}
-                    aria-label="Save for later"
-                  >
-                    <svg
-                      class="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
-                      ></path>
-                    </svg>
-                    <span>Save</span>
-                  </button>
-                  <a
-                    href="#Article"
-                    class="inline-flex items-center gap-2 px-6 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl font-semibold transition-all border border-white/30"
-                  >
-                    <svg
-                      class="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                      ></path>
-                    </svg>
-                    Start Reading
-                  </a>
-                </div>
-              </div>
-            </div>
-          </header>
-
-          <!-- Article Body -->
-          <article
-            class="prose prose-lg dark:prose-invert max-w-none
-            prose-headings:font-bold prose-headings:text-purple-700 dark:prose-headings:text-purple-400
-            prose-p:text-gray-900 dark:prose-p:text-gray-300 prose-p:leading-relaxed
-            prose-a:text-purple-600 dark:prose-a:text-purple-400 prose-a:no-underline hover:prose-a:underline
-            prose-img:rounded-xl prose-img:shadow-lg
-            prose-code:text-purple-600 dark:prose-code:text-purple-400 prose-code:px-1 prose-code:py-0.5 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none
-            prose-pre:bg-gray-900 dark:prose-pre:bg-[#1e1e1e] prose-pre:border prose-pre:border-gray-800
-            prose-blockquote:border-l-4 prose-blockquote:border-purple-500 prose-blockquote:pl-6 prose-blockquote:py-2 prose-blockquote:not-italic
-            prose-li:text-gray-900 dark:prose-li:text-gray-300"
-            id="Article"
-          >
-            <div class="mdx-content">
-              <Content />
-            </div>
-          </article>
-
-          <!-- Series Callout - More Visible -->
-          {
-            post.data.series && (
-              <div class="mt-12 p-6 sm:p-8 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-2 border-yellow-400/50 dark:border-yellow-600/50 rounded-2xl">
-                <div class="flex items-start gap-4">
-                  <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center text-2xl shadow-lg">
-                    📚
-                  </div>
-                  <div class="flex-1">
-                    <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                      Part of the {post.data.series} Series
-                    </h2>
-                    <p class="text-gray-700 dark:text-gray-300 mb-4">
-                      This article is part of a comprehensive learning series.
-                      Check out all articles in this series to master the topic!
-                    </p>
-                    <a
-                      href={`/series/${post.data.series.toLowerCase().replace(/\s+/g, "-")}`}
-                      class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-                    >
-                      <span>View Full Series</span>
-                      <svg
-                        class="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M17 8l4 4m0 0l-4 4m4-4H3"
-                        />
-                      </svg>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            )
-          }
-
-          <!-- Feedback Widget -->
-          <!-- <div class="mt-16">
-            <FeedbackWidget />
-          </div> -->
-
-          <!-- Tags -->
-          <div class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-800">
-            <div class="flex flex-wrap gap-2">
-              {
-                post.data.tags?.map((tag) => (
-                  <a
-                    href={`/blog?tag=${encodeURIComponent(tag.toLowerCase())}`}
-                    class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-800 hover:bg-purple-100 hover:text-purple-800 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-purple-900/30 dark:hover:text-purple-300 transition-colors"
-                  >
-                    #{tag}
-                  </a>
-                ))
-              }
-            </div>
-          </div>
-
-          <!-- Related Posts -->
-          <div
-            class="mt-16 pt-10 border-t border-gray-200 dark:border-gray-800"
-          >
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-8">
-              Read Next
-            </h2>
-            <RelatedPosts currentSlug={post.slug} tags={post.data.tags || []} />
-          </div>
-
-          <!-- Footer -->
-          <div
-            class="mt-16 pt-10 border-t border-gray-200 dark:border-gray-800 text-center"
-          >
-            <Footer />
-          </div>
-        </main>
-      </div>
-    </div>
-  </div>
-
-  <!-- Reader Toolbar -->
-  <ReaderToolbar
-    headings={headings}
-    title={post.data.title}
-    description={post.data.description}
-    url={Astro.url.href}
-    slug={post.slug}
-  />
-</Layout>
-
-<style>
-  /* Force dark text in light mode for article content */
-  :root:not(.dark) .prose p,
-  :root:not(.dark) .prose li {
-    color: #111827 !important; /* gray-900 */
-  }
-
-  /* Smooth scrolling */
-  html {
-    scroll-behavior: smooth;
-    scroll-padding-top: 100px;
-  }
-
-  /* Typography enhancements */
-  .prose p {
-    margin-bottom: 1.5em;
-    font-size: 1.125rem; /* 18px base size */
-  }
-
-  .prose h2 {
-    margin-top: 2em;
-    margin-bottom: 1em;
-  }
-
-  .prose h3 {
-    margin-top: 1.5em;
-    margin-bottom: 0.75em;
-  }
-
-  /* Custom Scrollbar for Sidebar */
-  .custom-scrollbar::-webkit-scrollbar,
-  aside .sticky::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-track,
-  aside .sticky::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-thumb,
-  aside .sticky::-webkit-scrollbar-thumb {
-    background-color: rgba(156, 163, 175, 0.5);
-    border-radius: 2px;
-  }
-
-  /* Ensure sticky works properly */
-  aside .sticky {
-    position: sticky;
-    position: -webkit-sticky;
-  }
-
-  /* Animations */
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .animate-fade-in-up {
-    animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-  }
-</style>
-
-<script>
-  // Remove tabindex from elements after the page loads
-  document.addEventListener("DOMContentLoaded", () => {
-    const elements = document.querySelectorAll('[tabindex="-1"]');
-    elements.forEach((element) => {
-      element.removeAttribute("tabindex");
-    });
-  });
-
-  // Add copy buttons to code blocks
-  function addCopyButtons() {
-    const codeBlocks = document.querySelectorAll("pre");
-
-    codeBlocks.forEach((pre) => {
-      // Skip if button already exists
-      if (pre.querySelector(".copy-code-btn")) return;
-
-      // Create wrapper if needed
-      if (!pre.parentElement.classList.contains("code-block-wrapper")) {
-        const wrapper = document.createElement("div");
-        wrapper.className = "code-block-wrapper relative group";
-        pre.parentNode.insertBefore(wrapper, pre);
-        wrapper.appendChild(pre);
-      }
-
-      // Create copy button
-      const button = document.createElement("button");
-      button.className =
-        "copy-code-btn absolute top-2 right-2 p-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center gap-2 text-sm font-medium";
-      button.innerHTML = `
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-        </svg>
-        <span>Copy</span>
-      `;
-
-      button.addEventListener("click", async () => {
-        const code = pre.querySelector("code");
-        const text = code ? code.textContent : pre.textContent;
-
-        try {
-          await navigator.clipboard.writeText(text);
-
-          // Visual feedback
-          button.innerHTML = `
-            <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-            <span class="text-green-400">Copied!</span>
-          `;
-          button.classList.add("bg-green-600", "hover:bg-green-500");
-          button.classList.remove("bg-gray-700", "hover:bg-gray-600");
-
-          // Reset after 2 seconds
-          setTimeout(() => {
-            button.innerHTML = `
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-              </svg>
-              <span>Copy</span>
-            `;
-            button.classList.remove("bg-green-600", "hover:bg-green-500");
-            button.classList.add("bg-gray-700", "hover:bg-gray-600");
-          }, 2000);
-        } catch (err) {
-          console.error("Failed to copy code:", err);
-        }
-      });
-
-      pre.parentElement.appendChild(button);
-    });
-  }
-
-  // Initialize on page load
-  document.addEventListener("DOMContentLoaded", addCopyButtons);
-  // Re-initialize after view transitions
-  // Re-initialize after view transitions
-  document.addEventListener("astro:after-swap", addCopyButtons);
-
-  // Save Button Logic
-  import {
-    saveBookmark,
-    removeBookmark,
-    checkBookmarkStatus,
-  } from "../../utils/bookmarks";
-  import { showToast } from "../../utils/toast";
-
-  function setupSaveButtons() {
-    const saveBtns = document.querySelectorAll(".save-btn");
-
-    saveBtns.forEach(async (btn) => {
-      if (btn.hasAttribute("data-bound")) return;
-      btn.setAttribute("data-bound", "true");
-
-      const blogId = btn.getAttribute("data-blog-id");
-      if (!blogId) return;
-
-      // Check initial status
-      const { isBookmarked, bookmarkId } = await checkBookmarkStatus(blogId);
-      updateSaveButtonState(btn, isBookmarked);
-      if (bookmarkId)
-        btn.setAttribute("data-bookmark-id", bookmarkId.toString());
-
-      btn.addEventListener("click", async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const token = localStorage.getItem("access_token");
-        if (!token) {
-          showToast("Please login to save articles for later.", "info");
-          return;
-        }
-
-        const currentIsBookmarked = btn.classList.contains("bg-purple-600");
-        const currentBookmarkId = btn.getAttribute("data-bookmark-id");
-
-        // Optimistic UI update
-        updateSaveButtonState(btn, !currentIsBookmarked);
-
-        let success = false;
-        if (currentIsBookmarked && currentBookmarkId) {
-          success = await removeBookmark(parseInt(currentBookmarkId));
-          if (success) {
-            btn.removeAttribute("data-bookmark-id");
-            showToast("Article removed from saved list", "success");
-          }
-        } else {
-          success = await saveBookmark(blogId);
-          if (success) showToast("Article saved for later", "success");
-        }
-
-        if (!success) {
-          // Revert UI if failed
-          updateSaveButtonState(btn, currentIsBookmarked);
-          showToast("Failed to update bookmark. Please try again.", "error");
-        } else {
-          // Re-fetch to get ID
-          const { isBookmarked: newStatus, bookmarkId: newId } =
-            await checkBookmarkStatus(blogId);
-          if (newId) btn.setAttribute("data-bookmark-id", newId.toString());
-        }
-      });
-    });
-  }
-
-  function updateSaveButtonState(btn: Element, isSaved: boolean) {
-    const icon = btn.querySelector("svg");
-    const text = btn.querySelector("span");
-
-    if (isSaved) {
-      btn.classList.add("bg-purple-600", "border-purple-500");
-      btn.classList.remove("bg-white/20", "border-white/30");
-      if (icon) icon.setAttribute("fill", "currentColor");
-      if (text) text.textContent = "Saved";
-    } else {
-      btn.classList.remove("bg-purple-600", "border-purple-500");
-      btn.classList.add("bg-white/20", "border-white/30");
-      if (icon) icon.setAttribute("fill", "none");
-      if (text) text.textContent = "Save";
-    }
-  }
-
-  // Initialize
-  setupSaveButtons();
-  document.addEventListener("astro:after-swap", setupSaveButtons);
-</script>
+<ArticleTemplate
+  post={post}
+  headings={headings}
+  htmlContent={htmlContent}
+  Content={Content}
+  isStatic={isStatic}
+/>
