@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
 # --- Colors ---
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
