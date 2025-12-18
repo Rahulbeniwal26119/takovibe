@@ -1,0 +1,403 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Feed from "../components/community/Feed";
+import {
+    Flame,
+    TrendingUp,
+    Search,
+    MessageSquare,
+    Hash,
+    Sparkles,
+    Compass,
+    Activity,
+    Layers,
+    Users,
+    Settings,
+    Bell,
+} from "lucide-react";
+
+const trendingTags = ["javascript", "webdev", "ai", "react", "career"];
+const topAuthors = [
+    {
+        name: "Rahul Beniwal",
+        handle: "@rahul",
+        avatar: "https://ui-avatars.com/api/?name=Rahul+Beniwal&background=random",
+    },
+    {
+        name: "Sarah Tech",
+        handle: "@sarah_dev",
+        avatar: "https://ui-avatars.com/api/?name=Sarah+Tech&background=random",
+    },
+    {
+        name: "Alex Code",
+        handle: "@alex_rust",
+        avatar: "https://ui-avatars.com/api/?name=Alex+Code&background=random",
+    },
+];
+
+const navItems = [
+    { label: "For You", icon: Flame, href: "/community", active: true },
+    {
+        label: "Discussions",
+        icon: MessageSquare,
+        href: "/community/discussions",
+    },
+    { label: "Explore", icon: Compass, href: "/community/explore" },
+];
+---
+
+<Layout
+    title="Community | TakoVibe"
+    description="Join the discussion, share your thoughts, and connect with other developers."
+>
+    {/* Background: Organic Mesh Gradient */}
+    <div class="fixed inset-0 z-0 pointer-events-none">
+        <div
+            class="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-purple-600/10 dark:bg-purple-900/20 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen animate-blob"
+        >
+        </div>
+        <div
+            class="absolute top-[20%] right-[-10%] w-[40%] h-[40%] bg-blue-600/10 dark:bg-blue-900/20 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen animate-blob animation-delay-2000"
+        >
+        </div>
+    </div>
+
+    <div class="min-h-screen bg-transparent relative z-10 pt-28 pb-24">
+        <div class="max-w-[1440px] mx-auto px-4 sm:px-6 w-full">
+            {
+                /* 
+               GRID LAYOUT SYSTEM
+               MD/LG: 2 Columns [Sidebar 280px | Feed 1fr]
+               XL+:   3 Columns [Sidebar 320px | Feed 1fr | Sidebar 320px]
+            */
+            }
+            <div
+                class="grid grid-cols-1 lg:grid-cols-[280px_1fr] xl:grid-cols-[320px_1fr_320px] gap-8 items-start"
+            >
+                {
+                    /* 
+                   LEFT COLUMN - CONTEXT (Stats)
+                   Hidden on mobile, visible on LG+
+                */
+                }
+                <aside class="hidden lg:block sticky top-32 space-y-6">
+                    {/* Community Pulse */}
+                    <div
+                        class="relative overflow-hidden rounded-[2rem] p-[1px] bg-gradient-to-br from-purple-500/30 via-blue-500/10 to-transparent group"
+                    >
+                        <div
+                            class="bg-white dark:bg-slate-900 rounded-[2rem] p-6 relative overflow-hidden"
+                        >
+                            <div
+                                class="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 blur-3xl rounded-full"
+                            >
+                            </div>
+
+                            <div>
+                                <div class="flex items-center gap-2 mb-3">
+                                    <div
+                                        class="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-full"
+                                    >
+                                        <Sparkles
+                                            className="w-4 h-4 text-purple-600 dark:text-purple-400"
+                                        />
+                                    </div>
+                                    <h3
+                                        class="font-bold text-gray-900 dark:text-white"
+                                    >
+                                        Community Pulse
+                                    </h3>
+                                </div>
+                                <p
+                                    class="text-sm text-gray-500 dark:text-gray-400 font-medium leading-tight mb-6"
+                                >
+                                    <span
+                                        class="text-gray-900 dark:text-white font-bold"
+                                        >1,245+ devs</span
+                                    > building the future.
+                                </p>
+                            </div>
+
+                            <div class="flex items-center gap-3">
+                                <div class="flex -space-x-2">
+                                    {
+                                        [1, 2, 3].map((i) => (
+                                            <div class="w-8 h-8 rounded-full border-2 border-white dark:border-slate-900 bg-gray-200 dark:bg-gray-800 flex items-center justify-center text-xs font-bold text-gray-500 overflow-hidden">
+                                                <img
+                                                    src={`https://ui-avatars.com/api/?name=User+${i}&background=random`}
+                                                    alt=""
+                                                    class="w-full h-full"
+                                                />
+                                            </div>
+                                        ))
+                                    }
+                                </div>
+                                <div
+                                    class="text-xs font-bold text-green-500 flex items-center gap-1"
+                                >
+                                    <span
+                                        class="w-2 h-2 bg-green-500 rounded-full animate-pulse"
+                                    ></span>
+                                    98 Online
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Trending Topics */}
+                    <div
+                        class="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-gray-100 dark:border-white/5 shadow-lg shadow-purple-900/5"
+                    >
+                        <div class="flex items-center gap-2 mb-4">
+                            <div
+                                class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-full"
+                            >
+                                <Hash
+                                    className="w-4 h-4 text-blue-600 dark:text-blue-400"
+                                />
+                            </div>
+                            <h3 class="font-bold text-gray-900 dark:text-white">
+                                Trending Now
+                            </h3>
+                        </div>
+                        <div class="flex flex-wrap content-start gap-2">
+                            {
+                                trendingTags.map((tag) => (
+                                    <a
+                                        href={`/community/tag/${tag}`}
+                                        class="px-3 py-1.5 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl text-xs font-bold text-gray-600 dark:text-gray-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-300 transition-all"
+                                    >
+                                        #{tag}
+                                    </a>
+                                ))
+                            }
+                        </div>
+                    </div>
+
+                    {/* Top Writers */}
+                    <div
+                        class="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-gray-100 dark:border-white/5 shadow-lg shadow-purple-900/5"
+                    >
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2">
+                                <div
+                                    class="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-full"
+                                >
+                                    <TrendingUp
+                                        className="w-4 h-4 text-yellow-600 dark:text-yellow-400"
+                                    />
+                                </div>
+                                <h3
+                                    class="font-bold text-gray-900 dark:text-white"
+                                >
+                                    Top Writers
+                                </h3>
+                            </div>
+                            <a
+                                href="#"
+                                class="text-xs font-bold text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                                >View All</a
+                            >
+                        </div>
+                        <div class="flex flex-col gap-4">
+                            {
+                                topAuthors.map((author, i) => (
+                                    <div class="flex items-center gap-3 group cursor-pointer">
+                                        <div class="relative">
+                                            <img
+                                                src={author.avatar}
+                                                alt={author.name}
+                                                class="w-10 h-10 rounded-full border border-gray-100 dark:border-white/5"
+                                            />
+                                            <div class="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center text-[9px] font-bold text-yellow-900">
+                                                {i + 1}
+                                            </div>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <h4 class="font-bold text-gray-900 dark:text-white text-sm truncate group-hover:text-purple-500 transition-colors">
+                                                {author.name}
+                                            </h4>
+                                            <p class="text-[11px] text-gray-500 dark:text-gray-400 truncate">
+                                                {author.handle}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))
+                            }
+                        </div>
+                    </div>
+                </aside>
+
+                {
+                    /* 
+                   CENTER COLUMN - CONTENT (Feed)
+                   Fluid width.
+                */
+                }
+                <main class="min-w-0 w-full">
+                    {
+                        /* 
+                       Sticky Navigation Pill
+                       Visible on Mobile AND Laptop (LG).
+                       Hidden only on Desktop (XL) where Right Sidebar takes over.
+                    */
+                    }
+                    <div class="sticky top-24 z-30 pb-8 -mt-2 xl:hidden">
+                        <div
+                            class="absolute inset-0 -top-8 bg-gradient-to-b from-gray-50/90 dark:from-[#0B1120]/90 to-transparent pointer-events-none backdrop-blur-[2px]"
+                        >
+                        </div>
+
+                        <div
+                            class="relative flex items-center justify-between bg-white/70 dark:bg-[#151921]/70 backdrop-blur-xl rounded-full p-2 border border-white/20 dark:border-white/5 shadow-2xl shadow-purple-900/10 mx-auto max-w-fit"
+                        >
+                            <div class="flex items-center">
+                                <a
+                                    href="/community"
+                                    class="flex items-center gap-2 px-6 py-2.5 bg-gray-900 dark:bg-purple-600 rounded-full shadow-lg text-white font-bold text-sm transition-all hover:scale-105"
+                                >
+                                    <Flame className="w-4 h-4" />
+                                    <span>For You</span>
+                                </a>
+                                <a
+                                    href="/community/discussions"
+                                    class="flex items-center gap-2 px-6 py-2.5 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-all hover:bg-black/5 dark:hover:bg-white/10"
+                                >
+                                    <MessageSquare className="w-4 h-4" />
+                                    <span>Discussions</span>
+                                </a>
+                                <a
+                                    href="/community/explore"
+                                    class="flex items-center gap-2 px-6 py-2.5 rounded-full text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium text-sm transition-all hover:bg-black/5 dark:hover:bg-white/10"
+                                >
+                                    <Compass className="w-4 h-4" />
+                                    <span>Explore</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="animate-fade-in-up animation-delay-300">
+                        <Feed client:load />
+                    </div>
+                </main>
+
+                {
+                    /* 
+                   RIGHT COLUMN - CONTROL (Nav)
+                   Only visible on Desktop (XL+)
+                */
+                }
+                <aside class="hidden xl:block sticky top-32">
+                    <div
+                        class="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-gray-100 dark:border-white/5 shadow-lg shadow-purple-900/5 space-y-2"
+                    >
+                        <h3
+                            class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest px-4 mb-2"
+                        >
+                            Menu
+                        </h3>
+
+                        {
+                            navItems.map((item) => (
+                                <a
+                                    href={item.href}
+                                    class={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 group ${
+                                        item.active
+                                            ? "bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 font-bold"
+                                            : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white font-medium"
+                                    }`}
+                                >
+                                    <item.icon
+                                        className={`w-5 h-5 ${item.active ? "fill-current" : ""}`}
+                                    />
+                                    <span>{item.label}</span>
+                                    {item.active && (
+                                        <div class="ml-auto w-1.5 h-1.5 bg-purple-600 dark:bg-purple-400 rounded-full" />
+                                    )}
+                                </a>
+                            ))
+                        }
+
+                        <div class="h-px bg-gray-100 dark:bg-white/5 my-4 mx-2">
+                        </div>
+
+                        <a
+                            href="/notifications"
+                            class="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white font-medium transition-all group"
+                        >
+                            <Bell className="w-5 h-5" />
+                            <span>Notifications</span>
+                            <span
+                                class="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                                >2</span
+                            >
+                        </a>
+                        <button
+                            class="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white font-medium transition-all group"
+                        >
+                            <Settings className="w-5 h-5" />
+                            <span>Settings</span>
+                        </button>
+                    </div>
+
+                    {/* Filter Card */}
+                    <div
+                        class="mt-8 bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-gray-100 dark:border-white/5 shadow-lg shadow-purple-900/5"
+                    >
+                        <h3
+                            class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4"
+                        >
+                            Filters
+                        </h3>
+                        <div class="space-y-3">
+                            {
+                                [
+                                    "All Posts",
+                                    "My Network",
+                                    "Verified Only",
+                                ].map((filter, i) => (
+                                    <label class="flex items-center justify-between cursor-pointer group">
+                                        <span class="text-sm font-medium text-gray-600 dark:text-gray-300 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                                            {filter}
+                                        </span>
+                                        <div
+                                            class={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${i === 0 ? "border-purple-600 bg-purple-600" : "border-gray-200 dark:border-white/10"}`}
+                                        >
+                                            {i === 0 && (
+                                                <div class="w-2 h-2 bg-white rounded-full" />
+                                            )}
+                                        </div>
+                                    </label>
+                                ))
+                            }
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes blob {
+            0% {
+                transform: translate(0px, 0px) scale(1);
+            }
+            33% {
+                transform: translate(30px, -50px) scale(1.1);
+            }
+            66% {
+                transform: translate(-20px, 20px) scale(0.9);
+            }
+            100% {
+                transform: translate(0px, 0px) scale(1);
+            }
+        }
+        .animate-blob {
+            animation: blob 7s infinite;
+        }
+        .animation-delay-2000 {
+            animation-delay: 2s;
+        }
+    </style>
+</Layout>

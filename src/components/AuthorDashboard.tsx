@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, FileText, User as UserIcon, Settings, Plus, Edit3, Eye, Trash2 } from 'lucide-react';
-
+import { Layout, FileText, User as UserIcon, Plus, Edit3, Eye, Trash2, Save, Github, Linkedin, Globe, Link as LinkIcon, Camera } from 'lucide-react';
 
 const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -9,6 +8,11 @@ interface User {
     name: string;
     email: string;
     image: string;
+    username?: string;
+    bio?: string;
+    github_url?: string;
+    linkedin_url?: string;
+    website_url?: string;
 }
 
 interface BlogPost {
@@ -29,14 +33,37 @@ interface BlogPost {
 const AuthorDashboard: React.FC = () => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'my-posts' | 'profile' | 'settings'>('my-posts');
+    const [activeTab, setActiveTab] = useState<'my-posts' | 'profile'>('my-posts');
     const [postTab, setPostTab] = useState<'drafts' | 'published'>('published');
     const [posts, setPosts] = useState<BlogPost[]>([]);
     const [error, setError] = useState<string | null>(null);
 
+    // Profile Form State
+    const [profileForm, setProfileForm] = useState({
+        name: '',
+        bio: '',
+        github_url: '',
+        linkedin_url: '',
+        website_url: ''
+    });
+    const [isSaving, setIsSaving] = useState(false);
+    const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
     useEffect(() => {
         checkAuthAndFetchData();
     }, []);
+
+    useEffect(() => {
+        if (user) {
+            setProfileForm({
+                name: user.name || '',
+                bio: user.bio || '',
+                github_url: user.github_url || '',
+                linkedin_url: user.linkedin_url || '',
+                website_url: user.website_url || ''
+            });
+        }
+    }, [user]);
 
     const checkAuthAndFetchData = async () => {
         const token = localStorage.getItem('access_token');
@@ -68,7 +95,11 @@ const AuthorDashboard: React.FC = () => {
                 id: userData.id,
                 name: userData.name || `${userData.first_name || ''} ${userData.last_name || ''}`.trim(),
                 email: userData.email,
-                image: userData.image || userData.avatar || ''
+                image: userData.image || userData.avatar || '',
+                bio: userData.bio || '',
+                github_url: userData.github_url || userData.github || '',
+                linkedin_url: userData.linkedin_url || userData.linkedin || '',
+                website_url: userData.website_url || userData.website || ''
             };
             setUser(userObj);
 
@@ -84,7 +115,6 @@ const AuthorDashboard: React.FC = () => {
                 setPosts(fetchedPosts);
             } else {
                 console.error("Failed to fetch posts");
-                // Optional: set specific error message based on status
             }
 
         } catch (err: any) {
@@ -92,6 +122,42 @@ const AuthorDashboard: React.FC = () => {
             setError(err.message || 'An error occurred');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleProfileUpdate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSaving(true);
+        setSaveMessage(null);
+
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+
+        try {
+            const res = await fetch(`${API_URL}/api/users/me/`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Token ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(profileForm)
+            });
+
+            if (!res.ok) throw new Error('Failed to update profile');
+
+            const updatedData = await res.json();
+            // Update local user state
+            setUser(prev => prev ? { ...prev, ...profileForm } : null);
+            setSaveMessage({ type: 'success', text: 'Profile updated successfully!' });
+
+            // Clear message after 3 seconds
+            setTimeout(() => setSaveMessage(null), 3000);
+
+        } catch (err) {
+            console.error(err);
+            setSaveMessage({ type: 'error', text: 'Failed to update profile. Please try again.' });
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -115,12 +181,15 @@ const AuthorDashboard: React.FC = () => {
             <aside className="w-full md:w-64 flex-shrink-0">
                 <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 sticky top-24">
                     <div className="flex flex-col items-center mb-8">
-                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 p-1 mb-3">
+                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 p-1 mb-3 relative group cursor-pointer">
                             <img
                                 src={user?.image || `https://ui-avatars.com/api/?name=${user?.name}&background=random`}
                                 alt={user?.name}
                                 className="w-full h-full rounded-full object-cover border-2 border-white dark:border-slate-800"
                             />
+                            <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <Camera className="w-6 h-6 text-white" />
+                            </div>
                         </div>
                         <h2 className="text-lg font-bold text-gray-900 dark:text-white text-center">{user?.name}</h2>
                         <p className="text-sm text-gray-500 dark:text-gray-400">{user?.email}</p>
@@ -141,13 +210,7 @@ const AuthorDashboard: React.FC = () => {
                             <UserIcon className="w-5 h-5" />
                             Profile
                         </button>
-                        <button
-                            onClick={() => setActiveTab('settings')}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 ${activeTab === 'settings' ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'}`}
-                        >
-                            <Settings className="w-5 h-5" />
-                            Settings
-                        </button>
+
                     </nav>
                 </div>
             </aside>
@@ -265,24 +328,137 @@ const AuthorDashboard: React.FC = () => {
                     </div>
                 )}
 
-                {/* Profile View (Placeholder) */}
+                {/* Profile View */}
                 {activeTab === 'profile' && (
-                    <div className="animate-fade-in">
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Profile Settings</h1>
-                        <div className="bg-white dark:bg-slate-900 rounded-xl p-8 border border-gray-200 dark:border-gray-800">
-                            <p className="text-gray-500 dark:text-gray-400">Profile management coming soon...</p>
+                    <div className="animate-fade-in max-w-3xl">
+                        <div className="flex items-center justify-between mb-8">
+                            <div>
+                                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Profile Settings</h1>
+                                <p className="text-gray-500 dark:text-gray-400">Manage your public profile and social links</p>
+                            </div>
                         </div>
+
+                        <form onSubmit={handleProfileUpdate} className="space-y-6">
+                            {saveMessage && (
+                                <div className={`p-4 rounded-xl flex items-center gap-2 ${saveMessage.type === 'success' ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400' : 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'}`}>
+                                    <span className="text-sm font-medium">{saveMessage.text}</span>
+                                </div>
+                            )}
+
+                            <div className="bg-white dark:bg-slate-900 rounded-xl p-8 border border-gray-200 dark:border-gray-800 space-y-8">
+                                {/* Basic Info */}
+                                <div>
+                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                        <UserIcon className="w-5 h-5 text-purple-500" />
+                                        Basic Information
+                                    </h3>
+
+                                    <div className="grid gap-6">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                Display Name
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={profileForm.name}
+                                                onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
+                                                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                                placeholder="Your full name"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                Bio
+                                            </label>
+                                            <textarea
+                                                value={profileForm.bio}
+                                                onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
+                                                rows={4}
+                                                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                                placeholder="Tell us a bit about yourself..."
+                                            />
+                                            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">Brief description for your profile. HTML is not allowed.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="h-px bg-gray-100 dark:bg-gray-800"></div>
+
+                                {/* Social Links */}
+                                <div>
+                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                        <LinkIcon className="w-5 h-5 text-blue-500" />
+                                        Social & Links
+                                    </h3>
+
+                                    <div className="grid gap-5">
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <Github className="h-5 w-5 text-gray-400" />
+                                            </div>
+                                            <input
+                                                type="url"
+                                                value={profileForm.github_url}
+                                                onChange={(e) => setProfileForm({ ...profileForm, github_url: e.target.value })}
+                                                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                                placeholder="https://github.com/username"
+                                            />
+                                        </div>
+
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <Linkedin className="h-5 w-5 text-gray-400" />
+                                            </div>
+                                            <input
+                                                type="url"
+                                                value={profileForm.linkedin_url}
+                                                onChange={(e) => setProfileForm({ ...profileForm, linkedin_url: e.target.value })}
+                                                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                                placeholder="https://linkedin.com/in/username"
+                                            />
+                                        </div>
+
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <Globe className="h-5 w-5 text-gray-400" />
+                                            </div>
+                                            <input
+                                                type="url"
+                                                value={profileForm.website_url}
+                                                onChange={(e) => setProfileForm({ ...profileForm, website_url: e.target.value })}
+                                                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                                placeholder="https://yourwebsite.com"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end">
+                                <button
+                                    type="submit"
+                                    disabled={isSaving}
+                                    className={`flex items-center gap-2 px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-lg shadow-purple-500/20 transition-all ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:scale-105'}`}
+                                >
+                                    {isSaving ? (
+                                        <>
+                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                            Saving...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Save className="w-5 h-5" />
+                                            Save Changes
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 )}
 
-                {activeTab === 'settings' && (
-                    <div className="animate-fade-in">
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Settings</h1>
-                        <div className="bg-white dark:bg-slate-900 rounded-xl p-8 border border-gray-200 dark:border-gray-800">
-                            <p className="text-gray-500 dark:text-gray-400">Settings coming soon...</p>
-                        </div>
-                    </div>
-                )}
+
 
             </main>
         </div>
