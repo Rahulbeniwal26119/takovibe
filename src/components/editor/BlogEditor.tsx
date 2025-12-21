@@ -16,6 +16,7 @@ import { SlashCommand } from './SlashCommand';
 import CodeBlockComponent from './CodeBlockComponent';
 import ImageNodeView from './ImageNodeView';
 import { fetchWithAuth } from '../../utils/api';
+import { SEOPreview } from './SEOPreview';
 import '../../styles/editor.css';
 import {
     Bold,
@@ -102,6 +103,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
     const [isZenMode, setIsZenMode] = useState(false);
     const [canPublish, setCanPublish] = useState(false);
     const [isPublishing, setIsPublishing] = useState(false);
+    const [showSeoPreview, setShowSeoPreview] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [lastSaved, setLastSaved] = useState<Date | null>(null);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -902,6 +904,28 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
+                        {/* SEO Preview Toggle & Section */}
+                        <div className="mt-8 border-t border-slate-100 dark:border-transparent pt-8">
+                            <button
+                                onClick={() => setShowSeoPreview(!showSeoPreview)}
+                                className="flex items-center gap-2 text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                            >
+                                {showSeoPreview ? <ArrowDown className="w-4 h-4 rotate-180 transition-transform" /> : <ArrowDown className="w-4 h-4 transition-transform" />}
+                                SEO & Social Preview
+                            </button>
+
+                            {showSeoPreview && (
+                                <div className="animate-in fade-in slide-in-from-top-4 duration-300">
+                                    <SEOPreview
+                                        title={frontmatter.title}
+                                        description={frontmatter.description}
+                                        slug={frontmatter.slug}
+                                        image={frontmatter.image}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
 
