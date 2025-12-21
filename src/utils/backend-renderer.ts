@@ -24,7 +24,7 @@ let highlighterPromise: Promise<any> | null = null;
 async function getHighlighter() {
     if (!highlighterPromise) {
         highlighterPromise = createHighlighter({
-            themes: ["github-dark"],
+            themes: ["github-dark", "github-light"],
             langs: ["python", "javascript", "html", "css", "json", "bash"],
         });
     }
@@ -196,7 +196,10 @@ async function highlightCodeBlocks(html: string) {
 
                 let highlighted = await highlighter.codeToHtml(decoded, {
                     lang: lang,
-                    theme: "github-dark",
+                    themes: {
+                        light: "github-light",
+                        dark: "github-dark",
+                    },
                 });
 
                 const showOutputMatch = preAttrs.match(
@@ -213,11 +216,11 @@ async function highlightCodeBlocks(html: string) {
                         .replace(/&#34;/g, '"');
 
                     const outputHtml = `
-                        <div class="mt-4 bg-[#161b22] rounded-lg border border-gray-700/50 overflow-hidden">
-                            <div class="px-4 py-2 bg-[#0d1117] border-b border-gray-700/50 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                        <div class="mt-4 bg-gray-50 dark:bg-[#161b22] rounded-lg border border-gray-200 dark:border-gray-700/50 overflow-hidden">
+                            <div class="px-4 py-2 bg-gray-100 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-700/50 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                 Output
                             </div>
-                            <div class="p-4 font-mono text-sm text-gray-300 whitespace-pre-wrap">${outputText}</div>
+                            <div class="p-4 font-mono text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">${outputText}</div>
                         </div>
                     `;
 
