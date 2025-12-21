@@ -580,10 +580,10 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
     // ... (existing code)
 
     return (
-        <div className="relative w-full max-w-7xl mx-auto">
+        <div className="relative w-full max-w-5xl mx-auto">
             {/* Editor Hints Sidebar - Positioned absolutely to the right of the editor content on large screens */}
             {/* Editor Hints Sidebar - Animated for Zen Mode */}
-            <div className={`hidden 2xl:block absolute left-full top-0 ml-6 w-60 p-5 rounded-xl border border-dashed border-slate-300 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-900/20 backdrop-blur-[2px] transition-all duration-700 ease-[cubic-bezier(0.25,0.1,0.25,1)] transform origin-left ${isZenMode
+            <div className={`hidden xl:block absolute left-full top-0 ml-4 w-56 p-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-900/20 backdrop-blur-[2px] transition-all duration-700 ease-[cubic-bezier(0.25,0.1,0.25,1)] transform origin-left ${isZenMode
                 ? 'opacity-0 translate-x-10 pointer-events-none blur-sm scale-95'
                 : 'opacity-100 translate-x-0 blur-0 scale-100'
                 }`}>
@@ -594,36 +594,36 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
 
                 <ul className="space-y-2.5">
                     <li className="flex items-center justify-between group">
-                        <span className="text-sm text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Menu</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Menu</span>
                         <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm min-w-[1.5rem] text-center">/</kbd>
                     </li>
                     <li className="flex items-center justify-between group">
-                        <span className="text-sm text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Format</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Format</span>
                         <div className="flex gap-1">
                             <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm">⌘B</kbd>
                             <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm">⌘I</kbd>
                         </div>
                     </li>
                     <li className="flex items-center justify-between group">
-                        <span className="text-sm text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Headers</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Headers</span>
                         <div className="flex gap-1">
                             <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm">#</kbd>
                             <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm">##</kbd>
                         </div>
                     </li>
                     <li className="flex items-center justify-between group">
-                        <span className="text-sm text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Lists</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Lists</span>
                         <div className="flex gap-1">
                             <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm">-</kbd>
                             <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm">1.</kbd>
                         </div>
                     </li>
                     <li className="flex items-center justify-between group">
-                        <span className="text-sm text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Quote</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Quote</span>
                         <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm">&gt;</kbd>
                     </li>
                     <li className="flex items-center justify-between group">
-                        <span className="text-sm text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Code</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Code</span>
                         <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm">```</kbd>
                     </li>
                 </ul>

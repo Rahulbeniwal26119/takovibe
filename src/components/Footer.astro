@@ -17,7 +17,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
             >TakoVibe</span
           >
         </h2>
-        <p class="text-blue-100 text-sm sm:text-base max-w-2xl mx-auto">
+        <p class="text-blue-50 text-sm sm:text-base max-w-2xl mx-auto">
           Join our community of developers, designers, and tech enthusiasts. Get
           the latest insights, tutorials, and updates delivered to your inbox.
         </p>
@@ -58,7 +58,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
             </h2>
           </div>
           <p
-            class="text-blue-700 dark:text-blue-300 mb-6 text-sm leading-relaxed"
+            class="text-blue-800 dark:text-blue-200 mb-6 text-sm leading-relaxed"
           >
             Exploring the depths of software engineering, system design, and
             technology innovations. Join me on this journey of continuous
@@ -67,9 +67,9 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
           <div class="flex items-center gap-4">
             <a
               href="https://linkedin.com/in/rahulbeniwal26119"
-              class="group flex items-center gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
+              class="group flex items-center gap-2 text-blue-700 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-200 transition-colors duration-200"
+              aria-label="LinkedIn"
             >
-              <span class="sr-only">LinkedIn</span>
               <svg
                 class="h-5 w-5 transition-transform group-hover:scale-110"
                 fill="currentColor"
@@ -83,9 +83,9 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
             </a>
             <a
               href="https://github.com/Rahulbeniwal26119"
-              class="group flex items-center gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
+              class="group flex items-center gap-2 text-blue-700 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-200 transition-colors duration-200"
+              aria-label="GitHub"
             >
-              <span class="sr-only">GitHub</span>
               <svg
                 class="h-5 w-5 transition-transform group-hover:scale-110"
                 fill="currentColor"
@@ -100,18 +100,6 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
           </div>
         </div>
       </div>
-
-      <!-- Quick Links -->
-      <!-- <div>
-        <h3 class="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-4">Quick Links</h3>
-        <ul class="space-y-3">
-          <li>
-            <a href="/about" class="text-gray-600 dark:text-gray-400 hover:text-purple-500 dark:hover:text-purple-400">
-              About
-            </a>
-          </li>
-        </ul>
-      </div> -->
 
       <!-- Newsletter Section -->
       <div class="col-span-1 md:col-span-8">
@@ -143,7 +131,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
                 >
                   Join the Upcoming Newsletter
                 </h3>
-                <p class="text-sm text-blue-700 dark:text-blue-300">
+                <p class="text-sm text-blue-800 dark:text-blue-200">
                   Get weekly insights and tutorials
                 </p>
               </div>
@@ -158,7 +146,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
                   type="email"
                   autocomplete="email"
                   required
-                  class="flex-1 px-4 py-2.5 bg-white dark:bg-blue-900/50 border border-blue-200/50 dark:border-blue-700/50 rounded-lg shadow-sm placeholder-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
+                  class="flex-1 px-4 py-2.5 bg-white dark:bg-blue-900/50 border border-blue-200/50 dark:border-blue-700/50 rounded-lg shadow-sm placeholder-blue-600 dark:placeholder-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
                   placeholder="Enter your email address"
                 />
                 <button
@@ -255,109 +243,134 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
   </div>
 </footer>
 <script define:vars={{ apiUrl }}>
-  document.addEventListener("DOMContentLoaded", async () => {
-    const email = await get_email();
-    document.getElementById("email-address").value = email;
+  
+  async function checkSubscription() {
+    const emailInput = document.getElementById("email-address");
+    const subscribeForm = document.getElementById("subscribe-form");
+    const unsubscribeMsg = document.getElementById("unsubscribed-message");
 
-    // Defer subscription check to avoid blocking main thread
-    const checkSubscription = async () => {
-      const opt_out = await get_subscription_status();
-      if (!opt_out) {
-        document.getElementById("subscribe-form").style.display = "none";
-        document.getElementById("unsubscribed-message").style.display = "block";
-      } else {
-        const user_details = localStorage.getItem("user") || null;
-        if (user_details) {
-          const user_details_json = JSON.parse(user_details);
-          const email = user_details_json.email;
-          const form_email = document.getElementById("email-address").value;
-          if (!form_email) {
-            // set login email to the form email
-            document.getElementById("email-address").value = email;
+    if (!emailInput || !subscribeForm || !unsubscribeMsg) return;
+
+    let email = null;
+    const user_details = localStorage.getItem("user");
+
+    if (user_details) {
+      try {
+        const user_json = JSON.parse(user_details);
+        email = user_json.email;
+        if (email && !emailInput.value) {
+          emailInput.value = email;
+        }
+      } catch (e) {
+        console.warn("Failed to parse user details", e);
+      }
+    }
+
+    // Only check server if we have an email
+    if (email || emailInput.value) {
+      const checkEmail = email || emailInput.value;
+      try {
+        const url = `${apiUrl}/api/users/newsletter/?email=${encodeURIComponent(checkEmail)}`;
+        const response = await fetch(url);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.data && data.data.opt_out === false) {
+            // User IS subscribed (opt_out = false)
+            // Show 'subscribed' message
+            subscribeForm.style.display = "none";
+            unsubscribeMsg.style.display = "block";
+            return;
           }
         }
+      } catch (err) {
+        // Silently fail on network error affecting UI only
       }
-    };
-
-    if ("requestIdleCallback" in window) {
-      requestIdleCallback(() => checkSubscription());
-    } else {
-      setTimeout(checkSubscription, 1000);
     }
+
+    // Default: Show form
+    subscribeForm.style.display = "block";
+    unsubscribeMsg.style.display = "none";
+  }
+
+  // Optimize load performance
+  const onIdle = window.requestIdleCallback || ((cb) => setTimeout(cb, 1000));
+
+  document.addEventListener("DOMContentLoaded", () => {
+    // Initial UI Setup locally if possible before network
+    onIdle(checkSubscription);
+
+    // Attach event listeners efficiently
     const form = document.getElementById("subscribe-form");
-    form.value = email;
-    // stop page be be reload on submit
-    document
-      .getElementById("subscribe-form")
-      .addEventListener("submit", async function (event) {
-        console.log("event", event);
-        event.preventDefault();
+    if (form) {
+      // Find the specific button or form submit
+      const subBtn = form.querySelector('button[type="submit"]');
+      if (subBtn) {
+        subBtn.onclick = toggle_newsletter_subscription;
+      }
+
+      // Prevent default form submission if it happens via enter key
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        toggle_newsletter_subscription(e);
       });
-    // Removed broken opt_out check from here, moved to checkSubscription
+    }
+
+    const unsubBtn = document.getElementById("unsubscribe-button");
+    if (unsubBtn) {
+      unsubBtn.onclick = async (e) => {
+        e.preventDefault();
+        await toggle_newsletter_subscription(e);
+        // Optionally refresh or just update UI without reload
+        checkSubscription();
+      };
+    }
   });
 
-  async function get_email() {
-    const user_details = localStorage.getItem("user") || null;
-    if (user_details) {
-      const user_details_json = JSON.parse(user_details);
-      return user_details_json.email;
-    } else {
-      return document.getElementById("email-address").value;
-    }
-  }
+  // Global function as required by current implementation
+  window.toggle_newsletter_subscription = async function (event) {
+    if (event) event.preventDefault();
 
-  async function get_subscription_status() {
-    const email = document.getElementById("email-address").value;
-    const url = `${apiUrl}/api/users/newsletter/` + `?email=${email}`;
-    const response = await fetch(url, {
-      method: "GET",
-    });
-    if (response.ok) {
-      const data = await response.json();
-      var data_json = data.data;
-      return data_json.opt_out;
-    }
-    return false;
-  }
+    const emailInput = document.getElementById("email-address");
+    if (!emailInput || !emailInput.value) return;
 
-  window.toggle_newsletter_subscription =
-    async function toggle_newsletter_subscription(event) {
-      console.log("toggle_newsletter_subscription", event);
-      event.preventDefault();
-      console.log("event", event);
+    const email = emailInput.value;
+    const url = `${apiUrl}/api/users/newsletter/`;
+    const subscribeForm = document.getElementById("subscribe-form");
+    const unsubscribeMsg = document.getElementById("unsubscribed-message");
 
-      const url = `${apiUrl}/api/users/newsletter/`;
-      const email = document.getElementById("email-address").value;
+    // Optimistic UI update could go here, but waiting for server is safer for truth
+    const btn = event.target;
+    const originalText = btn.innerText;
+    btn.innerText = "...";
+    btn.disabled = true;
 
+    try {
       const response = await fetch(url, {
         method: "POST",
-        body: JSON.stringify({ email: email }),
-        headers: {
-          "Content-Type": "application/json",
-        },
+        body: JSON.stringify({ email }),
+        headers: { "Content-Type": "application/json" },
       });
+
       if (response.ok) {
         const data = await response.json();
-        var data_json = data.data;
-        const opt_out = data_json.opt_out;
-        if (opt_out) {
-          document.getElementById("subscribe-form").style.display = "block";
-          document.getElementById("unsubscribed-message").style.display =
-            "none";
-        } else {
-          document.getElementById("subscribe-form").style.display = "none";
-          document.getElementById("unsubscribed-message").style.display =
-            "block";
-        }
-      } else {
-        console.error("Newsletter subscription failed");
-      }
-    };
+        const isOptedOut = data.data.opt_out; // True if just UNSUBSCRIBED
 
-  const unsubscribe_button = document.getElementById("unsubscribe-button");
-  unsubscribe_button.addEventListener("click", async (event) => {
-    event.preventDefault();
-    await toggle_newsletter_subscription(event);
-    window.location.reload();
-  });
+        if (isOptedOut) {
+          // User just opted out -> Show form to subscribe again
+          subscribeForm.style.display = "block";
+          unsubscribeMsg.style.display = "none";
+        } else {
+          // User just subscribed -> Show success message
+          subscribeForm.style.display = "none";
+          unsubscribeMsg.style.display = "block";
+        }
+      }
+    } catch (e) {
+      console.error("Subscription toggle failed", e);
+      alert("Something went wrong. Please try again.");
+    } finally {
+      btn.innerText = originalText;
+      btn.disabled = false;
+    }
+  };
 </script>
