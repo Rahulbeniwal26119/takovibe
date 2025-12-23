@@ -1,0 +1,21 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import UserProfile from "../../components/UserProfile";
+
+export const prerender = false;
+
+const { username } = Astro.params;
+
+if (!username) {
+    return Astro.redirect("/404");
+}
+---
+
+<Layout
+    title={`Profile - ${username}`}
+    description={`Read articles by ${username}`}
+>
+    <div class="min-h-screen bg-slate-50 dark:bg-slate-950">
+        <UserProfile client:only="react" username={username} />
+    </div>
+</Layout>

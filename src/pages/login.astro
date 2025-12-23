@@ -489,7 +489,10 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                                     name: `${userObj.first_name || ""} ${userObj.last_name || ""}`.trim(),
                                     email: userObj.email,
                                     image:
-                                        userObj.image || userObj.avatar || "",
+                                        userObj.profile_image ||
+                                        userObj.image ||
+                                        userObj.avatar ||
+                                        "",
                                 };
                             }
 
@@ -520,9 +523,11 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                                             name: name,
                                             email: userData.email,
                                             image:
+                                                userData.profile_image ||
                                                 userData.image ||
                                                 userData.avatar ||
                                                 "",
+                                            username: userData.username,
                                         };
                                     } else {
                                         console.warn(
@@ -544,6 +549,7 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                                             name: `${data.first_name} ${data.last_name}`.trim(),
                                             email: data.email,
                                             image: "",
+                                            username: data.username,
                                         };
                                     }
                                 }
@@ -741,7 +747,11 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                                     name: name,
                                     email: userData.email,
                                     image:
-                                        userData.image || userData.avatar || "",
+                                        userData.profile_image ||
+                                        userData.image ||
+                                        userData.avatar ||
+                                        "",
+                                    username: userData.username,
                                 };
                             }
                         } catch (err) {

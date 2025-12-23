@@ -7,6 +7,7 @@ interface User {
     name: string;
     image: string;
     email: string;
+    username?: string;
 }
 
 const getInitialsAvatar = (name: string) => {

@@ -95,7 +95,7 @@ const AuthorDashboard: React.FC = () => {
                 id: userData.id,
                 name: userData.name || `${userData.first_name || ''} ${userData.last_name || ''}`.trim(),
                 email: userData.email,
-                image: userData.image || userData.avatar || '',
+                image: userData.profile_image || userData.image || userData.avatar || '',
                 bio: userData.bio || '',
                 github_url: userData.github_url || userData.github || '',
                 linkedin_url: userData.linkedin_url || userData.linkedin || '',

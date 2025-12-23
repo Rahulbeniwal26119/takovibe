@@ -269,30 +269,37 @@ const breadcrumbStructuredData = {
 
                             <!-- Author and Date -->
                             <div class="flex items-center gap-4">
-                                <div
-                                    class="w-12 h-12 bg-pink-500 rounded-full flex items-center justify-center text-white font-bold text-lg"
+                                <a
+                                    href={`/profile/${post.authorUsername || post.data.author.toLowerCase().replace(/\s+/g, "-")}`}
+                                    class="flex items-center gap-4 group"
                                 >
-                                    {post.data.author.charAt(0)}
-                                </div>
-                                <div>
-                                    <div class="font-semibold text-lg">
-                                        {post.data.author}
-                                    </div>
-                                    <time
-                                        datetime={post.data.date.toString()}
-                                        class="text-sm text-white/80"
+                                    <div
+                                        class="w-12 h-12 bg-pink-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:scale-105 transition-transform"
                                     >
-                                        {
-                                            new Date(
-                                                post.data.date,
-                                            ).toLocaleDateString("en-US", {
-                                                year: "numeric",
-                                                month: "long",
-                                                day: "numeric",
-                                            })
-                                        }
-                                    </time>
-                                </div>
+                                        {post.data.author.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <div
+                                            class="font-semibold text-lg group-hover:underline decoration-2 underline-offset-4 decoration-purple-300"
+                                        >
+                                            {post.data.author}
+                                        </div>
+                                        <time
+                                            datetime={post.data.date.toString()}
+                                            class="text-sm text-white/80 block"
+                                        >
+                                            {
+                                                new Date(
+                                                    post.data.date,
+                                                ).toLocaleDateString("en-US", {
+                                                    year: "numeric",
+                                                    month: "long",
+                                                    day: "numeric",
+                                                })
+                                            }
+                                        </time>
+                                    </div>
+                                </a>
                                 <div
                                     class="ml-auto hidden sm:flex items-center gap-3"
                                 >
