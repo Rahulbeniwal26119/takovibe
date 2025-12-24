@@ -52,7 +52,6 @@ export default defineConfig({
       customPages: [
         'https://takovibe.com/blog/',
         'https://takovibe.com/about/',
-        'https://takovibe.com/portfolio/'
       ],
       serialize(item) {
         // Base configuration
@@ -85,9 +84,6 @@ export default defineConfig({
           // Blog index page
           priority = 0.9;
           changefreq = 'daily';
-        } else if (item.url.includes('/portfolio')) {
-          priority = 0.6;
-          changefreq = 'monthly';
         } else if (item.url.includes('/about')) {
           priority = 0.5;
           changefreq = 'monthly';
@@ -128,8 +124,8 @@ export default defineConfig({
     pwa({
       registerType: 'autoUpdate',
       manifest: {
-        name: 'Rahul Beniwal Blog',
-        short_name: 'RB Blog',
+        name: 'TakoVibe',
+        short_name: 'TakoVibe',
         theme_color: '#ffffff',
         icons: [
           {

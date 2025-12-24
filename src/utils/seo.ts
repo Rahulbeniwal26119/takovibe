@@ -14,12 +14,12 @@ export interface SEOProps {
 }
 
 export const defaultSEO = {
-  title: "TakoVibe - Tech Blog by Rahul Beniwal",
+  title: "TakoVibe - Modern Tech Leaning Platform",
   description: "Explore cutting-edge tutorials on Python, web development, AI, and system programming. Learn from practical examples and in-depth technical guides.",
   image: "https://takovibe.com/images/logo.svg",
   url: "https://takovibe.com",
   type: "website" as const,
-  author: "Rahul Beniwal",
+  author: "TakoVibe Team",
 };
 
 export function generateSEOTags(props: SEOProps) {

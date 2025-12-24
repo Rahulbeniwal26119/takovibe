@@ -1,14 +1,8 @@
 ---
 import ErrorBoundary from "../components/ErrorBoundary.astro";
 import Header from "../components/Header.astro";
-import CursorEffect from "../components/CursorEffect.astro";
-import FloatingElements from "../components/FloatingElements.astro";
 import ReadingProgress from "../components/ReadingProgress.astro";
 import Footer from "../components/Footer.astro";
-import MusicPlayer from "../components/MusicPlayer.astro";
-import PomodoroTimer from "../components/PomodoroTimer.astro";
-import AnimatedBackground from "../components/AnimatedBackground.astro";
-import AnnouncementBanner from "../components/AnnouncementBanner.astro";
 import ContributorBanner from "../components/ContributorBanner.astro";
 
 interface Props {
@@ -32,7 +26,7 @@ const {
     image = "https://takovibe.com/images/logo.svg",
     type,
     noAds = false,
-    author = "Rahul Beniwal",
+    author = "TakoVibe",
     tags = [],
     published_date = new Date().toISOString(),
     modified_date,

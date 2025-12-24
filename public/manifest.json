@@ -1,5 +1,5 @@
 {
-  "name": "TakoVibe - Tech Blog",
+  "name": "TakoVibe",
   "short_name": "TakoVibe",
   "description": "Explore cutting-edge tutorials on Python, web development, AI, and system programming",
   "start_url": "/",
@@ -34,7 +34,7 @@
     {
       "name": "About",
       "short_name": "About",
-      "description": "About Rahul Beniwal",
+      "description": "About TakoVibe",
       "url": "/about",
       "icons": [
         {

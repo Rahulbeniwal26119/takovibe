@@ -1,6 +1,4 @@
 ---
-import { searchArticles, type SearchResult } from "../utils/search";
-
 interface Props {
   variant?: "header" | "blog" | "mobile" | "modal";
 }
@@ -8,7 +6,7 @@ interface Props {
 const { variant = "header" } = Astro.props;
 
 // Make searchArticles available to client-side script
-const searchEndpoint = "https://backend.takovibe.com/api/blogs/blogs/";
+const searchEndpoint = import.meta.env.PUBLIC_API_URL + "/api/blogs/blogs/";
 ---
 
 <div class="pace-y-1">

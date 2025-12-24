@@ -11,8 +11,3 @@ export interface BlogPost {
         username: string;
     };
 }
-
-export interface TagCount {
-    tag: string;
-    count: number;
-}

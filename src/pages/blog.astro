@@ -1,7 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import type { APIResponse } from "../types/api";
-import type { BlogPost, TagCount } from "../types/blog";
+import type { BlogPost } from "../types/blog";
 import { getCollection } from "astro:content";
 
 const searchEndpoint = "https://backend.takovibe.com/api/blogs/blogs/";
@@ -80,7 +80,6 @@ const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
 <Layout
   title="All Articles | TakoVibe"
   description="Browse all technical articles, tutorials, and insights about software engineering, system design, and modern development practices."
-  author="Rahul Beniwal"
   tags={[
     "blog",
     "articles",
