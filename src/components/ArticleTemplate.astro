@@ -7,6 +7,7 @@ import ReadingProgress from "./ReadingProgress.astro";
 import TableOfContents from "./TableOfContents.astro";
 import SelectionPopover from "./SelectionPopover.astro";
 import QuizHydrator from "./QuizHydrator";
+import CodePlaygroundHydrator from "./CodePlaygroundHydrator";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -468,6 +469,7 @@ const breadcrumbStructuredData = {
         slug={post.slug}
     />
     <QuizHydrator client:only="react" />
+    <CodePlaygroundHydrator client:only="react" />
 </Layout>
 
 <style>

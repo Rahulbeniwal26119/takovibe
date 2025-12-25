@@ -13,6 +13,7 @@ import { common, createLowlight } from 'lowlight';
 import { QuizExtension } from './editor/QuizExtension';
 import CodeBlockComponent from './editor/CodeBlockComponent';
 import ImageNodeView from './editor/ImageNodeView';
+import { CodePlaygroundExtension } from './editor/CodePlaygroundExtension';
 import '../styles/editor.css';
 
 // Initialize lowlight with common languages
@@ -110,6 +111,7 @@ export const TiptapRenderer: React.FC<TiptapRendererProps> = ({ content }) => {
                 },
             }),
             QuizExtension, // Quiz might need read-only adjustments if it has interactive editing features
+            CodePlaygroundExtension,
         ],
         content: content,
         editorProps: {

@@ -1,6 +1,6 @@
 ---
 interface Props {
-  variant?: "header" | "blog" | "mobile" | "modal";
+  variant?: "header" | "blog" | "mobile" | "modal" | "full-header";
 }
 
 const { variant = "header" } = Astro.props;
@@ -16,22 +16,58 @@ const searchEndpoint = import.meta.env.PUBLIC_API_URL + "/api/blogs/blogs/";
   <div class="search-container relative">
     <div class="relative">
       <div
-        class="absolute inset-y-0 left-3 flex items-center pointer-events-none"
+        class={`absolute inset-y-0 left-3 flex items-center pointer-events-none ${variant === "modal" ? "pl-2" : ""}`}
       >
-        <span class="text-current opacity-40 text-sm">🔍</span>
+        {
+          variant === "modal" ? (
+            <svg
+              class="w-6 h-6 text-purple-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          ) : (
+            <svg
+              class={`w-4 h-4 ${variant === "full-header" ? "text-purple-500 w-5 h-5" : "text-gray-400 dark:text-gray-500"}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          )
+        }
       </div>
       <input
         type="text"
         id={`${variant}-search-input`}
         placeholder={variant === "blog"
           ? "Press Ctrl + / anytime to search blogs"
-          : "Press Ctrl + / to search blogs"}
-        class={`w-full pl-9 pr-4 py-2 rounded-lg border transition-all ${
+          : variant === "modal"
+            ? "What are you looking for?"
+            : "Press Ctrl + / to search blogs"}
+        class={`w-full rounded-lg transition-all ${
           variant === "header"
-            ? "bg-gray-100 dark:bg-slate-900 border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:bg-white dark:focus:bg-slate-950 focus:border-purple-500 dark:focus:border-purple-500"
-            : variant === "blog"
-              ? "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 hover:border-purple-500/50 focus:border-purple-500"
-              : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 hover:border-purple-500/50 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+            ? "pl-9 pr-4 py-2 bg-gray-100 dark:bg-slate-900 border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:bg-white dark:focus:bg-slate-950 focus:border-purple-500 dark:focus:border-purple-500"
+            : variant === "modal"
+              ? "pl-14 pr-4 py-4 bg-transparent border-none outline-none ring-0 focus:ring-0 shadow-none text-xl text-gray-900 dark:text-white placeholder-gray-400 font-medium"
+              : variant === "full-header"
+                ? "pl-12 pr-4 py-3 bg-transparent border-none outline-none ring-0 focus:ring-0 shadow-none text-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 font-medium w-full"
+                : variant === "blog"
+                  ? "pl-9 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 hover:border-purple-500/50 focus:border-purple-500"
+                  : "pl-9 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 hover:border-purple-500/50 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
         }`}
         data-variant={variant}
       />
@@ -93,6 +129,15 @@ const searchEndpoint = import.meta.env.PUBLIC_API_URL + "/api/blogs/blogs/";
   let searchResultsContainer: HTMLElement | null = null;
 
   function createSearchResults(variant: string) {
+    // For modal, try to find the external results container first
+    if (variant === "modal") {
+      const modalResults = document.getElementById("modal-search-results");
+      if (modalResults) {
+        searchResultsContainer = modalResults;
+        return;
+      }
+    }
+
     // Get the specific search container for this variant
     const searchContainer = document
       .querySelector(`#${variant}-search-input`)
@@ -117,18 +162,24 @@ const searchEndpoint = import.meta.env.PUBLIC_API_URL + "/api/blogs/blogs/";
     searchResultsContainer.className =
       "search-results-container absolute left-0 right-0 top-full mt-1 rounded-lg shadow-lg max-h-[80vh] overflow-y-auto z-50 hidden";
     searchContainer.appendChild(searchResultsContainer);
-
-    console.log(`Created search results container for variant: ${variant}`);
   }
 
   function showSearchResults(results: any[], variant: string) {
-    // Ensure we have the right search results container for this variant
-    const searchContainer = document
-      .querySelector(`#${variant}-search-input`)
-      ?.closest(".search-container");
-    const currentSearchResultsContainer = searchContainer?.querySelector(
-      ".search-results-container",
-    ) as HTMLElement;
+    let currentSearchResultsContainer: HTMLElement | null = null;
+
+    if (variant === "modal") {
+      currentSearchResultsContainer = document.getElementById(
+        "modal-search-results",
+      );
+    } else {
+      // Ensure we have the right search results container for this variant
+      const searchContainer = document
+        .querySelector(`#${variant}-search-input`)
+        ?.closest(".search-container");
+      currentSearchResultsContainer = searchContainer?.querySelector(
+        ".search-results-container",
+      ) as HTMLElement;
+    }
 
     if (!currentSearchResultsContainer) {
       console.error(
@@ -138,11 +189,14 @@ const searchEndpoint = import.meta.env.PUBLIC_API_URL + "/api/blogs/blogs/";
     }
 
     // Style based on variant but respect dark mode
-    // We use standard Tailwind dark mode classes instead of conditional JS logic based on variant
     const bgClass = "bg-white dark:bg-slate-900";
     const borderClass = "border-gray-200 dark:border-gray-700";
 
-    currentSearchResultsContainer.className = `search-results-container absolute left-0 right-0 top-full mt-1 ${bgClass} border ${borderClass} rounded-lg shadow-lg max-h-[80vh] overflow-y-auto z-50`;
+    if (variant === "modal") {
+      currentSearchResultsContainer.className = `search-results-container w-full mt-4 static bg-transparent max-h-[60vh] overflow-y-auto z-50`;
+    } else {
+      currentSearchResultsContainer.className = `search-results-container absolute left-0 right-0 top-full mt-1 ${bgClass} border ${borderClass} rounded-lg shadow-lg max-h-[80vh] overflow-y-auto z-50`;
+    }
 
     // Get current search query for "Search All" option
     const searchInput = document.querySelector(
@@ -183,7 +237,7 @@ const searchEndpoint = import.meta.env.PUBLIC_API_URL + "/api/blogs/blogs/";
              class="block p-4 ${hoverClass} border-b ${borderBottomClass} bg-purple-50 dark:bg-purple-900/10 hover:bg-purple-100 dark:hover:bg-purple-900/20 transition-colors">
             <div class="flex items-center gap-3">
               <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                <span class="w-4 h-4 text-purple-600 dark:text-purple-400">🔍</span>
+                 <svg class="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
               </div>
               <div class="flex-1">
               <h3 class="${textClass} font-medium">Search all posts for "${currentQuery}"</h3>
@@ -219,6 +273,7 @@ const searchEndpoint = import.meta.env.PUBLIC_API_URL + "/api/blogs/blogs/";
               <h3 class="${textClass} font-medium mb-1">${result.title}</h3>
               <p class="text-sm ${mutedTextClass} line-clamp-2">${result.description}</p>
             </div>
+            </div>
             ${
               result.image_url
                 ? `
@@ -226,7 +281,11 @@ const searchEndpoint = import.meta.env.PUBLIC_API_URL + "/api/blogs/blogs/";
                 <img src="${result.image_url}" alt="${result.title}" class="w-full h-full object-cover rounded-lg"/>
               </div>
             `
-                : ""
+                : `
+              <div class="w-16 h-16 flex-shrink-0 hidden md:block rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                 <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+              </div>
+                `
             }
           </div>
           <div class="flex items-center gap-3 text-xs ${mutedTextClass}">
@@ -283,11 +342,16 @@ const searchEndpoint = import.meta.env.PUBLIC_API_URL + "/api/blogs/blogs/";
       "modal-search-input",
     ) as HTMLInputElement | null;
 
+    const fullHeaderSearchInput = document.getElementById(
+      "full-header-search-input",
+    ) as HTMLInputElement | null;
+
     if (
       !headerSearchInput &&
       !blogSearchInput &&
       !mobileSearchInput &&
-      !modalSearchInput
+      !modalSearchInput &&
+      !fullHeaderSearchInput
     )
       return;
 
@@ -354,6 +418,20 @@ const searchEndpoint = import.meta.env.PUBLIC_API_URL + "/api/blogs/blogs/";
 
     if (modalSearchInput) {
       setupSearchInput(modalSearchInput, "modal");
+    }
+
+    if (fullHeaderSearchInput) {
+      setupSearchInput(fullHeaderSearchInput, "full-header");
+      // Add keyboard shortcut support for this main search too
+      document.addEventListener("keydown", (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === "/") {
+          e.preventDefault();
+          // The openSearch function in Header.astro handles visibility/focus,
+          // but we ensure consistent behavior here if needed.
+          // Actually, Header.astro handles the keydown to OPEN it.
+          // Once open, this input has focus.
+        }
+      });
     }
 
     // Close search results when clicking outside

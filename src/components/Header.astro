@@ -24,107 +24,93 @@ const navItems = [
     class="backdrop-blur-2xl border-b border-gray-200/30 dark:border-gray-800/30 bg-white/80 dark:bg-slate-900/80 supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-slate-900/60"
   >
     <div
-      class="max-w-[1400px] mx-auto h-16 lg:h-20 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4"
+      class="max-w-[1400px] mx-auto h-16 lg:h-20 px-4 sm:px-6 lg:px-8 relative"
     >
-      <!-- Left: Logo & Mobile Toggle -->
-      <div class="flex items-center gap-4 shrink-0">
-        <!-- Mobile drawer button -->
-        <button
-          id="openDrawerBtn"
-          aria-label="Open menu"
-          class="lg:hidden w-10 h-10 grid place-items-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors"
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+      <!-- Main Header Content -->
+      <div
+        id="main-header-content"
+        class="flex items-center justify-between gap-4 h-full w-full transition-all duration-300 origin-center"
+      >
+        <!-- Left: Logo & Mobile Toggle -->
+        <div class="flex items-center gap-4 shrink-0">
+          <!-- Mobile drawer button -->
+          <button
+            id="openDrawerBtn"
+            aria-label="Open menu"
+            class="lg:hidden w-10 h-10 grid place-items-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors"
           >
-            <line x1="3" y1="12" x2="21" y2="12"></line>
-            <line x1="3" y1="6" x2="21" y2="6"></line>
-            <line x1="3" y1="18" x2="21" y2="18"></line>
-          </svg>
-        </button>
-
-        <a
-          href="/"
-          class="flex items-center gap-3 group"
-          aria-label="TakoVibe home"
-        >
-          <div class="relative">
-            <div
-              class="absolute inset-0 bg-purple-500/20 rounded-full blur-md group-hover:bg-purple-500/30 transition-colors"
-            >
-            </div>
-            <img
-              src="/images/logo.svg"
-              alt="TakoVibe logo"
-              class="relative w-9 h-9 lg:w-10 lg:h-10 rounded-full shadow-sm group-hover:scale-105 transition-transform duration-300"
-            />
-          </div>
-          <span
-            class="hidden sm:block font-bold text-xl tracking-tight text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors"
-          >
-            TakoVibe
-          </span>
-        </a>
-      </div>
-
-      <!-- Center: Navigation (Desktop) -->
-      <nav class="hidden lg:flex flex-1 items-center justify-center gap-2 px-4">
-        <a
-          href="/"
-          class={`px-5 py-2.5 rounded-full text-base font-medium transition-all duration-200 whitespace-nowrap ${
-            currentPath === "/"
-              ? "bg-purple-50 dark:bg-purple-900/10 text-purple-600 dark:text-purple-400"
-              : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/50"
-          }`}
-        >
-          Home
-        </a>
-        <a
-          href="/blog"
-          class={`px-5 py-2.5 rounded-full text-base font-medium transition-all duration-200 whitespace-nowrap ${
-            currentPath.startsWith("/blog")
-              ? "bg-purple-50 dark:bg-purple-900/10 text-purple-600 dark:text-purple-400"
-              : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/50"
-          }`}
-        >
-          Blog
-        </a>
-
-        <!-- Write for Us CTA -->
-        <a
-          href="/post/new"
-          class="flex items-center gap-2 px-5 py-2.5 rounded-full text-base font-medium transition-all duration-200 whitespace-nowrap text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/10 group"
-        >
-          <svg
-            class="w-4 h-4 text-purple-500 group-hover:scale-110 transition-transform"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            ><path
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
               stroke-linecap="round"
               stroke-linejoin="round"
-              stroke-width="2"
-              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-            ></path></svg
-          >
-          Write with Us
-        </a>
+            >
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
 
-        <!-- More Dropdown -->
-        <div class="relative group">
-          <button
-            class="flex items-center gap-1 px-5 py-2.5 rounded-full text-base font-medium transition-all duration-200 whitespace-nowrap text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/50"
+          <a
+            href="/"
+            class="flex items-center gap-3 group"
+            aria-label="TakoVibe home"
           >
-            More
+            <div class="relative">
+              <div
+                class="absolute inset-0 bg-purple-500/20 rounded-full blur-md group-hover:bg-purple-500/30 transition-colors"
+              >
+              </div>
+              <img
+                src="/images/logo.svg"
+                alt="TakoVibe logo"
+                class="relative w-9 h-9 lg:w-10 lg:h-10 rounded-full shadow-sm group-hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+            <span
+              class="hidden sm:block font-bold text-xl tracking-tight text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors"
+            >
+              TakoVibe
+            </span>
+          </a>
+        </div>
+
+        <!-- Center: Navigation (Desktop) -->
+        <nav
+          class="hidden lg:flex flex-1 items-center justify-center gap-2 px-4"
+        >
+          <a
+            href="/"
+            class={`px-5 py-2.5 rounded-full text-base font-medium transition-all duration-200 whitespace-nowrap ${
+              currentPath === "/"
+                ? "bg-purple-50 dark:bg-purple-900/10 text-purple-600 dark:text-purple-400"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/50"
+            }`}
+          >
+            Home
+          </a>
+          <a
+            href="/blog"
+            class={`px-5 py-2.5 rounded-full text-base font-medium transition-all duration-200 whitespace-nowrap ${
+              currentPath.startsWith("/blog")
+                ? "bg-purple-50 dark:bg-purple-900/10 text-purple-600 dark:text-purple-400"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/50"
+            }`}
+          >
+            Blog
+          </a>
+
+          <!-- Write for Us CTA -->
+          <a
+            href="/post/new"
+            class="flex items-center gap-2 px-5 py-2.5 rounded-full text-base font-medium transition-all duration-200 whitespace-nowrap text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/10 group"
+          >
             <svg
-              class="w-4 h-4 transition-transform group-hover:rotate-180"
+              class="w-4 h-4 text-purple-500 group-hover:scale-110 transition-transform"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -132,143 +118,222 @@ const navItems = [
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="2"
-                d="M19 9l-7 7-7-7"></path></svg
+                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+              ></path></svg
             >
-          </button>
+            Write with Us
+          </a>
 
-          <!-- Dropdown Menu -->
-          <div
-            class="absolute top-full left-1/2 -translate-x-1/2 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 w-48"
-          >
-            <div
-              class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden p-1"
+          <!-- More Dropdown -->
+          <div class="relative group">
+            <button
+              class="flex items-center gap-1 px-5 py-2.5 rounded-full text-base font-medium transition-all duration-200 whitespace-nowrap text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/50"
             >
-              <a
-                href="/about"
-                class="block px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+              More
+              <svg
+                class="w-4 h-4 transition-transform group-hover:rotate-180"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                ><path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7"></path></svg
               >
-                About
-              </a>
-              <a
-                href="/categories"
-                class="block px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div
+              class="absolute top-full left-1/2 -translate-x-1/2 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 w-48"
+            >
+              <div
+                class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden p-1"
               >
-                Categories
-              </a>
-              <a
-                href="/series"
-                class="block px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-              >
-                Series
-              </a>
-              <a
-                href="/saved"
-                class="block px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-              >
-                Saved
-              </a>
-              <div class="h-px bg-gray-100 dark:bg-gray-800 my-1"></div>
-              <a
-                href="/contact"
-                class="block px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-              >
-                Contact
-              </a>
+                <a
+                  href="/about"
+                  class="block px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                >
+                  About
+                </a>
+                <a
+                  href="/categories"
+                  class="block px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                >
+                  Categories
+                </a>
+                <a
+                  href="/series"
+                  class="block px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                >
+                  Series
+                </a>
+                <a
+                  href="/saved"
+                  class="block px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                >
+                  Saved
+                </a>
+                <div class="h-px bg-gray-100 dark:bg-gray-800 my-1"></div>
+                <a
+                  href="/contact"
+                  class="block px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                >
+                  Contact
+                </a>
+              </div>
             </div>
           </div>
-        </div>
-      </nav>
+        </nav>
 
-      <!-- Right: Search & Auth -->
-      <div class="flex items-center gap-1 sm:gap-2 shrink-0">
-        <!-- Write Button (Mobile) -->
-        <a
-          href="/post/new"
-          class="lg:hidden w-10 h-10 grid place-items-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors"
-          aria-label="Write with us"
-        >
-          <svg
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+        <!-- Right: Search & Auth -->
+        <div class="flex items-center gap-1 sm:gap-2 shrink-0">
+          <!-- Write Button (Mobile) -->
+          <a
+            href="/post/new"
+            class="lg:hidden w-10 h-10 grid place-items-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors"
+            aria-label="Write with us"
           >
-            <path
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+              ></path>
+            </svg>
+          </a>
+
+          <!-- Desktop Search Trigger -->
+          <button
+            id="searchTriggerBtn"
+            class="hidden xl:flex items-center gap-3 w-64 px-4 py-2 bg-gray-100 dark:bg-slate-800/50 hover:bg-gray-200 dark:hover:bg-slate-800 text-gray-500 dark:text-gray-400 rounded-xl transition-all group border border-transparent hover:border-purple-500/20"
+            aria-label="Search"
+          >
+            <svg
+              class="w-4 h-4 group-hover:text-purple-500 transition-colors"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            <span class="text-sm font-medium">Search...</span>
+            <div
+              class="flex items-center gap-1 ml-auto text-xs px-1.5 py-0.5 rounded-md bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-gray-700 font-mono text-gray-400"
+            >
+              <span class="text-[10px]">⌘</span>
+              <span>/</span>
+            </div>
+          </button>
+
+          <!-- Mobile Search Toggle (Visible on all screens smaller than XL) -->
+          <button
+            id="mobileSearchBtn"
+            class="block xl:hidden w-10 h-10 grid place-items-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors"
+            aria-label="Open search"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
               stroke-linecap="round"
               stroke-linejoin="round"
-              stroke-width="2"
-              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-            ></path>
-          </svg>
-        </a>
+            >
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </button>
 
-        <!-- Desktop Search -->
-        <div class="hidden xl:block w-64">
-          <Search variant="header" />
+          <!-- Theme Toggle -->
+          <button
+            id="global-theme-toggle"
+            class="w-10 h-10 grid place-items-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors"
+            aria-label="Toggle theme"
+          >
+            <!-- Sun Icon -->
+            <svg
+              class="w-5 h-5 hidden dark:block"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+              ></path>
+            </svg>
+            <!-- Moon Icon -->
+            <svg
+              class="w-5 h-5 block dark:hidden"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+              ></path>
+            </svg>
+          </button>
+
+          <div class="h-6 w-px bg-gray-200 dark:bg-gray-800 hidden sm:block">
+          </div>
+
+          <div class="auth-wrapper" onclick="event.stopPropagation();">
+            <UserAuth client:only="react" />
+          </div>
         </div>
+      </div>
 
-        <!-- Mobile Search Toggle (Visible only on Large screens where drawer is hidden but desktop search is also hidden) -->
-        <button
-          id="mobileSearchBtn"
-          class="hidden lg:block xl:hidden w-10 h-10 grid place-items-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors"
-          aria-label="Open search"
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-        </button>
+      <!-- FULL HEADER SEARCH BAR (Hidden by default) -->
+      <div
+        id="full-header-search"
+        class="absolute inset-0 flex items-center px-4 sm:px-6 lg:px-8 bg-white dark:bg-slate-900 opacity-0 pointer-events-none transition-all duration-300 scale-95"
+      >
+        <div class="w-full max-w-4xl mx-auto flex items-center gap-4">
+          <div class="flex-1">
+            <Search variant="full-header" />
+          </div>
 
-        <!-- Theme Toggle -->
-        <button
-          id="global-theme-toggle"
-          class="w-10 h-10 grid place-items-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors"
-          aria-label="Toggle theme"
-        >
-          <!-- Sun Icon -->
-          <svg
-            class="w-5 h-5 hidden dark:block"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-            ></path>
-          </svg>
-          <!-- Moon Icon -->
-          <svg
-            class="w-5 h-5 block dark:hidden"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-            ></path>
-          </svg>
-        </button>
-
-        <div class="h-6 w-px bg-gray-200 dark:bg-gray-800 hidden sm:block">
-        </div>
-
-        <div class="auth-wrapper" onclick="event.stopPropagation();">
-          <UserAuth client:only="react" />
+          <div class="flex items-center gap-2">
+            <kbd
+              class="hidden md:inline-flex items-center gap-1 px-2 py-0.5 text-xs text-gray-400 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 font-mono"
+              >ESC</kbd
+            >
+            <button
+              id="closeFullSearchBtn"
+              class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-colors"
+            >
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                ><path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"></path></svg
+              >
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -322,15 +387,6 @@ const navItems = [
       Community
     </a>
     -->
-    <div class="p-4" id="mobile-search-section">
-      {
-        Astro.url.pathname !== "/blog" && (
-          <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-1">
-            <Search variant="mobile" />
-          </div>
-        )
-      }
-    </div>
 
     <!-- Drawer Nav -->
     <nav class="flex-1 overflow-y-auto px-4 py-2 space-y-1">
@@ -447,49 +503,6 @@ const navItems = [
         </div>
       </div>
     </nav>
-
-    <!-- MOBILE SEARCH OVERLAY -->
-    <div
-      id="mobileSearchOverlay"
-      class="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300 lg:hidden"
-    >
-      <div class="flex items-start justify-center pt-24 px-4">
-        <div
-          id="mobileSearchModal"
-          class="w-full max-w-lg bg-white dark:bg-[#1a1d26] rounded-2xl shadow-2xl transform scale-95 transition-all duration-300 border border-gray-200 dark:border-gray-800"
-        >
-          <div
-            class="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between"
-          >
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-              Search
-            </h3>
-            <button
-              id="closeMobileSearchBtn"
-              class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-colors"
-              aria-label="Close search"
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          </div>
-          <div class="p-4">
-            {Astro.url.pathname !== "/blog" && <Search variant="modal" />}
-          </div>
-        </div>
-      </div>
-    </div>
   </aside>
 
   <script is:inline>
@@ -573,22 +586,29 @@ const navItems = [
   </script>
 
   <script is:inline>
-    document.addEventListener("DOMContentLoaded", () => {
+    function initHeaderScripts() {
+      // Elements
+      const header = document.getElementById("site-header");
       const drawer = document.querySelector("#drawer");
       const backdrop = document.querySelector("#drawerBackdrop");
       const openBtn = document.querySelector("#openDrawerBtn");
       const closeBtn = document.querySelector("#closeDrawerBtn");
-      const header = document.getElementById("site-header");
 
-      // Mobile search elements
-      const mobileSearchBtn = document.querySelector("#mobileSearchBtn");
-      const mobileSearchOverlay = document.querySelector(
-        "#mobileSearchOverlay",
-      );
-      const mobileSearchModal = document.querySelector("#mobileSearchModal");
-      const closeMobileSearchBtn = document.querySelector(
-        "#closeMobileSearchBtn",
-      );
+      // Search elements
+      const searchTriggerBtn = document.getElementById("searchTriggerBtn");
+      const mobileSearchBtn = document.getElementById("mobileSearchBtn"); // Navbar icon
+      const mobileMenuSearchBtn = document.getElementById(
+        "mobileMenuSearchBtn",
+      ); // Drawer button
+      const searchOverlay = document.getElementById("searchOverlay");
+      const searchModal = document.getElementById("searchModal");
+      const closeSearchBtn = document.getElementById("closeSearchBtn");
+      const modalInput = document.getElementById("modal-search-input");
+
+      // Move overlay to body to avoid clipping by header transform
+      if (searchOverlay && searchOverlay.parentNode !== document.body) {
+        document.body.appendChild(searchOverlay);
+      }
 
       function openDrawer() {
         drawer?.classList.remove("-translate-x-full");
@@ -604,29 +624,70 @@ const navItems = [
         document.body.style.overflow = "";
       }
 
-      function openMobileSearch() {
-        mobileSearchOverlay?.classList.remove(
-          "pointer-events-none",
-          "opacity-0",
+      function openSearch() {
+        console.log("Opening full header search...");
+        const mainContent = document.getElementById("main-header-content");
+        const fullSearch = document.getElementById("full-header-search");
+        const fullSearchInput = document.getElementById(
+          "full-header-search-input",
         );
-        mobileSearchModal?.classList.remove("scale-95");
-        mobileSearchModal?.classList.add("scale-100");
-        document.body.style.overflow = "hidden";
+
+        if (!mainContent || !fullSearch) {
+          console.error("Header search elements missing");
+          return;
+        }
+
+        // Hide main content
+        mainContent.classList.add(
+          "opacity-0",
+          "pointer-events-none",
+          "scale-95",
+        );
+
+        // Show search bar
+        fullSearch.classList.remove(
+          "opacity-0",
+          "pointer-events-none",
+          "scale-95",
+        );
+        fullSearch.classList.add("opacity-100", "scale-100");
+
+        // Close drawer if open
+        closeDrawer();
 
         setTimeout(() => {
-          const searchInput = document.querySelector("#modal-search-input");
-          if (searchInput) searchInput.focus();
-        }, 300);
+          if (fullSearchInput) {
+            fullSearchInput.focus();
+          }
+        }, 100);
       }
 
-      function closeMobileSearch() {
-        mobileSearchOverlay?.classList.add("pointer-events-none", "opacity-0");
-        mobileSearchModal?.classList.remove("scale-100");
-        mobileSearchModal?.classList.add("scale-95");
-        document.body.style.overflow = "";
+      function closeSearch() {
+        console.log("Closing full header search...");
+        const mainContent = document.getElementById("main-header-content");
+        const fullSearch = document.getElementById("full-header-search");
+
+        if (!mainContent || !fullSearch) return;
+
+        // Hide search bar
+        fullSearch.classList.remove("opacity-100", "scale-100");
+        fullSearch.classList.add(
+          "opacity-0",
+          "pointer-events-none",
+          "scale-95",
+        );
+
+        // Show main content
+        mainContent.classList.remove(
+          "opacity-0",
+          "pointer-events-none",
+          "scale-95",
+        );
       }
 
-      // Event Listeners
+      // Event Listeners (remove old ones to prevent duplicates if any)
+      // Note: In Astro, it's safer to just add them as the elements are fresh on page logic
+
       openBtn?.addEventListener("click", (e) => {
         e.stopPropagation();
         openDrawer();
@@ -635,50 +696,95 @@ const navItems = [
       closeBtn?.addEventListener("click", closeDrawer);
       backdrop?.addEventListener("click", closeDrawer);
 
-      mobileSearchBtn?.addEventListener("click", (e) => {
-        e.stopPropagation();
-        openMobileSearch();
+      // Search Triggers
+      searchTriggerBtn?.addEventListener("click", (e) => {
+        console.log("Desktop search trigger clicked");
+        e.stopPropagation(); // Prevent bubbling issues
+        openSearch();
       });
 
-      closeMobileSearchBtn?.addEventListener("click", closeMobileSearch);
-      mobileSearchOverlay?.addEventListener("click", (e) => {
-        if (e.target === mobileSearchOverlay) closeMobileSearch();
+      mobileSearchBtn?.addEventListener("click", (e) => {
+        console.log("Mobile search icon clicked");
+        openSearch();
+      });
+
+      mobileMenuSearchBtn?.addEventListener("click", (e) => {
+        console.log("Drawer search button clicked");
+        openSearch();
+      });
+
+      document.addEventListener("click", (e) => {
+        const target = e.target;
+        // Close on X button click
+        if (target.closest("#closeFullSearchBtn")) {
+          e.preventDefault();
+          e.stopPropagation();
+          closeSearch();
+        }
+
+        // Close if clicking outside header when search is open
+        const header = document.getElementById("site-header");
+        const fullSearch = document.getElementById("full-header-search");
+        if (
+          fullSearch &&
+          !fullSearch.classList.contains("opacity-0") &&
+          !header.contains(target)
+        ) {
+          closeSearch();
+        }
       });
 
       // Close on Escape
-      window.addEventListener("keydown", (e) => {
+      const handleKeydown = (e) => {
         if (e.key === "Escape") {
           closeDrawer();
-          closeMobileSearch();
+          closeSearch();
         }
-      });
+
+        if ((e.metaKey || e.ctrlKey) && e.key === "/") {
+          e.preventDefault();
+          openSearch();
+        }
+      };
+
+      // Remove previous listener to avoid duplicates if re-running
+      window.removeEventListener("keydown", handleKeydown);
+      // But passing the same function reference is hard with inline closure.
+      // Better to just add it. If page reloads, window is fresh-ish or we rely on Astro cleaning.
+      // Actually, relying on cleaner cleanup is better.
+      window.addEventListener("keydown", handleKeydown);
 
       // Scroll Behavior
       let lastScrollY = window.scrollY;
       let isScrollingDown = false;
 
-      window.addEventListener(
-        "scroll",
-        () => {
-          if (window.innerWidth < 1024) return; // Only on desktop
+      // Clean up previous scroll listener if possible?
+      // Hard to do without external ref.
+      // But we can check if the listener is already attached or just adding it is fine if elements are replaced.
 
-          const currentScrollY = window.scrollY;
+      const onScroll = () => {
+        if (window.innerWidth < 1024) return; // Only on desktop
+        // Re-fetch header to be sure
+        const currentHeader = document.getElementById("site-header");
+        if (!currentHeader) return;
 
-          if (currentScrollY > lastScrollY && currentScrollY > 100) {
-            if (!isScrollingDown) {
-              header.style.transform = "translateY(-100%)";
-              isScrollingDown = true;
-            }
-          } else {
-            if (isScrollingDown) {
-              header.style.transform = "translateY(0)";
-              isScrollingDown = false;
-            }
+        const currentScrollY = window.scrollY;
+
+        if (currentScrollY > lastScrollY && currentScrollY > 100) {
+          if (!isScrollingDown) {
+            currentHeader.style.transform = "translateY(-100%)";
+            isScrollingDown = true;
           }
-          lastScrollY = currentScrollY;
-        },
-        { passive: true },
-      );
+        } else {
+          if (isScrollingDown) {
+            currentHeader.style.transform = "translateY(0)";
+            isScrollingDown = false;
+          }
+        }
+        lastScrollY = currentScrollY;
+      };
+
+      window.addEventListener("scroll", onScroll, { passive: true });
 
       // Check auth status for mobile menu
       const checkMobileAuth = () => {
@@ -747,7 +853,11 @@ const navItems = [
       checkMobileAuth();
       // Re-check when drawer opens
       openBtn?.addEventListener("click", checkMobileAuth);
-    });
+    }
+
+    // Run on initial load and view transitions
+    document.addEventListener("DOMContentLoaded", initHeaderScripts);
+    document.addEventListener("astro:page-load", initHeaderScripts);
   </script>
 
   <style>

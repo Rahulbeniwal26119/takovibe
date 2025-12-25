@@ -11,6 +11,7 @@ import Image from '@tiptap/extension-image';
 import Underline from '@tiptap/extension-underline';
 import { common, createLowlight } from 'lowlight';
 import { QuizExtension } from './QuizExtension';
+import { CodePlaygroundExtension } from './CodePlaygroundExtension';
 import { SlashCommand } from './SlashCommand';
 import CodeBlockComponent from './CodeBlockComponent';
 import ImageNodeView from './ImageNodeView';
@@ -40,6 +41,7 @@ import {
     Loader2,
     Cloud,
     AlertCircle,
+    LayoutTemplate,
 
     Keyboard,
     Eye,
@@ -209,7 +211,23 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                 },
             }),
             QuizExtension,
-            Link.configure({
+            CodePlaygroundExtension,
+            Link.extend({
+                addKeyboardShortcuts() {
+                    return {
+                        'Mod-k': () => {
+                            // openMediaInput('link') logic needs to be triggered. 
+                            // Since we can't easily access the component function from here without binding, 
+                            // we can dispatch the custom event 'open-media-input'.
+                            this.editor.view.dom.dispatchEvent(new CustomEvent('open-media-input', {
+                                detail: { type: 'link' },
+                                bubbles: true
+                            }))
+                            return true
+                        }
+                    }
+                }
+            }).configure({
                 openOnClick: false,
                 autolink: true,
                 defaultProtocol: 'https',
@@ -477,6 +495,14 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
         setIsMenuOpen(false);
     };
 
+    const addCodePlayground = () => {
+        editor.chain().focus().insertContent([
+            { type: 'codePlayground' },
+            { type: 'paragraph' }
+        ]).run();
+        setIsMenuOpen(false);
+    };
+
     const handleInsertTable = () => {
         editor.chain().focus().insertTable({
             rows: tableDims.rows,
@@ -594,7 +620,9 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                 <ul className="space-y-2.5">
                     <li className="flex items-center justify-between group">
                         <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Menu</span>
-                        <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm min-w-[1.5rem] text-center">/</kbd>
+                        <div className="flex gap-1">
+                            <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm text-center">/</kbd>
+                        </div>
                     </li>
                     <li className="flex items-center justify-between group">
                         <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Format</span>
@@ -602,6 +630,10 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                             <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm">⌘B</kbd>
                             <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm">⌘I</kbd>
                         </div>
+                    </li>
+                    <li className="flex items-center justify-between group">
+                        <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Link</span>
+                        <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm">⌘K</kbd>
                     </li>
                     <li className="flex items-center justify-between group">
                         <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Headers</span>
@@ -617,13 +649,20 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                             <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm">1.</kbd>
                         </div>
                     </li>
+
                     <li className="flex items-center justify-between group">
                         <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Quote</span>
                         <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm">&gt;</kbd>
                     </li>
                     <li className="flex items-center justify-between group">
                         <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Code</span>
-                        <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm">```</kbd>
+                        <div className="flex gap-1">
+                            <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm">```</kbd>
+                        </div>
+                    </li>
+                    <li className="flex items-center justify-between group">
+                        <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Divider</span>
+                        <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm">---</kbd>
                     </li>
                 </ul>
             </div>
@@ -962,6 +1001,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                                 <MenuButton onClick={addQuiz} icon={HelpCircle} label="Quiz" />
                                                 <MenuButton onClick={() => setShowTableInput(true)} icon={TableIcon} label="Table" />
                                                 <MenuButton onClick={addCodeBlock} icon={Code} label="Code Block" />
+                                                <MenuButton onClick={addCodePlayground} icon={LayoutTemplate} label="Code Playground" />
                                                 <MenuButton onClick={addHorizontalRule} icon={Minus} label="Separator" />
                                             </div>
                                         </div>

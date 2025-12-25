@@ -1,5 +1,5 @@
 
-import React, { Component, useEffect, useState, useImperativeHandle, forwardRef } from 'react'
+import React, { Component, useEffect, useState, useImperativeHandle, forwardRef, useRef } from 'react'
 import {
     Heading1, Heading2, Heading3, List, ListOrdered,
     Image as ImageIcon, HelpCircle, Table as TableIcon,
@@ -8,6 +8,7 @@ import {
 
 export const CommandList = forwardRef((props: any, ref) => {
     const [selectedIndex, setSelectedIndex] = useState(0)
+    const scrollContainerRef = useRef<HTMLDivElement>(null)
 
     const selectItem = (index: number) => {
         const item = props.items[index]
@@ -16,6 +17,7 @@ export const CommandList = forwardRef((props: any, ref) => {
         }
     }
 
+    // Keyboard Navigation
     const upHandler = () => {
         setSelectedIndex((selectedIndex + props.items.length - 1) % props.items.length)
     }
@@ -27,6 +29,27 @@ export const CommandList = forwardRef((props: any, ref) => {
     const enterHandler = () => {
         selectItem(selectedIndex)
     }
+
+    // Auto-scroll to selected item
+    useEffect(() => {
+        if (scrollContainerRef.current) {
+            const selectedElement = scrollContainerRef.current.children[selectedIndex] as HTMLElement;
+            if (selectedElement) {
+                // Simple scroll into view logic
+                const container = scrollContainerRef.current;
+                const itemTop = selectedElement.offsetTop;
+                const itemBottom = itemTop + selectedElement.offsetHeight;
+                const containerScrollTop = container.scrollTop;
+                const containerHeight = container.offsetHeight;
+
+                if (itemTop < containerScrollTop) {
+                    container.scrollTop = itemTop;
+                } else if (itemBottom > containerScrollTop + containerHeight) {
+                    container.scrollTop = itemBottom - containerHeight;
+                }
+            }
+        }
+    }, [selectedIndex]);
 
     useEffect(() => {
         setSelectedIndex(0)
@@ -54,31 +77,45 @@ export const CommandList = forwardRef((props: any, ref) => {
     }))
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden min-w-[300px] p-1">
+        <div
+            ref={scrollContainerRef}
+            className="bg-white dark:bg-gray-900 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-800 overflow-y-auto min-w-[300px] max-w-[500px] max-h-[350px] p-2 grid grid-cols-1 md:grid-cols-2 gap-2 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-300 dark:hover:scrollbar-thumb-gray-600"
+        >
             {props.items.length ? (
                 props.items.map((item: any, index: number) => {
                     const Icon = item.icon
+                    const isSelected = index === selectedIndex;
                     return (
                         <button
-                            className={`flex items-center gap-3 w-full px-3 py-2 text-sm text-left rounded-md transition-colors ${index === selectedIndex
-                                    ? 'bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400'
-                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                            className={`flex items-start gap-3 w-full px-3 py-3 text-left rounded-lg transition-all duration-75 border ${isSelected
+                                ? 'bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-500/30'
+                                : 'bg-transparent border-transparent hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300'
                                 }`}
                             key={index}
                             onClick={() => selectItem(index)}
                         >
-                            <div className={`p-1 rounded ${index === selectedIndex ? 'bg-purple-100 dark:bg-purple-900/40' : 'bg-gray-100 dark:bg-gray-700'}`}>
-                                {Icon && <Icon className="w-4 h-4" />}
+                            <div className={`p-2 rounded-md shrink-0 ${isSelected
+                                ? 'bg-white text-purple-600 shadow-sm dark:bg-purple-500/20 dark:text-purple-300'
+                                : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'}`}>
+                                {Icon && <Icon className="w-5 h-5" />}
                             </div>
-                            <div className="flex flex-col">
-                                <span className="font-medium">{item.title}</span>
-                                {item.description && <span className="text-xs opacity-70">{item.description}</span>}
+                            <div className="flex flex-col min-w-0">
+                                <span className={`font-semibold text-sm truncate ${isSelected ? 'text-purple-900 dark:text-purple-100' : 'text-gray-900 dark:text-gray-100'}`}>
+                                    {item.title}
+                                </span>
+                                {item.description && (
+                                    <span className={`text-xs truncate ${isSelected ? 'text-purple-700/70 dark:text-purple-200/50' : 'text-gray-500 dark:text-gray-400'}`}>
+                                        {item.description}
+                                    </span>
+                                )}
                             </div>
                         </button>
                     )
                 })
             ) : (
-                <div className="px-3 py-2 text-sm text-gray-500">No result</div>
+                <div className="col-span-2 px-4 py-8 text-center text-sm text-gray-500">
+                    No matching commands
+                </div>
             )}
         </div>
     )

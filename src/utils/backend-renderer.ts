@@ -11,6 +11,7 @@ import Underline from "@tiptap/extension-underline";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import { common, createLowlight } from "lowlight";
 import { QuizExtension } from "../components/editor/QuizExtension";
+import { CodePlaygroundSchema } from "../components/editor/CodePlaygroundSchema";
 import { createHighlighter } from "shiki";
 
 // Initialize lowlight
@@ -171,6 +172,7 @@ export async function processBackendContent(contentJson: any) {
             lowlight,
         }),
         QuizExtension,
+        CodePlaygroundSchema,
     ]);
 
     // Highlight code blocks

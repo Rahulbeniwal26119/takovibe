@@ -7,7 +7,8 @@ import { CommandList } from './CommandList'
 import {
     Heading1, Heading2, Heading3, List, ListOrdered,
     Image as ImageIcon, HelpCircle, Table as TableIcon,
-    Code, Minus, Quote, Text, CheckSquare, Youtube as YoutubeIcon
+    Code, Minus, Quote, Text, CheckSquare, Youtube as YoutubeIcon,
+    LayoutTemplate
 } from 'lucide-react'
 
 const getSuggestionItems = ({ query }: { query: string }) => {
@@ -143,6 +144,18 @@ const getSuggestionItems = ({ query }: { query: string }) => {
                 editor.chain().focus().deleteRange(range).setHorizontalRule().run()
             },
         },
+        {
+            title: 'Code Playground',
+            description: 'Interactive HTML/CSS editor.',
+            searchTerms: ['code', 'playground', 'html', 'css', 'editor'],
+            icon: LayoutTemplate,
+            command: ({ editor, range }: any) => {
+                editor.chain().focus().deleteRange(range).insertContent([
+                    { type: 'codePlayground' },
+                    { type: 'paragraph' }
+                ]).run()
+            },
+        },
     ].filter((item) => {
         if (typeof query === 'string' && query.length > 0) {
             const search = query.toLowerCase()
@@ -164,6 +177,7 @@ export const SlashCommand = Extension.create({
             suggestion: {
                 char: '/',
                 command: ({ editor, range, props }: any) => {
+                    props.command({ editor, range })
                 },
             },
         }
