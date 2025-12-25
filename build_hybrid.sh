@@ -33,7 +33,6 @@ detect_pm() {
   fi
 }
 
-# --- Helpers ---------------------------------------------------------------
 prepare_env() {
   log "Preparing environment..."
   mkdir -p "$NPM_CACHE"
@@ -45,22 +44,18 @@ prepare_env() {
 }
 
 clean() {
-  log "Cleaning old build (keeping node_modules)..."
+  log "Cleaning old build artifacts..."
   rm -rf "$BUILD_DIR" .astro .cache || true
 }
 
 install_deps() {
   log "Installing dependencies with $PM..."
   if [ "$PM" = "bun" ]; then
-    bun install --no-save --prefer-offline
+    bun install --prefer-offline --no-frozen-lockfile
   else
     if [ -f package-lock.json ]; then
-      npm ci --prefer-offline --no-audit --no-fund --omit=optional || {
-        warn "npm ci failed → retrying with npm install"
-        npm install --prefer-offline --no-audit --no-fund --omit=optional
-      }
+      npm ci --prefer-offline --no-audit --no-fund --omit=optional || npm install --prefer-offline --no-audit --no-fund --omit=optional
     else
-      warn "No lockfile found → using npm install"
       npm install --prefer-offline --no-audit --no-fund --omit=optional
     fi
   fi
@@ -79,16 +74,10 @@ deploy() {
   log "Deploying to $DEPLOY_DIR..."
   sudo mkdir -p "$DEPLOY_DIR"
   sudo chown -R "$USER":"$USER" "$DEPLOY_DIR"
-  rsync -a --delete "$BUILD_DIR"/ "$DEPLOY_DIR"/dist/
-  cp -f package*.json "$DEPLOY_DIR"/
-  cd "$DEPLOY_DIR"
 
-  log "Installing production dependencies..."
-  if [ "$PM" = "bun" ]; then
-    bun install --production --prefer-offline 
-  else
-    npm ci --omit=dev --prefer-offline --no-audit --no-fund || npm install --omit=dev --prefer-offline --no-audit --no-fund
-  fi
+  rsync -a --delete "$BUILD_DIR"/ "$DEPLOY_DIR"/dist/
+  rsync -a node_modules/ "$DEPLOY_DIR"/node_modules/
+  cp -f package*.json "$DEPLOY_DIR"/
 
   sudo chown -R "$USER":"$USER" "$DEPLOY_DIR"
 }
@@ -103,7 +92,7 @@ restart_server() {
     fi
     pm2 save
   else
-    warn "Server entry not found ($NODE_ENTRY). Skipping PM2 restart."
+    warn "Server entry not found ($NODE_ENTRY)"
   fi
 }
 
@@ -114,7 +103,7 @@ reload_nginx() {
 
 main() {
   local start=$(date +%s)
-  log "🚀 Starting hybrid Bun/NPM Astro build + deploy"
+  log "🚀 Starting Astro build + deploy"
   detect_pm
   prepare_env
   clean
@@ -123,9 +112,8 @@ main() {
   deploy
   restart_server
   reload_nginx
-  local end=$(date +%s)
-  log "✅ Deployment finished in $((end-start)) s"
-  echo -e "${YELLOW}Your site is live at https://takovibe.com${NC}"
+  log "✅ Finished in $(( $(date +%s) - start ))s"
+  echo -e "${YELLOW}Live at https://takovibe.com${NC}"
 }
 
 main
