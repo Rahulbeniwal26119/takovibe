@@ -33,13 +33,8 @@ export default defineConfig({
       optimize: true
     }),
     tailwind({
-      // Minify CSS in production
-      minify: true,
-      // Reduce unused CSS
-      purge: {
-        content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
-        safelist: ['katex']
-      }
+      // Inject Tailwind's base styles (preflight)
+      applyBaseStyles: true,
     }),
     sitemap({
       filter: (page) => {
@@ -183,13 +178,6 @@ export default defineConfig({
     build: {
       sourcemap: false, // Disable in production
       cssCodeSplit: true,
-      minify: 'terser',
-      terserOptions: {
-        compress: {
-          drop_console: true,
-          drop_debugger: true
-        }
-      },
       rollupOptions: {
         output: {
           manualChunks: {
@@ -204,7 +192,7 @@ export default defineConfig({
       noExternal: ['@tiptap/core', '@tiptap/starter-kit']
     },
     optimizeDeps: {
-      include: ['@tiptap/core', '@tiptap/starter-kit', 'interactjs']
+      include: ['@tiptap/core', '@tiptap/starter-kit']
     },
     worker: {
       format: 'es'

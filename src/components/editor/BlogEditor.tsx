@@ -40,10 +40,10 @@ import {
     Loader2,
     Cloud,
     AlertCircle,
-    Sun,
+
     Keyboard,
     Eye,
-    Moon,
+
     Maximize,
     Minimize,
     Minus,

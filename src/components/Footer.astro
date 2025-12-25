@@ -1,6 +1,4 @@
 ---
-import { getCollection } from "astro:content";
-import NewsletterCTA from "./NewsletterCTA.astro";
 const currentYear = new Date().getFullYear();
 const apiUrl = import.meta.env.PUBLIC_API_URL;
 ---
@@ -243,7 +241,6 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
   </div>
 </footer>
 <script define:vars={{ apiUrl }}>
-  
   async function checkSubscription() {
     const emailInput = document.getElementById("email-address");
     const subscribeForm = document.getElementById("subscribe-form");

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-const API_URL = import.meta.env.PUBLIC_API_URL;
-const GOOGLE_CLIENT_ID = import.meta.env.PUBLIC_GOOGLE_CLIENT_ID;
+
 
 interface User {
     name: string;
