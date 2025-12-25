@@ -348,7 +348,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ username }) => {
                                                     key={post.id}
                                                     className="group bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-800 hover:border-violet-200 dark:hover:border-violet-800/30 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 flex flex-col h-full ring-1 ring-gray-900/5 dark:ring-white/10"
                                                 >
-                                                    <a href={`/p/${post.slug}`} className="block relative h-48 overflow-hidden bg-gray-100 dark:bg-gray-800">
+                                                    <a href={`/blog/${post.slug}`} className="block relative h-48 overflow-hidden bg-gray-100 dark:bg-gray-800">
                                                         <img
                                                             src={post.image_url}
                                                             alt={post.title}
@@ -368,7 +368,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ username }) => {
                                                         </div>
 
                                                         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-violet-600 transition-colors leading-tight">
-                                                            <a href={`/p/${post.slug}`}>
+                                                            <a href={`/blog/${post.slug}`}>
                                                                 {post.title}
                                                             </a>
                                                         </h3>

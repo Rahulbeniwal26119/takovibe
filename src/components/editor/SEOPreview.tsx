@@ -12,7 +12,7 @@ export const SEOPreview: React.FC<SEOPreviewProps> = ({ title, description, slug
     const [activeTab, setActiveTab] = useState<'google' | 'twitter'>('google');
 
     const domain = "takovibe.com";
-    const fullUrl = `https://${domain}/p/${slug || 'your-slug-here'}`;
+    const fullUrl = `https://${domain}/blog/${slug || 'your-slug-here'}`;
 
     // Validation thresholds
     const titleLimit = 60;

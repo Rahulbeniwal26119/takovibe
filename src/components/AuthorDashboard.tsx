@@ -295,7 +295,7 @@ const AuthorDashboard: React.FC = () => {
                                                 </span>
 
                                                 <div className="flex items-center gap-2">
-                                                    <a href={`/p/${post.slug}`} target="_blank" className="p-2 text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors" title="View">
+                                                    <a href={`/blog/${post.slug}`} target="_blank" className="p-2 text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors" title="View">
                                                         <Eye className="w-5 h-5" />
                                                     </a>
                                                     <a href={`/post/edit/${post.slug}`} className="p-2 text-gray-500 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors" title="Edit">

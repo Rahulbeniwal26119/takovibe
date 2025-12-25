@@ -687,7 +687,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                         {/* View Button */}
                         {frontmatter.slug && (
                             <a
-                                href={`/p/${frontmatter.slug}`}
+                                href={`/blog/${frontmatter.slug}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:text-gray-400 dark:hover:text-purple-400 dark:hover:bg-purple-900/20 transition-all duration-300"
