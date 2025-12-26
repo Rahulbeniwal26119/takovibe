@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BlogEditor } from './BlogEditor';
+import { Loader } from '../ui/Loader';
 import { fetchWithAuth } from '../../utils/api';
 
 interface EditPostLoaderProps {
@@ -64,9 +65,8 @@ export const EditPostLoader: React.FC<EditPostLoaderProps> = ({ slug }) => {
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[50vh]">
-                <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-                <p className="text-gray-500 dark:text-gray-400">Loading post...</p>
+            <div className="flex items-center justify-center min-h-[50vh]">
+                <Loader text="Loading story..." size="lg" />
             </div>
         );
     }

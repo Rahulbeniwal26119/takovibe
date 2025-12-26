@@ -21,7 +21,7 @@ if (!slug) {
         class="min-h-screen bg-gray-50 dark:bg-slate-950 pt-20 pb-12"
     >
         <div class="max-w-[1200px] mx-auto px-4">
-            <EditPostLoader client:only="react" slug={slug} />
+            <EditPostLoader client:load slug={slug} />
         </div>
     </div>
 </Layout>
