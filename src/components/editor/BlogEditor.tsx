@@ -17,6 +17,7 @@ import CodeBlockComponent from './CodeBlockComponent';
 import ImageNodeView from './ImageNodeView';
 import { fetchWithAuth } from '../../utils/api';
 import { SEOPreview } from './SEOPreview';
+
 import '../../styles/editor.css';
 import {
     Bold,
@@ -57,6 +58,7 @@ import {
     FileText,
     Clock,
     Send,
+    Settings,
 } from 'lucide-react';
 import { getUser } from '../../utils/auth';
 
@@ -110,7 +112,28 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
     const [validationErrors, setValidationErrors] = useState<string[]>([]);
+
+
+    const [showSettings, setShowSettings] = useState(true);
+    const [showShortcuts, setShowShortcuts] = useState(false);
     const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const titleRef = useRef<HTMLTextAreaElement>(null);
+    const descriptionRef = useRef<HTMLTextAreaElement>(null);
+
+    // Auto-resize textareas
+    useEffect(() => {
+        if (titleRef.current) {
+            titleRef.current.style.height = 'auto';
+            titleRef.current.style.height = `${titleRef.current.scrollHeight}px`;
+        }
+    }, [frontmatter.title]);
+
+    useEffect(() => {
+        if (descriptionRef.current) {
+            descriptionRef.current.style.height = 'auto';
+            descriptionRef.current.style.height = `${descriptionRef.current.scrollHeight}px`;
+        }
+    }, [frontmatter.description]);
 
     useEffect(() => {
         if (initialContent?.frontmatter) {
@@ -255,7 +278,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
         editorProps: {
             attributes: {
                 class:
-                    `prose prose-lg max-w-none focus:outline-none h-full px-8 md:px-12 pb-12 dark:prose-invert light-mode-editor`,
+                    `prose prose-lg max-w-3xl mx-auto focus:outline-none h-full px-6 pb-4 dark:prose-invert light-mode-editor transition-all duration-500 ease-in-out`,
                 'data-gramm': 'false',
             },
             handleDrop: (view, event, slice, moved) => {
@@ -304,6 +327,19 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
             dom.removeEventListener('open-media-input', handleMediaInput);
         };
     }, [editor]);
+
+    // Update editor width when Zen Mode toggles
+    useEffect(() => {
+        if (!editor) return;
+        const editorDom = editor.view.dom;
+
+        if (isZenMode) {
+            editorDom.classList.replace('max-w-3xl', 'max-w-5xl');
+            setShowSettings(false); // Auto-focus by closing settings
+        } else {
+            editorDom.classList.replace('max-w-5xl', 'max-w-3xl');
+        }
+    }, [isZenMode, editor]);
 
     // Fetch User Details for Author Name
     useEffect(() => {
@@ -455,6 +491,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
             setSaveError(error.message || "Failed to publish");
         } finally {
             setIsPublishing(false);
+
         }
     };
 
@@ -605,71 +642,13 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
     // ... (existing code)
 
     return (
-        <div className="relative w-full max-w-5xl mx-auto">
-            {/* Editor Hints Sidebar - Positioned absolutely to the right of the editor content on large screens */}
-            {/* Editor Hints Sidebar - Animated for Zen Mode */}
-            <div className={`hidden xl:block absolute left-full top-0 ml-4 w-56 p-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-900/20 backdrop-blur-[2px] transition-all duration-700 ease-[cubic-bezier(0.25,0.1,0.25,1)] transform origin-left ${isZenMode
-                ? 'opacity-0 translate-x-10 pointer-events-none blur-sm scale-95'
-                : 'opacity-100 translate-x-0 blur-0 scale-100'
-                }`}>
-                <div className="flex items-center gap-2 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4">
-                    <Keyboard className="w-3.5 h-3.5" />
-                    <span>Cheatsheet</span>
-                </div>
+        <div className="relative w-full min-h-screen">
+            {/* Main Content Container */}
+            <div className="w-full min-h-screen bg-white dark:bg-black transition-colors duration-500">
 
-                <ul className="space-y-2.5">
-                    <li className="flex items-center justify-between group">
-                        <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Menu</span>
-                        <div className="flex gap-1">
-                            <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm text-center">/</kbd>
-                        </div>
-                    </li>
-                    <li className="flex items-center justify-between group">
-                        <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Format</span>
-                        <div className="flex gap-1">
-                            <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm">⌘B</kbd>
-                            <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm">⌘I</kbd>
-                        </div>
-                    </li>
-                    <li className="flex items-center justify-between group">
-                        <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Link</span>
-                        <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm">⌘K</kbd>
-                    </li>
-                    <li className="flex items-center justify-between group">
-                        <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Headers</span>
-                        <div className="flex gap-1">
-                            <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm">#</kbd>
-                            <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm">##</kbd>
-                        </div>
-                    </li>
-                    <li className="flex items-center justify-between group">
-                        <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Lists</span>
-                        <div className="flex gap-1">
-                            <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm">-</kbd>
-                            <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm">1.</kbd>
-                        </div>
-                    </li>
-
-                    <li className="flex items-center justify-between group">
-                        <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Quote</span>
-                        <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm">&gt;</kbd>
-                    </li>
-                    <li className="flex items-center justify-between group">
-                        <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Code</span>
-                        <div className="flex gap-1">
-                            <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm">```</kbd>
-                        </div>
-                    </li>
-                    <li className="flex items-center justify-between group">
-                        <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Divider</span>
-                        <kbd className="font-sans text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5 shadow-sm">---</kbd>
-                    </li>
-                </ul>
-            </div>
-
-            <div className="w-full mx-auto h-[90vh] flex flex-col relative transition-all duration-500 bg-white/90 dark:bg-slate-900/50 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
                 {/* Decorative Background Elements */}
-                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                {/* Decorative Background Elements - Fade out in Zen Mode */}
+                <div className={`absolute inset-0 overflow-hidden pointer-events-none transition-opacity duration-1000 ${isZenMode ? 'opacity-0' : 'opacity-100'}`}>
                     <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full blur-3xl opacity-20 bg-purple-400 dark:bg-purple-600" />
                     <div className="absolute top-[10%] -right-[10%] w-[40%] h-[40%] rounded-full blur-3xl opacity-20 bg-blue-400 dark:bg-blue-600" />
                 </div>
@@ -677,10 +656,15 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
 
 
                 {/* Save Status Bar & Toolbar */}
-                <div className="sticky top-0 z-40 flex items-center justify-between px-6 py-4 backdrop-blur-xl border-b transition-colors duration-300 bg-white/80 dark:bg-slate-900/70 border-slate-200/50 dark:border-white/10">
+                {/* Save Status Bar & Toolbar - Dim in Zen Mode */}
+                <div className={`sticky top-0 z-40 flex items-center justify-between px-6 py-4 transition-all duration-500
+                    ${isZenMode
+                        ? 'bg-white/50 dark:bg-black/50 backdrop-blur-sm opacity-30 hover:opacity-100 border-transparent shadow-none'
+                        : 'backdrop-blur-xl border-b bg-white/80 dark:bg-slate-900/70 border-slate-200/50 dark:border-white/10 opacity-100'
+                    }`}>
 
                     {/* Left: Status Indicators */}
-                    <div id="save-status" className="flex items-center gap-3 text-sm font-medium px-4 py-2 rounded-full transition-all duration-300 bg-slate-100/50 dark:bg-white/5 text-slate-600 dark:text-gray-300">
+                    <div id="save-status" className="flex items-center gap-3 text-sm font-medium px-4 py-2 rounded-full transition-all duration-300 bg-slate-100/50 dark:bg-white/5 text-slate-600 dark:text-gray-300 hidden sm:flex">
                         {isSaving ? (
                             <>
                                 <Loader2 className="w-4 h-4 animate-spin text-purple-500" />
@@ -699,7 +683,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                         ) : lastSaved ? (
                             <>
                                 <Cloud className="w-4 h-4 text-emerald-500" />
-                                <span className="text-emerald-500">Saved {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                <span className="text-emerald-500">Saved</span>
                             </>
                         ) : (
                             <span className="text-gray-400">Ready to write</span>
@@ -714,13 +698,31 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                 setIsZenMode(!isZenMode);
                                 document.body.classList.toggle('zen-mode');
                             }}
-                            className={`p-2.5 rounded-xl transition-all duration-300 ${isZenMode
+                            className={`hidden sm:block p-2.5 rounded-xl transition-all duration-300 ${isZenMode
                                 ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400'
                                 : 'text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:text-gray-400 dark:hover:text-purple-400 dark:hover:bg-purple-900/20'
                                 }`}
                             title="Toggle Zen Mode"
                         >
                             {isZenMode ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
+                        </button>
+
+                        {/* Shortcuts Toggle */}
+                        <button
+                            onClick={() => setShowShortcuts(true)}
+                            className="hidden sm:block p-2.5 rounded-xl text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:text-gray-400 dark:hover:text-purple-400 dark:hover:bg-purple-900/20 transition-all duration-300"
+                            title="Keyboard Shortcuts"
+                        >
+                            <Keyboard className="w-5 h-5" />
+                        </button>
+
+                        {/* Settings Button */}
+                        <button
+                            onClick={() => setShowSettings(!showSettings)}
+                            className="p-2.5 rounded-xl text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:text-gray-400 dark:hover:text-purple-400 dark:hover:bg-purple-900/20 transition-all duration-300"
+                            title="Story Settings"
+                        >
+                            <Settings className="w-5 h-5" />
                         </button>
 
                         {/* View Button */}
@@ -738,12 +740,15 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                         )}
 
                         {/* Publish Button (Admins only) */}
+
+
+                        {/* Publish Button (Admins only) */}
                         {canPublish && (
                             <button
                                 onClick={handlePublish}
-                                disabled={isPublishing || isSaving || validationErrors.length > 0}
-                                className="group relative flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold transition-all duration-300 bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed"
-                                title="Publish Article"
+                                disabled={isPublishing}
+                                className="px-4 py-1.5 rounded-full text-sm font-medium bg-green-600 hover:bg-green-700 text-white transition-all shadow-sm hover:shadow hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                title="Ready to Publish?"
                             >
                                 {isPublishing ? (
                                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -757,211 +762,160 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                         {/* Save Button */}
                         <button
                             onClick={handleSave}
-                            disabled={isSaving || !hasUnsavedChanges || validationErrors.length > 0}
-                            className={`group relative flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold transition-all duration-300 ${hasUnsavedChanges || validationErrors.length > 0
-                                ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white shadow-lg hover:shadow-purple-500/30 hover:-translate-y-0.5'
-                                : 'bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-gray-500 cursor-not-allowed'
+                            disabled={isSaving || !hasUnsavedChanges}
+                            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${hasUnsavedChanges
+                                ? 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                                : 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
                                 }`}
                         >
-                            <Save className={`w-4 h-4 ${hasUnsavedChanges ? 'group-hover:animate-bounce' : ''}`} />
-                            <span>Sync</span>
-
-                            {/* Validation Tooltip */}
-                            {validationErrors.length > 0 && (
-                                <div className="absolute top-full right-0 mt-2 w-48 p-3 bg-red-500 text-white text-xs rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                    Missing: {validationErrors.join(', ')}
-                                </div>
-                            )}
+                            <Save className={`w-4 h-4 ${isSaving ? 'animate-pulse' : ''}`} />
+                            <span className="hidden sm:inline">{isSaving ? 'Saving...' : 'Saved'}</span>
                         </button>
                     </div>
                 </div>
 
                 {/* Scrollable Content Area */}
-                <div className="flex-1 overflow-y-auto scrollbar-hide">
-                    {/* Inline Frontmatter Form */}
-                    <div className="px-8 md:px-12 pt-8 mb-8 space-y-8 border-b pb-8 border-slate-100 dark:border-transparent">
-                        {/* Cover Image Preview */}
-                        {frontmatter.image && (
-                            <div className="relative w-full h-48 md:h-64 rounded-2xl overflow-hidden group shadow-md border border-slate-200 dark:border-slate-800">
-                                <img
-                                    src={frontmatter.image}
-                                    alt="Cover"
-                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                                    onError={(e) => {
-                                        (e.target as HTMLImageElement).src = 'https://placehold.co/1200x600/e2e8f0/64748b?text=Invalid+Image';
-                                    }}
-                                />
-                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 duration-300">
-                                    <button
-                                        onClick={() => setFrontmatter({ ...frontmatter, image: '' })}
-                                        className="px-4 py-2 bg-red-500/90 hover:bg-red-600 text-white text-sm font-medium rounded-full shadow-lg backdrop-blur-sm transition-transform hover:scale-105 flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                        Remove Cover
-                                    </button>
-                                </div>
-                            </div>
-                        )}
+                <div className="flex-1 overflow-y-auto w-full">
+                    {/* Clean Title Input (Medium Style) */}
+                    <div className={`${isZenMode ? 'max-w-5xl' : 'max-w-3xl'} mx-auto w-full px-6 pt-8 pb-6 transition-all duration-500 ease-in-out`}>
+                        <textarea
+                            ref={titleRef}
+                            value={frontmatter.title}
+                            onChange={(e) => {
+                                setFrontmatter({ ...frontmatter, title: e.target.value });
+                                if (validationErrors.includes('title')) setValidationErrors(prev => prev.filter(f => f !== 'title'));
+                            }}
+                            className="w-full text-4xl md:text-5xl font-serif font-bold bg-transparent border-none outline-none p-0 placeholder:text-gray-300 dark:placeholder:text-gray-600 text-gray-900 dark:text-white transition-all leading-tight mb-4 resize-none overflow-hidden"
+                            placeholder="Title"
+                            rows={1}
+                        />
 
-                        {/* Title & Description Group */}
-                        <div className="space-y-4">
-                            <div className="relative group">
-                                <input
-                                    type="text"
-                                    value={frontmatter.title}
-                                    onChange={(e) => {
-                                        setFrontmatter({ ...frontmatter, title: e.target.value });
-                                        if (validationErrors.includes('title')) setValidationErrors(prev => prev.filter(f => f !== 'title'));
-                                    }}
-                                    className={getInputClass('title', "w-full text-5xl font-extrabold bg-transparent border-none outline-none p-0 placeholder-opacity-40 transition-all duration-300 text-slate-900 placeholder-slate-300 dark:text-white dark:placeholder-gray-500")}
-                                    placeholder="Untitled Post"
-                                />
-                                {!frontmatter.title && <span className="absolute top-2 -left-4 text-red-500 text-xl opacity-50">*</span>}
-                            </div>
+                        <textarea
+                            ref={descriptionRef}
+                            value={frontmatter.description}
+                            onChange={(e) => {
+                                setFrontmatter({ ...frontmatter, description: e.target.value });
+                                if (validationErrors.includes('description')) setValidationErrors(prev => prev.filter(f => f !== 'description'));
+                            }}
+                            className="w-full text-xl bg-transparent border-none outline-none resize-none p-0 placeholder:text-gray-400 dark:placeholder:text-gray-600 text-gray-600 dark:text-gray-300 transition-all font-serif mb-8 resize-none overflow-hidden"
+                            placeholder="Tell your story..."
+                            rows={1}
+                        />
 
-                            <div className="relative group">
-                                <textarea
-                                    value={frontmatter.description}
-                                    onChange={(e) => {
-                                        setFrontmatter({ ...frontmatter, description: e.target.value });
-                                        if (validationErrors.includes('description')) setValidationErrors(prev => prev.filter(f => f !== 'description'));
-                                    }}
-                                    className={getInputClass('description', "w-full text-xl bg-transparent border-none outline-none resize-none p-0 placeholder-opacity-50 transition-all duration-300 text-slate-600 placeholder-slate-400 dark:text-gray-300 dark:placeholder-gray-600")}
-                                    placeholder="Add a short description..."
-                                    rows={1}
-                                    style={{ minHeight: 'auto', height: 'auto' }}
-                                    onInput={(e) => {
-                                        const target = e.target as HTMLTextAreaElement;
-                                        target.style.height = 'auto';
-                                        target.style.height = `${target.scrollHeight}px`;
-                                    }}
-                                />
-                                {!frontmatter.description && <span className="absolute top-1 -left-4 text-red-500 text-lg opacity-50">*</span>}
-                            </div>
-                        </div>
+                        {/* Collapsible Story Settings (Restored Original Options) */}
+                        <div className="border-b border-gray-100 dark:border-gray-800 mb-8 pb-8">
+                            <button
+                                onClick={() => setShowSettings(!showSettings)}
+                                className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-gray-300 transition-colors mb-4"
+                            >
+                                <Settings className="w-4 h-4" />
+                                <span>Story Settings</span>
+                                <ArrowDown className={`w-4 h-4 transition-transform duration-200 ${showSettings ? 'rotate-180' : ''}`} />
+                            </button>
 
-                        {/* Meta Grid - Collapsible or clean layout */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 rounded-2xl border transition-all duration-300 bg-slate-50/80 border-slate-200 shadow-sm dark:bg-white/5 dark:border-white/10">
+                            {showSettings && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2">
+                                    {/* Cover Image */}
+                                    <div className="md:col-span-2 space-y-2">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Cover Image</label>
+                                        <div className="flex gap-4">
+                                            <input
+                                                type="text"
+                                                value={frontmatter.image}
+                                                onChange={(e) => setFrontmatter({ ...frontmatter, image: e.target.value })}
+                                                className="flex-1 bg-transparent border-b border-gray-200 dark:border-gray-700 py-1 text-sm focus:border-purple-500 outline-none transition-colors"
+                                                placeholder="https://..."
+                                            />
+                                            {frontmatter.image && (
+                                                <div className="w-16 h-10 rounded overflow-hidden bg-gray-100">
+                                                    <img src={frontmatter.image} alt="Preview" className="w-full h-full object-cover" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
 
-                            {/* Column 1: Core Info */}
-                            <div className="space-y-5">
-                                <div className="space-y-1.5">
-                                    <label className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-gray-500">
-                                        Author <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={frontmatter.author}
-                                        readOnly
-                                        disabled
-                                        className="w-full bg-transparent border-b transition-colors py-1 focus:outline-none border-slate-300 dark:border-gray-700 text-slate-500 dark:text-gray-500 cursor-not-allowed opacity-70"
-                                        placeholder="Name"
-                                    />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-gray-500">
-                                        Publish Date <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="date"
-                                        value={frontmatter.date}
-                                        onChange={(e) => setFrontmatter({ ...frontmatter, date: e.target.value })}
-                                        className="w-full bg-transparent border-b transition-colors py-1 focus:outline-none border-slate-300 focus:border-purple-500 text-slate-700 dark:border-gray-700 dark:focus:border-purple-500 dark:text-gray-200"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Column 2: SEO & Organization */}
-                            <div className="space-y-5">
-                                <div className="space-y-1.5">
-                                    <label className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-gray-500">
-                                        Slug <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={frontmatter.slug}
-                                        onChange={(e) => setFrontmatter({ ...frontmatter, slug: e.target.value })}
-                                        className="w-full bg-transparent border-b transition-colors py-1 focus:outline-none border-slate-300 focus:border-purple-500 text-slate-700 dark:border-gray-700 dark:focus:border-purple-500 dark:text-gray-200"
-                                        placeholder="post-url-slug"
-                                    />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-gray-500">
-                                        Tags <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={frontmatter.tags}
-                                        onChange={(e) => setFrontmatter({ ...frontmatter, tags: e.target.value })}
-                                        className="w-full bg-transparent border-b transition-colors py-1 focus:outline-none border-slate-300 focus:border-purple-500 text-slate-700 dark:border-gray-700 dark:focus:border-purple-500 dark:text-gray-200"
-                                        placeholder="react, astro, web"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Column 3: Series & Media */}
-                            <div className="space-y-5">
-                                <div className="space-y-1.5">
-                                    <label className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-gray-500">
-                                        Cover Image URL <span className="text-red-500">*</span>
-                                    </label>
-                                    <div className="flex gap-2">
+                                    {/* Author & Slug */}
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Author</label>
                                         <input
                                             type="text"
-                                            value={frontmatter.image}
-                                            onChange={(e) => setFrontmatter({ ...frontmatter, image: e.target.value })}
-                                            className="w-full bg-transparent border-b transition-colors py-1 focus:outline-none border-slate-300 focus:border-purple-500 text-slate-700 dark:border-gray-700 dark:focus:border-purple-500 dark:text-gray-200"
-                                            placeholder="https://..."
+                                            value={frontmatter.author}
+                                            readOnly
+                                            className="w-full bg-transparent border-b border-gray-200 dark:border-gray-700 py-1 text-sm text-gray-500 cursor-not-allowed"
                                         />
-                                        {frontmatter.image && (
-                                            <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0 border border-gray-500/20">
-                                                <img src={frontmatter.image} alt="Preview" className="w-full h-full object-cover" />
-                                            </div>
-                                        )}
                                     </div>
-                                </div>
-                                <div className="flex gap-4">
-                                    <div className="space-y-1.5 flex-1">
-                                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-gray-500">Series</label>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Slug</label>
+                                        <input
+                                            type="text"
+                                            value={frontmatter.slug}
+                                            onChange={(e) => setFrontmatter({ ...frontmatter, slug: e.target.value })}
+                                            className="w-full bg-transparent border-b border-gray-200 dark:border-gray-700 py-1 text-sm focus:border-purple-500 outline-none transition-colors"
+                                            placeholder="post-url-slug"
+                                        />
+                                    </div>
+
+                                    {/* Date & Tags */}
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Publish Date</label>
+                                        <input
+                                            type="date"
+                                            value={frontmatter.date}
+                                            onChange={(e) => setFrontmatter({ ...frontmatter, date: e.target.value })}
+                                            className="w-full bg-transparent border-b border-gray-200 dark:border-gray-700 py-1 text-sm focus:border-purple-500 outline-none transition-colors"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Tags</label>
+                                        <input
+                                            type="text"
+                                            value={frontmatter.tags}
+                                            onChange={(e) => setFrontmatter({ ...frontmatter, tags: e.target.value })}
+                                            className="w-full bg-transparent border-b border-gray-200 dark:border-gray-700 py-1 text-sm focus:border-purple-500 outline-none transition-colors"
+                                            placeholder="comma, separated, tags"
+                                        />
+                                    </div>
+
+                                    {/* Series */}
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Series</label>
                                         <input
                                             type="text"
                                             value={frontmatter.series}
                                             onChange={(e) => setFrontmatter({ ...frontmatter, series: e.target.value })}
-                                            className="w-full bg-transparent border-b transition-colors py-1 focus:outline-none border-slate-300 focus:border-purple-500 text-slate-700 dark:border-gray-700 dark:focus:border-purple-500 dark:text-gray-200"
-                                            placeholder="Optional"
+                                            className="w-full bg-transparent border-b border-gray-200 dark:border-gray-700 py-1 text-sm focus:border-purple-500 outline-none transition-colors"
+                                            placeholder="Optional series name"
                                         />
                                     </div>
-                                    <div className="space-y-1.5 w-20">
-                                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-gray-500">Order</label>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Order</label>
                                         <input
                                             type="number"
                                             value={frontmatter.seriesOrder}
                                             onChange={(e) => setFrontmatter({ ...frontmatter, seriesOrder: parseInt(e.target.value) || 0 })}
-                                            className="w-full bg-transparent border-b transition-colors py-1 focus:outline-none border-slate-300 focus:border-purple-500 text-slate-700 dark:border-gray-700 dark:focus:border-purple-500 dark:text-gray-200"
+                                            className="w-full bg-transparent border-b border-gray-200 dark:border-gray-700 py-1 text-sm focus:border-purple-500 outline-none transition-colors"
                                         />
                                     </div>
-                                </div>
-                            </div>
-                        </div>
 
-                        {/* SEO Preview Toggle & Section */}
-                        <div className="mt-8 border-t border-slate-100 dark:border-transparent pt-8">
-                            <button
-                                onClick={() => setShowSeoPreview(!showSeoPreview)}
-                                className="flex items-center gap-2 text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-                            >
-                                {showSeoPreview ? <ArrowDown className="w-4 h-4 rotate-180 transition-transform" /> : <ArrowDown className="w-4 h-4 transition-transform" />}
-                                SEO & Social Preview
-                            </button>
-
-                            {showSeoPreview && (
-                                <div className="animate-in fade-in slide-in-from-top-4 duration-300">
-                                    <SEOPreview
-                                        title={frontmatter.title}
-                                        description={frontmatter.description}
-                                        slug={frontmatter.slug}
-                                        image={frontmatter.image}
-                                    />
+                                    {/* SEO Preview Toggle */}
+                                    <div className="md:col-span-2 mt-4">
+                                        <button
+                                            onClick={() => setShowSeoPreview(!showSeoPreview)}
+                                            className="text-xs font-bold uppercase tracking-wider text-purple-600 hover:text-purple-700 flex items-center gap-1"
+                                        >
+                                            {showSeoPreview ? 'Hide' : 'Show'} SEO Preview
+                                        </button>
+                                        {showSeoPreview && (
+                                            <div className="mt-4">
+                                                <SEOPreview
+                                                    title={frontmatter.title}
+                                                    description={frontmatter.description}
+                                                    slug={frontmatter.slug}
+                                                    image={frontmatter.image}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -1345,27 +1299,77 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                     {/* Editor Content */}
                     <EditorContent editor={editor} />
 
+
+                    {/* Inline Status Info - Inside text flow */}
+                    <div className={`${isZenMode ? 'max-w-5xl' : 'max-w-3xl'} mx-auto w-full px-6 py-4 flex items-center gap-4 text-xs font-medium text-gray-400 dark:text-gray-500 transition-all duration-500 ease-in-out border-t border-gray-100 dark:border-gray-800 mt-8`}>
+                        {editor && (
+                            <>
+                                <div className="flex items-center gap-1.5 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                                    <FileText className="w-3.5 h-3.5" />
+                                    <span>{editor.storage.characterCount.words()} words</span>
+                                </div>
+                                <div className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-700" />
+                                <div className="flex items-center gap-1.5 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                                    <Clock className="w-3.5 h-3.5" />
+                                    <span>{Math.ceil(editor.storage.characterCount.words() / 200)} min read</span>
+                                </div>
+                            </>
+                        )}
+                    </div>
+
                     {/* Bottom Padding for scroll */}
                     <div className="h-20" />
                 </div>
 
-                {/* Status Bar */}
-                <div className="fixed bottom-4 right-4 z-50 flex items-center gap-4 px-4 py-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-full shadow-lg border border-gray-200 dark:border-gray-700 text-xs font-medium text-gray-500 dark:text-gray-400">
-                    {editor && (
-                        <>
-                            <div className="flex items-center gap-1.5">
-                                <FileText className="w-3.5 h-3.5" />
-                                <span>{editor.storage.characterCount.words()} words</span>
-                            </div>
-                            <div className="w-px h-3 bg-gray-300 dark:bg-gray-600" />
-                            <div className="flex items-center gap-1.5">
-                                <Clock className="w-3.5 h-3.5" />
-                                <span>{Math.ceil(editor.storage.characterCount.words() / 200)} min read</span>
-                            </div>
-                        </>
-                    )}
-                </div>
+
             </div >
+            {/* Shortcuts Modal */}
+            {showShortcuts && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden outline-none">
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+                            <div className="flex items-center gap-2">
+                                <Keyboard className="w-5 h-5 text-purple-600" />
+                                <h3 className="font-bold text-gray-900 dark:text-white">Shortcuts</h3>
+                            </div>
+                            <button
+                                onClick={() => setShowShortcuts(false)}
+                                className="p-1 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="p-2">
+                            <div className="grid gap-1">
+                                {[
+                                    { label: 'Menu', keys: ['/'] },
+                                    { label: 'Bold', keys: ['⌘', 'B'] },
+                                    { label: 'Italic', keys: ['⌘', 'I'] },
+                                    { label: 'Link', keys: ['⌘', 'K'] },
+                                    { label: 'Heading 1', keys: ['#', 'Space'] },
+                                    { label: 'Heading 2', keys: ['##', 'Space'] },
+                                    { label: 'Bullet List', keys: ['-', 'Space'] },
+                                    { label: 'Ordered List', keys: ['1.', 'Space'] },
+                                    { label: 'Quote', keys: ['>', 'Space'] },
+                                    { label: 'Code Block', keys: ['```', 'Enter'] },
+                                    { label: 'Divider', keys: ['---', 'Enter'] },
+                                ].map((item, i) => (
+                                    <div key={i} className="flex items-center justify-between px-4 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+                                        <span className="text-sm font-medium text-gray-600 dark:text-gray-300">{item.label}</span>
+                                        <div className="flex gap-1">
+                                            {item.keys.map((key, k) => (
+                                                <kbd key={k} className="min-w-[1.5rem] px-1.5 py-0.5 text-xs font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded shadow-sm text-center font-sans">
+                                                    {key}
+                                                </kbd>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div >
     );
 };

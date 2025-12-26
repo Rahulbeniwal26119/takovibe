@@ -24,7 +24,7 @@ const navItems = [
     class="backdrop-blur-2xl border-b border-gray-200/30 dark:border-gray-800/30 bg-white/80 dark:bg-slate-900/80 supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-slate-900/60"
   >
     <div
-      class="max-w-[1400px] mx-auto h-16 lg:h-20 px-4 sm:px-6 lg:px-8 relative"
+      class="max-w-[1400px] mx-auto h-14 lg:h-16 px-4 sm:px-6 lg:px-8 relative"
     >
       <!-- Main Header Content -->
       <div
@@ -62,17 +62,17 @@ const navItems = [
           >
             <div class="relative">
               <div
-                class="absolute inset-0 bg-purple-500/20 rounded-full blur-md group-hover:bg-purple-500/30 transition-colors"
+                class="absolute inset-0 bg-purple-500/20 rounded-full blur-md group-hover:bg-purple-500/40 transition-all duration-500"
               >
               </div>
               <img
                 src="/images/logo.svg"
                 alt="TakoVibe logo"
-                class="relative w-9 h-9 lg:w-10 lg:h-10 rounded-full shadow-sm group-hover:scale-105 transition-transform duration-300"
+                class="relative w-9 h-9 lg:w-10 lg:h-10 rounded-full shadow-sm group-hover:rotate-12 transition-transform duration-500 ease-out"
               />
             </div>
             <span
-              class="hidden sm:block font-bold text-xl tracking-tight text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors"
+              class="hidden sm:block font-bold text-xl tracking-tight text-gray-900 dark:text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-blue-500 transition-all duration-300"
             >
               TakoVibe
             </span>
@@ -81,13 +81,13 @@ const navItems = [
 
         <!-- Center: Navigation (Desktop) -->
         <nav
-          class="hidden lg:flex flex-1 items-center justify-center gap-2 px-4"
+          class="hidden lg:flex flex-1 items-center justify-center gap-6 px-4"
         >
           <a
             href="/"
-            class={`px-5 py-2.5 rounded-full text-base font-medium transition-all duration-200 whitespace-nowrap ${
+            class={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 whitespace-nowrap relative group overflow-hidden ${
               currentPath === "/"
-                ? "bg-purple-50 dark:bg-purple-900/10 text-purple-600 dark:text-purple-400"
+                ? "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/10 shadow-sm shadow-purple-500/10"
                 : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/50"
             }`}
           >
@@ -95,9 +95,9 @@ const navItems = [
           </a>
           <a
             href="/blog"
-            class={`px-5 py-2.5 rounded-full text-base font-medium transition-all duration-200 whitespace-nowrap ${
+            class={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 whitespace-nowrap ${
               currentPath.startsWith("/blog")
-                ? "bg-purple-50 dark:bg-purple-900/10 text-purple-600 dark:text-purple-400"
+                ? "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/10 shadow-sm shadow-purple-500/10"
                 : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/50"
             }`}
           >
@@ -107,10 +107,10 @@ const navItems = [
           <!-- Write for Us CTA -->
           <a
             href="/post/new"
-            class="flex items-center gap-2 px-5 py-2.5 rounded-full text-base font-medium transition-all duration-200 whitespace-nowrap text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/10 group"
+            class="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all duration-300 whitespace-nowrap text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 hover:-translate-y-0.5"
           >
             <svg
-              class="w-4 h-4 text-purple-500 group-hover:scale-110 transition-transform"
+              class="w-4 h-4 text-white"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -127,7 +127,7 @@ const navItems = [
           <!-- More Dropdown -->
           <div class="relative group">
             <button
-              class="flex items-center gap-1 px-5 py-2.5 rounded-full text-base font-medium transition-all duration-200 whitespace-nowrap text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/50"
+              class="flex items-center gap-1 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 whitespace-nowrap text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/50"
             >
               More
               <svg
@@ -212,7 +212,7 @@ const navItems = [
           <!-- Desktop Search Trigger -->
           <button
             id="searchTriggerBtn"
-            class="hidden xl:flex items-center gap-3 w-64 px-4 py-2 bg-gray-100 dark:bg-slate-800/50 hover:bg-gray-200 dark:hover:bg-slate-800 text-gray-500 dark:text-gray-400 rounded-xl transition-all group border border-transparent hover:border-purple-500/20"
+            class="hidden xl:flex items-center gap-3 w-64 px-4 py-1.5 bg-gray-100 dark:bg-slate-800/50 hover:bg-gray-200 dark:hover:bg-slate-800 text-gray-500 dark:text-gray-400 rounded-xl transition-all group border border-transparent hover:border-purple-500/20"
             aria-label="Search"
           >
             <svg
@@ -754,37 +754,66 @@ const navItems = [
       // Actually, relying on cleaner cleanup is better.
       window.addEventListener("keydown", handleKeydown);
 
-      // Scroll Behavior
-      let lastScrollY = window.scrollY;
-      let isScrollingDown = false;
-
-      // Clean up previous scroll listener if possible?
-      // Hard to do without external ref.
-      // But we can check if the listener is already attached or just adding it is fine if elements are replaced.
-
+      // Scroll Behavior for Floating Header
       const onScroll = () => {
-        if (window.innerWidth < 1024) return; // Only on desktop
-        // Re-fetch header to be sure
-        const currentHeader = document.getElementById("site-header");
-        if (!currentHeader) return;
+        const header = document.getElementById("site-header");
+        const headerContent = header?.querySelector("div"); // The inner background div
+        if (!header || !headerContent) return;
 
         const currentScrollY = window.scrollY;
 
-        if (currentScrollY > lastScrollY && currentScrollY > 100) {
-          if (!isScrollingDown) {
-            currentHeader.style.transform = "translateY(-100%)";
-            isScrollingDown = true;
-          }
+        if (currentScrollY > 20) {
+          // Scrolled State: Floating Island
+          header.classList.add("py-2");
+          headerContent.classList.remove("w-full");
+          headerContent.classList.add(
+            "max-w-[1200px]",
+            "mx-auto",
+            "rounded-2xl",
+            "shadow-lg",
+            "border",
+            "border-white/20",
+            "dark:border-white/10",
+            "bg-white/90",
+            "dark:bg-slate-900/90",
+            "backdrop-blur-xl",
+          );
+          headerContent.classList.remove(
+            "bg-white/80",
+            "dark:bg-slate-900/80",
+            "border-b",
+            "border-gray-200/30",
+            "dark:border-gray-800/30",
+          );
         } else {
-          if (isScrollingDown) {
-            currentHeader.style.transform = "translateY(0)";
-            isScrollingDown = false;
-          }
+          // Top State: Full Width
+          header.classList.remove("py-2");
+          headerContent.classList.add("w-full");
+          headerContent.classList.remove(
+            "max-w-[1200px]",
+            "mx-auto",
+            "rounded-2xl",
+            "shadow-lg",
+            "border",
+            "border-white/20",
+            "dark:border-white/10",
+            "bg-white/90",
+            "dark:bg-slate-900/90",
+            "backdrop-blur-xl",
+          );
+          headerContent.classList.add(
+            "bg-white/80",
+            "dark:bg-slate-900/80",
+            "border-b",
+            "border-gray-200/30",
+            "dark:border-gray-800/30",
+          );
         }
-        lastScrollY = currentScrollY;
       };
 
       window.addEventListener("scroll", onScroll, { passive: true });
+      // Trigger once on load
+      onScroll();
 
       // Check auth status for mobile menu
       const checkMobileAuth = () => {
