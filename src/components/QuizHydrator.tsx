@@ -1,44 +1,51 @@
 import React, { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
-import SingleQuiz from './SingleQuiz';
+
 
 export default function QuizHydrator() {
     useEffect(() => {
-        const quizElements = document.querySelectorAll('quiz-component');
+        const hydrate = async () => {
+            const quizElements = document.querySelectorAll('quiz-component');
+            if (quizElements.length === 0) return;
 
-        quizElements.forEach((element) => {
-            // Check if already hydrated
-            if (element.hasAttribute('data-hydrated')) return;
+            // Dynamically import the component
+            const { default: SingleQuiz } = await import('./SingleQuiz');
 
-            const question = element.getAttribute('question') || '';
-            const optionsStr = element.getAttribute('options');
-            const correctIndexStr = element.getAttribute('correctIndex');
+            quizElements.forEach((element) => {
+                // Check if already hydrated
+                if (element.hasAttribute('data-hydrated')) return;
 
-            let options: string[] = [];
-            try {
-                options = optionsStr ? JSON.parse(optionsStr) : [];
-            } catch (e) {
-                console.error('Failed to parse quiz options:', e);
-            }
+                const question = element.getAttribute('question') || '';
+                const optionsStr = element.getAttribute('options');
+                const correctIndexStr = element.getAttribute('correctIndex');
 
-            const correctIndex = correctIndexStr ? parseInt(correctIndexStr, 10) : 0;
+                let options: string[] = [];
+                try {
+                    options = optionsStr ? JSON.parse(optionsStr) : [];
+                } catch (e) {
+                    console.error('Failed to parse quiz options:', e);
+                }
 
-            // Mark as hydrated
-            element.setAttribute('data-hydrated', 'true');
+                const correctIndex = correctIndexStr ? parseInt(correctIndexStr, 10) : 0;
 
-            // Create a container for the React component
-            const container = document.createElement('div');
-            element.appendChild(container);
+                // Mark as hydrated
+                element.setAttribute('data-hydrated', 'true');
 
-            const root = createRoot(container);
-            root.render(
-                <SingleQuiz
-                    question={question}
-                    options={options}
-                    correctIndex={correctIndex}
-                />
-            );
-        });
+                // Create a container for the React component
+                const container = document.createElement('div');
+                element.appendChild(container);
+
+                const root = createRoot(container);
+                root.render(
+                    <SingleQuiz
+                        question={question}
+                        options={options}
+                        correctIndex={correctIndex}
+                    />
+                );
+            });
+        };
+        hydrate();
     }, []);
 
     return null;

@@ -7,7 +7,7 @@ import { CommandList } from './CommandList'
 import {
     Heading1, Heading2, Heading3, List, ListOrdered,
     Image as ImageIcon, HelpCircle, Table as TableIcon,
-    Code, Minus, Quote, Text, CheckSquare, Youtube as YoutubeIcon,
+    Code, Minus, Quote, Text, Youtube as YoutubeIcon,
     LayoutTemplate
 } from 'lucide-react'
 

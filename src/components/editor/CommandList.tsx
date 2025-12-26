@@ -1,5 +1,5 @@
 
-import React, { Component, useEffect, useState, useImperativeHandle, forwardRef, useRef } from 'react'
+import React, { useEffect, useState, useImperativeHandle, forwardRef, useRef } from 'react'
 import {
     Heading1, Heading2, Heading3, List, ListOrdered,
     Image as ImageIcon, HelpCircle, Table as TableIcon,
