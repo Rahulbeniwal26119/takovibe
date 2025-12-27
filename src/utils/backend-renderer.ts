@@ -9,9 +9,12 @@ import Heading from "@tiptap/extension-heading";
 import ImageExt from "@tiptap/extension-image";
 import Underline from "@tiptap/extension-underline";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
+import Link from "@tiptap/extension-link";
+import Youtube from "@tiptap/extension-youtube";
 import { common, createLowlight } from "lowlight";
 import { QuizExtension } from "../components/editor/QuizExtension";
 import { CodePlaygroundSchema } from "../components/editor/CodePlaygroundSchema";
+import { FAQExtension } from "../components/editor/FAQExtension";
 import { createHighlighter } from "shiki";
 
 // Initialize lowlight
@@ -173,6 +176,16 @@ export async function processBackendContent(contentJson: any) {
         }),
         QuizExtension,
         CodePlaygroundSchema,
+        FAQExtension,
+        Link.configure({
+            openOnClick: false,
+            autolink: true,
+            defaultProtocol: 'https',
+        }),
+        Youtube.configure({
+            controls: false,
+            nocookie: true,
+        }),
     ]);
 
     // Highlight code blocks
@@ -218,11 +231,20 @@ async function highlightCodeBlocks(html: string) {
                         .replace(/&#34;/g, '"');
 
                     const outputHtml = `
-                        <div class="mt-4 bg-gray-50 dark:bg-[#161b22] rounded-lg border border-gray-200 dark:border-gray-700/50 overflow-hidden">
-                            <div class="px-4 py-2 bg-gray-100 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-700/50 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                Output
+                        <div class="bg-[#1e1e1e] border-t border-gray-200 dark:border-gray-700 animate-in fade-in slide-in-from-top-2 duration-200">
+                            <div class="flex items-center justify-between px-4 py-1.5 border-b border-white/10 bg-[#252526]">
+                                <div class="flex items-center gap-2">
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="4 17 10 11 4 5"></polyline>
+                                        <line x1="12" y1="19" x2="20" y2="19"></line>
+                                    </svg>
+                                    <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Output</span>
+                                </div>
+                                <span class="text-[10px] text-gray-500">readonly</span>
                             </div>
-                            <div class="p-4 font-mono text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">${outputText}</div>
+                            <div class="p-0">
+                                <div class="w-full bg-transparent text-gray-300 font-mono text-sm leading-relaxed p-3 min-h-[8rem] whitespace-pre-wrap selection:bg-gray-700">${outputText}</div>
+                            </div>
                         </div>
                     `;
 

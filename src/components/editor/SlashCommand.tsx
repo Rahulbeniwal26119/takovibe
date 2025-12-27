@@ -156,6 +156,18 @@ const getSuggestionItems = ({ query }: { query: string }) => {
                 ]).run()
             },
         },
+        {
+            title: 'FAQ Section',
+            description: 'Insert an FAQ accordion.',
+            searchTerms: ['faq', 'questions', 'accordion'],
+            icon: HelpCircle,
+            command: ({ editor, range }: any) => {
+                editor.chain().focus().deleteRange(range).insertContent([
+                    { type: 'faqSection' },
+                    { type: 'paragraph' }
+                ]).run()
+            },
+        },
     ].filter((item) => {
         if (typeof query === 'string' && query.length > 0) {
             const search = query.toLowerCase()

@@ -8,6 +8,8 @@ import TableOfContents from "./TableOfContents.astro";
 import SelectionPopover from "./SelectionPopover.astro";
 import QuizHydrator from "./QuizHydrator";
 import CodePlaygroundHydrator from "./CodePlaygroundHydrator";
+import { TiptapRenderer } from "./TiptapRenderer";
+import { generateFAQSchema } from "../utils/seo-utils";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -128,6 +130,15 @@ const breadcrumbStructuredData = {
         slot="head"
         set:html={JSON.stringify(breadcrumbStructuredData)}
     />
+    {
+        post.contentJson && (
+            <script
+                type="application/ld+json"
+                slot="head"
+                set:html={generateFAQSchema(post.contentJson)}
+            />
+        )
+    }
     <ReadingProgress />
     <SelectionPopover />
 
@@ -365,6 +376,11 @@ const breadcrumbStructuredData = {
                             {
                                 isStatic && Content ? (
                                     <Content />
+                                ) : post.contentJson ? (
+                                    <TiptapRenderer
+                                        client:load
+                                        content={post.contentJson}
+                                    />
                                 ) : (
                                     <div set:html={htmlContent} />
                                 )

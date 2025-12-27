@@ -12,6 +12,7 @@ import Underline from '@tiptap/extension-underline';
 import { common, createLowlight } from 'lowlight';
 import { QuizExtension } from './QuizExtension';
 import { CodePlaygroundExtension } from './CodePlaygroundExtension';
+import { FAQExtension } from './FAQExtension';
 import { SlashCommand } from './SlashCommand';
 import CodeBlockComponent from './CodeBlockComponent';
 import ImageNodeView from './ImageNodeView';
@@ -158,6 +159,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
     };
 
     const editor = useEditor({
+        immediatelyRender: false,
         extensions: [
             StarterKit.configure({
                 heading: {
@@ -207,6 +209,29 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                     addNodeView() {
                         return ReactNodeViewRenderer(CodeBlockComponent)
                     },
+                    addKeyboardShortcuts() {
+                        return {
+                            'Mod-a': () => {
+                                if (this.editor.isActive('codeBlock')) {
+                                    const { state } = this.editor;
+                                    const { selection } = state;
+                                    const { $from } = selection;
+
+                                    // Find the start and end of the current code block
+                                    const startPos = $from.start();
+                                    const endPos = $from.end();
+
+                                    this.editor.commands.setTextSelection({
+                                        from: startPos,
+                                        to: endPos
+                                    });
+
+                                    return true; // Prevent default behavior
+                                }
+                                return false;
+                            }
+                        }
+                    },
                 })
                 .configure({ lowlight }),
             Table.configure({
@@ -235,6 +260,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
             }),
             QuizExtension,
             CodePlaygroundExtension,
+            FAQExtension,
             Link.extend({
                 addKeyboardShortcuts() {
                     return {
@@ -578,6 +604,14 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
     const addCodeBlock = () => {
         editor.chain().focus().insertContent([
             { type: 'codeBlock' },
+            { type: 'paragraph' }
+        ]).run();
+        setIsMenuOpen(false);
+    };
+
+    const addFAQ = () => {
+        editor.chain().focus().insertContent([
+            { type: 'faqSection' },
             { type: 'paragraph' }
         ]).run();
         setIsMenuOpen(false);
@@ -956,6 +990,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                                 <MenuButton onClick={() => setShowTableInput(true)} icon={TableIcon} label="Table" />
                                                 <MenuButton onClick={addCodeBlock} icon={Code} label="Code Block" />
                                                 <MenuButton onClick={addCodePlayground} icon={LayoutTemplate} label="Code Playground" />
+                                                <MenuButton onClick={addFAQ} icon={HelpCircle} label="FAQ Section" />
                                                 <MenuButton onClick={addHorizontalRule} icon={Minus} label="Separator" />
                                             </div>
                                         </div>

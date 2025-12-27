@@ -9,11 +9,13 @@ import TableHeader from '@tiptap/extension-table-header';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import Image from '@tiptap/extension-image';
 import Underline from '@tiptap/extension-underline';
+import Link from '@tiptap/extension-link';
 import { common, createLowlight } from 'lowlight';
 import { QuizExtension } from './editor/QuizExtension';
 import CodeBlockComponent from './editor/CodeBlockComponent';
 import ImageNodeView from './editor/ImageNodeView';
 import { CodePlaygroundExtension } from './editor/CodePlaygroundExtension';
+import { FAQExtension } from './editor/FAQExtension';
 import '../styles/editor.css';
 
 // Initialize lowlight with common languages
@@ -25,6 +27,7 @@ interface TiptapRendererProps {
 
 export const TiptapRenderer: React.FC<TiptapRendererProps> = ({ content }) => {
     const editor = useEditor({
+        immediatelyRender: false,
         editable: false,
         extensions: [
             StarterKit.configure({
@@ -91,6 +94,29 @@ export const TiptapRenderer: React.FC<TiptapRendererProps> = ({ content }) => {
                     addNodeView() {
                         return ReactNodeViewRenderer(CodeBlockComponent)
                     },
+                    addKeyboardShortcuts() {
+                        return {
+                            'Mod-a': () => {
+                                if (this.editor.isActive('codeBlock')) {
+                                    const { state } = this.editor;
+                                    const { selection } = state;
+                                    const { $from } = selection;
+
+                                    // Find the start and end of the current code block
+                                    const startPos = $from.start();
+                                    const endPos = $from.end();
+
+                                    this.editor.commands.setTextSelection({
+                                        from: startPos,
+                                        to: endPos
+                                    });
+
+                                    return true; // Prevent default behavior
+                                }
+                                return false;
+                            }
+                        }
+                    },
                 })
                 .configure({ lowlight }),
             Table.configure({
@@ -112,6 +138,12 @@ export const TiptapRenderer: React.FC<TiptapRendererProps> = ({ content }) => {
             }),
             QuizExtension, // Quiz might need read-only adjustments if it has interactive editing features
             CodePlaygroundExtension,
+            FAQExtension,
+            Link.configure({
+                openOnClick: true,
+                autolink: true,
+                defaultProtocol: 'https',
+            }),
         ],
         content: content,
         editorProps: {

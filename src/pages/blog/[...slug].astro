@@ -55,16 +55,14 @@ try {
         authorUsername: apiData.author?.username || "",
       };
 
-      console.log(`[Blog Debug] Post Object created for ${slug}:`, {
-        date: post.data.date,
-        dateType: typeof post.data.date,
-        isValidDate: !isNaN(post.data.date.getTime()),
-      });
-
       if (apiData.content) {
         const result = await processBackendContent(apiData.content);
         htmlContent = result.htmlContent;
         headings = result.headings;
+      }
+      // Pass raw JSON for client-side rendering (TiptapRenderer)
+      if (apiData.content) {
+        post.contentJson = apiData.content;
       }
     }
   }
