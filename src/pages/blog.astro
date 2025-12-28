@@ -88,168 +88,183 @@ const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
     "programming",
   ]}
 >
-  <div class="min-h-screen bg-gray-50 dark:bg-[#0B1120]">
-    <!-- Hero Section -->
-    <section class="relative py-24 lg:py-32 overflow-hidden">
-      <!-- Animated Background -->
+  <div
+    class="relative w-full overflow-x-hidden min-h-screen bg-gray-50 dark:bg-[#0B1120]"
+  >
+    <!-- Immersive Background -->
+    <div class="fixed inset-0 z-0">
       <div
-        class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-100 via-gray-50 to-gray-50 dark:from-purple-900/20 dark:via-[#0B1120] dark:to-[#0B1120]"
+        class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-purple-100 via-gray-50 to-white dark:from-[#1a103c] dark:via-[#0B1120] dark:to-[#0B1120]"
       >
       </div>
-
-      <!-- Blobs -->
+      <!-- Floating Orbs -->
       <div
-        class="absolute top-0 left-1/4 w-96 h-96 bg-purple-400/20 dark:bg-purple-500/10 rounded-full blur-3xl animate-blob"
-      >
-      </div>
-      <div
-        class="absolute top-0 right-1/4 w-96 h-96 bg-blue-400/20 dark:bg-blue-500/10 rounded-full blur-3xl animate-blob animation-delay-2000"
+        class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-purple-400/20 dark:bg-purple-600/10 blur-[100px] animate-blob mix-blend-multiply dark:mix-blend-screen"
       >
       </div>
       <div
-        class="absolute bottom-0 left-1/2 w-96 h-96 bg-indigo-400/20 dark:bg-indigo-500/10 rounded-full blur-3xl animate-blob animation-delay-4000"
+        class="absolute top-[20%] right-[-10%] w-[400px] h-[400px] rounded-full bg-blue-400/20 dark:bg-blue-600/10 blur-[100px] animate-blob animation-delay-2000 mix-blend-multiply dark:mix-blend-screen"
       >
       </div>
+      <div
+        class="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] rounded-full bg-indigo-400/20 dark:bg-indigo-600/10 blur-[100px] animate-blob animation-delay-4000 mix-blend-multiply dark:mix-blend-screen"
+      >
+      </div>
+      <!-- Grid Pattern Overlay -->
+      <div
+        class="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-20 dark:opacity-10 pointer-events-none"
+      >
+      </div>
+    </div>
 
-      <div class="relative z-10 max-w-7xl mx-auto px-6 text-center">
-        <div
-          class="inline-flex items-center gap-2 px-4 py-2 bg-white/50 dark:bg-white/5 backdrop-blur-md text-purple-700 dark:text-purple-300 rounded-full text-sm font-medium mb-8 border border-purple-200/50 dark:border-white/10 shadow-sm animate-fade-in-up"
-        >
-          <span class="text-base">📚</span>
-          <span>Knowledge Base</span>
-        </div>
+    <!-- Main Content Wrapper -->
+    <div class="relative z-10 w-full">
+      <!-- Hero Section -->
+      <section class="relative py-24 lg:py-32 overflow-hidden">
+        <!-- Old background removed -->
 
-        <h1
-          class="text-5xl md:text-6xl lg:text-7xl font-bold mb-8 animate-fade-in-up animation-delay-200 tracking-tight"
-        >
-          <span class="block text-gray-900 dark:text-white mb-2"
-            >Explore Our</span
-          >
-          <span
-            class="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent animate-gradient"
-            >Latest Insights</span
-          >
-        </h1>
-
-        <p
-          class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-12 leading-relaxed animate-fade-in-up animation-delay-400"
-        >
-          Discover in-depth tutorials, technical deep dives, and the latest
-          trends in software engineering.
-        </p>
-
-        <!-- Search Bar -->
-        <div
-          class="max-w-2xl mx-auto relative group animate-fade-in-up animation-delay-600"
-        >
+        <div class="relative z-10 max-w-7xl mx-auto px-6 text-center">
           <div
-            class="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"
+            class="inline-flex items-center gap-2 px-4 py-2 bg-white/50 dark:bg-white/5 backdrop-blur-md text-purple-700 dark:text-purple-300 rounded-full text-sm font-medium mb-8 border border-purple-200/50 dark:border-white/10 shadow-sm animate-fade-in-up"
           >
+            <span class="text-base">📚</span>
+            <span>Knowledge Base</span>
           </div>
-          <div class="relative">
-            <input
-              type="text"
-              id="search-input"
-              placeholder="Search articles, topics, or keywords..."
-              class="w-full pl-14 pr-6 py-5 bg-white dark:bg-[#131B2E] border border-gray-200 dark:border-gray-700/50 rounded-2xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all shadow-xl shadow-purple-500/5 text-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-            />
-            <svg
-              class="absolute left-5 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400 dark:text-gray-500 group-focus-within:text-purple-500 transition-colors"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-            </svg>
-          </div>
-        </div>
 
-        <!-- Tags Filter -->
-        <div class="mt-12 animate-fade-in-up animation-delay-800">
-          <div class="flex flex-wrap justify-center gap-2">
-            <button class="tag-filter active group" data-tag="all">
-              <span class="relative z-10">All Posts</span>
-            </button>
-            {
-              popularTags.map(({ tag, count }) => (
-                <button class="tag-filter group" data-tag={tag}>
-                  <span class="relative z-10">{tag}</span>
-                </button>
-              ))
-            }
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-6 pb-32">
-      <!-- Results Info -->
-      <div class="flex items-center justify-between mb-10">
-        <span
-          id="results-count"
-          class="text-sm font-medium text-gray-500 dark:text-gray-400"
-        >
-          Showing latest articles
-        </span>
-      </div>
-
-      <!-- Articles Grid -->
-      <div
-        id="articles-container"
-        class="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
-      >
-        <!-- Articles will be loaded dynamically via JavaScript -->
-      </div>
-
-      <!-- No Results -->
-      <div id="no-results" class="hidden text-center py-32">
-        <div class="max-w-md mx-auto">
-          <div
-            class="w-24 h-24 mx-auto mb-6 bg-gray-100 dark:bg-gray-800/50 rounded-full flex items-center justify-center"
+          <h1
+            class="text-5xl md:text-6xl lg:text-7xl font-bold mb-8 animate-fade-in-up animation-delay-200 tracking-tight"
           >
-            <svg
-              class="w-12 h-12 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+            <span class="block text-gray-900 dark:text-white mb-2"
+              >Explore Our</span
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.5"
-                d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.034 0-3.935.785-5.365 2.077l-.673-.673a.75.75 0 01.673-1.404H8z"
-              ></path>
-            </svg>
-          </div>
-          <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-            No articles found
-          </h3>
-          <p class="text-gray-500 dark:text-gray-400 mb-8">
-            We couldn't find any articles matching your search. Try adjusting
-            your keywords or filters.
+            <span
+              class="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent animate-gradient"
+              >Latest Insights</span
+            >
+          </h1>
+
+          <p
+            class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-12 leading-relaxed animate-fade-in-up animation-delay-400"
+          >
+            Discover in-depth tutorials, technical deep dives, and the latest
+            trends in software engineering.
           </p>
-          <button
-            id="clear-filters-btn"
-            class="px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl transition-all shadow-lg shadow-purple-600/20 hover:shadow-purple-600/40 hover:-translate-y-0.5"
-          >
-            Clear Filters
-          </button>
-        </div>
-      </div>
 
-      <!-- Pagination -->
-      <div id="pagination" class="flex items-center justify-center gap-3 mt-24">
-        <!-- Pagination will be generated by JavaScript -->
+          <!-- Search Bar -->
+          <div
+            class="max-w-2xl mx-auto relative group animate-fade-in-up animation-delay-600"
+          >
+            <div
+              class="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"
+            >
+            </div>
+            <div class="relative">
+              <input
+                type="text"
+                id="search-input"
+                placeholder="Search articles, topics, or keywords..."
+                class="w-full pl-14 pr-6 py-5 bg-white/10 dark:bg-[#131B2E]/60 border border-gray-200 dark:border-gray-700/50 rounded-2xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all shadow-xl shadow-purple-500/5 text-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 backdrop-blur-xl"
+              />
+              <svg
+                class="absolute left-5 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400 dark:text-gray-500 group-focus-within:text-purple-500 transition-colors"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Tags Filter -->
+          <div class="mt-12 animate-fade-in-up animation-delay-800">
+            <div class="flex flex-wrap justify-center gap-2">
+              <button class="tag-filter active group" data-tag="all">
+                <span class="relative z-10">All Posts</span>
+              </button>
+              {
+                popularTags.map(({ tag, count }) => (
+                  <button class="tag-filter group" data-tag={tag}>
+                    <span class="relative z-10">{tag}</span>
+                  </button>
+                ))
+              }
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Main Content -->
+      <div class="max-w-7xl mx-auto px-6 pb-32">
+        <!-- Results Info -->
+        <div class="flex items-center justify-between mb-10">
+          <span
+            id="results-count"
+            class="text-sm font-medium text-gray-500 dark:text-gray-400"
+          >
+            Showing latest articles
+          </span>
+        </div>
+
+        <!-- Articles Grid -->
+        <div
+          id="articles-container"
+          class="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+        >
+          <!-- Articles will be loaded dynamically via JavaScript -->
+        </div>
+
+        <!-- No Results -->
+        <div id="no-results" class="hidden text-center py-32">
+          <div class="max-w-md mx-auto">
+            <div
+              class="w-24 h-24 mx-auto mb-6 bg-gray-100 dark:bg-gray-800/50 rounded-full flex items-center justify-center"
+            >
+              <svg
+                class="w-12 h-12 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.034 0-3.935.785-5.365 2.077l-.673-.673a.75.75 0 01.673-1.404H8z"
+                ></path>
+              </svg>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+              No articles found
+            </h3>
+            <p class="text-gray-500 dark:text-gray-400 mb-8">
+              We couldn't find any articles matching your search. Try adjusting
+              your keywords or filters.
+            </p>
+            <button
+              id="clear-filters-btn"
+              class="px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl transition-all shadow-lg shadow-purple-600/20 hover:shadow-purple-600/40 hover:-translate-y-0.5"
+            >
+              Clear Filters
+            </button>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div
+          id="pagination"
+          class="flex items-center justify-center gap-3 mt-24"
+        >
+          <!-- Pagination will be generated by JavaScript -->
+        </div>
       </div>
     </div>
   </div>
 </Layout>
-
 <style>
   /* Animations */
   @keyframes blob {
@@ -322,7 +337,7 @@ const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
   /* Tag Filters */
   .tag-filter {
     @apply relative px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300;
-    @apply bg-white dark:bg-[#131B2E] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700/50;
+    @apply bg-white/10 dark:bg-[#131B2E]/60 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700/50 backdrop-blur-md;
     @apply hover:border-purple-400 dark:hover:border-purple-500/50 hover:text-purple-600 dark:hover:text-purple-400 hover:shadow-md;
   }
 
@@ -643,7 +658,7 @@ const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
     });
 
     article.innerHTML = `
-      <a href="${post.uri || `/blog/${post.slug}`}" class="relative flex flex-col h-full bg-white dark:bg-[#131B2E] border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-2 group-hover:border-purple-500/20 dark:group-hover:border-purple-500/20">
+      <a href="${post.uri || `/blog/${post.slug}`}" class="relative flex flex-col h-full bg-white/10 dark:bg-[#131B2E]/60 border border-gray-100/10 dark:border-gray-800/50 rounded-2xl overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-2 group-hover:border-purple-500/20 dark:group-hover:border-purple-500/20 backdrop-blur-md">
         <!-- Image Container -->
         <div class="relative aspect-[16/9] overflow-hidden bg-gray-100 dark:bg-gray-800">
           ${
