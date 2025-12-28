@@ -59,8 +59,8 @@ export default ({ node, updateAttributes, editor }: any) => {
                     <div
                         key={index}
                         className={`group border border-gray-200 dark:border-gray-800 rounded-2xl bg-white dark:bg-zinc-900/50 transition-all duration-300 ${expandedIndex === index
-                                ? 'shadow-lg shadow-gray-200/50 dark:shadow-none ring-1 ring-purple-500/20 dark:ring-purple-500/30'
-                                : 'hover:border-purple-200 dark:hover:border-purple-800/50'
+                            ? 'shadow-lg shadow-gray-200/50 dark:shadow-none ring-1 ring-purple-500/20 dark:ring-purple-500/30'
+                            : 'hover:border-purple-200 dark:hover:border-purple-800/50'
                             }`}
                     >
                         <button
@@ -71,8 +71,8 @@ export default ({ node, updateAttributes, editor }: any) => {
                         >
                             <span
                                 className={`flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-lg text-sm font-bold transition-all duration-300 ${expandedIndex === index
-                                        ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300 scale-110'
-                                        : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 group-hover:bg-purple-50 dark:group-hover:bg-purple-900/20 group-hover:text-purple-600 dark:group-hover:text-purple-400'
+                                    ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300 scale-110'
+                                    : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 group-hover:bg-purple-50 dark:group-hover:bg-purple-900/20 group-hover:text-purple-600 dark:group-hover:text-purple-400'
                                     }`}
                             >
                                 {index + 1}
@@ -85,11 +85,11 @@ export default ({ node, updateAttributes, editor }: any) => {
                                         value={item.question}
                                         onChange={(e) => handleUpdateItem(index, 'question', e.target.value)}
                                         placeholder="Type your question here..."
-                                        className="w-full bg-transparent border-none outline-none font-bold text-lg text-gray-900 dark:text-gray-100 placeholder-gray-400/70 p-0 focus:ring-0"
+                                        className="w-full bg-transparent border-none outline-none font-bold text-lg sm:text-xl text-gray-900 dark:text-gray-100 placeholder-gray-400/70 p-0 focus:ring-0"
                                         onClick={(e) => e.stopPropagation()}
                                     />
                                 ) : (
-                                    <h4 className="font-bold text-lg text-gray-900 dark:text-gray-100 pr-4 leading-snug">
+                                    <h4 className="font-bold text-lg sm:text-xl text-gray-900 dark:text-gray-100 pr-4 leading-snug">
                                         {item.question || 'Untitled Question'}
                                     </h4>
                                 )}
@@ -110,8 +110,8 @@ export default ({ node, updateAttributes, editor }: any) => {
                                 )}
                                 <div
                                     className={`p-2 rounded-lg transition-all duration-300 ${expandedIndex === index
-                                            ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300 rotate-180'
-                                            : 'text-gray-400 group-hover:text-purple-600 dark:group-hover:text-purple-400'
+                                        ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300 rotate-180'
+                                        : 'text-gray-400 group-hover:text-purple-600 dark:group-hover:text-purple-400'
                                         }`}
                                 >
                                     <ChevronDown size={20} strokeWidth={2.5} />
@@ -121,8 +121,8 @@ export default ({ node, updateAttributes, editor }: any) => {
 
                         <div
                             className={`grid transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${expandedIndex === index
-                                    ? 'grid-rows-[1fr] opacity-100 pb-6'
-                                    : 'grid-rows-[0fr] opacity-0 pb-0'
+                                ? 'grid-rows-[1fr] opacity-100 pb-6'
+                                : 'grid-rows-[0fr] opacity-0 pb-0'
                                 }`}
                         >
                             <div className="overflow-hidden">
@@ -132,11 +132,11 @@ export default ({ node, updateAttributes, editor }: any) => {
                                             value={item.answer}
                                             onChange={(e) => handleUpdateItem(index, 'answer', e.target.value)}
                                             placeholder="Write the detailed answer here..."
-                                            className="w-full bg-gray-50 dark:bg-black/20 border border-transparent focus:border-purple-200 dark:focus:border-purple-800 focus:bg-white dark:focus:bg-black/40 rounded-xl p-4 text-base text-gray-600 dark:text-gray-300 leading-relaxed outline-none resize-none focus:ring-4 focus:ring-purple-500/5 transition-all min-h-[100px]"
+                                            className="w-full bg-gray-50 dark:bg-black/20 border border-transparent focus:border-purple-200 dark:focus:border-purple-800 focus:bg-white dark:focus:bg-black/40 rounded-xl p-4 text-base sm:text-lg text-gray-600 dark:text-gray-300 leading-relaxed outline-none resize-none focus:ring-4 focus:ring-purple-500/5 transition-all min-h-[100px]"
                                             onClick={(e) => e.stopPropagation()}
                                         />
                                     ) : (
-                                        <div className="text-gray-600 dark:text-gray-300 text-base leading-relaxed whitespace-pre-wrap">
+                                        <div className="text-gray-600 dark:text-gray-300 text-base sm:text-lg leading-relaxed whitespace-pre-wrap">
                                             {item.answer || 'No answer provided yet.'}
                                         </div>
                                     )}

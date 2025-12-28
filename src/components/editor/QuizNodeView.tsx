@@ -7,6 +7,9 @@ const QuizNodeView = ({ node, updateAttributes, editor, getPos }) => {
 
     const isEditable = editor.isEditable;
 
+    const [selectedOption, setSelectedOption] = React.useState(null);
+    const [isSubmitted, setIsSubmitted] = React.useState(false);
+
     const handleQuestionChange = (e) => {
         if (!isEditable) return;
         updateAttributes({ question: e.target.value });
@@ -65,16 +68,16 @@ const QuizNodeView = ({ node, updateAttributes, editor, getPos }) => {
         };
 
         return (
-            <NodeViewWrapper className="quiz-component my-8 max-w-2xl mx-auto not-prose">
+            <NodeViewWrapper className="quiz-component my-4 sm:my-8 w-full not-prose">
                 <div className="bg-white dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300">
-                    <div className="p-5">
+                    <div className="p-4 sm:p-5">
                         <div className="flex items-start gap-3 mb-4">
                             <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg text-purple-600 dark:text-purple-400 mt-0.5">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+                            <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 dark:text-gray-100 leading-snug">
                                 {question || "Untitled Quiz"}
                             </h3>
                         </div>
@@ -118,7 +121,7 @@ const QuizNodeView = ({ node, updateAttributes, editor, getPos }) => {
                                                 String.fromCharCode(65 + index)
                                             )}
                                         </div>
-                                        <span className={`${textClass} text-sm font-medium z-10`}>
+                                        <span className={`${textClass} text-base sm:text-lg font-medium z-10`}>
                                             {option}
                                         </span>
                                     </button>
@@ -126,7 +129,7 @@ const QuizNodeView = ({ node, updateAttributes, editor, getPos }) => {
                             })}
                         </div>
                     </div>
-                    <div className="px-5 py-2.5 bg-gray-50 dark:bg-gray-800/80 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400 font-semibold">
+                    <div className="px-4 py-2 sm:px-5 sm:py-2.5 bg-gray-50 dark:bg-gray-800/80 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400 font-semibold">
                         <span>{isSubmitted ? (selectedOption === correctIndex ? "Correct Answer" : "Incorrect Answer") : "Select an option"}</span>
                         <span className="flex items-center gap-1.5">
                             <span className={`w-1.5 h-1.5 rounded-full ${isSubmitted ? (selectedOption === correctIndex ? 'bg-green-500' : 'bg-red-500') : 'bg-purple-500 animate-pulse'}`}></span>
@@ -140,8 +143,8 @@ const QuizNodeView = ({ node, updateAttributes, editor, getPos }) => {
 
     // Render for Editor (Quiz Creator)
     return (
-        <NodeViewWrapper className="quiz-component my-8 p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm relative group">
-            <div className="absolute right-4 top-4 opacity-0 group-hover:opacity-100 transition-opacity">
+        <NodeViewWrapper className="quiz-component my-4 sm:my-8 p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm relative group">
+            <div className="absolute right-2 top-2 sm:right-4 sm:top-4 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                     onClick={handleCopyBlock}
                     className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -152,24 +155,24 @@ const QuizNodeView = ({ node, updateAttributes, editor, getPos }) => {
             </div>
 
             <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Question
                 </label>
                 <input
                     type="text"
                     value={question}
                     onChange={handleQuestionChange}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-transparent dark:text-white"
+                    className="w-full px-3 py-2 sm:px-4 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-transparent dark:text-white text-sm sm:text-base"
                     placeholder="Enter your question here..."
                 />
             </div>
 
             <div className="space-y-3">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
                     Options
                 </label>
                 {options.map((option, index) => (
-                    <div key={index} className="flex items-center gap-3">
+                    <div key={index} className="flex items-center gap-2 sm:gap-3">
                         <button
                             onClick={() => setCorrectOption(index)}
                             className={`flex-shrink-0 transition-colors ${index === correctIndex
@@ -179,25 +182,25 @@ const QuizNodeView = ({ node, updateAttributes, editor, getPos }) => {
                             title="Mark as correct answer"
                         >
                             {index === correctIndex ? (
-                                <CheckCircle2 className="w-6 h-6" />
+                                <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
                             ) : (
-                                <Circle className="w-6 h-6" />
+                                <Circle className="w-5 h-5 sm:w-6 sm:h-6" />
                             )}
                         </button>
                         <input
                             type="text"
                             value={option}
                             onChange={(e) => handleOptionChange(index, e.target.value)}
-                            className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-transparent dark:text-white"
+                            className="flex-1 px-3 py-2 sm:px-4 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-transparent dark:text-white text-sm sm:text-base"
                             placeholder={`Option ${index + 1}`}
                         />
                         <button
                             onClick={() => removeOption(index)}
-                            className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                            className="p-1.5 sm:p-2 text-gray-400 hover:text-red-500 transition-colors"
                             title="Remove option"
                             disabled={options.length <= 2}
                         >
-                            <Trash2 className="w-5 h-5" />
+                            <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
                         </button>
                     </div>
                 ))}
@@ -205,7 +208,7 @@ const QuizNodeView = ({ node, updateAttributes, editor, getPos }) => {
 
             <button
                 onClick={addOption}
-                className="mt-4 flex items-center gap-2 text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
+                className="mt-4 flex items-center gap-2 text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors py-2"
             >
                 <Plus className="w-4 h-4" />
                 Add Option

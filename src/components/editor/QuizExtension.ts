@@ -1,6 +1,6 @@
-import { Node, mergeAttributes } from '@tiptap/core';
 import { ReactNodeViewRenderer } from '@tiptap/react';
 import QuizNodeView from './QuizNodeView';
+import { QuizSchema } from './QuizSchema';
 
 export interface QuizAttributes {
     question: string;
@@ -16,41 +16,7 @@ declare module '@tiptap/core' {
     }
 }
 
-export const QuizExtension = Node.create({
-    name: 'quizComponent',
-
-    group: 'block',
-
-    atom: true,
-
-    addAttributes() {
-        return {
-            question: {
-                default: 'What is your question?',
-            },
-            options: {
-                default: ['Option 1', 'Option 2'],
-            },
-            correctIndex: {
-                default: 0,
-            },
-        };
-    },
-
-    parseHTML() {
-        return [
-            {
-                tag: 'quiz-component',
-            },
-        ];
-    },
-
-    renderHTML({ HTMLAttributes }) {
-        return ['quiz-component', mergeAttributes(HTMLAttributes, {
-            'options': JSON.stringify(HTMLAttributes.options),
-        })];
-    },
-
+export const QuizExtension = QuizSchema.extend({
     addNodeView() {
         return ReactNodeViewRenderer(QuizNodeView);
     },

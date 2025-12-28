@@ -12,9 +12,9 @@ import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import Link from "@tiptap/extension-link";
 import Youtube from "@tiptap/extension-youtube";
 import { common, createLowlight } from "lowlight";
-import { QuizExtension } from "../components/editor/QuizExtension";
+import { QuizSchema } from "../components/editor/QuizSchema";
 import { CodePlaygroundSchema } from "../components/editor/CodePlaygroundSchema";
-import { FAQExtension } from "../components/editor/FAQExtension";
+import { FAQSchema } from "../components/editor/FAQSchema";
 import { createHighlighter } from "shiki";
 
 // Initialize lowlight
@@ -29,7 +29,7 @@ async function getHighlighter() {
     if (!highlighterPromise) {
         highlighterPromise = createHighlighter({
             themes: ["github-dark", "github-light"],
-            langs: ["python", "javascript", "html", "css", "json", "bash"],
+            langs: ["python", "javascript", "html", "css", "json", "bash", "go", "typescript", "tsx", "jsx", "shell", "yaml", "dockerfile", "sql", "rust"],
         });
     }
     return highlighterPromise;
@@ -174,9 +174,9 @@ export async function processBackendContent(contentJson: any) {
         CustomCodeBlock.configure({
             lowlight,
         }),
-        QuizExtension,
+        QuizSchema,
         CodePlaygroundSchema,
-        FAQExtension,
+        FAQSchema,
         Link.configure({
             openOnClick: false,
             autolink: true,
@@ -240,10 +240,9 @@ async function highlightCodeBlocks(html: string) {
                                     </svg>
                                     <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Output</span>
                                 </div>
-                                <span class="text-[10px] text-gray-500">readonly</span>
                             </div>
                             <div class="p-0">
-                                <div class="w-full bg-transparent text-gray-300 font-mono text-sm leading-relaxed p-3 min-h-[8rem] whitespace-pre-wrap selection:bg-gray-700">${outputText}</div>
+                                <div class="w-full bg-transparent text-gray-300 font-mono text-[12px] sm:text-[14px] leading-relaxed p-3 whitespace-pre-wrap selection:bg-gray-700">${outputText}</div>
                             </div>
                         </div>
                     `;
