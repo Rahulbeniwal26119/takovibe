@@ -1,0 +1,357 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { changelogData } from "../data/changelog";
+import ChangelogNav from "../components/ChangelogNav";
+
+// Helper function to get badge color
+const getBadgeColor = (type: string) => {
+  switch (type) {
+    case 'new':
+      return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800';
+    case 'improvement':
+      return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800';
+    case 'fix':
+      return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800';
+    case 'removed':
+      return 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800';
+    default:
+      return 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300';
+  }
+};
+
+const getIcon = (type: string) => {
+  switch (type) {
+    case 'new': return '✨';
+    case 'improvement': return '🚀';
+    case 'fix': return '🔧';
+    case 'removed': return '🗑️';
+    default: return '📝';
+  }
+}
+---
+
+<Layout
+  title="Changelog - TakoVibe"
+  description="Stay up to date with the latest features, improvements, and fixes on TakoVibe."
+>
+  <div class="relative min-h-screen bg-gray-50 dark:bg-[#0B1120] overflow-hidden">
+    <div class="fixed inset-0 z-0 pointer-events-none">
+      <div
+        class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-purple-100 via-gray-50 to-white dark:from-[#1a103c] dark:via-[#0B1120] dark:to-[#0B1120]"
+      >
+      </div>
+      <div
+        class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-purple-400/20 dark:bg-purple-600/10 blur-[100px] animate-blob mix-blend-multiply dark:mix-blend-screen"
+      >
+      </div>
+      <div
+        class="absolute top-[20%] right-[-10%] w-[400px] h-[400px] rounded-full bg-blue-400/20 dark:bg-blue-600/10 blur-[100px] animate-blob animation-delay-2000 mix-blend-multiply dark:mix-blend-screen"
+      >
+      </div>
+      <div
+        class="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] rounded-full bg-indigo-400/20 dark:bg-indigo-600/10 blur-[100px] animate-blob animation-delay-4000 mix-blend-multiply dark:mix-blend-screen"
+      >
+      </div>
+      <!-- Grid Pattern Overlay -->
+      <div
+        class="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-20 dark:opacity-10"
+      >
+      </div>
+    </div>
+
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-24">
+      
+      <!-- Page Header -->
+      <div class="text-center mb-16 animate-fade-in-up">
+        <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm text-purple-700 dark:text-purple-300 rounded-full text-sm font-medium mb-6 border border-purple-200/50 dark:border-purple-700/50 shadow-sm">
+          <span class="text-base">🚀</span>
+          <span>Product Updates</span>
+        </div>
+        
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+          What's New in <span class="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">TakoVibe</span>
+        </h1>
+        
+        <p class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
+          We're constantly improving. Here's a timeline of our latest features, enhancements, and fixes.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+          
+          <!-- Timeline Content (Primary) -->
+          <div class="lg:col-span-8 order-1">
+             <!-- Timeline -->
+              <div class="relative space-y-12 before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-purple-200 before:dark:via-purple-800 before:to-transparent">
+                
+                {changelogData.map((entry, index) => (
+                  <div 
+                    class="relative flex items-center md:items-start group animate-fade-in-up"
+                    style={`animation-delay: ${index * 150}ms`}
+                  >
+                    <!-- Icon/Dot on Timeline -->
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white dark:border-[#0B1120] bg-purple-500 shadow-lg shrink-0 z-10 relative md:absolute md:left-1/2 md:-translate-x-1/2 md:top-0">
+                       <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                       </svg>
+                    </div>
+
+                    {/* Content Card */}
+                    <div class="ml-8 md:ml-0 w-full md:w-[calc(50%-2.5rem)] md:group-odd:mr-auto md:group-even:ml-auto p-6 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl border border-white/40 dark:border-gray-700/50 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 relative group-hover:border-purple-500/30 dark:group-hover:border-purple-500/30" id={`entry-${entry.date}`}>
+                      
+                      <!-- Date & Version -->
+                      <div class="flex flex-wrap items-center gap-3 mb-3">
+                         <span class="px-3 py-1 text-xs font-bold text-purple-600 dark:text-purple-300 bg-purple-100 dark:bg-purple-900/30 rounded-full border border-purple-200 dark:border-purple-700">
+                            {entry.version || new Date(entry.date).getFullYear()}
+                         </span>
+                         <time class="text-sm text-gray-500 dark:text-gray-400 font-medium">
+                            {new Date(entry.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                         </time>
+                      </div>
+
+                      <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                        {entry.title}
+                      </h2>
+                      
+                      <p class="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
+                        {entry.description}
+                      </p>
+
+                      <!-- Changes List -->
+                      <ul class="space-y-6">
+                        {entry.changes.map((change) => (
+                          <li class="flex flex-col gap-3">
+                            <div class="flex items-start gap-3 text-sm">
+                              <span class={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border shrink-0 mt-0.5 ${getBadgeColor(change.type)}`}>
+                                {change.type}
+                              </span>
+                              <span class="text-gray-700 dark:text-gray-200 leading-snug">
+                                {change.text}
+                              </span>
+                            </div>
+
+                            {/* Change-specific Images */}
+                            {change.images && change.images.length > 0 && (
+                              <div class={`mt-2 grid gap-4 ${change.images.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                                  {change.images.map((img, idx) => (
+                                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-shadow group/image">
+                                      <img 
+                                        src={img} 
+                                        alt={`${entry.title} - ${change.text} image ${idx + 1}`} 
+                                        class="w-full h-48 sm:h-64 object-cover cursor-zoom-in transition-transform duration-500 group-hover/image:scale-105"
+                                        onclick={`window.openImageModal('${img}')`}
+                                      />
+                                    </div>
+                                  ))}
+                              </div>
+                            )}
+
+                            {/* Change-specific Comparisons */}
+                            {change.comparisons && change.comparisons.length > 0 && (
+                              <div class={`mt-2 grid gap-4 ${change.comparisons.length > 1 ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
+                                  {change.comparisons.map((comp, idx) => (
+                                      <div class="space-y-2">
+                                        {comp.label && <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">{comp.label}</h4>}
+                                        <div class="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden relative group/slider select-none">
+                                            <div class="relative w-full h-64 sm:h-80 bg-gray-100 dark:bg-gray-800">
+                                                <!-- After Image (Base) -->
+                                                <img 
+                                                  src={comp.image_after} 
+                                                  alt={`After ${comp.label || ''}`}
+                                                  class="absolute inset-0 w-full h-full object-cover cursor-zoom-in"
+                                                  onclick={`window.openImageModal('${comp.image_after}')`}
+                                                />
+                                                <span class="absolute top-2 right-2 px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-black/50 text-white backdrop-blur-md rounded">After</span>
+
+                                                <!-- Before Image (Clipped) -->
+                                                <div 
+                                                  class="absolute inset-0 w-full h-full overflow-hidden before-image-wrapper"
+                                                  style="clip-path: inset(0 50% 0 0);"
+                                                >
+                                                  <img 
+                                                    src={comp.image_before} 
+                                                    alt={`Before ${comp.label || ''}`}
+                                                    class="absolute inset-0 w-full h-full object-cover max-w-none cursor-zoom-in"
+                                                    onclick={`window.openImageModal('${comp.image_before}')`}
+                                                  />
+                                                  <span class="absolute top-2 left-2 px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-black/50 text-white backdrop-blur-md rounded">Before</span>
+                                                </div>
+
+                                                <!-- Slider Handle -->
+                                                <div 
+                                                  class="absolute inset-y-0 left-1/2 w-1 bg-white cursor-ew-resize slider-handle flex items-center justify-center -ml-0.5 z-20 pointer-events-none"
+                                                >
+                                                  <div class="w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center text-gray-600">
+                                                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                                                      </svg>
+                                                  </div>
+                                                </div>
+                                            </div>
+                                            <input 
+                                              type="range" 
+                                              min="0" 
+                                              max="100" 
+                                              value="50" 
+                                              class="absolute inset-0 w-full h-full opacity-0 cursor-ew-resize z-30 slider-range"
+                                              oninput="
+                                                const val = this.value;
+                                                const wrapper = this.parentElement.querySelector('.before-image-wrapper');
+                                                const handle = this.parentElement.querySelector('.slider-handle');
+                                                if(wrapper && handle) {
+                                                  wrapper.style.clipPath = `inset(0 ${100 - val}% 0 0)`;
+                                                  handle.style.left = `${val}%`;
+                                                }
+                                              "
+                                            />
+                                        </div>
+                                      </div>
+                                  ))}
+                              </div>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                ))}
+              </div>
+          </div>
+
+          <!-- Sidebar (Navigation) -->
+          <div class="lg:col-span-4 order-2 mt-8 lg:mt-0">
+             <div class="sticky top-24">
+                <div class="animate-fade-in-up" style="animation-delay: 200ms">
+                   <ChangelogNav client:load entries={changelogData} />
+                </div>
+             </div>
+          </div>
+
+      </div>
+
+      <!-- Subscribe/Footer CTA -->
+      <div class="mt-20 text-center animate-fade-in-up" style="animation-delay: 600ms">
+         <p class="text-gray-500 dark:text-gray-400 mb-4">
+            Want to see what's coming next?
+         </p>
+         <a href="/contact" class="inline-flex items-center gap-2 px-6 py-3 bg-white dark:bg-slate-800 text-purple-600 dark:text-purple-400 font-semibold rounded-xl border border-gray-200 dark:border-gray-700 hover:border-purple-500 dark:hover:border-purple-500 transition-colors shadow-sm">
+            <span>Suggest a Feature</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+         </a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Image Modal -->
+  <div id="image-modal" class="fixed inset-0 z-50 hidden opacity-0 transition-opacity duration-300 flex items-center justify-center p-4 sm:p-8">
+      <div class="absolute inset-0 bg-black/90 backdrop-blur-sm" onclick="window.closeImageModal()"></div>
+      <div class="relative max-w-7xl max-h-full w-auto h-auto transition-transform duration-300 scale-95" id="modal-content">
+          <button onclick="window.closeImageModal()" class="absolute -top-12 right-0 p-2 text-white hover:text-gray-300 focus:outline-none z-10">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+          <img id="modal-image" src="" alt="Full size preview" class="max-w-full max-h-[85vh] rounded-lg shadow-2xl object-contain" />
+      </div>
+  </div>
+
+  <script is:inline>
+    // Image Modal Logic
+    const modal = document.getElementById('image-modal');
+    const modalImg = document.getElementById('modal-image');
+    const modalContent = document.getElementById('modal-content');
+
+    window.openImageModal = (src) => {
+        if(!modal || !modalImg) return;
+        modalImg.src = src;
+        modal.classList.remove('hidden');
+        // Small delay to allow display:block to apply before opacity transition
+        requestAnimationFrame(() => {
+            modal.classList.remove('opacity-0');
+            modalContent.classList.remove('scale-95');
+            modalContent.classList.add('scale-100');
+        });
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    };
+
+    window.closeImageModal = () => {
+        if(!modal) return;
+        modal.classList.add('opacity-0');
+        modalContent.classList.remove('scale-100');
+        modalContent.classList.add('scale-95');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modalImg.src = '';
+            document.body.style.overflow = '';
+        }, 300);
+    };
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+            window.closeImageModal();
+        }
+    });
+  </script>
+</Layout>
+
+<style>
+  @keyframes gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .animate-gradient {
+    animation: gradient 3s ease infinite;
+  }
+
+  .animate-blob {
+    animation: blob 7s infinite;
+  }
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
+  @keyframes blob {
+    0% {
+      transform: translate(0px, 0px) scale(1);
+    }
+    33% {
+      transform: translate(30px, -50px) scale(1.1);
+    }
+    66% {
+      transform: translate(-20px, 20px) scale(0.9);
+    }
+    100% {
+      transform: translate(0px, 0px) scale(1);
+    }
+  }
+  
+  .animate-fade-in-up {
+      animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      opacity: 0;
+      transform: translateY(20px);
+  }
+
+  @keyframes fadeInUp {
+      from {
+          opacity: 0;
+          transform: translateY(20px);
+      }
+      to {
+          opacity: 1;
+          transform: translateY(0);
+      }
+  }
+</style>

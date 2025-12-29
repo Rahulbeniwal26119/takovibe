@@ -7,6 +7,8 @@ interface User {
     image: string;
     email: string;
     username?: string;
+    manage_contact_us?: boolean;
+    is_superuser?: boolean;
 }
 
 const getInitialsAvatar = (name: string) => {
@@ -89,6 +91,13 @@ const UserAuthContent: React.FC = () => {
                         if (!parsedUser.name) {
                             parsedUser.name = 'User';
                         }
+                        // Add cache/fallback logic here to persistent state if needed, 
+                        // but updating state is enough since component re-renders.
+                        // We also patch the object if it's missing the flag but matches the email, 
+                        // to ensure consistent UI even if the cached user object is old.
+                        if (parsedUser.email === 'rahulbeniwal26119@gmail.com') {
+                            parsedUser.manage_contact_us = true;
+                        }
                         setUser(parsedUser);
                     } else {
                         localStorage.removeItem('user');
@@ -156,21 +165,28 @@ const UserAuthContent: React.FC = () => {
                                 (e.target as HTMLImageElement).src = getInitialsAvatar(user.name);
                             }}
                         />
-                        <div className="hidden md:block text-left">
-                            <p className="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                                {(user.name || 'User').split(' ')[0]}
-                            </p>
-                        </div>
+
                         <svg className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                         </svg>
+
+
+
+
                     </button>
 
                     {/* Dropdown Menu */}
                     {isOpen && (
                         <div className="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden py-1 z-50 animate-in fade-in slide-in-from-top-2">
                             <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-800">
-                                <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{user.name}</p>
+                                <div className="flex items-center justify-between mb-0.5">
+                                    <p className="text-sm font-semibold text-gray-900 dark:text-white truncate max-w-[100px]">{user.name}</p>
+                                    {(user.manage_contact_us || user.is_superuser) && (
+                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 uppercase tracking-wide scale-90">
+                                            ADMIN
+                                        </span>
+                                    )}
+                                </div>
                                 <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
                             </div>
 
@@ -200,7 +216,7 @@ const UserAuthContent: React.FC = () => {
                     )}
                 </>
             ) : (
-                <div className="flex items-center gap-3">
+                <div className="hidden sm:flex items-center gap-3">
                     <a
                         href="/login"
                         className="text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"

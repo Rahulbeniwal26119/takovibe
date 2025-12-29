@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, User as UserIcon, Plus, Edit3, Eye, Trash2, Save, Github, Linkedin, Globe, Link as LinkIcon, Camera, AlertCircle } from 'lucide-react';
+import { FileText, User as UserIcon, Plus, Edit3, Eye, Trash2, Save, Github, Linkedin, Globe, Link as LinkIcon, Camera, AlertCircle, Inbox } from 'lucide-react';
 import { Loader } from './ui/Loader';
+import { ContactManager } from './admin/ContactManager';
 
 const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -14,6 +15,9 @@ interface User {
     github_url?: string;
     linkedin_url?: string;
     website_url?: string;
+    is_staff?: boolean;
+    is_superuser?: boolean;
+    manage_contact_us?: boolean;
 }
 
 interface BlogPost {
@@ -34,7 +38,7 @@ interface BlogPost {
 const AuthorDashboard: React.FC = () => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'my-posts' | 'profile'>('my-posts');
+    const [activeTab, setActiveTab] = useState<'my-posts' | 'profile' | 'inbox'>('my-posts');
     const [postTab, setPostTab] = useState<'drafts' | 'published'>('published');
     const [posts, setPosts] = useState<BlogPost[]>([]);
     const [error, setError] = useState<string | null>(null);
@@ -100,7 +104,10 @@ const AuthorDashboard: React.FC = () => {
                 bio: userData.bio || '',
                 github_url: userData.github_url || userData.github || '',
                 linkedin_url: userData.linkedin_url || userData.linkedin || '',
-                website_url: userData.website_url || userData.website || ''
+                website_url: userData.website_url || userData.website || '',
+                is_staff: userData.is_staff || false,
+                is_superuser: userData.is_superuser || false,
+                manage_contact_us: userData.manage_contact_us || userData.email === 'rahulbeniwal26119@gmail.com' || false,
             };
             setUser(userObj);
 
@@ -226,6 +233,20 @@ const AuthorDashboard: React.FC = () => {
                             <span className="tracking-wide">Profile</span>
                             {activeTab === 'profile' && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
                         </button>
+
+                        {(user?.manage_contact_us || user?.is_superuser) && (
+                            <button
+                                onClick={() => setActiveTab('inbox')}
+                                className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-xl font-semibold transition-all duration-300 group ${activeTab === 'inbox'
+                                    ? 'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-lg shadow-indigo-500/25'
+                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-indigo-600 dark:hover:text-indigo-400'
+                                    }`}
+                            >
+                                <Inbox className={`w-5 h-5 ${activeTab === 'inbox' ? 'text-white' : 'text-gray-400 group-hover:text-indigo-500 transition-colors'}`} />
+                                <span className="tracking-wide">Inbox</span>
+                                {activeTab === 'inbox' && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
+                            </button>
+                        )}
                     </nav>
                 </div>
             </aside>
@@ -493,6 +514,13 @@ const AuthorDashboard: React.FC = () => {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                )}
+
+                {/* Inbox View */}
+                {activeTab === 'inbox' && (user?.manage_contact_us || user?.is_superuser) && (
+                    <div className="animate-fade-in w-full">
+                        <ContactManager />
                     </div>
                 )}
 
