@@ -16,7 +16,8 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
 ---
 
 <div
-    class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-2xl px-4 pointer-events-none"
+    id="reader-toolbar-container"
+    class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-2xl px-4 pointer-events-none transition-transform duration-500 ease-in-out"
 >
     <div
         class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl p-2 pointer-events-auto flex items-center justify-between gap-2"
@@ -26,7 +27,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
             <!-- Copy Link Button (Replaced TTS) -->
             <button
                 id="copy-link-btn"
-                class="p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all relative group"
+                class="hidden md:block p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all relative group"
                 aria-label="Copy article link"
                 title="Copy Link"
             >
@@ -106,6 +107,37 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
 
         <!-- Right: Actions -->
         <div class="flex items-center gap-1">
+            <!-- AI Chat Toggle -->
+            <button
+                id="ai-chat-toggle"
+                class="md:hidden p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+                aria-label="Ask AI"
+                title="Ask AI"
+            >
+                <div class="relative">
+                    <span class="absolute -top-1 -right-1 flex h-2 w-2">
+                        <span
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"
+                        ></span>
+                        <span
+                            class="relative inline-flex rounded-full h-2 w-2 bg-purple-500"
+                        ></span>
+                    </span>
+                    <svg
+                        class="w-5 h-5 text-purple-600 dark:text-purple-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                </div>
+            </button>
+
             <!-- Like Button -->
             <button
                 id="like-btn"
@@ -597,6 +629,15 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
     document.addEventListener("DOMContentLoaded", initFontSize);
     document.addEventListener("astro:after-swap", initFontSize);
 
+    // AI Chat Toggle Logic
+    const aiChatToggleBtn = document.getElementById("ai-chat-toggle");
+    if (aiChatToggleBtn) {
+        aiChatToggleBtn.addEventListener("click", () => {
+            const event = new CustomEvent("toggle-ai-chat");
+            window.dispatchEvent(event);
+        });
+    }
+
     // Copy Link Functionality
     const copyArticleLinkBtn = document.getElementById("copy-link-btn");
     if (copyArticleLinkBtn) {
@@ -621,6 +662,32 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
                 }, 2000);
             } catch (err) {
                 console.error("Failed to copy link:", err);
+            }
+        });
+    }
+
+    // Auto-Hide Toolbar when AI Chat is Open
+    const toolbarContainer = document.getElementById(
+        "reader-toolbar-container",
+    );
+
+    if (toolbarContainer) {
+        window.addEventListener("ai-chat-state-change", (e) => {
+            // Only hide toolbar on mobile where space is limited and they overlap
+            const isMobile = window.innerWidth < 768;
+
+            if (e.detail && e.detail.isOpen && isMobile) {
+                // Hide toolbar (slide down)
+                toolbarContainer.classList.add(
+                    "translate-y-[200%]",
+                    "opacity-0",
+                );
+            } else {
+                // Show toolbar (slide up) - Always allow showing, or strictly revert
+                toolbarContainer.classList.remove(
+                    "translate-y-[200%]",
+                    "opacity-0",
+                );
             }
         });
     }

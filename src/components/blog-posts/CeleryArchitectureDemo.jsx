@@ -35,7 +35,6 @@ const CeleryArchitectureDemo = () => {
     e.stopPropagation();
     
     if (isSimulating) {
-      console.log('⚠️ Already simulating, blocking...');
       return;
     }
     
@@ -62,23 +61,21 @@ const CeleryArchitectureDemo = () => {
         { component: 'client', message: '✅ Task completed successfully!' }
       ];
 
-      console.log('📋 Processing steps:', steps);
+      // console.log('📋 Processing steps:', steps);
 
       // Process each step with sequential updates
       steps.forEach((step, index) => {
         setTimeout(() => {
-          console.log(`⏱️ Step ${index + 1}/${steps.length}:`, step.message);
+          // console.log(`⏱️ Step ${index + 1}/${steps.length}:`, step.message);
           
           setCurrentStep(prev => {
-            console.log(`📊 Progress: ${prev} → ${index + 1}`);
             return index + 1;
           });
           
           setActiveComponent(step.component);
           
-          setTaskFlow(prev => {
+           setTaskFlow(prev => {
             const newFlow = [...prev, step.component];
-            console.log('🔄 Task flow updated:', newFlow);
             return newFlow;
           });
           
@@ -89,14 +86,12 @@ const CeleryArchitectureDemo = () => {
               timestamp: new Date().toLocaleTimeString()
             };
             const newMessages = [...prev, newMsg];
-            console.log('💬 Messages updated:', newMessages.length);
             return newMessages;
           });
           
           // Complete simulation after last step
-          if (index === steps.length - 1) {
+           if (index === steps.length - 1) {
             setTimeout(() => {
-              console.log('🎉 Simulation COMPLETED!');
               setActiveComponent(null);
               setIsSimulating(false);
               setMessages(prev => [...prev, {
@@ -113,7 +108,6 @@ const CeleryArchitectureDemo = () => {
   };
 
   const handleComponentClick = (componentKey) => {
-    console.log('Component clicked:', componentKey);
     setActiveComponent(activeComponent === componentKey ? null : componentKey);
   };
 
@@ -121,7 +115,6 @@ const CeleryArchitectureDemo = () => {
     e.preventDefault();
     e.stopPropagation();
     
-    console.log('🔄 RESET clicked!');
     setMessages([]);
     setTaskFlow([]);
     setActiveComponent(null);
@@ -191,7 +184,6 @@ const CeleryArchitectureDemo = () => {
         <button 
           onClick={simulateTaskFlow}
           onMouseDown={(e) => {
-            console.log('🖱️ Mouse down on simulate button');
             e.currentTarget.style.transform = 'scale(0.98)';
           }}
           onMouseUp={(e) => {
@@ -222,7 +214,6 @@ const CeleryArchitectureDemo = () => {
         <button 
           onClick={resetSimulation}
           onMouseDown={(e) => {
-            console.log('🖱️ Mouse down on reset button');
             e.currentTarget.style.transform = 'scale(0.98)';
           }}
           onMouseUp={(e) => {

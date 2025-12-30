@@ -27,6 +27,46 @@ export interface ChangeLogEntry {
 
 export const changelogData: ChangeLogEntry[] = [
     {
+        "date": "2025-12-30",
+        "version": "Beta Preview",
+        "title": "Introducing Kumi & Comments Redesign",
+        "description": "We are excited to introduce Kumi, your new AI reading companion, alongside a completely reimagined commenting experience.",
+        "changes": [
+            {
+                "type": "new",
+                "text": "Kumi AI Chatbot: Your new intelligent reading companion. Kumi helps you learn faster with these features:",
+            },
+            {
+                "type": "new",
+                "text": "✨ Summarize Articles: Get quick, concise summaries of long posts."
+            },
+            {
+                "type": "new",
+                "text": "👨‍💻 Code Explanation: Select any code snippet and ask Kumi to explain it line-by-line."
+            },
+            {
+                "type": "new",
+                "text": "📊 Visual Learning: Ask Kumi to visualize concepts with Mermaid diagrams."
+            },
+            {
+                "type": "new",
+                "text": "🧠 Interactive Quizzes: Test your knowledge with AI-generated quizzes based on the article."
+            },
+            {
+                "type": "improvement",
+                "text": "Floating Comments Panel: Replaced the side drawer with a modern, floating glass panel. It now sits cleanly on the right without overlapping the header."
+            },
+            {
+                "type": "improvement",
+                "text": "Clean Workspace: Kumi automatically hides when you open the comments section to prevent visual clutter."
+            },
+            {
+                "type": "fix",
+                "text": "Solved z-index layout issues between sticky headers and sidebars."
+            }
+        ]
+    },
+    {
         "date": "2025-12-29",
         "version": "Initial Version",
         "title": "Header Improvements and New Pages Added",

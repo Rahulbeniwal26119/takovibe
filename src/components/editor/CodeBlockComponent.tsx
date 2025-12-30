@@ -1,6 +1,6 @@
 import { NodeViewContent, NodeViewWrapper } from '@tiptap/react';
 import React, { useEffect, useState, useRef } from 'react';
-import { Terminal, Clipboard, Check, ChevronDown, Search } from 'lucide-react';
+import { Terminal, Clipboard, Check, ChevronDown, Search, Sparkles } from 'lucide-react';
 
 export default ({ node, updateAttributes, extension, editor }: any) => {
     const { language: defaultLanguage, output, showOutput } = node.attrs;
@@ -8,6 +8,20 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
     const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const dropdownRef = useRef<HTMLDivElement>(null);
+
+
+
+    const handleExplainCode = () => {
+        const code = node.textContent;
+        // Trigger AI Chat with "Explain" mode
+        const event = new CustomEvent('trigger-ai-chat', {
+            detail: {
+                text: code,
+                mode: 'explain'
+            }
+        });
+        window.dispatchEvent(event);
+    };
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -128,6 +142,17 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                         )}
 
                         <div className="w-px h-3 sm:h-4 bg-gray-200 dark:bg-gray-600 mx-0.5 sm:mx-1" />
+
+                        {/* Explain Button */}
+                        <button
+                            onClick={handleExplainCode}
+                            className="flex items-center gap-1.5 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-md text-[10px] sm:text-xs font-medium transition-all text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+                            title="Explain with AI"
+                        >
+                            <Sparkles size={12} className="sm:w-[14px] sm:h-[14px]" />
+                            <span className="hidden sm:inline">Explain</span>
+                        </button>
+
                         <button
                             onClick={handleCopyCode}
                             className={`flex items-center gap-1.5 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-md text-[10px] sm:text-xs font-medium transition-all ${isCopied

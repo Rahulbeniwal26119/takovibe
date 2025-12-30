@@ -603,7 +603,6 @@ const navItems = [
       }
 
       function openSearch() {
-        console.log("Opening full header search...");
         const mainContent = document.getElementById("main-header-content");
         const fullSearch = document.getElementById("full-header-search");
         const fullSearchInput = document.getElementById(
@@ -611,7 +610,6 @@ const navItems = [
         );
 
         if (!mainContent || !fullSearch) {
-          console.error("Header search elements missing");
           return;
         }
 
@@ -641,7 +639,6 @@ const navItems = [
       }
 
       function closeSearch() {
-        console.log("Closing full header search...");
         const mainContent = document.getElementById("main-header-content");
         const fullSearch = document.getElementById("full-header-search");
 
@@ -676,18 +673,15 @@ const navItems = [
 
       // Search Triggers
       searchTriggerBtn?.addEventListener("click", (e) => {
-        console.log("Desktop search trigger clicked");
-        e.stopPropagation(); // Prevent bubbling issues
+        e.stopPropagation();
         openSearch();
       });
 
       mobileSearchBtn?.addEventListener("click", (e) => {
-        console.log("Mobile search icon clicked");
         openSearch();
       });
 
       mobileMenuSearchBtn?.addEventListener("click", (e) => {
-        console.log("Drawer search button clicked");
         openSearch();
       });
 

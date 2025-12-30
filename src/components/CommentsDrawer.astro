@@ -5,26 +5,45 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
 
 <div
     id="comments-drawer"
-    class="fixed inset-y-0 right-0 w-full max-w-md bg-white dark:bg-gray-900 shadow-2xl transform translate-x-full transition-transform duration-300 z-[60] flex flex-col"
+    class="fixed z-[10000] bg-white/80 dark:bg-gray-900/80 backdrop-blur-2xl shadow-2xl transition-all duration-300 ease-out flex flex-col border border-white/20 dark:border-gray-700
+    
+    /* Mobile: Bottom Sheet */
+    inset-x-0 bottom-0 h-[85dvh] w-full rounded-t-[2rem] translate-y-full
+    /* Desktop: Floating Glass Panel */
+    md:top-20 md:right-6 md:bottom-auto md:left-auto md:h-[calc(100vh-7rem)] md:w-[420px] md:rounded-[2rem] md:translate-y-4 md:opacity-0 md:pointer-events-none md:translate-x-0"
 >
+    <!-- Handle for Mobile Drag -->
+    <div
+        class="md:hidden w-full flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing"
+    >
+        <div class="w-12 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-full"></div>
+    </div>
+
     <!-- Header -->
     <div
-        class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md z-10"
+        class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800/50 shrink-0"
     >
         <div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                Discussion
+            <h3
+                class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2"
+            >
+                Comments
+                <span
+                    id="comment-count-badge"
+                    class="px-2 py-0.5 text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full hidden"
+                    >0</span
+                >
             </h3>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                Share your thoughts
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Join the conversation
             </p>
         </div>
         <button
             id="close-comments"
-            class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            class="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
         >
             <svg
-                class="w-5 h-5"
+                class="w-6 h-6"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -40,16 +59,56 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
 
     <!-- Comments List -->
     <div
-        class="flex-1 overflow-y-auto p-6 custom-scrollbar"
+        class="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar scroll-smooth"
         id="comments-container"
     >
-        <div id="comments-list" class="space-y-6">
-            <!-- Comments will be injected here -->
+        <div id="comments-list" class="space-y-6 pb-24">
+            <!-- Loading State -->
             <div
-                class="flex flex-col items-center justify-center h-32 text-gray-500"
+                class="flex flex-col items-center justify-center h-48 text-gray-400 animate-pulse"
+            >
+                <div
+                    class="w-12 h-12 bg-gray-200 dark:bg-gray-800 rounded-full mb-3"
+                >
+                </div>
+                <div class="h-4 w-32 bg-gray-200 dark:bg-gray-800 rounded mb-2">
+                </div>
+                <div class="h-3 w-24 bg-gray-200 dark:bg-gray-800 rounded">
+                </div>
+            </div>
+        </div>
+
+        <div id="load-more-container" class="mt-8 text-center hidden pb-8">
+            <button
+                id="load-more-btn"
+                class="px-6 py-2.5 text-sm font-medium text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded-full transition-all"
+            >
+                Load more comments
+            </button>
+        </div>
+    </div>
+
+    <!-- Input Area (Fixed Bottom) -->
+    <div
+        class="absolute bottom-0 inset-x-0 p-4 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-t border-gray-100 dark:border-gray-800"
+    >
+        <div
+            class="relative flex items-end gap-2 bg-gray-50 dark:bg-gray-800 rounded-[1.5rem] p-1.5 border border-gray-200 dark:border-gray-700 focus-within:ring-2 focus-within:ring-purple-500/50 focus-within:border-purple-500 transition-all shadow-sm"
+        >
+            <textarea
+                id="comment-input"
+                rows="1"
+                class="w-full px-4 py-3 bg-transparent border-none focus:ring-0 resize-none text-sm placeholder-gray-400 dark:placeholder-gray-500 max-h-32 text-gray-900 dark:text-white"
+                placeholder="Write a comment..."
+                style="min-height: 48px;"></textarea>
+
+            <button
+                id="post-comment-btn"
+                class="p-3 bg-purple-600 hover:bg-purple-700 text-white rounded-full transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed shrink-0 mb-0.5 mr-0.5 group"
+                aria-label="Send"
             >
                 <svg
-                    class="w-8 h-8 mb-2 opacity-50"
+                    class="w-5 h-5 translate-x-0.5 group-hover:translate-x-1 transition-transform"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -58,60 +117,27 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
                         stroke-linecap="round"
                         stroke-linejoin="round"
                         stroke-width="2"
-                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                    ></path>
+                        d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
                 </svg>
-                <p class="text-sm">Loading comments...</p>
-            </div>
-        </div>
-
-        <div id="load-more-container" class="mt-6 text-center hidden">
-            <button
-                id="load-more-btn"
-                class="px-4 py-2 text-sm font-medium text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
-            >
-                Load more comments
             </button>
         </div>
-    </div>
-
-    <!-- Input Area -->
-    <div
-        class="p-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50"
-    >
-        <div class="relative">
-            <textarea
-                id="comment-input"
-                rows="3"
-                class="w-full px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-sm transition-shadow placeholder-gray-400 dark:placeholder-gray-500"
-                placeholder="What are your thoughts?"></textarea>
-            <div class="absolute bottom-2 right-2 flex items-center gap-2">
-                <button
-                    id="post-comment-btn"
-                    class="px-4 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded-lg transition-colors shadow-sm flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    <span>Post</span>
-                    <svg
-                        class="w-3 h-3"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-                    </svg>
-                </button>
-            </div>
-        </div>
+        <p
+            class="text-[10px] text-gray-400 text-center mt-2 px-4 hidden md:block"
+        >
+            Press <kbd
+                class="font-sans px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700"
+                >Ctrl</kbd
+            > + <kbd
+                class="font-sans px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700"
+                >Enter</kbd
+            > to post
+        </p>
     </div>
 </div>
 
 <div
     id="comments-backdrop"
-    class="fixed inset-0 bg-black/20 backdrop-blur-sm z-[55] hidden opacity-0 transition-opacity duration-300"
+    class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[55] hidden opacity-0 transition-opacity duration-500"
 >
 </div>
 
@@ -128,25 +154,76 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
     let nextUrl = null;
     let isLoading = false;
 
+    // Auto-resize textarea
+    commentInput?.addEventListener("input", function () {
+        this.style.height = "auto";
+        this.style.height = this.scrollHeight + "px";
+        if (this.value === "") this.style.height = "auto";
+    });
+
+    // Ctrl+Enter to post
+    commentInput?.addEventListener("keydown", (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+            postComment();
+        }
+    });
+
     // Drawer Control
     window.toggleComments = () => {
-        const isClosed = drawer.classList.contains("translate-x-full");
+        const isClosed = drawer.classList.contains("translate-y-full"); // Mobile check
+
+        // We check mobile class for 'closed' state as base
+        // If it has 'translate-y-full' (mobile) OR 'md:translate-x-full' (desktop), it's closed.
+        // But checking one is enough if we toggle both classes.
+
         if (isClosed) {
-            drawer.classList.remove("translate-x-full");
-            backdrop.classList.remove("hidden");
-            // Small delay to allow display:block to apply before opacity transition
-            requestAnimationFrame(() => {
-                backdrop.classList.remove("opacity-0");
-            });
-            fetchComments();
+            openDrawer();
         } else {
             closeDrawer();
         }
     };
 
+    function openDrawer() {
+        // Mobile: Remove translate-y-full
+        drawer.classList.remove("translate-y-full");
+
+        // Desktop: Remove closed state classes
+        drawer.classList.remove(
+            "md:translate-y-4",
+            "md:opacity-0",
+            "md:pointer-events-none",
+        );
+
+        backdrop.classList.remove("hidden");
+        requestAnimationFrame(() => {
+            backdrop.classList.remove("opacity-0");
+        });
+
+        // Hide ChatBot (Kumi) to prevent overlap/distraction
+        document.body.classList.add("comments-open");
+
+        fetchComments();
+
+        // Focus input after transition
+        setTimeout(() => commentInput?.focus(), 500);
+    }
+
     function closeDrawer() {
-        drawer.classList.add("translate-x-full");
+        // Mobile: Add translate-y-full
+        drawer.classList.add("translate-y-full");
+
+        // Desktop: Add closed state classes
+        drawer.classList.add(
+            "md:translate-y-4",
+            "md:opacity-0",
+            "md:pointer-events-none",
+        );
+
         backdrop.classList.add("opacity-0");
+
+        // Show ChatBot again
+        document.body.classList.remove("comments-open");
+
         setTimeout(() => {
             backdrop.classList.add("hidden");
         }, 300);
@@ -166,28 +243,36 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
             const res = await fetch(fetchUrl);
             const data = await res.json();
 
-            if (!url) commentsList.innerHTML = ""; // Clear loading state on first load
+            if (!url) commentsList.innerHTML = "";
 
             if (data.results && data.results.length > 0) {
+                // Update badge
+                const badge = document.getElementById("comment-count-badge");
+                if (badge) {
+                    badge.innerText = data.count || data.results.length;
+                    badge.classList.remove("hidden");
+                }
+
                 const html = data.results
                     .map(
                         (comment) => `
-          <div class="group">
-            <div class="flex items-start gap-3">
-              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white text-xs font-bold shadow-sm">
+          <div class="group animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <div class="flex gap-4">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white text-sm font-bold shadow-md ring-2 ring-white dark:ring-gray-800 shrink-0">
                 ${comment.user ? comment.user[0].toUpperCase() : "A"}
               </div>
-              <div class="flex-1 min-w-0">
-                <div class="bg-gray-50 dark:bg-gray-800/50 rounded-2xl rounded-tl-none px-4 py-3">
-                  <div class="flex items-center justify-between mb-1">
-                    <span class="text-xs font-semibold text-gray-900 dark:text-white">
+              <div class="flex-1 min-w-0 space-y-1">
+                <div class="flex items-baseline justify-between">
+                    <span class="text-sm font-bold text-gray-900 dark:text-white">
                       ${comment.user || "Anonymous"}
                     </span>
-                    <span class="text-[10px] text-gray-500">
-                      ${new Date(comment.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                    <span class="text-[10px] text-gray-400">
+                      ${formatDate(comment.created_at)}
                     </span>
-                  </div>
-                  <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">${comment.comment}</p>
+                </div>
+                
+                <div class="bg-gray-50 dark:bg-gray-800/50 rounded-2xl rounded-tl-none px-4 py-3 text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap shadow-sm group-hover:bg-gray-100 dark:group-hover:bg-gray-800 transition-colors">
+                  ${comment.comment}
                 </div>
               </div>
             </div>
@@ -210,8 +295,12 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
                 }
             } else if (!url) {
                 commentsList.innerHTML = `
-          <div class="text-center py-12">
-            <p class="text-gray-500 dark:text-gray-400 text-sm">No comments yet. Be the first to share your thoughts!</p>
+          <div class="flex flex-col items-center justify-center py-16 text-center opacity-60">
+            <div class="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+            </div>
+            <p class="text-gray-500 dark:text-gray-400 font-medium">No comments yet</p>
+            <p class="text-xs text-gray-400 mt-1">Be the first to start the conversation!</p>
           </div>
         `;
             }
@@ -219,7 +308,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
             console.error("Error fetching comments:", err);
             if (!url) {
                 commentsList.innerHTML = `
-          <div class="text-center py-12 text-red-500 text-sm">
+          <div class="text-center py-12 text-red-500 text-sm bg-red-50 dark:bg-red-900/10 rounded-xl m-4">
             Failed to load comments. Please try again.
           </div>
         `;
@@ -229,12 +318,32 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
         }
     }
 
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diff = (now - date) / 1000; // seconds
+
+        if (diff < 60) return "Just now";
+        if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+        if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+
+        return date.toLocaleDateString(undefined, {
+            month: "short",
+            day: "numeric",
+        });
+    }
+
     async function postComment() {
         const text = commentInput.value.trim();
         if (!text) return;
 
         postBtn.disabled = true;
-        postBtn.innerHTML = '<span class="animate-spin">↻</span> Posting...';
+        const width = postBtn.offsetWidth;
+        postBtn.style.width = width + "px"; // Maintain width
+        const originalContent = postBtn.innerHTML;
+        postBtn.innerHTML =
+            '<svg class="w-5 h-5 animate-spin mx-auto" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
 
         try {
             const res = await fetch(`${apiUrl}/api/blogs/comments/`, {
@@ -245,18 +354,15 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
 
             if (res.ok) {
                 commentInput.value = "";
+                commentInput.style.height = "auto"; // Reset height
                 fetchComments(); // Reload comments
             }
         } catch (err) {
             console.error("Error posting comment:", err);
         } finally {
             postBtn.disabled = false;
-            postBtn.innerHTML = `
-        <span>Post</span>
-        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-        </svg>
-      `;
+            postBtn.style.width = "";
+            postBtn.innerHTML = originalContent;
         }
     }
 
