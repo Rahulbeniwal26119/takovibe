@@ -204,6 +204,19 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                     'data-show-output': attributes.showOutput,
                                 }),
                             },
+                            tabs: {
+                                default: null,
+                                parseHTML: element => {
+                                    const tabsData = element.getAttribute('data-tabs');
+                                    return tabsData ? JSON.parse(tabsData) : null;
+                                },
+                                renderHTML: attributes => {
+                                    if (!attributes.tabs) return {};
+                                    return {
+                                        'data-tabs': JSON.stringify(attributes.tabs),
+                                    };
+                                },
+                            },
                         }
                     },
                     addNodeView() {

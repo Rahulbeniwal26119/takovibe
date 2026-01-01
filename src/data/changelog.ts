@@ -27,6 +27,26 @@ export interface ChangeLogEntry {
 
 export const changelogData: ChangeLogEntry[] = [
     {
+        "date": "2026-01-01",
+        "version": "Editor Update",
+        "title": "Tabbed Code Blocks & Editor Polish",
+        "description": "We've upgraded the code editing experience with multi-language tabs and consistent styling across the board.",
+        "changes": [
+            {
+                "type": "new",
+                "text": "Tabbed Code Blocks: You can now add multiple tabs to a single code block! Perfect for showing code examples in different languages (e.g., Python vs Rust) or separating code from config."
+            },
+            {
+                "type": "improvement",
+                "text": "Consistent Code Styling: All code blocks (single and tabbed) now strictly use the JetBrains Mono font with consistent 13px sizing and line height for a premium reading experience."
+            },
+            {
+                "type": "improvement",
+                "text": "The language picker has been moved to a consistent top-right position inside the editor area for both single and tabbed blocks, reducing header clutter."
+            }
+        ]
+    },
+    {
         "date": "2025-12-30",
         "version": "Beta Preview",
         "title": "Introducing Kumi & Comments Redesign",

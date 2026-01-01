@@ -94,6 +94,19 @@ const CustomCodeBlock = CodeBlockLowlight.extend({
                     return {};
                 },
             },
+            tabs: {
+                default: null,
+                parseHTML: (element) => {
+                    const tabsData = element.getAttribute("data-tabs");
+                    return tabsData ? JSON.parse(tabsData) : null;
+                },
+                renderHTML: (attributes) => {
+                    if (!attributes.tabs) return {};
+                    return {
+                        "data-tabs": JSON.stringify(attributes.tabs),
+                    };
+                },
+            },
         };
     },
 });
@@ -202,6 +215,11 @@ async function highlightCodeBlocks(html: string) {
         /<pre([^>]*)><code[^>]*class="[^"]*language-([a-zA-Z0-9_-]+)[^"]*"[^>]*>([\s\S]*?)<\/code><\/pre>/g,
         async (match: string, preAttrs: string, lang: string, content: string) => {
             try {
+                // Skip highlighting if this code block has tabs (will be handled by frontend)
+                if (preAttrs.includes('data-tabs')) {
+                    return match;
+                }
+
                 const decoded = content
                     .replace(/&lt;/g, "<")
                     .replace(/&gt;/g, ">")

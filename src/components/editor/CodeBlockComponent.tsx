@@ -1,18 +1,87 @@
 import { NodeViewContent, NodeViewWrapper } from '@tiptap/react';
 import React, { useEffect, useState, useRef } from 'react';
-import { Terminal, Clipboard, Check, ChevronDown, Search, Sparkles } from 'lucide-react';
+import { Terminal, Clipboard, Check, ChevronDown, Search, Sparkles, Plus, X, Minus } from 'lucide-react';
+import { toHtml } from 'hast-util-to-html';
+
+interface CodeTab {
+    language: string;
+    code: string;
+    label?: string;
+}
 
 export default ({ node, updateAttributes, extension, editor }: any) => {
-    const { language: defaultLanguage, output, showOutput } = node.attrs;
+    const { language: defaultLanguage, output, showOutput, tabs } = node.attrs;
     const [isCopied, setIsCopied] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
+    const [activeTab, setActiveTab] = useState(0);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const codeRef = useRef<HTMLElement>(null);
 
 
+    // Initialize tabs from node content if tabs attribute exists
+    const [codeTabs, setCodeTabs] = useState<CodeTab[]>(() => {
+        if (tabs && Array.isArray(tabs) && tabs.length > 0) {
+            return tabs;
+        }
+        // Default single tab from existing content
+        return [{
+            language: defaultLanguage || 'plaintext',
+            code: node.textContent || '',
+            label: defaultLanguage || 'Code'
+        }];
+    });
+
+    const isTabbed = tabs && Array.isArray(tabs) && tabs.length > 0;
+
+
+    const addNewTab = () => {
+        const newTab: CodeTab = {
+            language: 'javascript',
+            code: '',
+            label: 'New Tab'
+        };
+        const updatedTabs = [...codeTabs, newTab];
+        setCodeTabs(updatedTabs);
+        updateAttributes({ tabs: updatedTabs });
+        setActiveTab(updatedTabs.length - 1);
+    };
+
+    const removeTab = (index: number) => {
+        if (codeTabs.length <= 1) return; // Keep at least one tab
+        const updatedTabs = codeTabs.filter((_, i) => i !== index);
+        setCodeTabs(updatedTabs);
+        updateAttributes({ tabs: updatedTabs });
+        if (activeTab >= updatedTabs.length) {
+            setActiveTab(updatedTabs.length - 1);
+        }
+    };
+
+    const updateTabLanguage = (index: number, language: string) => {
+        const updatedTabs = [...codeTabs];
+        updatedTabs[index] = { ...updatedTabs[index], language, label: language };
+        setCodeTabs(updatedTabs);
+        updateAttributes({ tabs: updatedTabs });
+    };
+
+    const updateTabCode = (index: number, code: string) => {
+        const updatedTabs = [...codeTabs];
+        updatedTabs[index] = { ...updatedTabs[index], code };
+        setCodeTabs(updatedTabs);
+        updateAttributes({ tabs: updatedTabs });
+    };
+
+    const disableTabs = () => {
+        // Convert back to single code block using active tab's content
+        const activeTabData = codeTabs[activeTab];
+        updateAttributes({
+            tabs: null,
+            language: activeTabData?.language || defaultLanguage
+        });
+    };
 
     const handleExplainCode = () => {
-        const code = node.textContent;
+        const code = isTabbed ? codeTabs[activeTab]?.code : node.textContent;
         // Trigger AI Chat with "Explain" mode
         const event = new CustomEvent('trigger-ai-chat', {
             detail: {
@@ -22,6 +91,13 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
         });
         window.dispatchEvent(event);
     };
+
+    // Sync codeTabs state when tabs attribute changes
+    useEffect(() => {
+        if (tabs && Array.isArray(tabs) && tabs.length > 0) {
+            setCodeTabs(tabs);
+        }
+    }, [tabs]);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -41,7 +117,7 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
     }, [isOpen]);
 
     const handleCopyCode = () => {
-        const code = node.textContent;
+        const code = isTabbed ? codeTabs[activeTab]?.code : node.textContent;
         navigator.clipboard.writeText(code);
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2000);
@@ -54,93 +130,132 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
 
     const isEditable = editor.isEditable;
 
+    // Apply syntax highlighting to tabbed code blocks in read-only mode
+    useEffect(() => {
+        console.log('[CodeBlock] Syntax highlighting useEffect:', {
+            isEditable,
+            isTabbed,
+            hasCodeRef: !!codeRef.current,
+            hasTabs: !!tabs,
+            activeTab,
+            currentTab: tabs?.[activeTab]
+        });
+
+        if (!isEditable && isTabbed && codeRef.current && tabs && tabs[activeTab]) {
+            const currentTab = tabs[activeTab];
+            console.log('[CodeBlock] Applying syntax highlighting to:', currentTab);
+            if (currentTab && extension.options.lowlight) {
+                const lowlight = extension.options.lowlight;
+                try {
+                    const highlighted = lowlight.highlight(currentTab.language, currentTab.code);
+                    const htmlString = toHtml(highlighted);
+                    codeRef.current.innerHTML = htmlString;
+                    codeRef.current.classList.add('hljs');
+                } catch (error) {
+                    // If language is not supported, just show plain text
+                    codeRef.current.textContent = currentTab.code;
+                }
+            } else {
+                // No lowlight available, use plain text
+                if (codeRef.current) {
+                    codeRef.current.textContent = currentTab.code;
+                }
+            }
+        }
+    }, [activeTab, isEditable, isTabbed, tabs, extension]);
+
     return (
         <NodeViewWrapper className="code-block my-4 sm:my-8 not-prose">
             <div className="rounded-lg sm:rounded-xl overflow-visible border border-gray-200 dark:border-gray-700 shadow-sm sm:shadow-lg bg-white dark:bg-gray-900 transition-all duration-300 hover:shadow-md sm:hover:shadow-xl group">
 
                 {/* Header */}
                 <div className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-2.5 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 select-none relative z-20">
-                    <div className="flex items-center gap-2 sm:gap-4">
+                    <div className="flex items-center gap-2 sm:gap-4 flex-1 overflow-x-auto">
                         <div className="flex items-center gap-1.5 group-hover:gap-2 transition-all duration-300 hidden sm:flex">
                             <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-400 border border-red-500/50" />
                             <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-400 border border-yellow-500/50" />
                             <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-400 border border-green-500/50" />
                         </div>
-                    </div>
 
-                    <div className="flex items-center gap-1 sm:gap-2">
-                        {/* Custom Language Dropdown */}
-                        {isEditable ? (
-                            <div className="relative" ref={dropdownRef}>
-                                <button
-                                    onClick={() => setIsOpen(!isOpen)}
-                                    className="flex items-center gap-1.5 px-2 py-1 sm:px-3 sm:py-1.5 rounded-md text-[10px] sm:text-xs font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-sm hover:shadow"
-                                >
-                                    <span>{defaultLanguage || 'auto'}</span>
-                                    <ChevronDown size={12} className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-                                </button>
-
-                                {/* Dropdown Menu */}
-                                {isOpen && (
-                                    <div className="absolute right-0 top-full mt-2 w-48 max-h-60 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200 origin-top-right z-50">
-                                        <div className="p-2 border-b border-gray-100 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/50 sticky top-0 backdrop-blur-sm">
-                                            <div className="relative">
-                                                <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
-                                                <input
-                                                    type="text"
-                                                    value={searchQuery}
-                                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                                    placeholder="Search..."
-                                                    className="w-full pl-7 pr-2 py-1 text-xs bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 dark:text-gray-200"
-                                                    autoFocus
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="overflow-y-auto flex-1 p-1 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent">
-                                            <button
-                                                onClick={() => {
-                                                    updateAttributes({ language: null });
-                                                    setIsOpen(false);
+                        {/* Tabs or Single Language Selector */}
+                        {isTabbed ? (
+                            <div className="flex items-center gap-1 flex-1 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent pb-1">
+                                {codeTabs.map((tab, index) => (
+                                    <button
+                                        key={index}
+                                        onClick={() => setActiveTab(index)}
+                                        className={`flex items-center gap-1.5 px-2 py-1 sm:px-3 sm:py-1.5 rounded-md text-[10px] sm:text-xs font-medium transition-all whitespace-nowrap ${activeTab === index
+                                            ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border border-purple-300 dark:border-purple-700'
+                                            : 'text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                            }`}
+                                    >
+                                        <span className="max-w-[80px] truncate">{tab.label || tab.language}</span>
+                                        {isEditable && codeTabs.length > 1 && (
+                                            <X
+                                                size={10}
+                                                className="hover:text-red-500 transition-colors flex-shrink-0"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    removeTab(index);
                                                 }}
-                                                className={`w-full text-left px-2 py-1.5 text-xs rounded-md transition-colors flex items-center justify-between ${!defaultLanguage
-                                                    ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 font-medium'
-                                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50'
-                                                    }`}
-                                            >
-                                                <span>Auto</span>
-                                                {!defaultLanguage && <Check size={12} />}
-                                            </button>
-                                            {filteredLanguages.map((lang: string, index: number) => (
-                                                <button
-                                                    key={index}
-                                                    onClick={() => {
-                                                        updateAttributes({ language: lang });
-                                                        setIsOpen(false);
-                                                    }}
-                                                    className={`w-full text-left px-2 py-1.5 text-xs rounded-md transition-colors flex items-center justify-between ${defaultLanguage === lang
-                                                        ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 font-medium'
-                                                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50'
-                                                        }`}
-                                                >
-                                                    <span>{lang}</span>
-                                                    {defaultLanguage === lang && <Check size={12} />}
-                                                </button>
-                                            ))}
-                                            {filteredLanguages.length === 0 && (
-                                                <div className="px-2 py-4 text-center text-xs text-gray-400">
-                                                    No languages found
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
+                                            />
+                                        )}
+                                    </button>
+                                ))}
+                                {isEditable && (
+                                    <>
+                                        <button
+                                            onClick={addNewTab}
+                                            className="flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-md text-[10px] sm:text-xs font-medium text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-all"
+                                            title="Add Tab"
+                                        >
+                                            <Plus size={12} />
+                                            <span className="hidden sm:inline">Add</span>
+                                        </button>
+                                        <button
+                                            onClick={disableTabs}
+                                            className="flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-md text-[10px] sm:text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
+                                            title="Disable Tabs (Keep Active Tab)"
+                                        >
+                                            <Minus size={12} />
+                                            <span className="hidden sm:inline">Single</span>
+                                        </button>
+                                    </>
                                 )}
                             </div>
                         ) : (
-                            <span className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider font-mono px-2">
-                                {defaultLanguage || 'plaintext'}
-                            </span>
-                        )}
+                            <div className="flex items-center gap-2">
+                                {/* Show language name in read-only mode */}
+                                {!isEditable && (
+                                    <span className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider font-mono px-2">
+                                        {defaultLanguage || 'plaintext'}
+                                    </span>
+                                )}
 
+                                {/* Convert to Tabs Button (for editors) */}
+                                {isEditable && !isTabbed && (
+                                    <button
+                                        onClick={() => {
+                                            const initialTabs = [{
+                                                language: defaultLanguage || 'javascript',
+                                                code: node.textContent || '',
+                                                label: defaultLanguage || 'javascript'
+                                            }];
+                                            setCodeTabs(initialTabs);
+                                            updateAttributes({ tabs: initialTabs });
+                                        }}
+                                        className="flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-md text-[10px] sm:text-xs font-medium text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-all"
+                                        title="Enable Tabs"
+                                    >
+                                        <Plus size={12} />
+                                        <span className="hidden sm:inline">Tabs</span>
+                                    </button>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex items-center gap-1 sm:gap-2">
                         <div className="w-px h-3 sm:h-4 bg-gray-200 dark:bg-gray-600 mx-0.5 sm:mx-1" />
 
                         {/* Explain Button */}
@@ -183,34 +298,101 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                     className="relative flex flex-row items-start bg-white dark:bg-[#0d1117] overflow-hidden"
                     style={{
                         fontFamily: '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-                        fontSize: '13px', // Slightly smaller on mobile default
-                        lineHeight: '1.6rem' // Adjusted for mobile
+                        fontSize: '13px',
+                        lineHeight: '1.6rem'
                     }}
                 >
-                    {/* Code Content - Full Width since line numbers are gone */}
+                    {/* Code Content */}
                     <div className="flex-grow pt-4 pb-4 px-3 sm:pt-6 sm:pb-6 sm:px-4 z-10 min-w-0" style={{ whiteSpace: 'pre-wrap' }}>
-                        <pre
-                            className="!m-0 !p-0 !bg-transparent text-gray-800 dark:text-gray-200 outline-none shadow-none border-0 !font-[inherit] !leading-[inherit] text-[12px] sm:text-[14px]"
-                            style={{
-                                whiteSpace: 'pre-wrap',
-                                fontFamily: 'inherit',
-                                lineHeight: 'inherit',
-                                wordBreak: 'break-word',
-                                overflowWrap: 'anywhere'
-                            }}
-                        >
-                            <NodeViewContent
-                                as="code"
-                                className={`language-${defaultLanguage} block !whitespace-pre-wrap !bg-transparent !font-[inherit] !leading-[inherit]`}
-                                style={{
-                                    whiteSpace: 'pre-wrap',
-                                    wordWrap: 'break-word',
-                                    wordBreak: 'break-word',
-                                    overflowWrap: 'anywhere'
-                                }}
-                            />
+                        {isTabbed ? (
+                            // Tabbed Code Editor
+                            isEditable ? (
+                                <div className="relative">
+                                    {/* Language selector on the right side */}
+                                    <div className="absolute top-0 right-0 z-10">
+                                        <select
+                                            value={codeTabs[activeTab]?.language || 'javascript'}
+                                            onChange={(e) => updateTabLanguage(activeTab, e.target.value)}
+                                            className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 focus:outline-none focus:border-purple-500 font-mono"
+                                        >
+                                            {languages.map((lang: string) => (
+                                                <option key={lang} value={lang}>{lang}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <textarea
+                                        value={codeTabs[activeTab]?.code || ''}
+                                        onChange={(e) => updateTabCode(activeTab, e.target.value)}
+                                        className="w-full min-h-[200px] bg-transparent text-gray-800 dark:text-gray-200 font-mono text-[12px] sm:text-[14px] outline-none resize-y"
+                                        style={{
+                                            fontFamily: 'inherit',
+                                            lineHeight: 'inherit',
+                                            whiteSpace: 'pre-wrap',
+                                            wordBreak: 'break-word',
+                                            overflowWrap: 'anywhere'
+                                        }}
+                                        spellCheck={false}
+                                        placeholder={`Write your ${codeTabs[activeTab]?.language || 'code'} here...`}
+                                    />
+                                </div>
+                            ) : (
+                                // Read-only tabbed view
+                                <pre
+                                    className={`language-${(tabs && tabs[activeTab]?.language) || 'plaintext'} !m-0 !p-0 !bg-transparent text-gray-800 dark:text-gray-200`}
+                                    style={{
+                                        whiteSpace: 'pre-wrap',
+                                        fontFamily: 'inherit',
+                                        fontSize: 'inherit',
+                                        lineHeight: 'inherit',
+                                        wordBreak: 'break-word',
+                                        overflowWrap: 'anywhere'
+                                    }}
+                                >
+                                    <code ref={codeRef}>{(tabs && tabs[activeTab]?.code) || ''}</code>
+                                </pre>
+                            )
+                        ) : (
+                            // Single Code Block (backward compatible)
+                            <div className="relative">
+                                {/* Language selector on the right side for single blocks */}
+                                {isEditable && (
+                                    <div className="absolute top-0 right-0 z-10">
+                                        <select
+                                            value={defaultLanguage || 'auto'}
+                                            onChange={(e) => updateAttributes({ language: e.target.value === 'auto' ? null : e.target.value })}
+                                            className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 focus:outline-none focus:border-purple-500 font-mono"
+                                        >
+                                            <option value="auto">auto</option>
+                                            {languages.map((lang: string) => (
+                                                <option key={lang} value={lang}>{lang}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+                                <pre
+                                    className="!m-0 !p-0 !bg-transparent text-gray-800 dark:text-gray-200 outline-none shadow-none border-0 !font-[inherit] !leading-[inherit] text-[12px] sm:text-[14px]"
+                                    style={{
+                                        whiteSpace: 'pre-wrap',
+                                        fontFamily: 'inherit',
+                                        lineHeight: 'inherit',
+                                        wordBreak: 'break-word',
+                                        overflowWrap: 'anywhere'
+                                    }}
+                                >
+                                    <NodeViewContent
+                                        as="code"
+                                        className={`language-${defaultLanguage} block !whitespace-pre-wrap !bg-transparent !font-[inherit] !leading-[inherit]`}
+                                        style={{
+                                            whiteSpace: 'pre-wrap',
+                                            wordWrap: 'break-word',
+                                            wordBreak: 'break-word',
+                                            overflowWrap: 'anywhere'
+                                        }}
+                                    />
 
-                        </pre>
+                                </pre>
+                            </div>
+                        )}
                     </div>
                 </div>
 
