@@ -3,6 +3,7 @@ import { FileText, User as UserIcon, Plus, Edit3, Eye, Trash2, Save, Github, Lin
 import { Loader } from './ui/Loader';
 import { ContactManager } from './admin/ContactManager';
 
+
 const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
 
 interface User {
@@ -174,6 +175,10 @@ const AuthorDashboard: React.FC = () => {
         return !post.is_published;
     });
 
+    const publishedCount = posts.filter(p => p.is_published).length;
+    const draftCount = posts.filter(p => !p.is_published).length;
+    const totalPosts = posts.length;
+
     if (loading) {
         return (
             <div className="flex justify-center items-center h-screen bg-gray-50 dark:bg-slate-950">
@@ -182,11 +187,66 @@ const AuthorDashboard: React.FC = () => {
         );
     }
 
+
+
     return (
         <div className="flex flex-col md:flex-row min-h-screen max-w-7xl mx-auto pt-24 px-4 sm:px-6 gap-8">
 
-            {/* Sidebar / Navigation */}
-            <aside className="w-full md:w-72 flex-shrink-0">
+            {/* Mobile Navigation (Visible only on mobile) */}
+            <div className="md:hidden space-y-4 mb-4">
+                <div className="flex items-center gap-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-4 rounded-2xl border border-gray-200/50 dark:border-gray-800/50 shadow-sm">
+                    <div className="w-12 h-12 rounded-full p-0.5 bg-gradient-to-tr from-purple-500 to-blue-500 flex-shrink-0">
+                        <img
+                            src={user?.image || `https://ui-avatars.com/api/?name=${user?.name}&background=random`}
+                            alt={user?.name}
+                            className="w-full h-full rounded-full object-cover border-2 border-white dark:border-slate-900"
+                        />
+                    </div>
+                    <div>
+                        <h2 className="text-lg font-bold text-gray-900 dark:text-white">{user?.name}</h2>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
+                    </div>
+                </div>
+
+                {/* Mobile Tabs */}
+                <div className="flex overflow-x-auto gap-2 p-1 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm rounded-xl border border-gray-200/50 dark:border-gray-800/50 scrollbar-hide">
+                    <button
+                        onClick={() => setActiveTab('my-posts')}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all ${activeTab === 'my-posts'
+                            ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/25'
+                            : 'text-gray-600 dark:text-gray-400'
+                            }`}
+                    >
+                        <FileText size={16} />
+                        My Posts
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('profile')}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all ${activeTab === 'profile'
+                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25'
+                            : 'text-gray-600 dark:text-gray-400'
+                            }`}
+                    >
+                        <UserIcon size={16} />
+                        Profile
+                    </button>
+                    {(user?.manage_contact_us || user?.is_superuser) && (
+                        <button
+                            onClick={() => setActiveTab('inbox')}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all ${activeTab === 'inbox'
+                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
+                                : 'text-gray-600 dark:text-gray-400'
+                                }`}
+                        >
+                            <Inbox size={16} />
+                            Inbox
+                        </button>
+                    )}
+                </div>
+            </div>
+
+            {/* Desktop Sidebar (Hidden on mobile) */}
+            <aside className="hidden md:block w-72 flex-shrink-0">
                 <div className="sticky top-28 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-200/50 dark:border-gray-800/50 p-6 transition-all duration-300 hover:shadow-md hover:border-purple-500/10 dark:hover:border-purple-500/10">
                     <div className="flex flex-col items-center mb-8 relative">
                         {/* Decorative background glow behind avatar */}
@@ -294,6 +354,28 @@ const AuthorDashboard: React.FC = () => {
                             >
                                 Drafts
                             </button>
+                        </div>
+
+                        {/* Stats Overview */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
+                            <div className="p-6 border-white/10 relative overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border shadow-sm">
+                                <div className="relative z-10">
+                                    <p className="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase tracking-wider mb-1">Total Stories</p>
+                                    <h3 className="text-3xl font-bold text-gray-900 dark:text-white">{totalPosts}</h3>
+                                </div>
+                            </div>
+                            <div className="p-6 border-white/10 relative overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border shadow-sm">
+                                <div className="relative z-10">
+                                    <p className="text-green-600 dark:text-green-400 text-sm font-medium uppercase tracking-wider mb-1">Published</p>
+                                    <h3 className="text-3xl font-bold text-gray-900 dark:text-white">{publishedCount}</h3>
+                                </div>
+                            </div>
+                            <div className="p-6 border-white/10 relative overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border shadow-sm">
+                                <div className="relative z-10">
+                                    <p className="text-amber-600 dark:text-amber-400 text-sm font-medium uppercase tracking-wider mb-1">Drafts</p>
+                                    <h3 className="text-3xl font-bold text-gray-900 dark:text-white">{draftCount}</h3>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Post List */}

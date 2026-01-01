@@ -28,21 +28,29 @@ export interface ChangeLogEntry {
 export const changelogData: ChangeLogEntry[] = [
     {
         "date": "2026-01-01",
-        "version": "Editor Update",
-        "title": "Tabbed Code Blocks & Editor Polish",
-        "description": "We've upgraded the code editing experience with multi-language tabs and consistent styling across the board.",
+        "version": "Feature Update",
+        "title": "Enhanced Profile, Stats & Editor Polish",
+        "description": "We've improved the author profile experience with better statistics and refined the editor with tabbed code blocks.",
         "changes": [
             {
+                "type": "improvement",
+                "text": "Smart Date Display: The profile now conditionally shows 'Author Since' date instead of a generic joined date."
+            },
+            {
+                "type": "improvement",
+                "text": "Accurate Article Counts: Dashboard and profile stats now accurately reflect the total number of published articles."
+            },
+            {
                 "type": "new",
-                "text": "Tabbed Code Blocks: You can now add multiple tabs to a single code block! Perfect for showing code examples in different languages (e.g., Python vs Rust) or separating code from config."
+                "text": "Tabbed Code Blocks: You can now add multiple tabs to a single code block, perfect for multi-language examples."
             },
             {
                 "type": "improvement",
-                "text": "Consistent Code Styling: All code blocks (single and tabbed) now strictly use the JetBrains Mono font with consistent 13px sizing and line height for a premium reading experience."
+                "text": "Consistent Code Styling: All code blocks now use JetBrains Mono with consistent sizing and positioning."
             },
             {
-                "type": "improvement",
-                "text": "The language picker has been moved to a consistent top-right position inside the editor area for both single and tabbed blocks, reducing header clutter."
+                "type": "fix",
+                "text": "UI Cleanup: Simplified the sidebar and reduced header clutter in the editor."
             }
         ]
     },

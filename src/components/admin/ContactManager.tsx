@@ -94,26 +94,7 @@ export const ContactManager: React.FC = () => {
         }
     };
 
-    const handleDelete = async (id: number) => {
-        if (!confirm("Are you sure you want to delete this message?")) return;
 
-        setProcessingId(id);
-        try {
-            const response = await fetchWithAuth(`${API_URL}/api/blogs/contact-us/${id}/`, {
-                method: 'DELETE',
-            });
-
-            if (response.status !== 204) {
-                throw new Error('Failed to delete contact request');
-            }
-
-            setContacts(contacts.filter(c => c.id !== id));
-        } catch (err) {
-            alert(err instanceof Error ? err.message : 'Failed to delete');
-        } finally {
-            setProcessingId(null);
-        }
-    };
 
     if (loading && contacts.length === 0) {
         return (
@@ -174,67 +155,62 @@ export const ContactManager: React.FC = () => {
                                         <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                                             {contact.subject}
                                         </h3>
-                                        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                            <span className="font-medium text-gray-900 dark:text-gray-300">{contact.name}</span>
-                                            <span>&bull;</span>
-                                            <span>{contact.email}</span>
-                                            <span>&bull;</span>
-                                            <span>{new Date(contact.created_at).toLocaleDateString()}</span>
+                                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                            <span className="font-medium text-gray-900 dark:text-gray-300 break-words">{contact.name}</span>
+                                            <span className="hidden sm:inline text-gray-300 dark:text-gray-600">&bull;</span>
+                                            <a href={`mailto:${contact.email}`} className="text-gray-600 dark:text-gray-400 hover:text-purple-500 transition-colors break-all">{contact.email}</a>
+                                            <span className="hidden sm:inline text-gray-300 dark:text-gray-600">&bull;</span>
+                                            <span className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">{new Date(contact.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-2 md:opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button
-                                        onClick={() => handleResolve(contact.id)}
-                                        disabled={processingId === contact.id}
-                                        className="px-4 py-2 text-sm font-medium text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors disabled:opacity-50"
-                                    >
-                                        {processingId === contact.id ? 'Resolving...' : 'Resolve'}
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(contact.id)}
-                                        disabled={processingId === contact.id}
-                                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50"
-                                        title="Delete"
-                                    >
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                    </button>
-                                </div>
+
                             </div>
 
                             <div className="bg-gray-50 dark:bg-slate-900/50 rounded-lg p-4 text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
                                 {contact.message}
                             </div>
+
+                            <div className="mt-4 flex justify-end">
+                                <button
+                                    onClick={() => handleResolve(contact.id)}
+                                    disabled={processingId === contact.id}
+                                    className="px-4 py-2 text-sm font-medium text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors disabled:opacity-50"
+                                >
+                                    {processingId === contact.id ? 'Resolving...' : 'Resolve'}
+                                </button>
+                            </div>
                         </div>
                     ))}
                 </div>
-            )}
+            )
+            }
 
             {/* Pagination */}
-            {(pagination.next || pagination.previous) && (
-                <div className="flex justify-center gap-4 mt-8">
-                    <button
-                        onClick={() => fetchContacts(currentPage - 1)}
-                        disabled={!pagination.previous}
-                        className="px-4 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
-                    >
-                        Previous
-                    </button>
-                    <span className="flex items-center px-4 text-gray-500 dark:text-gray-400 text-sm">
-                        Page {currentPage}
-                    </span>
-                    <button
-                        onClick={() => fetchContacts(currentPage + 1)}
-                        disabled={!pagination.next}
-                        className="px-4 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
-                    >
-                        Next
-                    </button>
-                </div>
-            )}
-        </div>
+            {
+                (pagination.next || pagination.previous) && (
+                    <div className="flex justify-center gap-4 mt-8">
+                        <button
+                            onClick={() => fetchContacts(currentPage - 1)}
+                            disabled={!pagination.previous}
+                            className="px-4 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                        >
+                            Previous
+                        </button>
+                        <span className="flex items-center px-4 text-gray-500 dark:text-gray-400 text-sm">
+                            Page {currentPage}
+                        </span>
+                        <button
+                            onClick={() => fetchContacts(currentPage + 1)}
+                            disabled={!pagination.next}
+                            className="px-4 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                        >
+                            Next
+                        </button>
+                    </div>
+                )
+            }
+        </div >
     );
 };

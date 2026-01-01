@@ -229,23 +229,24 @@ const searchEndpoint = import.meta.env.PUBLIC_API_URL + "/api/blogs/blogs/";
       const hoverClass = "hover:bg-gray-50 dark:hover:bg-gray-800";
       const borderBottomClass = "border-gray-100 dark:border-gray-800";
 
+      const bgClass = "bg-white dark:bg-slate-900";
+      const borderClass = "border-gray-200 dark:border-gray-800";
+
       // Add "Search All" option at the top
       let searchAllOption = "";
       if (currentQuery) {
         searchAllOption = `
           <a href="/blog?q=${encodeURIComponent(currentQuery)}" 
-             class="block p-4 ${hoverClass} border-b ${borderBottomClass} bg-purple-50 dark:bg-purple-900/10 hover:bg-purple-100 dark:hover:bg-purple-900/20 transition-colors">
+             class="block px-5 py-4 ${hoverClass} border-b ${borderBottomClass} bg-gray-50/50 dark:bg-slate-800/20 hover:bg-purple-50 dark:hover:bg-purple-900/10 transition-colors group">
             <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                 <svg class="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+              <div class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                 <svg class="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
               </div>
-              <div class="flex-1">
-              <h3 class="${textClass} font-medium">Search all posts for "${currentQuery}"</h3>
-                <p class="text-sm ${mutedTextClass}">View all ${results.length}+ results on blog page</p>
+              <div class="flex-1 min-w-0">
+                <h3 class="${textClass} font-medium truncate">Search for "${currentQuery}"</h3>
+                <p class="text-xs ${mutedTextClass}">View all results</p>
               </div>
-              <div class="text-xs ${mutedTextClass}">
-                Press Enter ↵
-              </div>
+              <svg class="w-4 h-4 text-gray-400 group-hover:text-purple-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
             </div>
           </a>
         `;
@@ -257,44 +258,36 @@ const searchEndpoint = import.meta.env.PUBLIC_API_URL + "/api/blogs/blogs/";
           .slice(0, 5)
           .map(
             (result) => `
-        <a href="${result.uri}" class="block p-4 ${hoverClass} border-b ${borderBottomClass} last:border-0">
-          <div class="flex items-center gap-4 mb-2">
-            <div class="flex-1">
-              <div class="flex gap-2 mb-1">
-                ${result.tags
-                  .slice(0, 2)
-                  .map(
-                    (tag) => `
-                  <span class="text-xs px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded">${tag.replace(/"/g, "")}</span>
-                `,
-                  )
-                  .join("")}
-              </div>
-              <h3 class="${textClass} font-medium mb-1">${result.title}</h3>
-              <p class="text-sm ${mutedTextClass} line-clamp-2">${result.description}</p>
+        <a href="${result.uri}" class="block px-5 py-4 ${hoverClass} border-b ${borderBottomClass} last:border-0 transition-all duration-200 group">
+          <div class="flex flex-col gap-2">
+            <div class="flex items-start justify-between gap-4">
+               <h3 class="${textClass} text-[15px] font-semibold leading-tight group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors line-clamp-1">${result.title}</h3>
+               <span class="text-xs ${mutedTextClass} whitespace-nowrap shrink-0 opacity-70 mt-0.5">${new Date(
+                 result.created_at,
+               ).toLocaleDateString("en-US", {
+                 month: "short",
+                 day: "numeric",
+               })}</span>
             </div>
+            
+            <p class="text-xs ${mutedTextClass} line-clamp-2 leading-relaxed opacity-80">${result.description || "No description available."}</p>
+            
+            <div class="flex items-center justify-between mt-1.5 pt-1">
+                 <div class="flex gap-2 flex-wrap">
+                    ${result.tags
+                      .slice(0, 3)
+                      .map(
+                        (tag) => `
+                        <span class="inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700/50 uppercase tracking-wide">${tag.replace(/"/g, "")}</span>
+                    `,
+                      )
+                      .join("")}
+                 </div>
+                 <div class="text-xs ${mutedTextClass} hidden sm:flex items-center gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                    <span class="w-1 h-1 rounded-full bg-current"></span>
+                    <span>${result.author.name || result.author.username || "Editor"}</span>
+                 </div>
             </div>
-            ${
-              result.image_url
-                ? `
-              <div class="w-16 h-16 flex-shrink-0 hidden md:block">
-                <img src="${result.image_url}" alt="${result.title}" class="w-full h-full object-cover rounded-lg"/>
-              </div>
-            `
-                : `
-              <div class="w-16 h-16 flex-shrink-0 hidden md:block rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                 <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-              </div>
-                `
-            }
-          </div>
-          <div class="flex items-center gap-3 text-xs ${mutedTextClass}">
-            <span>${new Date(result.created_at).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            })}</span>
-            <span>by ${result.author.name || result.author.username || "Author"}</span>
           </div>
         </a>
       `,

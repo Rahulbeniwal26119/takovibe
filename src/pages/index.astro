@@ -1,5 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import ParticlesBackground from "../components/ParticlesBackground.astro";
 
 // API configuration
 const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
@@ -111,6 +112,7 @@ try {
         class="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-20 dark:opacity-10 pointer-events-none"
       >
       </div>
+      <ParticlesBackground />
     </div>
 
     <div class="relative z-10 w-full">

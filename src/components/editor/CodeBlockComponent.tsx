@@ -151,6 +151,7 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                     const htmlString = toHtml(highlighted);
                     codeRef.current.innerHTML = htmlString;
                     codeRef.current.classList.add('hljs');
+                    codeRef.current.classList.add('!bg-transparent'); // Force transparent background to respect container theme
                 } catch (error) {
                     // If language is not supported, just show plain text
                     codeRef.current.textContent = currentTab.code;
@@ -166,27 +167,27 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
 
     return (
         <NodeViewWrapper className="code-block my-4 sm:my-8 not-prose">
-            <div className="rounded-lg sm:rounded-xl overflow-visible border border-gray-200 dark:border-gray-700 shadow-sm sm:shadow-lg bg-white dark:bg-gray-900 transition-all duration-300 hover:shadow-md sm:hover:shadow-xl group">
+            <div className="rounded-lg sm:rounded-xl overflow-visible border border-gray-700 shadow-sm sm:shadow-lg bg-[#0d1117] transition-all duration-300 hover:shadow-md sm:hover:shadow-xl group">
 
                 {/* Header */}
-                <div className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-2.5 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 select-none relative z-20">
+                <div className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-2.5 bg-[#161b22] border-b border-gray-700 select-none relative z-20">
                     <div className="flex items-center gap-2 sm:gap-4 flex-1 overflow-x-auto">
                         <div className="flex items-center gap-1.5 group-hover:gap-2 transition-all duration-300 hidden sm:flex">
-                            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-400 border border-red-500/50" />
-                            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-400 border border-yellow-500/50" />
-                            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-400 border border-green-500/50" />
+                            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-400/80 border border-red-500/50" />
+                            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-400/80 border border-yellow-500/50" />
+                            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-400/80 border border-green-500/50" />
                         </div>
 
                         {/* Tabs or Single Language Selector */}
                         {isTabbed ? (
-                            <div className="flex items-center gap-1 flex-1 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent pb-1">
+                            <div className="flex items-center gap-1 flex-1 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent pb-1">
                                 {codeTabs.map((tab, index) => (
                                     <button
                                         key={index}
                                         onClick={() => setActiveTab(index)}
-                                        className={`flex items-center gap-1.5 px-2 py-1 sm:px-3 sm:py-1.5 rounded-md text-[10px] sm:text-xs font-medium transition-all whitespace-nowrap ${activeTab === index
-                                            ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border border-purple-300 dark:border-purple-700'
-                                            : 'text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                        className={`flex items-center gap-1.5 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded-md text-xs font-medium transition-all whitespace-nowrap ${activeTab === index
+                                            ? 'bg-purple-900/30 text-purple-400 border border-purple-700'
+                                            : 'text-gray-400 bg-gray-800/50 border border-gray-700 hover:bg-gray-700'
                                             }`}
                                     >
                                         <span className="max-w-[80px] truncate">{tab.label || tab.language}</span>
@@ -206,7 +207,7 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                                     <>
                                         <button
                                             onClick={addNewTab}
-                                            className="flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-md text-[10px] sm:text-xs font-medium text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-all"
+                                            className="flex items-center gap-1 px-2 py-1.5 sm:px-2.5 sm:py-1.5 rounded-md text-xs font-medium text-purple-400 bg-purple-900/20 border border-purple-800 hover:bg-purple-900/30 transition-all"
                                             title="Add Tab"
                                         >
                                             <Plus size={12} />
@@ -214,7 +215,7 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                                         </button>
                                         <button
                                             onClick={disableTabs}
-                                            className="flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-md text-[10px] sm:text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
+                                            className="flex items-center gap-1 px-2 py-1.5 sm:px-2.5 sm:py-1.5 rounded-md text-xs font-medium text-gray-400 bg-gray-700/50 border border-gray-600 hover:bg-gray-700 transition-all"
                                             title="Disable Tabs (Keep Active Tab)"
                                         >
                                             <Minus size={12} />
@@ -227,7 +228,7 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                             <div className="flex items-center gap-2">
                                 {/* Show language name in read-only mode */}
                                 {!isEditable && (
-                                    <span className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider font-mono px-2">
+                                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider font-mono px-2">
                                         {defaultLanguage || 'plaintext'}
                                     </span>
                                 )}
@@ -244,7 +245,7 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                                             setCodeTabs(initialTabs);
                                             updateAttributes({ tabs: initialTabs });
                                         }}
-                                        className="flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-md text-[10px] sm:text-xs font-medium text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-all"
+                                        className="flex items-center gap-1 px-2 py-1.5 sm:px-2.5 sm:py-1.5 rounded-md text-xs font-medium text-purple-400 hover:bg-purple-900/30 transition-all"
                                         title="Enable Tabs"
                                     >
                                         <Plus size={12} />
@@ -255,39 +256,39 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                         )}
                     </div>
 
-                    <div className="flex items-center gap-1 sm:gap-2">
-                        <div className="w-px h-3 sm:h-4 bg-gray-200 dark:bg-gray-600 mx-0.5 sm:mx-1" />
+                    <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0 ml-2">
+                        <div className="w-px h-3 sm:h-4 bg-gray-600 mx-0.5 sm:mx-1" />
 
                         {/* Explain Button */}
                         <button
                             onClick={handleExplainCode}
-                            className="flex items-center gap-1.5 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-md text-[10px] sm:text-xs font-medium transition-all text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+                            className="flex items-center gap-1.5 px-2 py-1.5 sm:px-2.5 sm:py-1.5 rounded-md text-xs font-medium transition-all text-purple-400 hover:bg-purple-900/30"
                             title="Explain with AI"
                         >
-                            <Sparkles size={12} className="sm:w-[14px] sm:h-[14px]" />
+                            <Sparkles size={14} className="sm:w-[14px] sm:h-[14px]" />
                             <span className="hidden sm:inline">Explain</span>
                         </button>
 
                         <button
                             onClick={handleCopyCode}
-                            className={`flex items-center gap-1.5 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-md text-[10px] sm:text-xs font-medium transition-all ${isCopied
-                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700'
+                            className={`flex items-center gap-1.5 px-2 py-1.5 sm:px-2.5 sm:py-1.5 rounded-md text-xs font-medium transition-all ${isCopied
+                                ? 'bg-green-900/30 text-green-400'
+                                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
                                 }`}
                             title="Copy Code"
                         >
-                            {isCopied ? <Check size={12} className="sm:w-[14px] sm:h-[14px]" /> : <Clipboard size={12} className="sm:w-[14px] sm:h-[14px]" />}
+                            {isCopied ? <Check size={14} className="sm:w-[14px] sm:h-[14px]" /> : <Clipboard size={14} className="sm:w-[14px] sm:h-[14px]" />}
                             <span className="hidden sm:inline">{isCopied ? 'Copied' : 'Copy'}</span>
                         </button>
                         <button
                             onClick={() => updateAttributes({ showOutput: !showOutput })}
-                            className={`flex items-center gap-1.5 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-md text-[10px] sm:text-xs font-medium transition-colors ${showOutput
-                                ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
-                                : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700'
+                            className={`flex items-center gap-1.5 px-2 py-1.5 sm:px-2.5 sm:py-1.5 rounded-md text-xs font-medium transition-colors ${showOutput
+                                ? 'bg-purple-900/30 text-purple-400'
+                                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
                                 }`}
                             title="Toggle Output"
                         >
-                            <Terminal size={12} className="sm:w-[14px] sm:h-[14px]" />
+                            <Terminal size={14} className="sm:w-[14px] sm:h-[14px]" />
                             <span className="hidden sm:inline">Output</span>
                         </button>
                     </div>
@@ -295,7 +296,7 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
 
                 {/* Editor Content Area */}
                 <div
-                    className="relative flex flex-row items-start bg-white dark:bg-[#0d1117] overflow-hidden"
+                    className="relative flex flex-row items-start bg-[#0d1117] overflow-hidden"
                     style={{
                         fontFamily: '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
                         fontSize: '13px',
@@ -313,7 +314,7 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                                         <select
                                             value={codeTabs[activeTab]?.language || 'javascript'}
                                             onChange={(e) => updateTabLanguage(activeTab, e.target.value)}
-                                            className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 focus:outline-none focus:border-purple-500 font-mono"
+                                            className="text-xs px-2 py-1 rounded bg-[#161b22] border border-gray-700 text-gray-300 focus:outline-none focus:border-purple-500 font-mono"
                                         >
                                             {languages.map((lang: string) => (
                                                 <option key={lang} value={lang}>{lang}</option>
@@ -323,7 +324,7 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                                     <textarea
                                         value={codeTabs[activeTab]?.code || ''}
                                         onChange={(e) => updateTabCode(activeTab, e.target.value)}
-                                        className="w-full min-h-[200px] bg-transparent text-gray-800 dark:text-gray-200 font-mono text-[12px] sm:text-[14px] outline-none resize-y"
+                                        className="w-full min-h-[200px] bg-transparent text-gray-200 font-mono text-[12px] sm:text-[14px] outline-none resize-y"
                                         style={{
                                             fontFamily: 'inherit',
                                             lineHeight: 'inherit',
@@ -338,7 +339,7 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                             ) : (
                                 // Read-only tabbed view
                                 <pre
-                                    className={`language-${(tabs && tabs[activeTab]?.language) || 'plaintext'} !m-0 !p-0 !bg-transparent text-gray-800 dark:text-gray-200`}
+                                    className={`language-${(tabs && tabs[activeTab]?.language) || 'plaintext'} !m-0 !p-0 !bg-transparent text-gray-200`}
                                     style={{
                                         whiteSpace: 'pre-wrap',
                                         fontFamily: 'inherit',
@@ -360,7 +361,7 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                                         <select
                                             value={defaultLanguage || 'auto'}
                                             onChange={(e) => updateAttributes({ language: e.target.value === 'auto' ? null : e.target.value })}
-                                            className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 focus:outline-none focus:border-purple-500 font-mono"
+                                            className="text-xs px-2 py-1 rounded bg-[#161b22] border border-gray-700 text-gray-300 focus:outline-none focus:border-purple-500 font-mono"
                                         >
                                             <option value="auto">auto</option>
                                             {languages.map((lang: string) => (
@@ -370,7 +371,7 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                                     </div>
                                 )}
                                 <pre
-                                    className="!m-0 !p-0 !bg-transparent text-gray-800 dark:text-gray-200 outline-none shadow-none border-0 !font-[inherit] !leading-[inherit] text-[12px] sm:text-[14px]"
+                                    className="!m-0 !p-0 !bg-transparent text-gray-200 outline-none shadow-none border-0 !font-[inherit] !leading-[inherit] text-[12px] sm:text-[14px]"
                                     style={{
                                         whiteSpace: 'pre-wrap',
                                         fontFamily: 'inherit',

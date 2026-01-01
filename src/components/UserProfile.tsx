@@ -12,6 +12,7 @@ import {
     Globe
 } from 'lucide-react';
 
+
 const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
 
 interface UserProfileProps {
@@ -36,6 +37,7 @@ interface Author {
     twitter_url?: string;
     linkedin?: string;
     linkedin_url?: string;
+    date_joined_as_author?: string | null;
 }
 
 interface BlogPost {
@@ -105,6 +107,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ username }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false);
     const [activeTab, setActiveTab] = useState<'articles' | 'about'>('articles');
+    const [totalPosts, setTotalPosts] = useState(0);
 
     const formatPost = (post: any): BlogPost => ({
         id: post.id,
@@ -143,7 +146,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ username }) => {
                     website: profileData.website_url || profileData.website,
                     github: profileData.github_url || profileData.github,
                     twitter: profileData.twitter_url || profileData.twitter,
-                    linkedin: profileData.linkedin_url || profileData.linkedin
+                    linkedin: profileData.linkedin_url || profileData.linkedin,
+                    date_joined_as_author: profileData.date_joined_as_author
                 });
             }
 
@@ -151,12 +155,15 @@ const UserProfile: React.FC<UserProfileProps> = ({ username }) => {
                 const newPosts = articlesData.results.map(formatPost);
                 setPosts(prev => url.includes('page=') && !url.includes('search=') ? [...prev, ...newPosts] : newPosts);
                 setNextPage(articlesData.next);
+                setTotalPosts(articlesData.count);
             } else if (data.results) {
                 setPosts(data.results.map(formatPost));
                 setNextPage(data.next || null);
+                setTotalPosts(data.count || data.results.length);
             } else {
                 setPosts([]);
                 setNextPage(null);
+                setTotalPosts(0);
             }
 
         } catch (err: any) {
@@ -226,13 +233,23 @@ const UserProfile: React.FC<UserProfileProps> = ({ username }) => {
 
                     {/* Left Column: Author Info */}
                     <div className="w-full lg:w-1/4 flex-shrink-0 space-y-6 lg:space-y-8 lg:sticky lg:top-24 animate-in fade-in slide-in-from-left-4 duration-500">
-                        <div className="flex flex-col items-center lg:items-start text-center lg:text-left bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm p-6 rounded-2xl border border-white/20 dark:border-gray-800 shadow-xl lg:shadow-none lg:bg-transparent lg:border-none lg:p-0">
-                            <div className="w-32 h-32 lg:w-full lg:aspect-square lg:max-w-[200px] rounded-2xl overflow-hidden bg-white dark:bg-slate-800 mb-4 lg:mb-6 ring-4 ring-white dark:ring-slate-800 shadow-xl">
-                                <img
-                                    src={author.image}
-                                    alt={author.name}
-                                    className="w-full h-full object-cover transition-transform hover:scale-105 duration-500"
-                                />
+                        <div className="flex flex-col items-center lg:items-start text-center lg:text-left bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-6 rounded-2xl border border-gray-200/50 dark:border-gray-800/50 shadow-sm transition-all duration-300 hover:shadow-md hover:border-purple-500/10 dark:hover:border-purple-500/10">
+                            <div className="relative group mb-6">
+                                {/* Decorative Glow */}
+                                <div className="absolute -inset-4 bg-gradient-to-r from-purple-600/30 to-blue-600/30 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                                {/* Avatar Container with Animated Ring */}
+                                <div className="relative w-32 h-32 lg:w-48 lg:h-48 mx-auto lg:mx-0 rounded-full p-1">
+                                    <div className="absolute inset-0 bg-gradient-to-tr from-purple-500 via-blue-500 to-purple-500 rounded-full animate-spin-slow opacity-75 group-hover:opacity-100 transition-opacity" />
+                                    <div className="absolute inset-[3px] bg-white dark:bg-slate-900 rounded-full z-10" />
+                                    <div className="absolute inset-[6px] rounded-full overflow-hidden z-20">
+                                        <img
+                                            src={author.image}
+                                            alt={author.name}
+                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                        />
+                                    </div>
+                                </div>
                             </div>
 
                             <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-1">
@@ -257,12 +274,15 @@ const UserProfile: React.FC<UserProfileProps> = ({ username }) => {
                                         {author.location}
                                     </div>
                                 )}
-                                <div className="flex items-center gap-2">
-                                    <div className="p-1.5 bg-white dark:bg-slate-800 rounded-lg shadow-sm">
-                                        <Calendar className="w-4 h-4 text-cyan-500" />
+
+                                {author.date_joined_as_author && (
+                                    <div className="flex items-center gap-2">
+                                        <div className="p-1.5 bg-white dark:bg-slate-800 rounded-lg shadow-sm">
+                                            <Calendar className="w-4 h-4 text-purple-500" />
+                                        </div>
+                                        Author Since {new Date(author.date_joined_as_author).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
                                     </div>
-                                    Joined {new Date(author.created_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
-                                </div>
+                                )}
                                 {author.website && (
                                     <a href={author.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-violet-600 transition-colors group">
                                         <div className="p-1.5 bg-white dark:bg-slate-800 rounded-lg shadow-sm group-hover:bg-violet-50 dark:group-hover:bg-slate-700 transition-colors">
@@ -295,6 +315,24 @@ const UserProfile: React.FC<UserProfileProps> = ({ username }) => {
 
                     {/* Right Column: Content */}
                     <div className="flex-1 w-full min-w-0">
+                        {/* Stats Overview */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                            <div className="p-6 border-violet-100 dark:border-slate-700 relative overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border shadow-sm">
+                                <div className="relative z-10">
+                                    <span className="block text-4xl font-bold text-gray-900 dark:text-white mb-1">{totalPosts}</span>
+                                    <span className="text-sm font-medium text-violet-600 dark:text-violet-400 uppercase tracking-wider">Articles Published</span>
+                                </div>
+                            </div>
+                            {author.date_joined_as_author && (
+                                <div className="p-6 border-cyan-100 dark:border-slate-700 relative overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border shadow-sm">
+                                    <div className="relative z-10">
+                                        <span className="block text-4xl font-bold text-gray-900 dark:text-white mb-1">{new Date(author.date_joined_as_author).getFullYear()}</span>
+                                        <span className="text-sm font-medium text-cyan-600 dark:text-cyan-400 uppercase tracking-wider">Author Since</span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
                         {/* Tabs / Filters */}
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                             <div className="flex p-1 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm rounded-xl border border-gray-200/50 dark:border-gray-700/50">
@@ -310,7 +348,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ username }) => {
                                         ? 'bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-300'
                                         : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-400'
                                         }`}>
-                                        {posts.length}
+                                        {totalPosts}
                                     </span>
                                 </button>
                                 <button
@@ -479,16 +517,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ username }) => {
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="p-5 bg-gradient-to-br from-violet-50 to-fuchsia-50 dark:from-slate-800 dark:to-slate-800/50 rounded-xl border border-violet-100 dark:border-slate-700">
-                                                <span className="block text-3xl font-bold text-violet-600 dark:text-violet-400 mb-1">{posts.length}</span>
-                                                <span className="text-sm font-medium text-violet-900/60 dark:text-violet-200/60 uppercase tracking-wider">Articles Published</span>
-                                            </div>
-                                            <div className="p-5 bg-gradient-to-br from-cyan-50 to-sky-50 dark:from-slate-800 dark:to-slate-800/50 rounded-xl border border-cyan-100 dark:border-slate-700">
-                                                <span className="block text-3xl font-bold text-cyan-600 dark:text-cyan-400 mb-1">{new Date(author.created_at).getFullYear()}</span>
-                                                <span className="text-sm font-medium text-cyan-900/60 dark:text-cyan-200/60 uppercase tracking-wider">Member Since</span>
-                                            </div>
-                                        </div>
+
                                     </div>
                                 </div>
                             )}
