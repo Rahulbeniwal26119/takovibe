@@ -27,6 +27,30 @@ export interface ChangeLogEntry {
 
 export const changelogData: ChangeLogEntry[] = [
     {
+        "date": "2026-01-02",
+        "version": "Beta Preview",
+        "title": "Sketch Notes (Preview) & UI Refinements",
+        "description": "Introducing Sketch Notes for visual thinking, along with polished transitions and mobile improvements.",
+        "changes": [
+            {
+                "type": "new",
+                "text": "Sketch Notes (Preview): Draw diagrams and take visual notes directly alongside articles. Powered by Excalidraw."
+            },
+            {
+                "type": "improvement",
+                "text": "Immersive Mode: Maximizing Sketch Notes now hides the website header, giving you a true full-screen canvas."
+            },
+            {
+                "type": "improvement",
+                "text": "Mobile Optimization: Sketch Notes automatically adapts to full-screen on mobile devices for better usability."
+            },
+            {
+                "type": "improvement",
+                "text": "Reader Toolbar: A cleaner, consolidated toolbar with new 'Preview' badges for AI and Sketch features."
+            }
+        ]
+    },
+    {
         "date": "2026-01-01",
         "version": "Feature Update",
         "title": "Enhanced Profile, Stats & Editor Polish",

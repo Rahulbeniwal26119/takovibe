@@ -8,6 +8,7 @@ import TableOfContents from "./TableOfContents.astro";
 import SelectionPopover from "./SelectionPopover.astro";
 import QuizHydrator from "./QuizHydrator";
 import CodePlaygroundHydrator from "./CodePlaygroundHydrator";
+import ExcalidrawHydrator from "./ExcalidrawHydrator";
 import ChatBot from "./ChatBot";
 import { TiptapRenderer } from "./TiptapRenderer";
 import { generateFAQSchema } from "../utils/seo-utils";
@@ -493,6 +494,7 @@ const breadcrumbStructuredData = {
         articleId={post.slug}
         articleContext={`Title: ${post.data.title}\n\nDescription: ${post.data.description}\n\nContent: ${post.contentJson ? JSON.stringify(post.contentJson) : htmlContent || ""}`}
     />
+    <ExcalidrawHydrator client:only="react" articleSlug={post.slug} />
 </Layout>
 
 <style>
@@ -567,6 +569,44 @@ const breadcrumbStructuredData = {
 
     .animate-fade-in-up {
         animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+
+    /* Hide TOC when Excalidraw Drawer is open in split mode */
+    :global(body.excalidraw-split-active) aside {
+        display: none !important;
+    }
+
+    /* Hide Kumi Chatbot Floating Trigger when Excalidraw is open - STRONG override */
+    :global(body.excalidraw-split-active) #kumi-floating-trigger,
+    :global(body.excalidraw-split-active) .kumi-chatbot-trigger {
+        display: none !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        visibility: hidden !important;
+    }
+
+    /* Shift Kumi Chatbot Container (when open) left to avoid overlap */
+    :global(body.excalidraw-split-active) .kumi-chatbot-container {
+        right: calc(var(--excalidraw-drawer-width, 0px) + 2rem) !important;
+        left: auto !important;
+        transform: none !important; /* Reset any centering transforms if present */
+    }
+
+    /* FULLSCREEN EXCALIDRAW LOGIC */
+    /* Hide floating trigger in fullscreen too */
+    :global(body.excalidraw-fullscreen-active) #kumi-floating-trigger,
+    :global(body.excalidraw-fullscreen-active) .kumi-chatbot-trigger {
+        display: none !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        visibility: hidden !important;
+    }
+
+    /* Position Kumi on the LEFT in fullscreen mode */
+    :global(body.excalidraw-fullscreen-active) .kumi-chatbot-container {
+        left: 2rem !important;
+        right: auto !important;
+        transform: none !important;
     }
 </style>
 
