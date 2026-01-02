@@ -7,22 +7,36 @@ const API_BASE = `${import.meta.env.PUBLIC_API_URL}/api/blogs`;
 // The API now returns a list of blogs directly, not bookmark objects
 export type Bookmark = BlogPost;
 
-export async function fetchBookmarks(): Promise<Bookmark[]> {
-    const token = localStorage.getItem('access_token');
-    if (!token) return [];
+let bookmarksPromise: Promise<Bookmark[]> | null = null;
 
-    try {
-        const response = await fetchWithAuth(`${API_BASE}/saved-blogs/`);
-        if (!response.ok) {
-            throw new Error('Failed to fetch bookmarks');
+export function fetchBookmarks(): Promise<Bookmark[]> {
+    const token = localStorage.getItem('access_token');
+    if (!token) return Promise.resolve([]);
+
+    if (bookmarksPromise) return bookmarksPromise;
+
+    bookmarksPromise = (async () => {
+        try {
+            const response = await fetchWithAuth(`${API_BASE}/saved-blogs/`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch bookmarks');
+            }
+            const data = await response.json();
+            return data.results || data || [];
+        } catch (error) {
+            console.error('Error fetching bookmarks:', error);
+            return [];
+        } finally {
+            // Keep the cache for a short duration or clear immediately?
+            // Clearing immediately (or microtask later) is safer for "retry" logic, 
+            // but for "simultaneous mounting components" (the core issue), 
+            // the promise will be active during the fetch.
+            // Let's clear it.
+            bookmarksPromise = null;
         }
-        const data = await response.json();
-        // The ViewSet returns paginated response or list
-        return data.results || data || [];
-    } catch (error) {
-        console.error('Error fetching bookmarks:', error);
-        return [];
-    }
+    })();
+
+    return bookmarksPromise;
 }
 
 export async function saveBookmark(blogId: number | string): Promise<boolean> {

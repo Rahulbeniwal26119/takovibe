@@ -181,25 +181,38 @@ const formattedDate = new Date(date).toLocaleDateString("en-US", {
     saveBookmark,
     removeBookmark,
     checkBookmarkStatus,
+    fetchBookmarks,
   } from "../utils/bookmarks";
   import { showToast } from "../utils/toast";
 
-  function setupSaveButtons() {
+  async function setupSaveButtons() {
     const saveBtns = document.querySelectorAll(".save-btn");
+    // Filter out buttons that are already bound to avoid double processing
+    const unboundBtns = Array.from(saveBtns).filter(
+      (btn) => !btn.hasAttribute("data-bound"),
+    );
 
-    saveBtns.forEach(async (btn) => {
-      // Avoid double binding if this script runs multiple times or overlaps
-      if (btn.hasAttribute("data-bound")) return;
+    if (unboundBtns.length === 0) return;
+
+    // Fetch all bookmarks once
+    const bookmarks = await fetchBookmarks();
+    const savedSlugs = new Set(bookmarks.map((b) => b.slug));
+    const savedIds = new Map(bookmarks.map((b) => [b.slug, b.id]));
+
+    unboundBtns.forEach((btn) => {
       btn.setAttribute("data-bound", "true");
 
       const blogId = btn.getAttribute("data-blog-id");
       if (!blogId) return;
 
-      // Check initial status
-      const { isBookmarked, bookmarkId } = await checkBookmarkStatus(blogId);
+      // Check initial status from batch
+      const isBookmarked = savedSlugs.has(blogId);
       updateSaveButtonState(btn, isBookmarked);
-      if (bookmarkId)
-        btn.setAttribute("data-bookmark-id", bookmarkId.toString());
+
+      if (isBookmarked) {
+        const id = savedIds.get(blogId);
+        if (id) btn.setAttribute("data-bookmark-id", id.toString());
+      }
 
       btn.addEventListener("click", async (e) => {
         e.preventDefault();
@@ -264,6 +277,10 @@ const formattedDate = new Date(date).toLocaleDateString("en-US", {
   }
 
   // Initialize
-  setupSaveButtons();
-  document.addEventListener("astro:after-swap", setupSaveButtons);
+  // Debounce/Delay slightly to allow other scripts to run first or DOM to settle,
+  // preventing race conditions where we might check elements before they are fully ready or bound by others.
+  setTimeout(setupSaveButtons, 100);
+  document.addEventListener("astro:after-swap", () =>
+    setTimeout(setupSaveButtons, 100),
+  );
 </script>

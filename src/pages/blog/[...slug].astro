@@ -8,7 +8,9 @@ import ArticleTemplate from "../../components/ArticleTemplate.astro";
 export async function getStaticPaths() {
   const API_BASE = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
   try {
-    const response = await fetch(`${API_BASE}/api/blogs/blogs/`);
+    const response = await fetch(
+      `${API_BASE}/api/blogs/blogs/?include_content=true`,
+    );
     if (!response.ok) {
       console.error("Failed to fetch posts for static paths");
       return [];
@@ -34,15 +36,15 @@ if (!slug) {
   return Astro.redirect("/404");
 }
 
-let post = null;
-let headings = [];
+let post: any = null;
+let headings: any[] = [];
 let htmlContent = ""; // For backend content
 let Content = null; // For static content
 let isStatic = false;
 
 // 1. Try Backend Data (either from props or fetch)
 try {
-  let apiData = initialPostData;
+  let apiData: any = initialPostData;
 
   // If no initial data (e.g. running in SSR mode or fallback), try fetching
   if (!apiData) {
@@ -52,8 +54,9 @@ try {
     // Given the user context, we'll try to use the logic that works.
     // However, since we are in SSG (prerender=true), getStaticPaths handles everything.
     // We will keep a fallback fetch just in case logic changes to SSR later.
-    const apiUrl = `${API_BASE}/api/blogs/blogs/?slug=${slug}`;
+    const apiUrl = `${API_BASE}/api/blogs/blogs/?slug=${slug}&include_content=true`;
     const response = await fetch(apiUrl);
+    console.log(response);
     if (response.ok) {
       const result = await response.json();
       // Assuming filtered list returns array

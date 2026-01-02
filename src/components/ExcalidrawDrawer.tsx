@@ -1,7 +1,7 @@
 
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Excalidraw, MainMenu, WelcomeScreen } from "@excalidraw/excalidraw";
+import { Excalidraw, MainMenu, WelcomeScreen, getSceneVersion } from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css";
 import { X, PenTool, Lock, Unlock, Minimize2, Maximize2, LayoutTemplate, Monitor } from 'lucide-react';
 import { fetchWithAuth } from '../utils/api';
@@ -37,6 +37,7 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
     const [showMobileWarning, setShowMobileWarning] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const lastSavedVersionRef = useRef(0);
 
     // Detect Mobile
     useEffect(() => {
@@ -68,6 +69,7 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
                             id: undefined // Will try to populate ID from API
                         });
                         setIsPublic(parsed.is_public || false);
+                        lastSavedVersionRef.current = getSceneVersion(parsed.elements);
                         loadedFromLocal = true;
                     }
                 } catch (e) {
@@ -87,13 +89,15 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
                         const drawing = Array.isArray(data) ? data[0] : data;
 
                         if (!loadedFromLocal) {
+                            const elements = drawing.elements ? JSON.parse(drawing.elements) : [];
                             setDrawingData({
-                                elements: drawing.elements ? JSON.parse(drawing.elements) : [],
+                                elements: elements,
                                 appState: drawing.app_state ? JSON.parse(drawing.app_state) : {},
                                 is_public: drawing.is_public,
                                 id: drawing.id
                             });
                             setIsPublic(drawing.is_public);
+                            lastSavedVersionRef.current = getSceneVersion(elements);
                             setHasUnsavedChanges(false);
                         } else {
                             // If local exists, just update ID to allow syncing
@@ -135,6 +139,13 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
     }, []);
 
     const saveData = useCallback(async (elements: any, appState: any, isPublicState: boolean) => {
+        // Version check to prevent loops
+        const currentVersion = getSceneVersion(elements);
+        if (currentVersion === lastSavedVersionRef.current) {
+            setHasUnsavedChanges(false);
+            return;
+        }
+
         // Save to Local Storage (Backup)
         try {
             const localKey = `excalidraw_data_${articleSlug}`;
@@ -174,6 +185,7 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
             if (response.ok) {
                 const saved = await response.json();
                 setDrawingData(prev => ({ ...prev, ...saved }));
+                lastSavedVersionRef.current = currentVersion;
                 setHasUnsavedChanges(false);
             }
         } catch (error) {
@@ -183,14 +195,24 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
         }
     }, [articleSlug, drawingData?.id]);
 
-    const handleChange = (elements: any, appState: any) => {
-        setHasUnsavedChanges(true);
+    const handleChange = useCallback((elements: any, appState: any) => {
+        // Prevent updates if nothing really changed (Excalidraw fires frequently)
+        const currentVersion = getSceneVersion(elements);
+        if (currentVersion === lastSavedVersionRef.current) {
+            return;
+        }
+
+        setHasUnsavedChanges(prev => {
+            if (prev) return prev;
+            return true;
+        });
+
         if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
 
         saveTimeoutRef.current = setTimeout(() => {
             saveData(elements, appState, isPublic);
         }, 2000);
-    };
+    }, [isPublic, saveData]);
 
     const togglePublic = () => {
         const newState = !isPublic;
