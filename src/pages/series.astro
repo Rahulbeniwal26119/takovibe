@@ -14,11 +14,15 @@ let error = null;
 
 try {
     const response = await fetch(`${API_URL}/api/blogs/series/`);
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+    if (response.ok) {
+        const data = await response.json();
+        seriesData = data.results || [];
+    } else {
+        // If the backend is 500ing, we don't want to break the build,
+        // just show empty/error state.
+        console.warn(`Series API returned ${response.status}`);
+        error = `API Error: ${response.status}`;
     }
-    const data = await response.json();
-    seriesData = data.results || [];
 } catch (e) {
     console.error("Failed to fetch series data:", e);
     error = e.message;
