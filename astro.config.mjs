@@ -189,10 +189,10 @@ export default defineConfig({
       }
     },
     ssr: {
-      noExternal: ['@tiptap/core', '@tiptap/starter-kit']
+      noExternal: ['@tiptap/core', '@tiptap/starter-kit', 'clsx', '@excalidraw/excalidraw']
     },
     optimizeDeps: {
-      include: ['@tiptap/core', '@tiptap/starter-kit']
+      include: ['@tiptap/core', '@tiptap/starter-kit', 'clsx', '@excalidraw/excalidraw']
     },
     worker: {
       format: 'es'
