@@ -50,9 +50,31 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
-    // Check for existing drawings on load
+    // Check for existing drawings on load (Local Storage + API)
     useEffect(() => {
         const checkDrawing = async () => {
+            const localKey = `excalidraw_data_${articleSlug}`;
+            const localSaved = localStorage.getItem(localKey);
+            let loadedFromLocal = false;
+
+            if (localSaved) {
+                try {
+                    const parsed = JSON.parse(localSaved);
+                    if (parsed.elements && parsed.elements.length > 0) {
+                        setDrawingData({
+                            elements: parsed.elements,
+                            appState: parsed.appState || {},
+                            is_public: parsed.is_public || false,
+                            id: undefined // Will try to populate ID from API
+                        });
+                        setIsPublic(parsed.is_public || false);
+                        loadedFromLocal = true;
+                    }
+                } catch (e) {
+                    console.error("Error parsing local drawing:", e);
+                }
+            }
+
             const token = localStorage.getItem('access_token');
             if (!token) return;
 
@@ -63,14 +85,20 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
                     const data = await response.json();
                     if (data && (Array.isArray(data) ? data.length > 0 : data.id)) {
                         const drawing = Array.isArray(data) ? data[0] : data;
-                        setDrawingData({
-                            elements: drawing.elements ? JSON.parse(drawing.elements) : [],
-                            appState: drawing.app_state ? JSON.parse(drawing.app_state) : {},
-                            is_public: drawing.is_public,
-                            id: drawing.id
-                        });
-                        setIsPublic(drawing.is_public);
-                        setHasUnsavedChanges(false);
+
+                        if (!loadedFromLocal) {
+                            setDrawingData({
+                                elements: drawing.elements ? JSON.parse(drawing.elements) : [],
+                                appState: drawing.app_state ? JSON.parse(drawing.app_state) : {},
+                                is_public: drawing.is_public,
+                                id: drawing.id
+                            });
+                            setIsPublic(drawing.is_public);
+                            setHasUnsavedChanges(false);
+                        } else {
+                            // If local exists, just update ID to allow syncing
+                            setDrawingData(prev => prev ? ({ ...prev, id: drawing.id }) : null);
+                        }
                     }
                 }
             } catch (error) {
@@ -107,6 +135,19 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
     }, []);
 
     const saveData = useCallback(async (elements: any, appState: any, isPublicState: boolean) => {
+        // Save to Local Storage (Backup)
+        try {
+            const localKey = `excalidraw_data_${articleSlug}`;
+            localStorage.setItem(localKey, JSON.stringify({
+                elements,
+                appState,
+                is_public: isPublicState,
+                updatedAt: Date.now()
+            }));
+        } catch (e) {
+            console.error("Failed to save to local storage:", e);
+        }
+
         const token = localStorage.getItem('access_token');
         if (!token) return;
 
@@ -209,19 +250,29 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
         };
     }, [viewMode, drawerWidth]);
 
+    // Refresh Excalidraw dimension compensation after transitions
+    useEffect(() => {
+        if (!excalidrawAPI) return;
+        // Refresh after transition (300ms + buffer)
+        const timer = setTimeout(() => {
+            excalidrawAPI.refresh();
+        }, 350);
+        return () => clearTimeout(timer);
+    }, [viewMode, drawerWidth, excalidrawAPI]);
+
     // View Styles
     const getContainerStyles = () => {
-        const baseStyles = "bg-white dark:bg-gray-900 transition-all duration-300 ease-in-out transform flex flex-col";
+        const baseStyles = "bg-white dark:bg-gray-900 transition-all duration-300 ease-in-out flex flex-col";
 
         switch (viewMode) {
             case 'maximize':
-                return `${baseStyles} fixed inset-0 z-[10000] w-full h-full translate-x-0`;
+                return `${baseStyles} fixed inset-0 z-[10000] h-full`;
             case 'split':
-                return `${baseStyles} fixed inset-y-0 right-0 top-[64px] z-[40] border-l border-gray-200 dark:border-gray-800 shadow-2xl h-[calc(100vh-64px)] translate-x-0`;
+                return `${baseStyles} fixed top-[64px] bottom-0 z-[40] border-l border-gray-200 dark:border-gray-800 shadow-2xl`;
             case 'hidden':
             case 'minimized':
             default:
-                return `${baseStyles} fixed inset-y-0 right-0 top-[64px] z-[40] border-l border-gray-200 dark:border-gray-800 shadow-2xl h-[calc(100vh-64px)] translate-x-full pointer-events-none`;
+                return `${baseStyles} fixed top-[64px] bottom-0 z-[40] border-l border-gray-200 dark:border-gray-800 shadow-2xl pointer-events-none`;
         }
     };
 
@@ -244,7 +295,10 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
             {/* Main Drawer Container */}
             <div
                 className={getContainerStyles()}
-                style={viewMode === 'maximize' ? {} : { width: drawerWidth }}
+                style={{
+                    width: viewMode === 'maximize' ? '100%' : `${drawerWidth}px`,
+                    right: (viewMode === 'hidden' || viewMode === 'minimized') ? `-${drawerWidth}px` : '0px'
+                }}
             >
 
 
@@ -354,6 +408,7 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
                                     elements: drawingData.elements,
                                     appState: {
                                         ...drawingData.appState,
+                                        collaborators: new Map(),
                                         viewBackgroundColor: "#ffffff"
                                     },
                                     libraryItems: initialLibraryItems,
