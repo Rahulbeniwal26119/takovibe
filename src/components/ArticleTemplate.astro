@@ -508,15 +508,15 @@ const breadcrumbStructuredData = {
         url={Astro.url.href}
         slug={post.slug}
     />
-    <QuizHydrator client:only="react" />
-    <CodePlaygroundHydrator client:only="react" />
+    <QuizHydrator client:idle />
+    <CodePlaygroundHydrator client:idle />
     <ChatBot
-        client:only="react"
+        client:idle
         articleTitle={post.data.title}
         articleId={post.slug}
         articleContext={`Title: ${post.data.title}\n\nDescription: ${post.data.description}\n\nContent: ${post.contentJson ? JSON.stringify(post.contentJson) : htmlContent || ""}`}
     />
-    <ExcalidrawHydrator client:only="react" articleSlug={post.slug} />
+    <ExcalidrawHydrator client:idle articleSlug={post.slug} />
 </Layout>
 
 <style>
@@ -673,8 +673,9 @@ const breadcrumbStructuredData = {
             }
 
             // 1. Add "Deep Dive" Explain Button
-            let explainBtn =
-                actionsContainer.querySelector(".explain-code-btn") as HTMLButtonElement;
+            let explainBtn = actionsContainer.querySelector(
+                ".explain-code-btn",
+            ) as HTMLButtonElement;
             if (!explainBtn) {
                 explainBtn = document.createElement("button");
                 explainBtn.className =
@@ -690,7 +691,9 @@ const breadcrumbStructuredData = {
             }
 
             // 2. Add Copy Button
-            let copyBtn = actionsContainer.querySelector(".copy-code-btn") as HTMLButtonElement;
+            let copyBtn = actionsContainer.querySelector(
+                ".copy-code-btn",
+            ) as HTMLButtonElement;
             if (!copyBtn) {
                 copyBtn = document.createElement("button");
                 copyBtn.className =

@@ -50,6 +50,13 @@ export const CodePlaygroundSchema = Node.create({
     },
 
     renderHTML({ HTMLAttributes }) {
-        return ['div', mergeAttributes(HTMLAttributes, { 'data-type': 'code-playground' })];
+        return [
+            'div',
+            mergeAttributes(HTMLAttributes, {
+                'data-type': 'code-playground',
+                class: 'min-h-[400px] bg-gray-100 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 flex items-center justify-center text-gray-400 font-medium',
+            }),
+            'Loading Code Playground...',
+        ];
     },
 });

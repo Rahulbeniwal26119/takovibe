@@ -32,6 +32,7 @@ export const QuizSchema = Node.create({
     renderHTML({ HTMLAttributes }) {
         return ['quiz-component', mergeAttributes(HTMLAttributes, {
             'options': JSON.stringify(HTMLAttributes.options),
-        })];
+            'class': 'block min-h-[250px] bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-800 flex items-center justify-center p-6 my-8',
+        }), ['div', { class: 'text-gray-400 font-medium animate-pulse' }, 'Loading Quiz...']];
     },
 });

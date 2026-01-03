@@ -132,18 +132,8 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
 
     // Apply syntax highlighting to tabbed code blocks in read-only mode
     useEffect(() => {
-        console.log('[CodeBlock] Syntax highlighting useEffect:', {
-            isEditable,
-            isTabbed,
-            hasCodeRef: !!codeRef.current,
-            hasTabs: !!tabs,
-            activeTab,
-            currentTab: tabs?.[activeTab]
-        });
-
         if (!isEditable && isTabbed && codeRef.current && tabs && tabs[activeTab]) {
             const currentTab = tabs[activeTab];
-            console.log('[CodeBlock] Applying syntax highlighting to:', currentTab);
             if (currentTab && extension.options.lowlight) {
                 const lowlight = extension.options.lowlight;
                 try {

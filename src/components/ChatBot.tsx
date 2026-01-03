@@ -393,10 +393,6 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
         }
     };
 
-    if (!isOpen) {
-        return null;
-    }
-
     const containerClasses = [
         // Base: 
         // Mobile: Fixed bottom, spanning width (left-4 right-4) to match ReaderToolbar
@@ -435,235 +431,239 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
     ].filter(Boolean).join(' ');
 
     return (
-        <div className={containerClasses} onClick={isMinimized ? () => setIsMinimized(false) : undefined}>
+        <>
+            {/* Chat Window */}
+            {isOpen && (
+                <div className={containerClasses} onClick={isMinimized ? () => setIsMinimized(false) : undefined}>
 
-            {/* Header */}
-            <div
-                className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-600 to-blue-600 shadow-md z-10 h-14"
-            >
-                <div className="flex items-center gap-2 text-white cursor-pointer" onClick={() => setIsMinimized(!isMinimized)}>
-                    <Sparkles className="w-5 h-5" />
-                    <span className="font-bold">Kumi</span>
-                    <span className="text-[10px] font-mono bg-white/20 px-1.5 py-0.5 rounded-full text-white/90 border border-white/10 shadow-sm ml-1">
-                        PREVIEW
-                    </span>
-                </div>
-                <div className="flex items-center gap-1 text-white/80">
-                    {!isMinimized && (
-                        <>
-                            {!confirmClear ? (
+
+                    {/* Header */}
+                    <div
+                        className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-600 to-blue-600 shadow-md z-10 h-14"
+                    >
+                        <div className="flex items-center gap-2 text-white cursor-pointer" onClick={() => setIsMinimized(!isMinimized)}>
+                            <Sparkles className="w-5 h-5" />
+                            <span className="font-bold">Kumi</span>
+                            <span className="text-[10px] font-mono bg-white/20 px-1.5 py-0.5 rounded-full text-white/90 border border-white/10 shadow-sm ml-1">
+                                PREVIEW
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-1 text-white/80">
+                            {!isMinimized && (
+                                <>
+                                    {!confirmClear ? (
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); setConfirmClear(true); }}
+                                            className="p-1.5 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-white/50 hover:text-red-300"
+                                            title="Clear Chat History"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    ) : (
+                                        <div className="flex items-center bg-red-500/20 rounded-lg animate-in fade-in zoom-in duration-200">
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); clearChat(); }}
+                                                className="p-1.5 text-red-300 hover:text-white hover:bg-white/10 rounded-l-lg transition-colors"
+                                                title="Confirm Clear"
+                                            >
+                                                <Check className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); setConfirmClear(false); }}
+                                                className="p-1.5 text-white/50 hover:text-white hover:bg-white/10 rounded-r-lg transition-colors"
+                                                title="Cancel"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    )}
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            const newState = !isSpeechEnabled;
+                                            setIsSpeechEnabled(newState);
+                                            if (!newState) {
+                                                window.speechSynthesis?.cancel();
+                                            } else {
+                                                const u = new SpeechSynthesisUtterance("Speech enabled.");
+                                                window.speechSynthesis?.speak(u);
+                                            }
+                                        }}
+                                        className={`p-1.5 hover:text-white hover:bg-white/10 rounded-lg transition-colors ${isSpeechEnabled ? 'text-white' : 'text-white/50'}`}
+                                        title={isSpeechEnabled ? "Mute Speech" : "Enable Speech"}
+                                    >
+                                        {isSpeechEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                                    </button>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
+                                        className="p-1.5 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                                        title={isExpanded ? "Collapse" : "Expand"}
+                                    >
+                                        {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                                    </button>
+                                    <button
+                                        onClick={handleMinimize}
+                                        className="p-1.5 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                                        title="Minimize"
+                                    >
+                                        <Minus className="w-4 h-4" />
+                                    </button>
+                                </>
+                            )}
+                            {isMinimized && (
                                 <button
-                                    onClick={(e) => { e.stopPropagation(); setConfirmClear(true); }}
-                                    className="p-1.5 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-white/50 hover:text-red-300"
-                                    title="Clear Chat History"
+                                    onClick={(e) => { e.stopPropagation(); setIsMinimized(false); }}
+                                    className="p-1.5 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                                    title="Restore"
                                 >
-                                    <Trash2 className="w-4 h-4" />
+                                    <Maximize2 className="w-4 h-4" />
                                 </button>
-                            ) : (
-                                <div className="flex items-center bg-red-500/20 rounded-lg animate-in fade-in zoom-in duration-200">
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); clearChat(); }}
-                                        className="p-1.5 text-red-300 hover:text-white hover:bg-white/10 rounded-l-lg transition-colors"
-                                        title="Confirm Clear"
-                                    >
-                                        <Check className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); setConfirmClear(false); }}
-                                        className="p-1.5 text-white/50 hover:text-white hover:bg-white/10 rounded-r-lg transition-colors"
-                                        title="Cancel"
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                </div>
                             )}
                             <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    const newState = !isSpeechEnabled;
-                                    setIsSpeechEnabled(newState);
-                                    if (!newState) {
-                                        window.speechSynthesis?.cancel();
-                                    } else {
-                                        const u = new SpeechSynthesisUtterance("Speech enabled.");
-                                        window.speechSynthesis?.speak(u);
-                                    }
-                                }}
-                                className={`p-1.5 hover:text-white hover:bg-white/10 rounded-lg transition-colors ${isSpeechEnabled ? 'text-white' : 'text-white/50'}`}
-                                title={isSpeechEnabled ? "Mute Speech" : "Enable Speech"}
-                            >
-                                {isSpeechEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-                            </button>
-                            <button
-                                onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
+                                onClick={(e) => { e.stopPropagation(); handleClose(); }}
                                 className="p-1.5 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                                title={isExpanded ? "Collapse" : "Expand"}
+                                title="Close"
                             >
-                                {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                                <X className="w-4 h-4" />
                             </button>
-                            <button
-                                onClick={handleMinimize}
-                                className="p-1.5 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                                title="Minimize"
-                            >
-                                <Minus className="w-4 h-4" />
-                            </button>
-                        </>
-                    )}
-                    {isMinimized && (
-                        <button
-                            onClick={(e) => { e.stopPropagation(); setIsMinimized(false); }}
-                            className="p-1.5 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                            title="Restore"
-                        >
-                            <Maximize2 className="w-4 h-4" />
-                        </button>
-                    )}
-                    <button
-                        onClick={(e) => { e.stopPropagation(); handleClose(); }}
-                        className="p-1.5 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                        title="Close"
-                    >
-                        <X className="w-4 h-4" />
-                    </button>
-                </div>
-            </div >
+                        </div>
+                    </div >
 
-            {/* Chat Area */}
-            {
-                !isMinimized && (
-                    <div className="flex flex-col flex-1 overflow-hidden transition-all duration-300 opacity-100">
-                        <div
-                            ref={chatContainerRef}
-                            onScroll={handleScroll}
-                            className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-slate-800/50 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600"
-                        >
-                            {messages.map((message, index) => (
+                    {/* Chat Area */}
+                    {
+                        !isMinimized && (
+                            <div className="flex flex-col flex-1 overflow-hidden transition-all duration-300 opacity-100">
                                 <div
-                                    key={index}
-                                    className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+                                    ref={chatContainerRef}
+                                    onScroll={handleScroll}
+                                    className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-slate-800/50 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600"
                                 >
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${message.role === 'user'
-                                        ? 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
-                                        : 'bg-gradient-to-br from-purple-500 to-blue-500 text-white'
-                                        }`}>
-                                        {message.role === 'user' ? <User className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
-                                    </div>
-                                    <div
-                                        className={`max-w-[80%] px-4 py-3 rounded-2xl text-base leading-relaxed ${message.role === 'user'
-                                            ? 'bg-purple-600 text-white rounded-tr-sm'
-                                            : 'bg-white dark:bg-slate-800 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700 shadow-sm rounded-tl-sm'
-                                            }`}
-                                    >
-                                        <div className={`prose max-w-none ${message.role === 'user'
-                                            ? 'prose-invert'
-                                            : 'dark:prose-invert'
-                                            }`}>
-                                            {(() => {
-                                                const isAssistant = message.role === 'assistant';
-                                                const isJson = isAssistant && message.content.trim().startsWith('{');
+                                    {messages.map((message, index) => (
+                                        <div
+                                            key={index}
+                                            className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+                                        >
+                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${message.role === 'user'
+                                                ? 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+                                                : 'bg-gradient-to-br from-purple-500 to-blue-500 text-white'
+                                                }`}>
+                                                {message.role === 'user' ? <User className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
+                                            </div>
+                                            <div
+                                                className={`max-w-[80%] px-4 py-3 rounded-2xl text-base leading-relaxed ${message.role === 'user'
+                                                    ? 'bg-purple-600 text-white rounded-tr-sm'
+                                                    : 'bg-white dark:bg-slate-800 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700 shadow-sm rounded-tl-sm'
+                                                    }`}
+                                            >
+                                                <div className={`prose max-w-none ${message.role === 'user'
+                                                    ? 'prose-invert'
+                                                    : 'dark:prose-invert'
+                                                    }`}>
+                                                    {(() => {
+                                                        const isAssistant = message.role === 'assistant';
+                                                        const isJson = isAssistant && message.content.trim().startsWith('{');
 
-                                                // 1. Loading State for Quiz
-                                                if (isLoading && isJson) {
-                                                    return (
-                                                        <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 py-2">
-                                                            <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-                                                            <span className="text-sm font-medium">Generating Quiz...</span>
-                                                        </div>
-                                                    );
-                                                }
-
-                                                // 2. Finished State for Quiz
-                                                if (!isLoading && isJson) {
-                                                    try {
-                                                        const quizData = JSON.parse(message.content);
-                                                        if (quizData.questions && Array.isArray(quizData.questions)) {
+                                                        // 1. Loading State for Quiz
+                                                        if (isLoading && isJson) {
                                                             return (
-                                                                <Suspense fallback={<div className="p-4 text-center text-gray-500">Loading Quiz...</div>}>
-                                                                    <QuizCard data={quizData} />
-                                                                </Suspense>
+                                                                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 py-2">
+                                                                    <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                                                                    <span className="text-sm font-medium">Generating Quiz...</span>
+                                                                </div>
                                                             );
                                                         }
-                                                    } catch (e) {
-                                                        // console.warn("Failed to parse JSON", e);
-                                                    }
-                                                }
 
-                                                // 3. Fallback / Standard Text
-                                                return (
-                                                    <ReactMarkdown
-                                                        remarkPlugins={[remarkGfm]}
-                                                        rehypePlugins={[rehypeHighlight]}
-                                                        components={{
-                                                            pre: ({ node, ...props }) => (
-                                                                <div className="relative group/code">
-                                                                    <pre {...props} className="bg-slate-950 rounded-lg p-4 overflow-x-auto my-2 text-sm" />
-                                                                    <button
-                                                                        onClick={(e) => {
-                                                                            const code = (e.currentTarget.previousSibling as HTMLElement)?.textContent || '';
-                                                                            navigator.clipboard.writeText(code);
-                                                                            const btn = e.currentTarget;
-                                                                            const scan = btn.querySelector('span');
-                                                                            if (scan) scan.innerText = 'Copied!';
-                                                                            setTimeout(() => { if (scan) scan.innerText = 'Copy'; }, 2000);
-                                                                        }}
-                                                                        className="absolute top-2 right-2 px-2 py-1 bg-white/10 hover:bg-white/20 text-xs text-white/70 hover:text-white rounded opacity-0 group-hover/code:opacity-100 transition-opacity"
-                                                                    >
-                                                                        <span>Copy</span>
-                                                                    </button>
-                                                                </div>
-                                                            ),
-                                                            code: ({ node, className, children, ...props }) => {
-                                                                const match = /language-(\w+)/.exec(className || '');
-                                                                if (match && match[1] === 'mermaid') {
+                                                        // 2. Finished State for Quiz
+                                                        if (!isLoading && isJson) {
+                                                            try {
+                                                                const quizData = JSON.parse(message.content);
+                                                                if (quizData.questions && Array.isArray(quizData.questions)) {
                                                                     return (
-                                                                        <Suspense fallback={<div className="p-4 text-center text-gray-500">Loading Diagram...</div>}>
-                                                                            <Mermaid chart={String(children).replace(/\n$/, '')} />
+                                                                        <Suspense fallback={<div className="p-4 text-center text-gray-500">Loading Quiz...</div>}>
+                                                                            <QuizCard data={quizData} />
                                                                         </Suspense>
                                                                     );
                                                                 }
-                                                                return (
-                                                                    <code {...props} className={className + " bg-black/10 dark:bg-white/10 rounded px-1 py-0.5"}>
-                                                                        {children}
-                                                                    </code>
-                                                                );
+                                                            } catch (e) {
+                                                                // console.warn("Failed to parse JSON", e);
                                                             }
-                                                        }}
-                                                    >
-                                                        {message.content}
-                                                    </ReactMarkdown>
-                                                );
-                                            })()}
+                                                        }
+
+                                                        // 3. Fallback / Standard Text
+                                                        return (
+                                                            <ReactMarkdown
+                                                                remarkPlugins={[remarkGfm]}
+                                                                rehypePlugins={[rehypeHighlight]}
+                                                                components={{
+                                                                    pre: ({ node, ...props }) => (
+                                                                        <div className="relative group/code">
+                                                                            <pre {...props} className="bg-slate-950 rounded-lg p-4 overflow-x-auto my-2 text-sm" />
+                                                                            <button
+                                                                                onClick={(e) => {
+                                                                                    const code = (e.currentTarget.previousSibling as HTMLElement)?.textContent || '';
+                                                                                    navigator.clipboard.writeText(code);
+                                                                                    const btn = e.currentTarget;
+                                                                                    const scan = btn.querySelector('span');
+                                                                                    if (scan) scan.innerText = 'Copied!';
+                                                                                    setTimeout(() => { if (scan) scan.innerText = 'Copy'; }, 2000);
+                                                                                }}
+                                                                                className="absolute top-2 right-2 px-2 py-1 bg-white/10 hover:bg-white/20 text-xs text-white/70 hover:text-white rounded opacity-0 group-hover/code:opacity-100 transition-opacity"
+                                                                            >
+                                                                                <span>Copy</span>
+                                                                            </button>
+                                                                        </div>
+                                                                    ),
+                                                                    code: ({ node, className, children, ...props }) => {
+                                                                        const match = /language-(\w+)/.exec(className || '');
+                                                                        if (match && match[1] === 'mermaid') {
+                                                                            return (
+                                                                                <Suspense fallback={<div className="p-4 text-center text-gray-500">Loading Diagram...</div>}>
+                                                                                    <Mermaid chart={String(children).replace(/\n$/, '')} />
+                                                                                </Suspense>
+                                                                            );
+                                                                        }
+                                                                        return (
+                                                                            <code {...props} className={className + " bg-black/10 dark:bg-white/10 rounded px-1 py-0.5"}>
+                                                                                {children}
+                                                                            </code>
+                                                                        );
+                                                                    }
+                                                                }}
+                                                            >
+                                                                {message.content}
+                                                            </ReactMarkdown>
+                                                        );
+                                                    })()}
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
-                            ))}
-                            {isLoading && messages[messages.length - 1]?.content === '' && (
-                                <div className="flex gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shrink-0 text-white">
-                                        <Sparkles className="w-4 h-4 animate-pulse" />
-                                    </div>
-                                    <div className="bg-white dark:bg-slate-800 px-4 py-3 rounded-2xl rounded-tl-sm border border-gray-100 dark:border-gray-700 shadow-sm">
-                                        <div className="flex gap-1">
-                                            <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                                            <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                                            <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                                    ))}
+                                    {isLoading && messages[messages.length - 1]?.content === '' && (
+                                        <div className="flex gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shrink-0 text-white">
+                                                <Sparkles className="w-4 h-4 animate-pulse" />
+                                            </div>
+                                            <div className="bg-white dark:bg-slate-800 px-4 py-3 rounded-2xl rounded-tl-sm border border-gray-100 dark:border-gray-700 shadow-sm">
+                                                <div className="flex gap-1">
+                                                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                                                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                                                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
-                            )}
-                            {/* Smart Starters - Suggested Questions */}
-                            {messages.length <= 1 && !isLoading && !replyContext && (
-                                <div className="grid grid-cols-1 gap-2 mt-4 px-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                    {[
-                                        { icon: "📝", text: "Summarize this article" },
-                                        { icon: "💡", text: "What are the key takeaways?" },
-                                        { icon: "📊", text: "Visualize this concept", prompt: "Create a Mermaid.js diagram (sequence or flowchart) to explain the main concept of this article visually. IMPORTANT: Enclose ALL node labels in double quotes. Do NOT use parentheses inside labels, even if quoted, to be safe. Keep labels short." },
-                                        { divider: true },
-                                        {
-                                            icon: "🧠",
-                                            text: "Quiz me!",
-                                            prompt: `Generate a short multiple-choice quiz about this article. 
+                                    )}
+                                    {/* Smart Starters - Suggested Questions */}
+                                    {messages.length <= 1 && !isLoading && !replyContext && (
+                                        <div className="grid grid-cols-1 gap-2 mt-4 px-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                            {[
+                                                { icon: "📝", text: "Summarize this article" },
+                                                { icon: "💡", text: "What are the key takeaways?" },
+                                                { icon: "📊", text: "Visualize this concept", prompt: "Create a Mermaid.js diagram (sequence or flowchart) to explain the main concept of this article visually. IMPORTANT: Enclose ALL node labels in double quotes. Do NOT use parentheses inside labels, even if quoted, to be safe. Keep labels short." },
+                                                { divider: true },
+                                                {
+                                                    icon: "🧠",
+                                                    text: "Quiz me!",
+                                                    prompt: `Generate a short multiple-choice quiz about this article. 
 Return STRICT JSON format only. Do not add any conversational text before or after the JSON.
 Format:
 {
@@ -678,90 +678,92 @@ Format:
     }
   ]
 }`
-                                        }
-                                    ].map((starter, i) => (
-                                        // @ts-ignore
-                                        starter.divider ? <div key={i} className="h-px bg-gray-200 dark:bg-gray-700 my-1" /> :
-                                            <button
-                                                key={i}
+                                                }
+                                            ].map((starter, i) => (
                                                 // @ts-ignore
-                                                onClick={() => sendMessage(starter.prompt || starter.text)}
-                                                className="text-left p-3 rounded-xl bg-gray-50 dark:bg-slate-800 hover:bg-purple-50 dark:hover:bg-slate-700 hover:border-purple-200 dark:hover:border-purple-700/50 border border-gray-200 dark:border-gray-700 transition-all group flex items-center gap-3 shadow-sm hover:shadow-md"
-                                            >
-                                                {/* @ts-ignore */}
-                                                <span className="text-xl bg-white dark:bg-slate-900 w-8 h-8 flex items-center justify-center rounded-lg shadow-sm group-hover:scale-110 transition-transform">{starter.icon}</span>
-                                                {/* @ts-ignore */}
-                                                <span className="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-purple-700 dark:group-hover:text-purple-300">{starter.text}</span>
-                                            </button>
-                                    ))}
-                                </div>
-                            )}
-                            <div ref={messagesEndRef} />
-                        </div>
-
-                        {/* Input Area */}
-                        <form onSubmit={handleSubmit} className="p-4 bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-gray-800">
-                            {replyContext && (
-                                <div key={replyContext} className="mb-3 p-3 bg-gray-50 dark:bg-slate-800/80 rounded-lg border-l-4 border-purple-500 relative flex justify-between items-start group/reply animate-in slide-in-from-bottom-2 duration-200">
-                                    <div className="flex-1 pr-6">
-                                        <div className="flex items-center gap-1.5 mb-1 text-xs font-semibold text-purple-600 dark:text-purple-400">
-                                            <Sparkles className="w-3 h-3" />
-                                            <span>Context from clipboard</span>
+                                                starter.divider ? <div key={i} className="h-px bg-gray-200 dark:bg-gray-700 my-1" /> :
+                                                    <button
+                                                        key={i}
+                                                        // @ts-ignore
+                                                        onClick={() => sendMessage(starter.prompt || starter.text)}
+                                                        className="text-left p-3 rounded-xl bg-gray-50 dark:bg-slate-800 hover:bg-purple-50 dark:hover:bg-slate-700 hover:border-purple-200 dark:hover:border-purple-700/50 border border-gray-200 dark:border-gray-700 transition-all group flex items-center gap-3 shadow-sm hover:shadow-md"
+                                                    >
+                                                        {/* @ts-ignore */}
+                                                        <span className="text-xl bg-white dark:bg-slate-900 w-8 h-8 flex items-center justify-center rounded-lg shadow-sm group-hover:scale-110 transition-transform">{starter.icon}</span>
+                                                        {/* @ts-ignore */}
+                                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-purple-700 dark:group-hover:text-purple-300">{starter.text}</span>
+                                                    </button>
+                                            ))}
                                         </div>
-                                        <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2 italic">
-                                            "{replyContext}"
-                                        </p>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => setReplyContext(null)}
-                                        className="absolute top-2 right-2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-700/50 rounded-full transition-colors"
-                                    >
-                                        <X className="w-3 h-3" />
-                                    </button>
+                                    )}
+                                    <div ref={messagesEndRef} />
                                 </div>
-                            )}
-                            <div className="relative flex items-center gap-2">
-                                <input
-                                    ref={inputRef}
-                                    type="text"
-                                    value={input}
-                                    onPaste={handlePaste}
-                                    onChange={(e) => setInput(e.target.value)}
-                                    placeholder={replyContext ? "Ask about this text..." : "Ask a question..."}
-                                    className="flex-1 pl-4 pr-24 py-3 bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white rounded-xl border-none focus:ring-2 focus:ring-purple-500/50 placeholder-gray-500 transition-all"
-                                />
 
-                                {/* Voice Input */}
-                                <button
-                                    type="button"
-                                    onClick={toggleListening}
-                                    className={`absolute right-12 p-2 rounded-lg transition-all duration-200 ${isListening
-                                        ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 bg-red-50 dark:bg-red-900/10 ring-1 ring-red-500/50'
-                                        : 'text-gray-400 hover:text-purple-600 hover:bg-gray-200 dark:hover:bg-slate-700'
-                                        }`}
-                                    title={isListening ? "Stop Listening" : "Voice Input"}
-                                >
-                                    {isListening ? <MicOff className="w-4 h-4 animate-pulse relative z-10" /> : <Mic className="w-4 h-4" />}
-                                    {isListening && <span className="absolute inset-0 rounded-lg bg-red-400/20 animate-ping"></span>}
-                                </button>
+                                {/* Input Area */}
+                                <form onSubmit={handleSubmit} className="p-4 bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-gray-800">
+                                    {replyContext && (
+                                        <div key={replyContext} className="mb-3 p-3 bg-gray-50 dark:bg-slate-800/80 rounded-lg border-l-4 border-purple-500 relative flex justify-between items-start group/reply animate-in slide-in-from-bottom-2 duration-200">
+                                            <div className="flex-1 pr-6">
+                                                <div className="flex items-center gap-1.5 mb-1 text-xs font-semibold text-purple-600 dark:text-purple-400">
+                                                    <Sparkles className="w-3 h-3" />
+                                                    <span>Context from clipboard</span>
+                                                </div>
+                                                <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2 italic">
+                                                    "{replyContext}"
+                                                </p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setReplyContext(null)}
+                                                className="absolute top-2 right-2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-700/50 rounded-full transition-colors"
+                                            >
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                    )}
+                                    <div className="relative flex items-center gap-2">
+                                        <input
+                                            ref={inputRef}
+                                            type="text"
+                                            value={input}
+                                            onPaste={handlePaste}
+                                            onChange={(e) => setInput(e.target.value)}
+                                            placeholder={replyContext ? "Ask about this text..." : "Ask a question..."}
+                                            className="flex-1 pl-4 pr-24 py-3 bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white rounded-xl border-none focus:ring-2 focus:ring-purple-500/50 placeholder-gray-500 transition-all"
+                                        />
 
-                                <button
-                                    type="submit"
-                                    disabled={(!input.trim() && !replyContext) || isLoading}
-                                    className="absolute right-2 p-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 disabled:shadow-none transition-all duration-200"
-                                >
-                                    <Send className="w-4 h-4" />
-                                </button>
+                                        {/* Voice Input */}
+                                        <button
+                                            type="button"
+                                            onClick={toggleListening}
+                                            className={`absolute right-12 p-2 rounded-lg transition-all duration-200 ${isListening
+                                                ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 bg-red-50 dark:bg-red-900/10 ring-1 ring-red-500/50'
+                                                : 'text-gray-400 hover:text-purple-600 hover:bg-gray-200 dark:hover:bg-slate-700'
+                                                }`}
+                                            title={isListening ? "Stop Listening" : "Voice Input"}
+                                        >
+                                            {isListening ? <MicOff className="w-4 h-4 animate-pulse relative z-10" /> : <Mic className="w-4 h-4" />}
+                                            {isListening && <span className="absolute inset-0 rounded-lg bg-red-400/20 animate-ping"></span>}
+                                        </button>
+
+                                        <button
+                                            type="submit"
+                                            disabled={(!input.trim() && !replyContext) || isLoading}
+                                            className="absolute right-2 p-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 disabled:shadow-none transition-all duration-200"
+                                        >
+                                            <Send className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                    <div className="text-center mt-2 flex items-center justify-center gap-1.5 opacity-60">
+                                        <Sparkles className="w-3 h-3 text-purple-500" />
+                                        <p className="text-[10px] text-gray-400">Powered by TakoVibe AI</p>
+                                    </div>
+                                </form>
                             </div>
-                            <div className="text-center mt-2 flex items-center justify-center gap-1.5 opacity-60">
-                                <Sparkles className="w-3 h-3 text-purple-500" />
-                                <p className="text-[10px] text-gray-400">Powered by TakoVibe AI</p>
-                            </div>
-                        </form>
-                    </div>
-                )
-            }
-        </div >
+                        )
+                    }
+                </div>
+            )}
+        </>
     );
 }

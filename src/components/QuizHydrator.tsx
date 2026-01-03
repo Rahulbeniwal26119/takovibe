@@ -33,6 +33,7 @@ export default function QuizHydrator() {
 
                 // Create a container for the React component
                 const container = document.createElement('div');
+                element.innerHTML = ''; // Clear placeholder
                 element.appendChild(container);
 
                 const root = createRoot(container);

@@ -28,7 +28,14 @@ interface DrawingData {
 type ViewMode = 'hidden' | 'minimized' | 'split' | 'maximize';
 
 const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
-    const [viewMode, setViewMode] = useState<ViewMode>('hidden');
+    const [viewMode, setViewMode] = useState<ViewMode>(() => {
+        // Default to open (split or maximize based on device) because this component
+        // is only lazily mounted when the user explicitly triggers it.
+        if (typeof window !== 'undefined') {
+            return window.innerWidth < 1024 ? 'maximize' : 'split';
+        }
+        return 'split';
+    });
     const [excalidrawAPI, setExcalidrawAPI] = useState<any>(null);
     const [drawingData, setDrawingData] = useState<DrawingData | null>(null);
     const [isSaving, setIsSaving] = useState(false);

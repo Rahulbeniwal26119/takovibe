@@ -11,20 +11,36 @@ export default function CodePlaygroundHydrator() {
 
             if (playgroundElements.length === 0) return;
 
-            // Dynamically import the component only if needed
-            const { CodePlayground } = await import('./editor/CodePlayground');
-
             playgroundElements.forEach((element) => {
                 // Check if already hydrated
                 if (element.hasAttribute('data-hydrated')) return;
+
+                // Mark as hydrated to avoid double-processing
+                // We'll handle the actual React mounting in the observer
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            hydrateElement(element);
+                            observer.unobserve(element);
+                        }
+                    });
+                }, { rootMargin: '200px' }); // Preload when close
+
+                observer.observe(element);
+            });
+
+            async function hydrateElement(element: Element) {
+                if (element.hasAttribute('data-hydrated')) return;
+                element.setAttribute('data-hydrated', 'true');
+
+                // Dynamically import the component only when needed
+                const { CodePlayground } = await import('./editor/CodePlayground');
 
                 // Get attributes from the DOM element
                 const html = element.getAttribute('data-html') || '';
                 const css = element.getAttribute('data-css') || '';
                 const js = element.getAttribute('data-js') || '';
-
-                // Mark as hydrated to avoid double-hydration
-                element.setAttribute('data-hydrated', 'true');
 
                 // Create a container for the React component
                 const container = document.createElement('div');
@@ -45,7 +61,7 @@ export default function CodePlaygroundHydrator() {
                     // We don't pass onSave because this is the read-only view
                     />
                 );
-            });
+            }
         };
 
         hydrate();
