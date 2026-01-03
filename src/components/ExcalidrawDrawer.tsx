@@ -440,10 +440,10 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
                                         collaborators: new Map(),
                                         viewBackgroundColor: "#ffffff"
                                     },
-                                    libraryItems: initialLibraryItems,
+                                    libraryItems: initialLibraryItems as any,
                                     scrollToContent: true
                                 } : {
-                                    libraryItems: initialLibraryItems
+                                    libraryItems: initialLibraryItems as any
                                 }
                             }
                             onChange={(elements, appState) => {
