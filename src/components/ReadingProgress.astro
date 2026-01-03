@@ -9,18 +9,37 @@
     background: linear-gradient(to right, #7e22ce, #db2777);
     width: 0%;
     z-index: 1000;
-    transition: width 0.1s ease;
+    transition: width 0.1s ease-out; /* optimized transition */
     transform: translateZ(0);
     backdrop-filter: blur(8px);
+    will-change: width; /* performance hint */
   }
 </style>
 
 <script>
-  const progressBar = document.getElementById('reading-progress');
-  window.addEventListener('scroll', () => {
+  const progressBar = document.getElementById("reading-progress");
+  let ticking = false;
+
+  function updateProgress() {
     const winScroll = document.documentElement.scrollTop;
     const height = document.documentElement.scrollHeight - window.innerHeight;
-    const scrolled = (winScroll / height) * 100;
-    if (progressBar) progressBar.style.width = `${scrolled}%`;
-  });
-</script> 
+    const scrolled = Math.min((winScroll / height) * 100, 100); // capped at 100
+
+    if (progressBar) {
+      progressBar.style.width = `${scrolled}%`;
+    }
+    ticking = false;
+  }
+
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (!ticking) {
+        window.requestAnimationFrame(updateProgress);
+        ticking = true;
+      }
+    },
+    { passive: true },
+  ); // passive listener for performance
+</script>
+

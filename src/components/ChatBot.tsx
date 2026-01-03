@@ -1,11 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { MessageCircle, X, Send, Sparkles, User, Minimize2, Maximize2, Minus, Volume2, VolumeX, Copy, Mic, MicOff, Trash2, Check } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/github-dark.css';
-import QuizCard from './QuizCard';
-import Mermaid from './Mermaid';
+
+// Lazy load heavy components
+const Mermaid = React.lazy(() => import('./Mermaid'));
+const QuizCard = React.lazy(() => import('./QuizCard'));
 
 interface ChatBotProps {
     articleContext?: string;
@@ -576,7 +578,11 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
                                                     try {
                                                         const quizData = JSON.parse(message.content);
                                                         if (quizData.questions && Array.isArray(quizData.questions)) {
-                                                            return <QuizCard data={quizData} />;
+                                                            return (
+                                                                <Suspense fallback={<div className="p-4 text-center text-gray-500">Loading Quiz...</div>}>
+                                                                    <QuizCard data={quizData} />
+                                                                </Suspense>
+                                                            );
                                                         }
                                                     } catch (e) {
                                                         // console.warn("Failed to parse JSON", e);
@@ -610,7 +616,11 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
                                                             code: ({ node, className, children, ...props }) => {
                                                                 const match = /language-(\w+)/.exec(className || '');
                                                                 if (match && match[1] === 'mermaid') {
-                                                                    return <Mermaid chart={String(children).replace(/\n$/, '')} />;
+                                                                    return (
+                                                                        <Suspense fallback={<div className="p-4 text-center text-gray-500">Loading Diagram...</div>}>
+                                                                            <Mermaid chart={String(children).replace(/\n$/, '')} />
+                                                                        </Suspense>
+                                                                    );
                                                                 }
                                                                 return (
                                                                     <code {...props} className={className + " bg-black/10 dark:bg-white/10 rounded px-1 py-0.5"}>

@@ -19,10 +19,11 @@ export async function getStaticPaths() {
     // Handle both direct array and results object formats
     const posts = Array.isArray(data) ? data : data.results || [];
 
-    return posts.map((post: any) => ({
+    const paths = posts.map((post: any) => ({
       params: { slug: post.slug },
       props: { initialPostData: post },
     }));
+    return paths;
   } catch (e) {
     console.error("Error fetching static paths:", e);
     return [];

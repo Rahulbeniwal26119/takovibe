@@ -120,7 +120,7 @@ export default ({ node, updateAttributes, editor }: any) => {
                         </button>
 
                         <div
-                            className={`grid transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${expandedIndex === index
+                            className={`grid transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] will-change-[grid-template-rows,opacity,padding] ${expandedIndex === index
                                 ? 'grid-rows-[1fr] opacity-100 pb-6'
                                 : 'grid-rows-[0fr] opacity-0 pb-0'
                                 }`}

@@ -176,7 +176,7 @@ export default defineConfig({
   },
   vite: {
     build: {
-      sourcemap: false, // Disable in production
+      sourcemap: true, // Enable for better debugging and Lighthouse scores
       cssCodeSplit: true,
       rollupOptions: {
         output: {

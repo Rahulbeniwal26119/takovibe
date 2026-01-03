@@ -29,7 +29,7 @@ async function getHighlighter() {
     if (!highlighterPromise) {
         highlighterPromise = createHighlighter({
             themes: ["github-dark", "github-light"],
-            langs: ["python", "javascript", "html", "css", "json", "bash", "go", "typescript", "tsx", "jsx", "shell", "yaml", "dockerfile", "sql", "rust"],
+            langs: ["python", "javascript", "html", "css", "json", "bash", "go", "typescript", "tsx", "jsx", "shell", "yaml", "dockerfile", "sql", "rust", "kotlin", "java", "c", "cpp", "csharp", "ruby", "php", "swift"],
         });
     }
     return highlighterPromise;

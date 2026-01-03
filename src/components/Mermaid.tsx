@@ -1,13 +1,6 @@
+// Removed static import of mermaid
 import React, { useEffect, useRef, useState } from 'react';
-import mermaid from 'mermaid';
 import { Maximize2, X, ExternalLink } from 'lucide-react';
-
-mermaid.initialize({
-    startOnLoad: false,
-    theme: 'dark',
-    securityLevel: 'loose',
-    fontFamily: 'arial, sans-serif' // Explicit font to fix text width calculation
-});
 
 interface MermaidProps {
     chart: string;
@@ -20,23 +13,40 @@ export default function Mermaid({ chart }: MermaidProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
-        const renderChart = async () => {
+        // Debounce rendering to avoid flashing/perf issues during streaming
+        const timeoutId = setTimeout(async () => {
             if (!ref.current) return;
             try {
+                // Dynamic import
+                const mermaidModule = await import('mermaid');
+                const mermaid = mermaidModule.default;
+
+                mermaid.initialize({
+                    startOnLoad: false,
+                    theme: 'dark',
+                    securityLevel: 'loose',
+                    fontFamily: 'arial, sans-serif',
+                    suppressErrorRendering: true // CRITICAL: Stop mermaid from replacing the div with an ugly error message
+                });
+
+                // Validate syntax BEFORE trying to render. 
+                // This prevents errors while the AI is still streaming the code headers/content.
+                try {
+                    await mermaid.parse(chart);
+                } catch (e) {
+                    // Code is incomplete or invalid. Log to console as requested, but do NOT update UI with error.
+                    console.debug('Mermaid parsing failed (stream likely incomplete):', e);
+                    return;
+                }
+
                 const id = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
                 const { svg } = await mermaid.render(id, chart);
 
-                // Force-fix SVG dimensions to prevent clipping and allow scrolling
-                // 1. Remove strict width/height limits
-                // 2. Force max-width to none so it expands
-                // Force-fix SVG dimensions to prevent clipping and allow scrolling
-                // 1. Remove strict width/height limits
-                // 2. Force max-width to none so it expands
+                // Force-fix SVG dimensions
                 let cleanSvg = svg
                     .replace(/max-width:\s*[\d\.]+%?;?/g, 'max-width: none !important;')
                     .replace(/style="([^"]*)"/g, (m, p1) => `style="${p1}; max-width: none !important; width: auto !important;"`);
 
-                // Expand ViewBox by 200px (Width) and 200px (Height) to avoid clipping on edges
                 cleanSvg = cleanSvg.replace(/viewBox=["']([\d\s\.-]+)["']/, (match, values) => {
                     const parts = values.split(/[\s,]+/).map(parseFloat);
                     if (parts.length === 4) {
@@ -51,11 +61,14 @@ export default function Mermaid({ chart }: MermaidProps) {
                 setError(null);
             } catch (e) {
                 console.error('Mermaid render error:', e);
-                setError('Failed to render diagram. Syntax might be incorrect.');
+                // Only set user-facing error if it's NOT a parsing error (which we handled above)
+                // or if we really want to show it. User asked to "show logs in console".
+                // So we assume persistent failure if it passes parse but fails render.
+                setError('Failed to render diagram.');
             }
-        };
+        }, 500); // 500ms debounce
 
-        renderChart();
+        return () => clearTimeout(timeoutId);
     }, [chart]);
 
     const openInNewTab = () => {

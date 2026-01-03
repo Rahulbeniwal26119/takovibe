@@ -380,9 +380,31 @@ const breadcrumbStructuredData = {
                                     <Content />
                                 ) : post.contentJson ? (
                                     <TiptapRenderer
-                                        client:load
+                                        client:only="react"
                                         content={post.contentJson}
-                                    />
+                                    >
+                                        <div
+                                            slot="fallback"
+                                            class="animate-pulse space-y-6 py-6 font-sans"
+                                        >
+                                            {/* Paragraph Skeleton */}
+                                            <div class="space-y-3">
+                                                <div class="h-4 bg-gray-200 dark:bg-gray-800 rounded w-full" />
+                                                <div class="h-4 bg-gray-200 dark:bg-gray-800 rounded w-5/6" />
+                                                <div class="h-4 bg-gray-200 dark:bg-gray-800 rounded w-4/6" />
+                                            </div>
+
+                                            {/* Block/Image Skeleton */}
+                                            <div class="h-48 sm:h-64 bg-gray-100 dark:bg-gray-900 rounded-xl w-full border border-gray-200 dark:border-gray-800" />
+
+                                            {/* Paragraph Skeleton */}
+                                            <div class="space-y-3">
+                                                <div class="h-4 bg-gray-200 dark:bg-gray-800 rounded w-11/12" />
+                                                <div class="h-4 bg-gray-200 dark:bg-gray-800 rounded w-full" />
+                                                <div class="h-4 bg-gray-200 dark:bg-gray-800 rounded w-3/4" />
+                                            </div>
+                                        </div>
+                                    </TiptapRenderer>
                                 ) : (
                                     <div set:html={htmlContent} />
                                 )
@@ -621,9 +643,16 @@ const breadcrumbStructuredData = {
 
     // Add interactive features to code blocks (Copy & Explain)
     function enhanceCodeBlocks() {
+        // 2. Handle Text/Raw Blocks (Legacy/Fallback)
+        // This handles any <pre> tags that were NOT rendered by the backend-renderer (e.g. from other markdown sources)
+        // It provides a basic wrapper + floating buttons, but DOES NOT interfere with the rich SSR blocks.
         const codeBlocks = document.querySelectorAll("pre");
 
         codeBlocks.forEach((pre) => {
+            // CRITICAL: Skip if this pre tag is already part of a rich Server-Rendered "Mac Window" block
+            // This prevents double buttons and double wrapping.
+            if (pre.closest(".code-block")) return;
+
             // Create wrapper if needed (Idempotent check)
             if (!pre.parentElement.classList.contains("code-block-wrapper")) {
                 const wrapper = document.createElement("div");
@@ -644,8 +673,10 @@ const breadcrumbStructuredData = {
             }
 
             // 1. Add "Deep Dive" Explain Button
-            if (!actionsContainer.querySelector(".explain-code-btn")) {
-                const explainBtn = document.createElement("button");
+            let explainBtn =
+                actionsContainer.querySelector(".explain-code-btn") as HTMLButtonElement;
+            if (!explainBtn) {
+                explainBtn = document.createElement("button");
                 explainBtn.className =
                     "explain-code-btn p-1.5 sm:p-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg transition-colors shadow-lg flex items-center gap-2 text-xs sm:text-sm font-medium";
                 explainBtn.innerHTML = `
@@ -655,27 +686,13 @@ const breadcrumbStructuredData = {
                     <span class="hidden sm:inline">Explain</span>
                 `;
                 explainBtn.title = "Explain with AI";
-
-                explainBtn.addEventListener("click", () => {
-                    const code = pre.querySelector("code");
-                    const text = code ? code.textContent : pre.textContent;
-
-                    // Trigger AI Chat with "Explain" mode
-                    const event = new CustomEvent("trigger-ai-chat", {
-                        detail: {
-                            text: text,
-                            mode: "explain",
-                        },
-                    });
-                    window.dispatchEvent(event);
-                });
-
                 actionsContainer.appendChild(explainBtn);
             }
 
             // 2. Add Copy Button
-            if (!actionsContainer.querySelector(".copy-code-btn")) {
-                const copyBtn = document.createElement("button");
+            let copyBtn = actionsContainer.querySelector(".copy-code-btn") as HTMLButtonElement;
+            if (!copyBtn) {
+                copyBtn = document.createElement("button");
                 copyBtn.className =
                     "copy-code-btn p-1.5 sm:p-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors shadow-lg flex items-center gap-2 text-xs sm:text-sm font-medium";
                 copyBtn.innerHTML = `
@@ -684,13 +701,39 @@ const breadcrumbStructuredData = {
                     </svg>
                     <span class="hidden sm:inline">Copy</span>
                 `;
+                actionsContainer.appendChild(copyBtn);
+            }
 
+            // Event listeners for Explain and Copy buttons
+            // These are attached to the buttons themselves, not the pre tag.
+            // The code to copy/explain is dynamically determined based on active tab.
+            if (!explainBtn.hasAttribute("data-bound-event")) {
+                explainBtn.setAttribute("data-bound-event", "true");
+                explainBtn.addEventListener("click", () => {
+                    const code =
+                        explainBtn.getAttribute("data-code") ||
+                        pre.querySelector("code")?.textContent ||
+                        pre.textContent;
+                    const event = new CustomEvent("trigger-ai-chat", {
+                        detail: {
+                            text: code,
+                            mode: "explain",
+                        },
+                    });
+                    window.dispatchEvent(event);
+                });
+            }
+
+            if (!copyBtn.hasAttribute("data-bound-event")) {
+                copyBtn.setAttribute("data-bound-event", "true");
                 copyBtn.addEventListener("click", async () => {
-                    const code = pre.querySelector("code");
-                    const text = code ? code.textContent : pre.textContent;
+                    const code =
+                        copyBtn.getAttribute("data-code") ||
+                        pre.querySelector("code")?.textContent ||
+                        pre.textContent;
 
                     try {
-                        await navigator.clipboard.writeText(text);
+                        await navigator.clipboard.writeText(code);
 
                         // Visual feedback
                         const originalHTML = copyBtn.innerHTML;
@@ -710,8 +753,64 @@ const breadcrumbStructuredData = {
                         console.error("Failed to copy:", err);
                     }
                 });
+            }
 
-                actionsContainer.appendChild(copyBtn);
+            // Tab Switching Logic (SSR)
+            // This logic applies to the parent wrapper, not directly to the 'pre' tag.
+            // We need to find the actual block that contains the tabs.
+            // The 'pre' tag is inside a 'code-content-tab' which is inside a 'code-block-wrapper'
+            // The 'code-block-wrapper' might also contain the tab buttons.
+            const block = pre.closest(".code-block-wrapper"); // Find the closest wrapper that might contain tabs
+            if (block && block.getAttribute("data-has-tabs") === "true") {
+                const tabs = block.querySelectorAll(".tab-btn");
+                const contents = block.querySelectorAll(".code-content-tab");
+
+                tabs.forEach((tab) => {
+                    if (tab.hasAttribute("data-bound-tab-event")) return; // Prevent re-binding
+                    tab.setAttribute("data-bound-tab-event", "true");
+
+                    tab.addEventListener("click", () => {
+                        const index = tab.getAttribute("data-index");
+
+                        // Update Tab Styles
+                        tabs.forEach((t) => {
+                            if (t.getAttribute("data-index") === index) {
+                                t.className =
+                                    "tab-btn flex items-center gap-1.5 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded-md text-xs font-medium transition-all whitespace-nowrap bg-purple-900/30 text-purple-400 border border-purple-700";
+                            } else {
+                                t.className =
+                                    "tab-btn flex items-center gap-1.5 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded-md text-xs font-medium transition-all whitespace-nowrap text-gray-400 bg-gray-800/50 border border-gray-700 hover:bg-gray-700";
+                            }
+                        });
+
+                        // Show/Hide Content
+                        contents.forEach((content) => {
+                            if (
+                                content.getAttribute("data-tab-index") === index
+                            ) {
+                                content.classList.remove("hidden");
+                                content.classList.add("block");
+
+                                // Update Copy/Explain buttons to use THIS tab's code
+                                const rawCode =
+                                    content.querySelector("code")
+                                        ?.textContent ||
+                                    content.textContent ||
+                                    "";
+                                if (copyBtn)
+                                    copyBtn.setAttribute("data-code", rawCode);
+                                if (explainBtn)
+                                    explainBtn.setAttribute(
+                                        "data-code",
+                                        rawCode,
+                                    );
+                            } else {
+                                content.classList.add("hidden");
+                                content.classList.remove("block");
+                            }
+                        });
+                    });
+                });
             }
         });
     }

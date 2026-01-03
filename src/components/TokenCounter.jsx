@@ -7,11 +7,16 @@ export default function TokenCounter() {
   const [isLoading, setIsLoading] = useState(true);
   const [encoder, setEncoder] = useState(null);
 
+  const [shouldLoad, setShouldLoad] = useState(false);
+
   useEffect(() => {
+    if (!shouldLoad) return;
+
     // Use gpt-tokenizer instead of tiktoken to avoid WASM issues
     const loadTokenizer = async () => {
       try {
         if (typeof window !== 'undefined') {
+          // Dynamic import that creates a separate chunk
           const { encode, decode } = await import('gpt-tokenizer');
           setEncoder({
             encode: (text) => encode(text),
@@ -44,7 +49,7 @@ export default function TokenCounter() {
     };
     
     loadTokenizer();
-  }, []);
+  }, [shouldLoad]);
 
   useEffect(() => {
     if (!encoder || isLoading) return;
@@ -56,11 +61,11 @@ export default function TokenCounter() {
       // Get individual token texts by decoding each token
       if (encoder.decode) {
         const texts = encoded.map(tokenId => {
-          try {
-            return encoder.decode([tokenId]);
-          } catch (error) {
-            return `[${tokenId}]`; // Fallback to showing token ID
-          }
+            try {
+                return encoder.decode([tokenId]);
+            } catch (error) {
+                return `[${tokenId}]`;
+            }
         });
         setTokenTexts(texts);
       } else {
@@ -92,9 +97,10 @@ export default function TokenCounter() {
         <input 
           type="text" 
           value={input}
+          onFocus={() => setShouldLoad(true)}
           onChange={e => setInput(e.target.value)}
-          placeholder="Type a sentence..."
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+          placeholder={shouldLoad ? "Type a sentence..." : "Click to activate token counter..."}
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-all"
         />
       </div>
 

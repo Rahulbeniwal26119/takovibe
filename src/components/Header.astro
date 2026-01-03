@@ -275,7 +275,20 @@ const navItems = [
           </div>
 
           <div class="auth-wrapper" onclick="event.stopPropagation();">
-            <UserAuth client:only="react" />
+            <UserAuth client:only="react">
+              <div
+                slot="fallback"
+                class="flex items-center gap-2 animate-pulse"
+              >
+                <div class="w-9 h-9 rounded-full bg-gray-200 dark:bg-gray-700">
+                </div>
+                <!-- Hide text placeholder on mobile to match UserAuth loading state logic if needed, or keep consistent -->
+                <div
+                  class="hidden md:block w-20 h-4 bg-gray-200 dark:bg-gray-700 rounded"
+                >
+                </div>
+              </div>
+            </UserAuth>
           </div>
         </div>
       </div>
@@ -298,6 +311,7 @@ const navItems = [
             <button
               id="closeFullSearchBtn"
               class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-colors"
+              aria-label="Close search"
             >
               <svg
                 class="w-5 h-5"
@@ -727,59 +741,74 @@ const navItems = [
       window.addEventListener("keydown", handleKeydown);
 
       // Scroll Behavior for Floating Header
+      let ticking = false;
       const onScroll = () => {
-        const header = document.getElementById("site-header");
-        const headerContent = header?.querySelector("div"); // The inner background div
-        if (!header || !headerContent) return;
+        if (!ticking) {
+          window.requestAnimationFrame(() => {
+            const header = document.getElementById("site-header");
+            const headerContent = header?.querySelector("div"); // The inner background div
+            if (!header || !headerContent) {
+              ticking = false;
+              return;
+            }
 
-        const currentScrollY = window.scrollY;
+            const currentScrollY = window.scrollY;
 
-        if (currentScrollY > 20) {
-          // Scrolled State: Floating Island
-          header.classList.add("py-2");
-          headerContent.classList.remove("w-full");
-          headerContent.classList.add(
-            "max-w-[1200px]",
-            "mx-auto",
-            "rounded-2xl",
-            "shadow-lg",
-            "border",
-            "border-white/20",
-            "dark:border-white/10",
-            "bg-white/90",
-            "dark:bg-slate-900/90",
-            "backdrop-blur-xl",
-          );
-          headerContent.classList.remove(
-            "bg-white/80",
-            "dark:bg-slate-900/80",
-            "border-b",
-            "border-gray-200/30",
-            "dark:border-gray-800/30",
-          );
-        } else {
-          // Top State: Full Width
-          header.classList.remove("py-2");
-          headerContent.classList.add("w-full");
-          headerContent.classList.remove(
-            "max-w-[1200px]",
-            "mx-auto",
-            "rounded-2xl",
-            "shadow-lg",
-            "border",
-            "border-white/20",
-            "dark:border-white/10",
-            "bg-white/90",
-            "dark:bg-slate-900/90",
-            "backdrop-blur-xl",
-          );
-          headerContent.classList.add(
-            "bg-white/80",
-            "dark:bg-slate-900/80",
-            "border-b",
-            "border-gray-200/30",
-            "dark:border-gray-800/30",
-          );
+            if (currentScrollY > 20) {
+              // Scrolled State: Floating Island
+              // Only add classes if not already present to minimize DOM touches
+              if (!header.classList.contains("py-2")) {
+                header.classList.add("py-2");
+                headerContent.classList.remove("w-full");
+                headerContent.classList.add(
+                  "max-w-[1200px]",
+                  "mx-auto",
+                  "rounded-2xl",
+                  "shadow-lg",
+                  "border",
+                  "border-white/20",
+                  "dark:border-white/10",
+                  "bg-white/90",
+                  "dark:bg-slate-900/90",
+                  "backdrop-blur-xl",
+                );
+                headerContent.classList.remove(
+                  "bg-white/80",
+                  "dark:bg-slate-900/80",
+                  "border-b",
+                  "border-gray-200/30",
+                  "dark:border-gray-800/30",
+                );
+              }
+            } else {
+              // Top State: Full Width
+              if (header.classList.contains("py-2")) {
+                header.classList.remove("py-2");
+                headerContent.classList.add("w-full");
+                headerContent.classList.remove(
+                  "max-w-[1200px]",
+                  "mx-auto",
+                  "rounded-2xl",
+                  "shadow-lg",
+                  "border",
+                  "border-white/20",
+                  "dark:border-white/10",
+                  "bg-white/90",
+                  "dark:bg-slate-900/90",
+                  "backdrop-blur-xl",
+                );
+                headerContent.classList.add(
+                  "bg-white/80",
+                  "dark:bg-slate-900/80",
+                  "border-b",
+                  "border-gray-200/30",
+                  "dark:border-gray-800/30",
+                );
+              }
+            }
+            ticking = false;
+          });
+          ticking = true;
         }
       };
 
