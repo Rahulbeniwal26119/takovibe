@@ -1,12 +1,17 @@
 export type ToastType = 'success' | 'error' | 'info';
 
-export function showToast(message: string, type: ToastType = 'info') {
+export function showToast(message: string, type: ToastType = 'info', position: 'top' | 'bottom' = 'top') {
     // Create container if it doesn't exist
-    let container = document.getElementById('toast-container');
+    const containerId = position === 'bottom' ? 'toast-container-bottom' : 'toast-container';
+    let container = document.getElementById(containerId);
     if (!container) {
         container = document.createElement('div');
-        container.id = 'toast-container';
-        container.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 z-50 flex flex-col gap-3 pointer-events-none';
+        container.id = containerId;
+        const positionClasses = position === 'bottom'
+            ? 'bottom-20 flex-col-reverse' // Bottom positioning
+            : 'top-20 flex-col';           // Top positioning
+
+        container.className = `fixed ${positionClasses} left-1/2 transform -translate-x-1/2 z-[100] flex gap-3 pointer-events-none`;
         document.body.appendChild(container);
     }
 
@@ -14,7 +19,8 @@ export function showToast(message: string, type: ToastType = 'info') {
     const toast = document.createElement('div');
 
     // Base styles
-    const baseClasses = 'pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg backdrop-blur-md border transition-all duration-300 transform translate-y-[-20px] opacity-0 min-w-[300px] max-w-md';
+    const translateYClass = position === 'bottom' ? 'translate-y-[20px]' : 'translate-y-[-20px]';
+    const baseClasses = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg backdrop-blur-md border transition-all duration-300 transform ${translateYClass} opacity-0 min-w-[300px] max-w-md`;
 
     // Type-specific styles
     const typeClasses = {
@@ -40,12 +46,12 @@ export function showToast(message: string, type: ToastType = 'info') {
 
     // Animate in
     requestAnimationFrame(() => {
-        toast.classList.remove('translate-y-[-20px]', 'opacity-0');
+        toast.classList.remove(translateYClass, 'opacity-0');
     });
 
     // Remove after delay
     setTimeout(() => {
-        toast.classList.add('opacity-0', 'translate-y-[-20px]');
+        toast.classList.add('opacity-0', translateYClass);
         setTimeout(() => {
             if (container && container.contains(toast)) {
                 container.removeChild(toast);

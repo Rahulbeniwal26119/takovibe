@@ -5,16 +5,25 @@ import { Loader2 } from 'lucide-react';
 // Facade for Excalidraw
 const ExcalidrawDrawer = React.lazy(() => import('./ExcalidrawDrawer'));
 
-export default function ExcalidrawHydrator({ articleSlug }: { articleSlug: string }) {
-    const [shouldLoad, setShouldLoad] = React.useState(false);
+export default function ExcalidrawHydrator({ articleSlug, initialOpen = false }: { articleSlug: string, initialOpen?: boolean }) {
+    const [shouldLoad, setShouldLoad] = React.useState(initialOpen);
 
     React.useEffect(() => {
+        // Check for global flag or event
+        if ((typeof window !== 'undefined' && (window as any).__OPEN_NOTES_REQUESTED)) {
+            setShouldLoad(true);
+        }
+
         const handleToggle = () => {
             setShouldLoad(true);
         };
 
         window.addEventListener('toggle-excalidraw', handleToggle);
-        return () => window.removeEventListener('toggle-excalidraw', handleToggle);
+        window.addEventListener('open-excalidraw', handleToggle);
+        return () => {
+            window.removeEventListener('toggle-excalidraw', handleToggle);
+            window.removeEventListener('open-excalidraw', handleToggle);
+        };
     }, []);
 
     if (!shouldLoad) return null;

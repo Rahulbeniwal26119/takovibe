@@ -38,11 +38,14 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
     });
     const [excalidrawAPI, setExcalidrawAPI] = useState<any>(null);
     const [drawingData, setDrawingData] = useState<DrawingData | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [isPublic, setIsPublic] = useState(false);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [showMobileWarning, setShowMobileWarning] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+    const [title, setTitle] = useState("Untitled");
+    const titleRef = useRef("Untitled");
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const lastSavedVersionRef = useRef(0);
 
@@ -58,62 +61,65 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
-    // Check for existing drawings on load (Local Storage + API)
+    // Check for existing drawings on load (API Only)
     useEffect(() => {
         const checkDrawing = async () => {
-            const localKey = `excalidraw_data_${articleSlug}`;
-            const localSaved = localStorage.getItem(localKey);
-            let loadedFromLocal = false;
-
-            if (localSaved) {
-                try {
-                    const parsed = JSON.parse(localSaved);
-                    if (parsed.elements && parsed.elements.length > 0) {
-                        setDrawingData({
-                            elements: parsed.elements,
-                            appState: parsed.appState || {},
-                            is_public: parsed.is_public || false,
-                            id: undefined // Will try to populate ID from API
-                        });
-                        setIsPublic(parsed.is_public || false);
-                        lastSavedVersionRef.current = getSceneVersion(parsed.elements);
-                        loadedFromLocal = true;
-                    }
-                } catch (e) {
-                    console.error("Error parsing local drawing:", e);
-                }
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = `/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+                return;
             }
 
-            const token = localStorage.getItem('access_token');
-            if (!token) return;
-
             try {
-                const response = await fetchWithAuth(`${import.meta.env.PUBLIC_API_URL || ''}/api/drawings/?article_slug=${articleSlug}`);
+                // Updated API Endpoint: Use my_drawings to get USER'S drawings
+                const response = await fetchWithAuth(`${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/chat/user-drawings/my_drawings/?blog_slug=${articleSlug}`);
 
                 if (response.ok) {
                     const data = await response.json();
-                    if (data && (Array.isArray(data) ? data.length > 0 : data.id)) {
-                        const drawing = Array.isArray(data) ? data[0] : data;
+                    // Handle paginated response or list
+                    const results = data.results || (Array.isArray(data) ? data : []);
 
-                        if (!loadedFromLocal) {
-                            const elements = drawing.elements ? JSON.parse(drawing.elements) : [];
-                            setDrawingData({
-                                elements: elements,
-                                appState: drawing.app_state ? JSON.parse(drawing.app_state) : {},
-                                is_public: drawing.is_public,
-                                id: drawing.id
-                            });
-                            setIsPublic(drawing.is_public);
-                            lastSavedVersionRef.current = getSceneVersion(elements);
-                            setHasUnsavedChanges(false);
-                        } else {
-                            // If local exists, just update ID to allow syncing
-                            setDrawingData(prev => prev ? ({ ...prev, id: drawing.id }) : null);
+                    if (Array.isArray(results)) {
+                        // Find drawing matching the current article (client-side filter ensures safety)
+                        const drawing = results.find((d: any) => d.blog_slug === articleSlug);
+
+                        if (drawing) {
+                            // Fetch full details using ID (List view excludes elements/app_state)
+                            const detailRes = await fetchWithAuth(`${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/chat/user-drawings/${drawing.id}/`);
+                            if (detailRes.ok) {
+                                const fullDrawing = await detailRes.json();
+
+                                // Backend sends JSON objects now, not strings
+                                const elements = typeof fullDrawing.elements === 'string'
+                                    ? JSON.parse(fullDrawing.elements)
+                                    : fullDrawing.elements || [];
+
+                                const appState = typeof fullDrawing.app_state === 'string'
+                                    ? JSON.parse(fullDrawing.app_state)
+                                    : fullDrawing.app_state || {};
+
+                                // Set Title from dedicated field, fallback to appState.name or Untitled
+                                const loadedTitle = fullDrawing.title || appState.name || "Untitled";
+                                setTitle(loadedTitle);
+                                titleRef.current = loadedTitle;
+
+                                setDrawingData({
+                                    elements: elements,
+                                    appState: appState,
+                                    is_public: fullDrawing.is_public,
+                                    id: fullDrawing.id
+                                });
+                                setIsPublic(fullDrawing.is_public);
+                                lastSavedVersionRef.current = getSceneVersion(elements || []);
+                                setHasUnsavedChanges(false);
+                            }
                         }
                     }
                 }
             } catch (error) {
                 console.error("Failed to fetch drawings:", error);
+            } finally {
+                setIsLoading(false);
             }
         };
 
@@ -153,35 +159,27 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
             return;
         }
 
-        // Save to Local Storage (Backup)
-        try {
-            const localKey = `excalidraw_data_${articleSlug}`;
-            localStorage.setItem(localKey, JSON.stringify({
-                elements,
-                appState,
-                is_public: isPublicState,
-                updatedAt: Date.now()
-            }));
-        } catch (e) {
-            console.error("Failed to save to local storage:", e);
-        }
+        // Update AppState with Title
+        const updatedAppState = { ...appState, name: title };
 
         const token = localStorage.getItem('access_token');
         if (!token) return;
 
         setIsSaving(true);
         try {
+            // Updated Payload structure
             const payload = {
-                article_slug: articleSlug,
-                elements: JSON.stringify(elements),
-                app_state: JSON.stringify(appState),
-                is_public: isPublicState
+                blog_slug: articleSlug,
+                elements: [...elements],
+                app_state: updatedAppState,
+                is_public: isPublicState,
+                title: titleRef.current
             };
 
             const method = drawingData?.id ? 'PUT' : 'POST';
             const url = drawingData?.id
-                ? `${import.meta.env.PUBLIC_API_URL || ''}/api/drawings/${drawingData.id}/`
-                : `${import.meta.env.PUBLIC_API_URL || ''}/api/drawings/`;
+                ? `${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/chat/user-drawings/${drawingData.id}/`
+                : `${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/chat/user-drawings/`;
 
             const response = await fetchWithAuth(url, {
                 method,
@@ -219,13 +217,30 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
         saveTimeoutRef.current = setTimeout(() => {
             saveData(elements, appState, isPublic);
         }, 2000);
-    }, [isPublic, saveData]);
+    }, [isPublic, saveData, title]);
 
-    const togglePublic = () => {
-        const newState = !isPublic;
-        setIsPublic(newState);
-        if (excalidrawAPI) {
-            saveData(excalidrawAPI.getSceneElements(), excalidrawAPI.getAppState(), newState);
+    const togglePublic = async () => {
+        if (!drawingData?.id) {
+            const newState = !isPublic;
+            setIsPublic(newState);
+            if (excalidrawAPI) {
+                saveData(excalidrawAPI.getSceneElements(), excalidrawAPI.getAppState(), newState);
+            }
+            return;
+        }
+
+        try {
+            const response = await fetchWithAuth(`${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/chat/user-drawings/${drawingData.id}/toggle_public/`, {
+                method: 'POST'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setIsPublic(data.is_public);
+                setDrawingData(prev => prev ? { ...prev, is_public: data.is_public } : null);
+            }
+        } catch (error) {
+            console.error("Failed to toggle public status:", error);
         }
     };
 
@@ -291,7 +306,8 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
 
     // View Styles
     const getContainerStyles = () => {
-        const baseStyles = "bg-white dark:bg-gray-900 transition-all duration-300 ease-in-out flex flex-col";
+        // Enforce overflow-visible to prevent clipping of popups/menus
+        const baseStyles = "bg-white dark:bg-gray-900 transition-all duration-300 ease-in-out flex flex-col overflow-visible";
 
         switch (viewMode) {
             case 'maximize':
@@ -341,10 +357,29 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
                                 {isSaving ? 'Saving...' : hasUnsavedChanges ? 'Unsaved' : 'Saved'}
                             </span>
                         </div>
-                        {/* Preview Badge */}
-                        <span className="px-1.5 py-0.5 bg-gradient-to-r from-purple-600 to-pink-600 text-[10px] font-bold text-white rounded-full shadow-lg border border-white/20 animate-pulse">
-                            Preview
-                        </span>
+                        {/* Title Input */}
+                        <div className="flex items-center">
+                            <input
+                                type="text"
+                                value={title}
+                                onChange={(e) => {
+                                    const v = e.target.value;
+                                    setTitle(v);
+                                    titleRef.current = v;
+                                    if (!hasUnsavedChanges) setHasUnsavedChanges(true); // Trigger save on title change eventually
+                                }}
+                                onBlur={() => {
+                                    // Trigger immediate save on blur if changed
+                                    if (excalidrawAPI) {
+                                        const els = excalidrawAPI.getSceneElements();
+                                        const st = excalidrawAPI.getAppState();
+                                        saveData(els, st, isPublic);
+                                    }
+                                }}
+                                className="text-sm font-semibold text-gray-700 dark:text-gray-200 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-purple-500 focus:outline-none w-32 sm:w-48 transition-colors truncate"
+                                placeholder="Untitled Note"
+                            />
+                        </div>
                     </div>
 
                     <div className="flex items-center gap-1.5">
@@ -414,7 +449,7 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
 
 
                 {/* Canvas Area */}
-                <div className="flex-1 relative w-full bg-white overflow-hidden">
+                <div className="flex-1 relative w-full bg-gray-50 dark:bg-gray-900 overflow-visible">
                     {/* Debug Info Overlay (Hidden) */}
                     {/* <div style={{ position: 'absolute', top: 0, left: 0, zIndex: 10, padding: 4, fontSize: 10, opacity: 0.5, pointerEvents: 'none' }}>
                    View: {viewMode} | API: {excalidrawAPI ? 'Yes' : 'No'} | Data: {drawingData ? 'Loaded' : 'None'}
@@ -422,59 +457,83 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
 
                     <div
                         style={{ width: "100%", height: "100%" }}
-                        ref={(el) => {
-                            if (el) console.log("Excalidraw container mounted", el.getBoundingClientRect());
-                        }}
                     >
-                        {/* Hide "Browse libraries" button and other clutter */}
+                        {/* Fix for Clipped UI/Library */}
                         <style>{`
-                        .excalidraw .library-menu-browse-button { display: none !important; }
+                        /* Base container overrides */
+                        .excalidraw, .excalidraw-container { overflow: visible !important; }
+
+                        /* Dropdowns and Popups */
+                        .excalidraw .dropdown-menu { z-index: 9999 !important; position: absolute !important; }
+                        .excalidraw .Island { z-index: 50 !important; overflow: visible !important; }
+                        
+                        /* Library Sidebar specific */
+                        .excalidraw .layer-ui__wrapper { overflow: visible !important; }
                         .excalidraw .layer-ui__library { border-radius: 0; }
+                        
+                        /* Hide browse button if needed, but ensure library itself is visible */
+                        .excalidraw .library-menu-browse-button { display: none !important; }
                     `}</style>
-                        <Excalidraw
-                            initialData={
-                                drawingData ? {
-                                    elements: drawingData.elements,
-                                    appState: {
-                                        ...drawingData.appState,
-                                        collaborators: new Map(),
-                                        viewBackgroundColor: "#ffffff"
-                                    },
-                                    libraryItems: initialLibraryItems as any,
-                                    scrollToContent: true
-                                } : {
-                                    libraryItems: initialLibraryItems as any
+                        {isLoading ? (
+                            <div className="flex items-center justify-center h-full">
+                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+                            </div>
+                        ) : (
+                            <Excalidraw
+                                initialData={
+                                    drawingData ? {
+                                        elements: drawingData.elements,
+                                        appState: {
+                                            ...drawingData.appState,
+                                            collaborators: new Map(),
+                                            viewBackgroundColor: "#ffffff"
+                                        },
+                                        libraryItems: initialLibraryItems as any,
+                                        scrollToContent: true
+                                    } : {
+                                        libraryItems: initialLibraryItems as any
+                                    }
                                 }
-                            }
-                            onChange={(elements, appState) => {
-                                // console.log("Excalidraw changed", elements.length);
-                                handleChange(elements, appState)
-                            }}
-                            excalidrawAPI={(api) => {
-                                console.log("Excalidraw API set", api);
-                                setExcalidrawAPI(api);
-                            }}
-                            theme={document.documentElement.classList.contains('dark') ? 'dark' : 'light'}
-                        >
-                            <WelcomeScreen>
-                                <WelcomeScreen.Hints.MenuHint />
-                                <WelcomeScreen.Hints.ToolbarHint />
-                                <WelcomeScreen.Center>
-                                    <WelcomeScreen.Center.Heading>
-                                        Sketch Your Ideas
-                                    </WelcomeScreen.Center.Heading>
-                                </WelcomeScreen.Center>
-                            </WelcomeScreen>
-                            <MainMenu>
-                                <MainMenu.DefaultItems.Export />
-                                <MainMenu.DefaultItems.SaveAsImage />
-                                <MainMenu.DefaultItems.ClearCanvas />
-                                <MainMenu.DefaultItems.ChangeCanvasBackground />
-                            </MainMenu>
-                        </Excalidraw>
+                                onChange={(elements, appState) => {
+                                    handleChange(elements, appState)
+                                }}
+                                excalidrawAPI={(api) => {
+                                    setExcalidrawAPI(api);
+                                }}
+                                theme={document.documentElement.classList.contains('dark') ? 'dark' : 'light'}
+                                UIOptions={{
+                                    tools: { image: false },
+                                    canvasActions: {
+                                        changeViewBackgroundColor: true,
+                                        clearCanvas: true,
+                                        export: { saveFileToDisk: true },
+                                        loadScene: false,
+                                        saveToActiveFile: false,
+                                        toggleTheme: true,
+                                        saveAsImage: true
+                                    }
+                                }}
+                            >
+                                <WelcomeScreen>
+                                    <WelcomeScreen.Hints.MenuHint />
+                                    <WelcomeScreen.Hints.ToolbarHint />
+                                    <WelcomeScreen.Center>
+                                        <WelcomeScreen.Center.Heading>
+                                            Sketch Your Ideas
+                                        </WelcomeScreen.Center.Heading>
+                                    </WelcomeScreen.Center>
+                                </WelcomeScreen>
+                                <MainMenu>
+                                    <MainMenu.DefaultItems.Export />
+                                    <MainMenu.DefaultItems.SaveAsImage />
+                                    <MainMenu.DefaultItems.ClearCanvas />
+                                    <MainMenu.DefaultItems.ChangeCanvasBackground />
+                                </MainMenu>
+                            </Excalidraw>
+                        )}
                     </div>
                 </div>
-            </div>
+            </div >
         </>
     );
 };

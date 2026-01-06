@@ -516,7 +516,11 @@ const breadcrumbStructuredData = {
         articleId={post.slug}
         articleContext={`Title: ${post.data.title}\n\nDescription: ${post.data.description}\n\nContent: ${post.contentJson ? JSON.stringify(post.contentJson) : htmlContent || ""}`}
     />
-    <ExcalidrawHydrator client:idle articleSlug={post.slug} />
+    <ExcalidrawHydrator
+        client:idle
+        articleSlug={post.slug}
+        initialOpen={Astro.url.searchParams.get("open_notes") === "true"}
+    />
 </Layout>
 
 <style>

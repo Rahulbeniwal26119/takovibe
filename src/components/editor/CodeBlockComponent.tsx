@@ -81,6 +81,18 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
     };
 
     const handleExplainCode = () => {
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+            const event = new CustomEvent('show-login-prompt', {
+                detail: {
+                    feature: 'AI Code Explanation',
+                    next: window.location.pathname + window.location.search
+                }
+            });
+            window.dispatchEvent(event);
+            return;
+        }
+
         const code = isTabbed ? codeTabs[activeTab]?.code : node.textContent;
         // Trigger AI Chat with "Explain" mode
         const event = new CustomEvent('trigger-ai-chat', {

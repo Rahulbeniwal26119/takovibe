@@ -4,6 +4,7 @@ import Header from "../components/Header.astro";
 import ReadingProgress from "../components/ReadingProgress.astro";
 import Footer from "../components/Footer.astro";
 import ContributorBanner from "../components/ContributorBanner.astro";
+import LoginPromptModal from "../components/LoginPromptModal";
 
 interface Props {
     title: string;
@@ -281,6 +282,7 @@ const structuredData = {
             </div>
         </main>
         {!no_footer && <Footer />}
+        <LoginPromptModal client:idle />
     </body>
 </html>
 

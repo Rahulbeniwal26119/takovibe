@@ -1,0 +1,14 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { NoteEditor } from "../../components/notes/NoteEditor";
+
+export const prerender = false;
+
+const { id } = Astro.params;
+---
+
+<Layout title="Edit Note | TakoVibe" no_header={true} no_footer={true}>
+    <div class="fixed inset-0 z-50 bg-white dark:bg-gray-900">
+        <NoteEditor client:only="react" noteId={id} />
+    </div>
+</Layout>

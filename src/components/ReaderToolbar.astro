@@ -124,11 +124,6 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
                 title="Sketch Notes"
             >
                 <div class="relative">
-                    <span
-                        class="absolute -top-2.5 -right-2.5 px-1 py-0.5 bg-gradient-to-r from-purple-600 to-pink-600 text-[9px] font-bold text-white rounded-full shadow-lg border border-white/20 animate-pulse leading-none"
-                    >
-                        Preview
-                    </span>
                     <svg
                         class="w-5 h-5"
                         fill="none"
@@ -600,6 +595,41 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
         });
     }
 
+    // Check for existing user drawings to show indicator
+    async function checkUserDrawing() {
+        const token = localStorage.getItem("access_token");
+        if (!token) return;
+
+        try {
+            const res = await fetch(
+                `${apiUrl}/api/blogs/chat/user-drawings/my_drawings/?blog_slug=${slug}`,
+                {
+                    headers: { Authorization: `Token ${token}` },
+                },
+            );
+            if (res.ok) {
+                const data = await res.json();
+                const results =
+                    data.results || (Array.isArray(data) ? data : []);
+                // Filter specifically for this slug if backend doesn't filter perfectly
+                const myDrawing = results.find((d) => d.blog_slug === slug);
+
+                if (myDrawing) {
+                    const indicator = document.getElementById("draw-indicator");
+                    if (indicator) {
+                        indicator.classList.remove("hidden");
+                        // Optional: Add tooltip or glow
+                        indicator.title = "You have a saved drawing";
+                    }
+                }
+            }
+        } catch (e) {
+            // silent fail
+        }
+    }
+
+    checkUserDrawing();
+
     fetchLikes();
 
     // Font Size Logic (Robust)
@@ -676,11 +706,23 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
     document.addEventListener("DOMContentLoaded", initFontSize);
     document.addEventListener("astro:after-swap", initFontSize);
 
-    // AI Chat Toggle Logic
+    // AI Chat Toggle Logic - Fixed Syntax
     const aiChatToggleBtn = document.getElementById("ai-chat-toggle");
     if (aiChatToggleBtn) {
         aiChatToggleBtn.addEventListener("click", () => {
-            const event = Preview CustomEvent("toggle-ai-chat");
+            const token = localStorage.getItem("access_token");
+            if (!token) {
+                const event = new CustomEvent("show-login-prompt", {
+                    detail: {
+                        feature: "Kumi AI",
+                        next: window.location.pathname + window.location.search,
+                    },
+                });
+                window.dispatchEvent(event);
+                return;
+            }
+            // Ensure 'new' keyword is used
+            const event = new CustomEvent("toggle-ai-chat");
             window.dispatchEvent(event);
         });
     }
@@ -692,12 +734,13 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
             // Check auth
             const token = localStorage.getItem("access_token");
             if (!token) {
-                // Basic alert or toast could be better, relying on checking token existence
-                // But for now, let's just open it, the drawer handles the "not logged in" state or we can prompt login
-                // Ideally show toast if available
-                if (window.showToast)
-                    window.showToast("Please login to create notes", "info");
-                else alert("Please login to create notes");
+                const event = new CustomEvent("show-login-prompt", {
+                    detail: {
+                        feature: "sketch notes",
+                        next: window.location.pathname + window.location.search,
+                    },
+                });
+                window.dispatchEvent(event);
                 return;
             }
             const event = new CustomEvent("toggle-excalidraw");
@@ -711,7 +754,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
 
             try {
                 const res = await fetch(
-                    `${apiUrl}/api/drawings/?article_slug=${slug}`,
+                    `${apiUrl}/api/blogs/chat/user-drawings/my_drawings?article_slug=${slug}`,
                     {
                         headers: { Authorization: `Token ${token}` },
                     },
@@ -766,6 +809,23 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
                 console.error("Failed to copy link:", err);
             }
         });
+    }
+
+    // Auto-open notes if requested in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("open_notes") === "true") {
+        // Set flag for late hydration
+        window.__OPEN_NOTES_REQUESTED = true;
+
+        // Try multiple times to catch hydration
+        setTimeout(
+            () => window.dispatchEvent(new CustomEvent("open-excalidraw")),
+            100,
+        );
+        setTimeout(
+            () => window.dispatchEvent(new CustomEvent("open-excalidraw")),
+            1000,
+        );
     }
 
     // Auto-Hide Toolbar when AI Chat is Open

@@ -8,6 +8,7 @@ const currentPath = Astro.url.pathname;
 const navItems = [
   { href: "/", label: "Home" },
   { href: "/blog", label: "Blog" },
+  { href: "/notes", label: "Notes" },
   { href: "/about", label: "About" },
   { href: "/series", label: "Series" },
   { href: "/changelog", label: "Changelog" },
@@ -97,6 +98,16 @@ const navItems = [
             }`}
           >
             Blog
+          </a>
+          <a
+            href="/notes"
+            class={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 whitespace-nowrap ${
+              currentPath.startsWith("/notes")
+                ? "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/10 shadow-sm shadow-purple-500/10"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/50"
+            }`}
+          >
+            Notes
           </a>
           <a
             href="/changelog"
