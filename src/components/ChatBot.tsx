@@ -107,6 +107,11 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
             setIsMinimized(false);
             shouldAutoScrollRef.current = true; // Force scroll on trigger
 
+            if (mode === 'visualize') {
+                sendMessage("Visualize this", { mode: 'visualize', context: selectedText });
+                return;
+            }
+
             if (mode === 'explain') {
                 setInput("Can you explain how this code works line-by-line?");
             }
@@ -284,27 +289,61 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
         };
     }, [isOpen, isMinimized]);
 
-    const sendMessage = async (text: string) => {
-        if ((!text.trim() && !replyContext) || isLoading) return;
+    // Track previous loading state to detect completion
+    const wasLoadingRef = useRef(false);
 
-        shouldAutoScrollRef.current = true; // Force scroll on user send
+    // Auto-Detect Excalidraw JSON and Dispatch
+    useEffect(() => {
+        // Only run if we just finished loading (prevents auto-run on history load)
+        if (wasLoadingRef.current && !isLoading && messages.length > 0) {
+            const lastMsg = messages[messages.length - 1];
+            if (lastMsg.role === 'assistant') {
+                try {
+                    const content = lastMsg.content.trim();
+                    // Detect JSON Object or Array
+                    if ((content.startsWith('{') || content.startsWith('[')) && (content.endsWith('}') || content.endsWith(']'))) {
+                        const json = JSON.parse(content);
 
-        let userMessage = text.trim();
+                        if (Array.isArray(json) && json.length > 0 && (json[0].type || json[0].id)) {
+                            const event = new CustomEvent('request-add-to-sketch', { detail: { elements: json } });
+                            window.dispatchEvent(event);
+                            setIsMinimized(true); // Auto-minimize when drawing starts
+                        }
 
-        // If there's context, format it as a quote
-        if (replyContext) {
-            userMessage = `> ${replyContext}\n\n${userMessage}`;
-            setReplyContext(null); // Clear context AFTER using it
+                        if (json.elements && Array.isArray(json.elements)) {
+                            const event = new CustomEvent('request-add-to-sketch', { detail: { elements: json.elements } });
+                            window.dispatchEvent(event);
+                            setIsMinimized(true); // Auto-minimize when drawing starts
+                        }
+                    }
+                } catch (e) {
+                    // Not valid JSON, ignore
+                }
+            }
         }
 
-        // Optimistically clear input if it matches the text being sent (for handleSubmit)
-        if (input.trim() === userMessage || (replyContext && input === '')) {
-            setInput('');
+        // Update ref for next render
+        wasLoadingRef.current = isLoading;
+    }, [messages, isLoading]);
+
+    const sendMessage = async (text: string, options?: { mode?: string, context?: string }) => {
+        // Allow empty text if we have context/mode (e.g. visualize)
+        if ((!text.trim() && !replyContext && !options?.context) || isLoading) return;
+
+        shouldAutoScrollRef.current = true;
+
+        let userMessage = text.trim();
+        let contextToSend = options?.context || replyContext;
+
+        // If there's context and it's NOT a hidden mode request, format it
+        if (contextToSend && !options?.mode) {
+            userMessage = `> ${contextToSend}\n\n${userMessage}`;
+            setReplyContext(null);
         }
 
         // Add User Message
         const newMessages = [...messages, { role: 'user', content: userMessage } as Message];
-        setMessages(newMessages); // Use temporary variable to avoid closure staleness issues if possible
+        setMessages(newMessages);
 
         setIsLoading(true);
 
@@ -316,7 +355,8 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
                     messages: newMessages
                         .filter(m => m.role !== 'assistant' || m.content !== `Hi! I'm your AI assistant. I can help you understand "${articleTitle || 'this article'}" better. Ask me anything!`)
                         .map(m => ({ role: m.role, content: m.content })),
-                    article_context: articleContext
+                    article_context: articleContext,
+                    mode: options?.mode // Pass mode to API
                 })
             });
 
@@ -326,7 +366,6 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
 
-            // Add placeholder message for streaming
             setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
 
             let aiResponse = '';
@@ -348,7 +387,6 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
                 });
             }
 
-            // Speak response if enabled
             if (isSpeechEnabled && aiResponse) {
                 speak(aiResponse);
             }
@@ -356,8 +394,6 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
         } catch (error) {
             console.error('Chat error:', error);
             setMessages(prev => {
-                // If we started streaming, remove the empty message or append error?
-                // Better to just append a new error message or update the last one.
                 const newMessages = [...prev];
                 const lastMessage = newMessages[newMessages.length - 1];
                 if (lastMessage.role === 'assistant' && lastMessage.content === '') {
@@ -368,7 +404,8 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
             });
         } finally {
             setIsLoading(false);
-            shouldAutoScrollRef.current = true; // Force scroll on receive
+            shouldAutoScrollRef.current = true;
+            if (options?.context) setReplyContext(null); // Ensure cleaned up
         }
     };
 
@@ -561,14 +598,14 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
                                                     }`}>
                                                     {(() => {
                                                         const isAssistant = message.role === 'assistant';
-                                                        const isJson = isAssistant && message.content.trim().startsWith('{');
+                                                        const isJson = isAssistant && (message.content.trim().startsWith('{') || message.content.trim().startsWith('['));
 
                                                         // 1. Loading State for Quiz
                                                         if (isLoading && isJson) {
                                                             return (
                                                                 <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 py-2">
                                                                     <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-                                                                    <span className="text-sm font-medium">Generating Quiz...</span>
+                                                                    <span className="text-sm font-medium">Generating...</span>
                                                                 </div>
                                                             );
                                                         }
@@ -658,7 +695,13 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
                                             {[
                                                 { icon: "📝", text: "Summarize this article" },
                                                 { icon: "💡", text: "What are the key takeaways?" },
-                                                { icon: "📊", text: "Visualize this concept", prompt: "Create a Mermaid.js diagram (sequence or flowchart) to explain the main concept of this article visually. IMPORTANT: Enclose ALL node labels in double quotes. Do NOT use parentheses inside labels, even if quoted, to be safe. Keep labels short." },
+                                                {
+                                                    icon: "🎨",
+                                                    text: "Ghost Artist (Experimental)",
+                                                    mode: "visualize",
+                                                    prompt: "Visualize this", // Fallback text if needed, but mode takes precedence
+                                                    warning: "⚠️ Use on a new/empty note to stay safe"
+                                                },
                                                 { divider: true },
                                                 {
                                                     icon: "🧠",
@@ -685,13 +728,19 @@ Format:
                                                     <button
                                                         key={i}
                                                         // @ts-ignore
-                                                        onClick={() => sendMessage(starter.prompt || starter.text)}
-                                                        className="text-left p-3 rounded-xl bg-gray-50 dark:bg-slate-800 hover:bg-purple-50 dark:hover:bg-slate-700 hover:border-purple-200 dark:hover:border-purple-700/50 border border-gray-200 dark:border-gray-700 transition-all group flex items-center gap-3 shadow-sm hover:shadow-md"
+                                                        onClick={() => sendMessage(starter.prompt || starter.text, starter.mode ? { mode: starter.mode } : undefined)}
+                                                        className="text-left p-3 rounded-xl bg-gray-50 dark:bg-slate-800 hover:bg-purple-50 dark:hover:bg-slate-700 hover:border-purple-200 dark:hover:border-purple-700/50 border border-gray-200 dark:border-gray-700 transition-all group flex items-start gap-3 shadow-sm hover:shadow-md"
                                                     >
                                                         {/* @ts-ignore */}
-                                                        <span className="text-xl bg-white dark:bg-slate-900 w-8 h-8 flex items-center justify-center rounded-lg shadow-sm group-hover:scale-110 transition-transform">{starter.icon}</span>
-                                                        {/* @ts-ignore */}
-                                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-purple-700 dark:group-hover:text-purple-300">{starter.text}</span>
+                                                        <span className="text-xl bg-white dark:bg-slate-900 w-8 h-8 flex items-center justify-center rounded-lg shadow-sm group-hover:scale-110 transition-transform shrink-0">{starter.icon}</span>
+                                                        <div className="flex flex-col">
+                                                            {/* @ts-ignore */}
+                                                            <span className="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-purple-700 dark:group-hover:text-purple-300">{starter.text}</span>
+                                                            {/* @ts-ignore */}
+                                                            {starter.warning && (
+                                                                <span className="text-[10px] text-orange-600 dark:text-orange-400 font-medium mt-0.5">{starter.warning}</span>
+                                                            )}
+                                                        </div>
                                                     </button>
                                             ))}
                                         </div>

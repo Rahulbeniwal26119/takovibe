@@ -108,9 +108,10 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
             });
         }
 
-        const { messages, article_context } = body;
+        const { messages, article_context, mode } = body;
 
-        // Validate messages
+        // Validate messages (though for visualize mode, messages might just be the one request?)
+        // Assuming the frontend sends the "selection" as the last user message or part of context.
         if (!Array.isArray(messages) || messages.length === 0) {
             return new Response(JSON.stringify({ error: 'Invalid messages format' }), {
                 status: 400,
@@ -123,7 +124,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 
         const optimizedContext = sanitizeContext(article_context, 5000);
 
-        const systemPrompt = `You are a helpful AI assistant for the TakoVibe blog.
+        let systemPrompt = `You are a helpful AI assistant for the TakoVibe blog.
 You are currently helping a user read an article.
 
 Article Context (Truncated):
@@ -133,6 +134,38 @@ Answer questions based on the article content provided above.
 If the answer is not in the article, use your general knowledge but mention that it's not in the article.
 Be concise, friendly, and helpful. Use markdown for formatting if needed.`;
 
+        if (mode === 'visualize') {
+            systemPrompt = `You are an expert software architect and visual thinker.
+Your task is to visualize the provided text context using Excalidraw elements.
+Output ONLY a JSON Object with a key "elements" containing the array of visual elements.
+Example: { "elements": [ ... ] }
+
+The elements should form a clear, logical diagram (Flowchart or Architecture).
+
+Supported structure for each element in the array:
+- { type: "rectangle" | "ellipse" | "diamond", x: number, y: number, width: number, height: number, label?: string }
+- { type: "arrow", start: {x, y}, end: {x, y}, label?: string }
+- { type: "text", x: number, y: number, text: string, fontSize?: number }
+
+LAYOUT RULES (CRITICAL):
+1.  **NO OVERLAP**: Ensure strict separation between elements.
+2.  **SPACING**: Use increments of roughly 300px for X and 200px for Y.
+3.  **FLOW**: Top-Down is preferred.
+4.  **SIZES**: Rectangles should be at least width: 250, height: 100 to fit text.
+5.  **TEXT**: Do NOT set width/height for text elements.
+
+Example Coordinates:
+Node A: x:0, y:0
+Node B: x:0, y:200 (Below A)
+Node C: x:300, y:0 (Right of A)
+
+Ensure the diagram layout is spaced out. Start coordinates around 0,0.
+Use purely abstract coordinates, the frontend will center it.
+
+Context to Visualize:
+${optimizedContext}`;
+        }
+
         const stream = await openai.chat.completions.create({
             model: 'gpt-4o-mini',
             messages: [
@@ -140,8 +173,9 @@ Be concise, friendly, and helpful. Use markdown for formatting if needed.`;
                 ...recentMessages
             ],
             stream: true,
-            max_tokens: 500, // Limit response length to control costs
-            temperature: 0.7,
+            max_tokens: mode === 'visualize' ? 2000 : 500, // Increase token limit for complex diagrams
+            temperature: mode === 'visualize' ? 0.2 : 0.7,
+            response_format: mode === 'visualize' ? { type: "json_object" } : undefined
         });
 
         const readable = new ReadableStream({

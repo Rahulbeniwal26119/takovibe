@@ -7,6 +7,7 @@ const ExcalidrawDrawer = React.lazy(() => import('./ExcalidrawDrawer'));
 
 export default function ExcalidrawHydrator({ articleSlug, initialOpen = false }: { articleSlug: string, initialOpen?: boolean }) {
     const [shouldLoad, setShouldLoad] = React.useState(initialOpen);
+    const [pendingRequest, setPendingRequest] = React.useState<any>(null);
 
     React.useEffect(() => {
         // Check for global flag or event
@@ -18,11 +19,25 @@ export default function ExcalidrawHydrator({ articleSlug, initialOpen = false }:
             setShouldLoad(true);
         };
 
+        const handleSketchRequest = (e: any) => {
+            setShouldLoad((prev) => {
+                if (!prev) {
+                    setPendingRequest(e.detail);
+                    return true;
+                }
+                // If already loaded, the Drawer's own listener will catch it.
+                return prev;
+            });
+        };
+
         window.addEventListener('toggle-excalidraw', handleToggle);
         window.addEventListener('open-excalidraw', handleToggle);
+        window.addEventListener('request-add-to-sketch', handleSketchRequest);
+
         return () => {
             window.removeEventListener('toggle-excalidraw', handleToggle);
             window.removeEventListener('open-excalidraw', handleToggle);
+            window.removeEventListener('request-add-to-sketch', handleSketchRequest);
         };
     }, []);
 
@@ -35,7 +50,7 @@ export default function ExcalidrawHydrator({ articleSlug, initialOpen = false }:
                 <span className="text-sm font-medium">Loading Sketch...</span>
             </div>
         }>
-            <ExcalidrawDrawer articleSlug={articleSlug} />
+            <ExcalidrawDrawer articleSlug={articleSlug} initialRequest={pendingRequest} />
         </Suspense>
     );
 }

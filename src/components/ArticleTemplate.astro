@@ -6,6 +6,8 @@ import ReaderToolbar from "./ReaderToolbar.astro";
 import ReadingProgress from "./ReadingProgress.astro";
 import TableOfContents from "./TableOfContents.astro";
 import SelectionPopover from "./SelectionPopover.astro";
+import LoginPromptModal from "./LoginPromptModal";
+import DangerConfirmationModal from "./DangerConfirmationModal";
 import QuizHydrator from "./QuizHydrator";
 import CodePlaygroundHydrator from "./CodePlaygroundHydrator";
 import ExcalidrawHydrator from "./ExcalidrawHydrator";
@@ -521,6 +523,8 @@ const breadcrumbStructuredData = {
         articleSlug={post.slug}
         initialOpen={Astro.url.searchParams.get("open_notes") === "true"}
     />
+    <LoginPromptModal client:idle />
+    <DangerConfirmationModal client:idle />
 </Layout>
 
 <style>

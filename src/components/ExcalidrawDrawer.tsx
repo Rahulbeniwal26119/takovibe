@@ -1,7 +1,5 @@
-
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Excalidraw, MainMenu, WelcomeScreen, getSceneVersion } from "@excalidraw/excalidraw";
+import { Excalidraw, MainMenu, WelcomeScreen, getSceneVersion, convertToExcalidrawElements } from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css";
 import { X, PenTool, Lock, Unlock, Minimize2, Maximize2, LayoutTemplate, Monitor } from 'lucide-react';
 import { fetchWithAuth } from '../utils/api';
@@ -16,6 +14,7 @@ const initialLibraryItems = [
 
 interface ExcalidrawDrawerProps {
     articleSlug: string;
+    initialRequest?: any;
 }
 
 interface DrawingData {
@@ -27,10 +26,8 @@ interface DrawingData {
 
 type ViewMode = 'hidden' | 'minimized' | 'split' | 'maximize';
 
-const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
+const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initialRequest }) => {
     const [viewMode, setViewMode] = useState<ViewMode>(() => {
-        // Default to open (split or maximize based on device) because this component
-        // is only lazily mounted when the user explicitly triggers it.
         if (typeof window !== 'undefined') {
             return window.innerWidth < 1024 ? 'maximize' : 'split';
         }
@@ -49,6 +46,24 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const lastSavedVersionRef = useRef(0);
 
+    // Helper for wrapping text
+    const wrapperText = (text: string, maxChars: number) => {
+        const words = text.split(' ');
+        let lines = [];
+        let currentLine = words[0];
+
+        for (let i = 1; i < words.length; i++) {
+            if (currentLine.length + 1 + words[i].length <= maxChars) {
+                currentLine += ' ' + words[i];
+            } else {
+                lines.push(currentLine);
+                currentLine = words[i];
+            }
+        }
+        lines.push(currentLine);
+        return lines.join('\n');
+    };
+
     // Detect Mobile
     useEffect(() => {
         const checkMobile = () => {
@@ -61,44 +76,32 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
-    // Check for existing drawings on load (API Only)
+    // Check for existing drawings on load
     useEffect(() => {
         const checkDrawing = async () => {
             const token = localStorage.getItem('access_token');
             if (!token) {
-                window.location.href = `/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+                // Component might be rendered but hidden, so we won't force redirect immediately unless it's open?
+                // But original logic forced redirect. We'll keep it safe.
+                // Ideally authentication is handled upstream or by the Modal now. 
+                // But let's keep this check for data fetching.
                 return;
             }
 
             try {
-                // Updated API Endpoint: Use my_drawings to get USER'S drawings
                 const response = await fetchWithAuth(`${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/chat/user-drawings/my_drawings/?blog_slug=${articleSlug}`);
-
                 if (response.ok) {
                     const data = await response.json();
-                    // Handle paginated response or list
                     const results = data.results || (Array.isArray(data) ? data : []);
-
                     if (Array.isArray(results)) {
-                        // Find drawing matching the current article (client-side filter ensures safety)
                         const drawing = results.find((d: any) => d.blog_slug === articleSlug);
-
                         if (drawing) {
-                            // Fetch full details using ID (List view excludes elements/app_state)
                             const detailRes = await fetchWithAuth(`${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/chat/user-drawings/${drawing.id}/`);
                             if (detailRes.ok) {
                                 const fullDrawing = await detailRes.json();
+                                const elements = typeof fullDrawing.elements === 'string' ? JSON.parse(fullDrawing.elements) : fullDrawing.elements || [];
+                                const appState = typeof fullDrawing.app_state === 'string' ? JSON.parse(fullDrawing.app_state) : fullDrawing.app_state || {};
 
-                                // Backend sends JSON objects now, not strings
-                                const elements = typeof fullDrawing.elements === 'string'
-                                    ? JSON.parse(fullDrawing.elements)
-                                    : fullDrawing.elements || [];
-
-                                const appState = typeof fullDrawing.app_state === 'string'
-                                    ? JSON.parse(fullDrawing.app_state)
-                                    : fullDrawing.app_state || {};
-
-                                // Set Title from dedicated field, fallback to appState.name or Untitled
                                 const loadedTitle = fullDrawing.title || appState.name || "Untitled";
                                 setTitle(loadedTitle);
                                 titleRef.current = loadedTitle;
@@ -122,11 +125,10 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
                 setIsLoading(false);
             }
         };
-
         checkDrawing();
     }, [articleSlug]);
 
-    // Handle Open/Close Events
+    // Handle Events (Open, Close, Add to Sketch)
     useEffect(() => {
         const handleToggle = () => {
             setViewMode(prev => {
@@ -142,32 +144,220 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
             setViewMode(mobile ? 'maximize' : 'split');
         };
 
+        const handleAddToSketch = (e: CustomEvent | { detail: any }) => {
+            const { text, elements: importedElements } = e.detail;
+
+            // Check if closed/minimized BEFORE changing state
+            const isClosed = viewMode === 'hidden' || viewMode === 'minimized';
+
+            // 1. Open Drawer if closed
+            const mobile = window.innerWidth < 1024;
+            if (mobile) setShowMobileWarning(true);
+
+            setViewMode(prev => {
+                if (prev === 'hidden' || prev === 'minimized') {
+                    return mobile ? 'maximize' : 'split';
+                }
+                return prev;
+            });
+
+            // 2. Define Add Logic
+            const addNote = async () => {
+                if (!excalidrawAPI) return;
+
+                const st = excalidrawAPI.getAppState();
+                const zoom = st.zoom.value;
+                const cx = -st.scrollX + (st.width / 2) / zoom;
+                const cy = -st.scrollY + (st.height / 2) / zoom;
+
+                let newElements = [];
+
+                if (importedElements && Array.isArray(importedElements) && importedElements.length > 0) {
+                    // Normalize AI elements
+                    const normalized = importedElements.flatMap((el: any) => {
+                        // Ensure ID exists
+                        if (!el.id) el.id = Math.random().toString(36).substr(2, 9);
+
+                        // 1. Handle Arrays
+                        if (el.type === "arrow" && el.start && el.end) {
+                            return [{
+                                ...el,
+                                x: el.start.x,
+                                y: el.start.y,
+                                points: [[0, 0], [el.end.x - el.start.x, el.end.y - el.start.y]]
+                            }];
+                        }
+
+                        // 2. Handle Shapes with Labels (Rectangle, Ellipse, Diamond)
+                        if ((el.type === "rectangle" || el.type === "ellipse" || el.type === "diamond") && el.label) {
+                            const textId = Math.random().toString(36).substr(2, 9);
+
+                            // Create Text Element
+                            // Note: We don't need exact centering here because Excalidraw's container logic handles layout
+                            // BUT for raw elements, explicit positioning helps.
+                            const fontSize = 20;
+                            const textY = el.y + (el.height / 2) - 10; // Approximate center
+
+                            const textEl = {
+                                type: "text",
+                                id: textId,
+                                x: el.x, // Container x
+                                y: textY,
+                                width: el.width,
+                                height: el.height, // Bound to container
+                                text: wrapperText(el.label, 30), // Wrap text
+                                fontSize: fontSize,
+                                fontFamily: 1,
+                                textAlign: "center",
+                                verticalAlign: "middle",
+                                containerId: el.id
+                            };
+
+                            // Update Shape to bind text
+                            const shapeEl = {
+                                ...el,
+                                boundElements: [{ id: textId, type: "text" }],
+                                label: undefined // Remove non-standard prop
+                            };
+
+                            return [shapeEl, textEl];
+                        }
+
+                        return [el];
+                    });
+
+                    // AI Diagram Logic
+                    // Calculate center offset safely
+                    const xs = normalized.map(el => el.x || 0);
+                    const ys = normalized.map(el => el.y || 0);
+                    const rights = normalized.map(el => (el.x || 0) + (el.width || 0));
+                    const bottoms = normalized.map(el => (el.y || 0) + (el.height || 0));
+
+                    const minX = Math.min(...xs);
+                    const minY = Math.min(...ys);
+                    const maxX = Math.max(...rights);
+                    const maxY = Math.max(...bottoms);
+
+                    const width = maxX - minX;
+                    const height = maxY - minY;
+
+                    // Fallback if width/height is 0 (single point)
+                    const safeWidth = width || 100;
+                    const safeHeight = height || 100;
+
+                    const offsetX = (cx - safeWidth / 2) - minX;
+                    const offsetY = (cy - safeHeight / 2) - minY;
+
+                    newElements = convertToExcalidrawElements(normalized.map((el: any) => ({
+                        ...el,
+                        x: (el.x || 0) + offsetX,
+                        y: (el.y || 0) + offsetY,
+                    })));
+
+                    // ANIMATED DRAWING LOOP
+                    let currentElements = excalidrawAPI.getSceneElements();
+                    let accumElements = [...currentElements];
+
+                    for (const el of newElements) {
+                        accumElements.push(el);
+                        // Update scene with current batch
+                        excalidrawAPI.updateScene({ elements: accumElements });
+
+                        // Pan to show the new element (animated)
+                        if (newElements.length > 1) { // Only animate diagrams
+                            try {
+                                excalidrawAPI.scrollToContent([el], { fitToContent: false, animate: true });
+                            } catch (e) { console.warn("Scroll error:", e); }
+                            // Wait for user to see it (500ms)
+                            await new Promise(r => setTimeout(r, 500));
+                        }
+                    }
+
+                    // Final Commit
+                    excalidrawAPI.updateScene({
+                        elements: accumElements,
+                        commitToHistory: true,
+                        appState: {
+                            selectedElementIds: newElements.reduce((acc: any, el: any) => ({ ...acc, [el.id]: true }), {})
+                        }
+                    });
+
+                    return; // Done
+
+                } else if (text) {
+                    // Text Note Logic
+                    newElements = convertToExcalidrawElements([{
+                        type: "text",
+                        text: wrapperText(text, 40),
+                        x: cx - 100,
+                        y: cy,
+                        fontSize: 20,
+                        fontFamily: 1,
+                        strokeColor: "#9333ea",
+                        link: window.location.href,
+                    }]);
+                }
+
+                if (newElements.length > 0) {
+                    const currentElements = excalidrawAPI.getSceneElements();
+                    excalidrawAPI.updateScene({
+                        elements: [...currentElements, ...newElements],
+                        commitToHistory: true,
+                        appState: {
+                            selectedElementIds: newElements.reduce((acc: any, el: any) => ({ ...acc, [el.id]: true }), {})
+                        }
+                    });
+                }
+            };
+
+            // 3. Execute with delay if opening
+            if (isClosed) {
+                setTimeout(addNote, 400);
+            } else {
+                addNote();
+            }
+        };
+
         window.addEventListener('toggle-excalidraw', handleToggle);
         window.addEventListener('open-excalidraw', handleOpen);
+        window.addEventListener('request-add-to-sketch', handleAddToSketch as EventListener);
+
+        // Handle Initial Request (if provided and API is ready)
+        // @ts-ignore
+        if (typeof initialRequest !== 'undefined' && initialRequest && excalidrawAPI) {
+            // We use a small timeout to let the editor fully init if it just mounted
+            // Use a flagging mechanism to avoid double draw if the parent passes it down again?
+            // Since this component is lazy loaded, it likely mounts fresh.
+            // We can check if we already have elements? No.
+            // We rely on the parent logic to only pass it once.
+            // Better: check if we have done it.
+            if (!(window as any).__INITIAL_REQUEST_PROCESSED) {
+                (window as any).__INITIAL_REQUEST_PROCESSED = true;
+                handleAddToSketch({ detail: initialRequest });
+            }
+        }
 
         return () => {
             window.removeEventListener('toggle-excalidraw', handleToggle);
             window.removeEventListener('open-excalidraw', handleOpen);
+            window.removeEventListener('request-add-to-sketch', handleAddToSketch as EventListener);
         };
-    }, []);
+    }, [excalidrawAPI, initialRequest]);
 
+    // Save Data Logic
     const saveData = useCallback(async (elements: any, appState: any, isPublicState: boolean) => {
-        // Version check to prevent loops
         const currentVersion = getSceneVersion(elements);
         if (currentVersion === lastSavedVersionRef.current) {
             setHasUnsavedChanges(false);
             return;
         }
 
-        // Update AppState with Title
         const updatedAppState = { ...appState, name: title };
-
         const token = localStorage.getItem('access_token');
         if (!token) return;
 
         setIsSaving(true);
         try {
-            // Updated Payload structure
             const payload = {
                 blog_slug: articleSlug,
                 elements: [...elements],
@@ -198,26 +388,18 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
         } finally {
             setIsSaving(false);
         }
-    }, [articleSlug, drawingData?.id]);
+    }, [articleSlug, drawingData?.id, title]);
 
     const handleChange = useCallback((elements: any, appState: any) => {
-        // Prevent updates if nothing really changed (Excalidraw fires frequently)
         const currentVersion = getSceneVersion(elements);
-        if (currentVersion === lastSavedVersionRef.current) {
-            return;
-        }
+        if (currentVersion === lastSavedVersionRef.current) return;
 
-        setHasUnsavedChanges(prev => {
-            if (prev) return prev;
-            return true;
-        });
-
+        setHasUnsavedChanges(true);
         if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-
         saveTimeoutRef.current = setTimeout(() => {
             saveData(elements, appState, isPublic);
         }, 2000);
-    }, [isPublic, saveData, title]);
+    }, [isPublic, saveData]);
 
     const togglePublic = async () => {
         if (!drawingData?.id) {
@@ -244,10 +426,9 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
         }
     };
 
+    // Width & Layout Effects
     const [drawerWidth, setDrawerWidth] = useState(0);
-    const isResizing = useRef(false);
 
-    // Initialize width on mount
     useEffect(() => {
         const updateWidth = () => {
             setDrawerWidth(Math.max(400, window.innerWidth * 0.45));
@@ -257,33 +438,35 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
         return () => window.removeEventListener('resize', updateWidth);
     }, []);
 
-    // Effect to push content when in split mode and hide header in maximize mode
     useEffect(() => {
         const mainElement = document.querySelector('main');
         const header = document.getElementById('site-header');
 
-        if (viewMode === 'split') {
-            if (mainElement) {
-                mainElement.style.transition = 'padding-right 0.3s ease-out';
-                mainElement.style.paddingRight = `${drawerWidth}px`;
+        const updateLayout = () => {
+            if (viewMode === 'split') {
+                if (mainElement) {
+                    mainElement.style.transition = 'padding-right 0.3s ease-out';
+                    mainElement.style.paddingRight = `${drawerWidth}px`;
+                }
+                if (header) header.style.display = '';
+                document.body.style.setProperty('--excalidraw-drawer-width', `${drawerWidth}px`);
+                document.body.classList.add('excalidraw-split-active');
+                document.body.classList.remove('excalidraw-fullscreen-active');
+            } else if (viewMode === 'maximize') {
+                if (mainElement) mainElement.style.paddingRight = '0px';
+                if (header) header.style.display = 'none';
+                document.body.style.removeProperty('--excalidraw-drawer-width');
+                document.body.classList.remove('excalidraw-split-active');
+                document.body.classList.add('excalidraw-fullscreen-active');
+            } else {
+                if (mainElement) mainElement.style.paddingRight = '0px';
+                if (header) header.style.display = '';
+                document.body.style.removeProperty('--excalidraw-drawer-width');
+                document.body.classList.remove('excalidraw-split-active');
+                document.body.classList.remove('excalidraw-fullscreen-active');
             }
-            if (header) header.style.display = '';
-            document.body.style.setProperty('--excalidraw-drawer-width', `${drawerWidth}px`);
-            document.body.classList.add('excalidraw-split-active');
-            document.body.classList.remove('excalidraw-fullscreen-active');
-        } else if (viewMode === 'maximize') {
-            if (mainElement) mainElement.style.paddingRight = '0px';
-            if (header) header.style.display = 'none';
-            document.body.style.removeProperty('--excalidraw-drawer-width');
-            document.body.classList.remove('excalidraw-split-active');
-            document.body.classList.add('excalidraw-fullscreen-active');
-        } else {
-            if (mainElement) mainElement.style.paddingRight = '0px';
-            if (header) header.style.display = '';
-            document.body.style.removeProperty('--excalidraw-drawer-width');
-            document.body.classList.remove('excalidraw-split-active');
-            document.body.classList.remove('excalidraw-fullscreen-active');
-        }
+        };
+        updateLayout();
 
         return () => {
             if (mainElement) mainElement.style.paddingRight = '0px';
@@ -294,36 +477,23 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
         };
     }, [viewMode, drawerWidth]);
 
-    // Refresh Excalidraw dimension compensation after transitions
     useEffect(() => {
         if (!excalidrawAPI) return;
-        // Refresh after transition (300ms + buffer)
-        const timer = setTimeout(() => {
-            excalidrawAPI.refresh();
-        }, 350);
+        const timer = setTimeout(() => excalidrawAPI.refresh(), 350);
         return () => clearTimeout(timer);
     }, [viewMode, drawerWidth, excalidrawAPI]);
 
-    // View Styles
     const getContainerStyles = () => {
-        // Enforce overflow-visible to prevent clipping of popups/menus
         const baseStyles = "bg-white dark:bg-gray-900 transition-all duration-300 ease-in-out flex flex-col overflow-visible";
-
         switch (viewMode) {
-            case 'maximize':
-                return `${baseStyles} fixed inset-0 z-[10000] h-full`;
-            case 'split':
-                return `${baseStyles} fixed top-[64px] bottom-0 z-[40] border-l border-gray-200 dark:border-gray-800 shadow-2xl`;
-            case 'hidden':
-            case 'minimized':
-            default:
-                return `${baseStyles} fixed top-[64px] bottom-0 z-[40] border-l border-gray-200 dark:border-gray-800 shadow-2xl pointer-events-none`;
+            case 'maximize': return `${baseStyles} fixed inset-0 z-[10000] h-full`;
+            case 'split': return `${baseStyles} fixed top-[64px] bottom-0 z-[40] border-l border-gray-200 dark:border-gray-800 shadow-2xl`;
+            default: return `${baseStyles} fixed top-[64px] bottom-0 z-[40] border-l border-gray-200 dark:border-gray-800 shadow-2xl pointer-events-none`;
         }
     };
 
     return (
         <>
-            {/* Minimized Trigger Button */}
             <div className={`fixed bottom-24 right-6 z-[60] transition-all duration-300 ${viewMode === 'minimized' ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'}`}>
                 <button
                     onClick={() => setViewMode('split')}
@@ -337,7 +507,6 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
                 </button>
             </div>
 
-            {/* Main Drawer Container */}
             <div
                 className={getContainerStyles()}
                 style={{
@@ -345,19 +514,14 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
                     right: (viewMode === 'hidden' || viewMode === 'minimized') ? `-${drawerWidth}px` : '0px'
                 }}
             >
-
-
-                {/* Header Toolbar - Standard Fixed Block */}
                 <div className="flex items-center justify-between p-2 px-4 border-b border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-sm relative z-[70]">
                     <div className="flex items-center gap-3">
-                        {/* Status Indicator */}
                         <div className="flex items-center gap-2">
                             <div className={`w-2 h-2 rounded-full ${hasUnsavedChanges ? 'bg-amber-500 animate-pulse' : 'bg-green-500'}`} />
                             <span className="text-xs text-gray-400 font-medium">
                                 {isSaving ? 'Saving...' : hasUnsavedChanges ? 'Unsaved' : 'Saved'}
                             </span>
                         </div>
-                        {/* Title Input */}
                         <div className="flex items-center">
                             <input
                                 type="text"
@@ -366,10 +530,9 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
                                     const v = e.target.value;
                                     setTitle(v);
                                     titleRef.current = v;
-                                    if (!hasUnsavedChanges) setHasUnsavedChanges(true); // Trigger save on title change eventually
+                                    if (!hasUnsavedChanges) setHasUnsavedChanges(true);
                                 }}
                                 onBlur={() => {
-                                    // Trigger immediate save on blur if changed
                                     if (excalidrawAPI) {
                                         const els = excalidrawAPI.getSceneElements();
                                         const st = excalidrawAPI.getAppState();
@@ -383,7 +546,6 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
                     </div>
 
                     <div className="flex items-center gap-1.5">
-                        {/* Privacy Toggle */}
                         <button
                             onClick={togglePublic}
                             className={`p-1.5 rounded-lg transition-colors ${isPublic
@@ -397,7 +559,6 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
 
                         <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1" />
 
-                        {/* View Controls */}
                         {!isMobile && (
                             <button
                                 onClick={() => setViewMode('split')}
@@ -433,7 +594,6 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
                     </div>
                 </div>
 
-                {/* Mobile Warning Banner */}
                 {showMobileWarning && isMobile && (
                     <div className="bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800 p-2 flex items-center justify-between text-xs sm:text-sm text-blue-800 dark:text-blue-200 px-4">
                         <span>For the best experience, please use a laptop or larger screen.</span>
@@ -446,32 +606,14 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
                     </div>
                 )}
 
-
-
-                {/* Canvas Area */}
                 <div className="flex-1 relative w-full bg-gray-50 dark:bg-gray-900 overflow-visible">
-                    {/* Debug Info Overlay (Hidden) */}
-                    {/* <div style={{ position: 'absolute', top: 0, left: 0, zIndex: 10, padding: 4, fontSize: 10, opacity: 0.5, pointerEvents: 'none' }}>
-                   View: {viewMode} | API: {excalidrawAPI ? 'Yes' : 'No'} | Data: {drawingData ? 'Loaded' : 'None'}
-                </div> */}
-
-                    <div
-                        style={{ width: "100%", height: "100%" }}
-                    >
-                        {/* Fix for Clipped UI/Library */}
+                    <div style={{ width: "100%", height: "100%" }}>
                         <style>{`
-                        /* Base container overrides */
                         .excalidraw, .excalidraw-container { overflow: visible !important; }
-
-                        /* Dropdowns and Popups */
                         .excalidraw .dropdown-menu { z-index: 9999 !important; position: absolute !important; }
                         .excalidraw .Island { z-index: 50 !important; overflow: visible !important; }
-                        
-                        /* Library Sidebar specific */
                         .excalidraw .layer-ui__wrapper { overflow: visible !important; }
                         .excalidraw .layer-ui__library { border-radius: 0; }
-                        
-                        /* Hide browse button if needed, but ensure library itself is visible */
                         .excalidraw .library-menu-browse-button { display: none !important; }
                     `}</style>
                         {isLoading ? (
@@ -539,4 +681,3 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug }) => {
 };
 
 export default ExcalidrawDrawer;
-
