@@ -27,6 +27,34 @@ export interface ChangeLogEntry {
 
 export const changelogData: ChangeLogEntry[] = [
     {
+        "date": "2026-01-06",
+        "version": "Feature Release",
+        "title": "Notes Dashboard & Ghost Artist",
+        "description": "Sketch Notes is out of Preview! We've introduced a dedicated centralized hub for all your visual notes, along with powerful AI sketching capabilities.",
+        "changes": [
+            {
+                "type": "new",
+                "text": "Notes Dashboard: A brand new 'My Notes' page to manage all your drawings in one place.",
+                "images": [
+                    "https://ik.imagekit.io/bhu1voux5/notes-dashboard-standalone",
+                    "https://ik.imagekit.io/bhu1voux5/notes-dashboard-article"
+                ]
+            },
+            {
+                "type": "new",
+                "text": "Dual Modes: Create 'Standalone Notes' for independent ideas or access 'Article Notes' linked directly to your blog posts."
+            },
+            {
+                "type": "new",
+                "text": "Add to Sketch: Seamlessly send text or selections from an article directly to your current note."
+            },
+            {
+                "type": "new",
+                "text": "Ghost Artist (Experimental): An AI-powered assistant that turns your text descriptions into editable diagrams using Mermaid.js."
+            }
+        ]
+    },
+    {
         "date": "2026-01-02",
         "version": "Beta Preview",
         "title": "Sketch Notes (Preview) & UI Refinements",

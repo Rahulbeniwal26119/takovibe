@@ -292,7 +292,7 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
     // Track previous loading state to detect completion
     const wasLoadingRef = useRef(false);
 
-    // Auto-Detect Excalidraw JSON and Dispatch
+    // Auto-Detect Excalidraw JSON or Mermaid and Dispatch
     useEffect(() => {
         // Only run if we just finished loading (prevents auto-run on history load)
         if (wasLoadingRef.current && !isLoading && messages.length > 0) {
@@ -300,6 +300,24 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
             if (lastMsg.role === 'assistant') {
                 try {
                     const content = lastMsg.content.trim();
+
+                    // 1. Detect Mermaid Code Block
+                    if (content.includes('```mermaid')) {
+                        const mermaidMatch = content.match(/```mermaid\n([\s\S]*?)\n```/);
+                        if (mermaidMatch && mermaidMatch[1]) {
+                            const mermaidCode = mermaidMatch[1].trim();
+                            const event = new CustomEvent('request-add-to-sketch', {
+                                detail: {
+                                    elements: mermaidCode,
+                                    type: 'mermaid' // Signal that this is mermaid code, not Excalidraw JSON
+                                }
+                            });
+                            window.dispatchEvent(event);
+                            setIsMinimized(true);
+                            return; // Stop processing
+                        }
+                    }
+
                     // Detect JSON Object or Array
                     if ((content.startsWith('{') || content.startsWith('[')) && (content.endsWith('}') || content.endsWith(']'))) {
                         const json = JSON.parse(content);

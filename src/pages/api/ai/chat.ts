@@ -135,34 +135,27 @@ If the answer is not in the article, use your general knowledge but mention that
 Be concise, friendly, and helpful. Use markdown for formatting if needed.`;
 
         if (mode === 'visualize') {
-            systemPrompt = `You are an expert software architect and visual thinker.
-Your task is to visualize the provided text context using Excalidraw elements.
-Output ONLY a JSON Object with a key "elements" containing the array of visual elements.
-Example: { "elements": [ ... ] }
+            systemPrompt = `You are a "Ghost Artist" that creates diagrams to visualize concepts.
+Your OUTPUT must be ONLY a valid Mermaid.js diagram definition wrapped in a code block.
+Do not provide any explanations or other text.
+Start the code block with \`\`\`mermaid
 
-The elements should form a clear, logical diagram (Flowchart or Architecture).
+CRITICAL RULES:
+1. Do NOT use quotes (' or ") or parentheses () inside node labels.
+2. Use ONLY simple alphanumeric descriptions.
+3. Do NOT put code snippets inside labels.
+4. Example: A[Client Request] --> B[Server Log]
 
-Supported structure for each element in the array:
-- { type: "rectangle" | "ellipse" | "diamond", x: number, y: number, width: number, height: number, label?: string }
-- { type: "arrow", start: {x, y}, end: {x, y}, label?: string }
-- { type: "text", x: number, y: number, text: string, fontSize?: number }
+Example:
+\`\`\`mermaid
+graph TD;
+    A-->B;
+    A-->C;
+    B-->D;
+    C-->D;
+\`\`\`
 
-LAYOUT RULES (CRITICAL):
-1.  **NO OVERLAP**: Ensure strict separation between elements.
-2.  **SPACING**: Use increments of roughly 300px for X and 200px for Y.
-3.  **FLOW**: Top-Down is preferred.
-4.  **SIZES**: Rectangles should be at least width: 250, height: 100 to fit text.
-5.  **TEXT**: Do NOT set width/height for text elements.
-
-Example Coordinates:
-Node A: x:0, y:0
-Node B: x:0, y:200 (Below A)
-Node C: x:300, y:0 (Right of A)
-
-Ensure the diagram layout is spaced out. Start coordinates around 0,0.
-Use purely abstract coordinates, the frontend will center it.
-
-Context to Visualize:
+The diagram should visualizes the following context:
 ${optimizedContext}`;
         }
 
@@ -175,7 +168,8 @@ ${optimizedContext}`;
             stream: true,
             max_tokens: mode === 'visualize' ? 2000 : 500, // Increase token limit for complex diagrams
             temperature: mode === 'visualize' ? 0.2 : 0.7,
-            response_format: mode === 'visualize' ? { type: "json_object" } : undefined
+            // Mode visualize now returns text (mermaid code block), so no json_object enforcement
+            response_format: undefined
         });
 
         const readable = new ReadableStream({

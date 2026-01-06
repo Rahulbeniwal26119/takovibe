@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Excalidraw, MainMenu, WelcomeScreen, getSceneVersion, convertToExcalidrawElements } from "@excalidraw/excalidraw";
+import { parseMermaidToExcalidraw } from "@excalidraw/mermaid-to-excalidraw";
 import "@excalidraw/excalidraw/index.css";
 import { X, PenTool, Lock, Unlock, Minimize2, Maximize2, LayoutTemplate, Monitor } from 'lucide-react';
 import { fetchWithAuth } from '../utils/api';
+import { showToast } from '../utils/toast';
 import drwnioLib from '../data/libraries/drwnio.json';
 import systemDesignLib from '../data/libraries/system-design.json';
 
@@ -48,7 +50,8 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
 
     // Helper for wrapping text
     const wrapperText = (text: string, maxChars: number) => {
-        const words = text.split(' ');
+        if (!text) return "";
+        const words = String(text).split(' ');
         let lines = [];
         let currentLine = words[0];
 
@@ -144,8 +147,8 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
             setViewMode(mobile ? 'maximize' : 'split');
         };
 
-        const handleAddToSketch = (e: CustomEvent | { detail: any }) => {
-            const { text, elements: importedElements } = e.detail;
+        const handleAddToSketch = async (e: CustomEvent | { detail: any }) => {
+            const { text, elements: rawElements, type } = e.detail;
 
             // Check if closed/minimized BEFORE changing state
             const isClosed = viewMode === 'hidden' || viewMode === 'minimized';
@@ -170,18 +173,35 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                 const cx = -st.scrollX + (st.width / 2) / zoom;
                 const cy = -st.scrollY + (st.height / 2) / zoom;
 
-                let newElements = [];
+                let importedElements = rawElements;
+                let newElements: any[] = [];
+
+                // Handle Mermaid Conversion
+                if (type === 'mermaid') {
+                    try {
+                        const { elements } = await parseMermaidToExcalidraw(rawElements);
+                        importedElements = elements;
+                    } catch (err) {
+                        console.error("Mermaid to Excalidraw failed:", err);
+                        showToast("Failed to visualize. AI generated invalid syntax. Check console.", "error");
+                        return;
+                    }
+                }
 
                 if (importedElements && Array.isArray(importedElements) && importedElements.length > 0) {
                     // Normalize AI elements
+                    // If it came from Mermaid, it's already ExcalidrawElement[], but we might still want to ensure IDs
                     const normalized = importedElements.flatMap((el: any) => {
                         // Ensure ID exists
                         if (!el.id) el.id = Math.random().toString(36).substr(2, 9);
+
+                        const ghostColor = "#e0e0e0"; // Light gray for visibility on dark canvas
 
                         // 1. Handle Arrays
                         if (el.type === "arrow" && el.start && el.end) {
                             return [{
                                 ...el,
+                                strokeColor: ghostColor,
                                 x: el.start.x,
                                 y: el.start.y,
                                 points: [[0, 0], [el.end.x - el.start.x, el.end.y - el.start.y]]
@@ -189,7 +209,8 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                         }
 
                         // 2. Handle Shapes with Labels (Rectangle, Ellipse, Diamond)
-                        if ((el.type === "rectangle" || el.type === "ellipse" || el.type === "diamond") && el.label) {
+                        // Ensure label is a string to avoid "[object Object]" artifacts from library metadata
+                        if ((el.type === "rectangle" || el.type === "ellipse" || el.type === "diamond") && typeof el.label === 'string') {
                             const textId = Math.random().toString(36).substr(2, 9);
 
                             // Create Text Element
@@ -210,12 +231,14 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                                 fontFamily: 1,
                                 textAlign: "center",
                                 verticalAlign: "middle",
-                                containerId: el.id
+                                containerId: el.id,
+                                strokeColor: ghostColor
                             };
 
                             // Update Shape to bind text
                             const shapeEl = {
                                 ...el,
+                                strokeColor: ghostColor,
                                 boundElements: [{ id: textId, type: "text" }],
                                 label: undefined // Remove non-standard prop
                             };
@@ -223,8 +246,8 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                             return [shapeEl, textEl];
                         }
 
-                        return [el];
-                    });
+                        return [{ ...el, strokeColor: el.strokeColor === '#000000' || !el.strokeColor ? ghostColor : el.strokeColor }];
+                    }).sort((a, b) => (a.type === 'arrow' ? 1 : -1));
 
                     // AI Diagram Logic
                     // Calculate center offset safely
