@@ -10,6 +10,35 @@ import compress from 'astro-compress';
 import pwa from '@vite-pwa/astro';
 import node from '@astrojs/node';
 
+// Function to fetch blog posts for sitemap
+async function fetchBlogPosts() {
+  try {
+    const API_URL = process.env.PUBLIC_API_URL || 'http://localhost:8000';
+    const response = await fetch(`${API_URL}/api/blogs/blogs/`);
+    if (!response.ok) {
+      console.warn(`[Sitemap] Failed to fetch posts: ${response.statusText}`);
+      return { urls: [], data: new Map() };
+    }
+    const posts = await response.json();
+
+    const urls = posts.map(post => `https://takovibe.com/blog/${post.slug}`);
+    // Map URL -> updated_at
+    const data = new Map(posts.map(post => [
+      `https://takovibe.com/blog/${post.slug}`,
+      post.updated_at || new Date().toISOString()
+    ]));
+
+    console.log(`[Sitemap] Fetched ${urls.length} posts from API`);
+    return { urls, data };
+  } catch (error) {
+    console.warn('[Sitemap] Error fetching posts:', error);
+    return { urls: [], data: new Map() };
+  }
+}
+
+// Fetch posts at config load time
+const { urls: blogUrls, data: blogData } = await fetchBlogPosts();
+
 export default defineConfig({
   site: 'https://takovibe.com',
   // Enable hybrid mode for API endpoints while keeping static pages
@@ -47,24 +76,19 @@ export default defineConfig({
       customPages: [
         'https://takovibe.com/blog/',
         'https://takovibe.com/about/',
+        ...blogUrls
       ],
       serialize(item) {
         // Base configuration
         let priority = 0.7;
         let changefreq = 'weekly';
 
-        // Get the file's last modified date if it's a content file
+        // Get the file's last modified date
         let lastmod = new Date();
-        if (item.url.includes('/blog/')) {
-          try {
-            // This assumes your content is in src/content/blog/
-            const path = item.url.split('/blog/')[1].replace(/\/$/, '');
-            const stats = fs.statSync(`./src/content/blog/${path}.mdx`);
-            lastmod = stats.mtime;
-          } catch (e) {
-            // Fallback to current date if file not found
-            console.warn(`Could not get lastmod for ${item.url}`);
-          }
+
+        if (blogData.has(item.url)) {
+          // Use API data if available
+          lastmod = new Date(blogData.get(item.url));
         }
 
         // Customize based on URL pattern
