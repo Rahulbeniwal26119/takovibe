@@ -13,7 +13,7 @@ import node from '@astrojs/node';
 // Function to fetch blog posts for sitemap
 async function fetchBlogPosts() {
   try {
-    const API_URL = process.env.PUBLIC_API_URL || 'http://localhost:8000';
+    const API_URL = process.env.PUBLIC_API_URL || 'https://takovibe.com';
     const response = await fetch(`${API_URL}/api/blogs/blogs/`);
     if (!response.ok) {
       console.warn(`[Sitemap] Failed to fetch posts: ${response.statusText}`);
@@ -21,10 +21,11 @@ async function fetchBlogPosts() {
     }
     const posts = await response.json();
 
-    const urls = posts.map(post => `https://takovibe.com/blog/${post.slug}`);
+    // Generate URLs with trailing slash to match Astro defaults
+    const urls = posts.map(post => `https://takovibe.com/blog/${post.slug}/`);
     // Map URL -> updated_at
     const data = new Map(posts.map(post => [
-      `https://takovibe.com/blog/${post.slug}`,
+      `https://takovibe.com/blog/${post.slug}/`,
       post.updated_at || new Date().toISOString()
     ]));
 
@@ -71,13 +72,18 @@ export default defineConfig({
         return !page.includes('/auth/') &&
           !page.includes('/Auth/') &&
           !page.includes('/_') &&
-          !page.includes('/admin/');
+          !page.includes('/admin/') &&
+          !page.includes('/dashboard/') &&
+          !page.includes('/notes/new') &&
+          !page.includes('/post/new') &&
+          !page.includes('/saved/') &&
+          !page.includes('/login/') &&
+          !page.includes('/signup/') &&
+          !page.includes('/forgot-password/') &&
+          !page.includes('/reset-password/') &&
+          !page.includes('/unsubscribe/');
       },
-      customPages: [
-        'https://takovibe.com/blog/',
-        'https://takovibe.com/about/',
-        ...blogUrls
-      ],
+      customPages: [],
       serialize(item) {
         // Base configuration
         let priority = 0.7;
@@ -92,19 +98,19 @@ export default defineConfig({
         }
 
         // Customize based on URL pattern
+        // Customize based on URL pattern
         if (item.url === 'https://takovibe.com/') {
           priority = 1.0;
           changefreq = 'daily';
+        } else if (item.url === 'https://takovibe.com/blog/' ||
+          item.url === 'https://takovibe.com/about/' ||
+          item.url === 'https://takovibe.com/notes/') {
+          // Main Listing Pages
+          priority = 0.9;
+          changefreq = 'weekly';
         } else if (item.url.includes('/blog/')) {
           // Individual blog posts
           priority = 0.8;
-          changefreq = 'monthly';
-        } else if (item.url === 'https://takovibe.com/blog/') {
-          // Blog index page
-          priority = 0.9;
-          changefreq = 'daily';
-        } else if (item.url.includes('/about')) {
-          priority = 0.5;
           changefreq = 'monthly';
         }
 
