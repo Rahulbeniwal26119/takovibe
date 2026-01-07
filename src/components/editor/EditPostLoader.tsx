@@ -16,7 +16,7 @@ export const EditPostLoader: React.FC<EditPostLoaderProps> = ({ slug }) => {
         const loadPost = async () => {
             try {
                 const API_BASE = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
-                const response = await fetchWithAuth(`${API_BASE}/api/posts/${slug}/`);
+                const response = await fetchWithAuth(`${API_BASE}/api/posts/${slug}/?include_content=true`);
 
                 if (response.ok) {
                     const data = await response.json();
@@ -86,7 +86,7 @@ export const EditPostLoader: React.FC<EditPostLoaderProps> = ({ slug }) => {
     return (
         <BlogEditor
             initialContent={initialContent}
-            apiEndpoint={`${API_BASE}/api/posts/${slug}/`}
+            apiEndpoint={`${API_BASE}/api/posts/${slug}/?include_content=true`}
             method="PUT"
         />
     );

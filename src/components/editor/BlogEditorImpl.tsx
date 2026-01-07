@@ -82,7 +82,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
     initialContent,
     onChange,
     onSave,
-    apiEndpoint = import.meta.env.PUBLIC_API_URL ? `${import.meta.env.PUBLIC_API_URL}/api/posts/` : 'http://localhost:8000/api/posts/',
+    apiEndpoint = import.meta.env.PUBLIC_API_URL ? `${import.meta.env.PUBLIC_API_URL}/api/posts/?include_content=true` : 'http://localhost:8000/api/posts/?include_content=true',
     method = 'POST',
 }) => {
     const [frontmatter, setFrontmatter] = useState({
