@@ -18,9 +18,12 @@ DEPLOY_DIR="/var/www/takovibe.com"
 NODE_ENTRY="$DEPLOY_DIR/server/entry.mjs"
 NPM_CACHE="/home/ubuntu/.npm-cache"
 
-log()  { echo -e "${GREEN}[$(date '+%F %T')] $1${NC}"; }
+log() { echo -e "${GREEN}[$(date '+%F %T')] $1${NC}"; }
 warn() { echo -e "${YELLOW}[$(date '+%F %T')] WARN: $1${NC}"; }
-error(){ echo -e "${RED}[$(date '+%F %T')] ERROR: $1${NC}" >&2; exit 1; }
+error() {
+  echo -e "${RED}[$(date '+%F %T')] ERROR: $1${NC}" >&2
+  exit 1
+}
 
 # --- Detect package manager ------------------------------------------------
 detect_pm() {
@@ -101,6 +104,11 @@ reload_nginx() {
   sudo nginx -t && sudo systemctl reload nginx || warn "Nginx reload failed"
 }
 
+reload_pm2() {
+  log "Reloading PM2"
+  pm2 restart takovibe
+}
+
 main() {
   local start=$(date +%s)
   log "🚀 Starting Astro build + deploy"
@@ -112,7 +120,8 @@ main() {
   deploy
   restart_server
   reload_nginx
-  log "✅ Finished in $(( $(date +%s) - start ))s"
+  reload_pm2
+  log "✅ Finished in $(($(date +%s) - start))s"
   echo -e "${YELLOW}Live at https://takovibe.com${NC}"
 }
 

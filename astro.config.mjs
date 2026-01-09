@@ -14,7 +14,6 @@ import node from '@astrojs/node';
 async function fetchBlogPosts() {
   try {
     const API_URL = process.env.PUBLIC_API_URL || 'https://backend.takovibe.com';
-    console.log(`${API_URL}/api/blogs/blogs/`)
     const response = await fetch(`${API_URL}/api/blogs/blogs/`);
     if (!response.ok) {
       console.warn(`[Sitemap] Failed to fetch posts: ${response.statusText}`);
