@@ -2,7 +2,8 @@
 import Layout from "../../layouts/Layout.astro";
 
 // Temporarily disable prerendering to debug API issues
-export const prerender = false;
+// Enable prerendering for static generation and sitemap inclusion
+export const prerender = true;
 
 const API_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
 
