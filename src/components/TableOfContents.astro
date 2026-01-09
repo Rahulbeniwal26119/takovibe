@@ -23,7 +23,7 @@ const toc = headings.filter((h) => h.depth > 1 && h.depth <= 3);
                 >
                     <a
                         href={`#${heading.slug}`}
-                        class="block py-1 pl-4 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200 line-clamp-2"
+                        class="block py-1 pl-4 text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-all duration-200 line-clamp-2 hover:scale-105 hover:translate-x-1"
                     >
                         {heading.text}
                     </a>
@@ -50,19 +50,25 @@ const toc = headings.filter((h) => h.depth > 1 && h.depth <= 3);
                     });
                     link?.parentElement?.classList.add("active");
                     link?.parentElement?.classList.add(
-                        "border-gray-900",
-                        "dark:border-white",
-                    ); // Active Border: Black/White
+                        "border-purple-600",
+                        "dark:border-purple-400",
+                        "bg-purple-50",
+                        "dark:bg-purple-900/20",
+                    );
                     link?.classList.add(
-                        "text-gray-900",
-                        "dark:text-white",
-                        "font-semibold",
+                        "text-purple-600",
+                        "dark:text-purple-400",
+                        "font-bold",
                     );
                 } else {
                     link?.classList.remove(
-                        "text-gray-900",
-                        "dark:text-white",
-                        "font-semibold",
+                        "text-purple-600",
+                        "dark:text-purple-400",
+                        "font-bold",
+                    );
+                    link?.parentElement?.classList.remove(
+                        "bg-purple-50",
+                        "dark:bg-purple-900/20",
                     );
                 }
             });
@@ -81,10 +87,10 @@ const toc = headings.filter((h) => h.depth > 1 && h.depth <= 3);
     }
 
     .toc-item.active {
-        @apply border-gray-900 dark:border-white;
+        @apply border-purple-600 dark:border-purple-400 bg-purple-50 dark:bg-purple-900/20;
     }
 
     .toc-item.active a {
-        @apply text-gray-900 dark:text-white font-semibold;
+        @apply text-purple-600 dark:text-purple-400 font-bold;
     }
 </style>

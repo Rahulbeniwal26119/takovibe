@@ -13,6 +13,9 @@ interface Props {
 
 const { headings, title, description, url, slug } = Astro.props;
 const apiUrl = import.meta.env.PUBLIC_API_URL;
+// Feature Flag: Mobile UX Improvements
+const enableMobileDock =
+    import.meta.env.PUBLIC_ENABLE_MOBILE_DOCK === "true" || true; // Enabled by default
 ---
 
 <div
@@ -143,7 +146,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
         }
     </style>
     <div
-        class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl p-2 pointer-events-auto flex items-center justify-between w-full gap-1 overflow-x-auto custom-scrollbar"
+        class={`bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl p-2 pointer-events-auto items-center justify-between w-full gap-1 overflow-x-auto custom-scrollbar ${enableMobileDock ? "hidden lg:flex" : "flex"}`}
     >
         <!-- Toggle Button (Only visible in split view) -->
         <button
@@ -230,6 +233,33 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
                         stroke-linejoin="round"
                         stroke-width="2"
                         d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
+                    ></path>
+                </svg>
+            </button>
+
+            <!-- Focus Mode Toggle -->
+            <button
+                id="focus-mode-toggle"
+                class="p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all duration-200 hover:scale-105"
+                aria-label="Focus Mode"
+                title="Focus Mode (F)"
+            >
+                <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                     ></path>
                 </svg>
             </button>
@@ -414,7 +444,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
     <!-- Font Settings Drawer -->
     <div
         id="font-drawer"
-        class="absolute bottom-full left-16 mb-4 w-72 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl p-4 transform scale-95 opacity-0 pointer-events-none transition-all duration-200 origin-bottom-left"
+        class="absolute bottom-full left-4 right-4 sm:left-16 sm:right-auto mb-4 sm:w-80 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl p-5 transform scale-95 opacity-0 pointer-events-none transition-all duration-200 origin-bottom-left"
     >
         <div class="flex items-center justify-between mb-4">
             <h3
@@ -455,9 +485,21 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
             <div class="flex items-center justify-between w-full gap-3">
                 <button
                     id="decreaseBtn"
-                    class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    class="p-2.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    aria-label="Decrease font size"
                 >
-                    <span class="text-sm font-bold">A-</span>
+                    <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M20 12H4"></path>
+                    </svg>
                 </button>
 
                 <div
@@ -480,9 +522,21 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
 
                 <button
                     id="increaseBtn"
-                    class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    class="p-2.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    aria-label="Increase font size"
                 >
-                    <span class="text-lg font-bold">A+</span>
+                    <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 4v16m8-8H4"></path>
+                    </svg>
                 </button>
             </div>
 
@@ -1008,6 +1062,84 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
                     "opacity-0",
                 );
             }
+        });
+    }
+
+    // Focus Mode Toggle
+    const focusModeToggle = document.getElementById("focus-mode-toggle");
+    let focusModeActive = false;
+
+    function toggleFocusMode() {
+        focusModeActive = !focusModeActive;
+        if (focusModeActive) {
+            document.body.classList.add("focus-mode");
+            focusModeToggle?.classList.add(
+                "text-purple-600",
+                "bg-purple-50",
+                "dark:bg-purple-900/20",
+            );
+        } else {
+            document.body.classList.remove("focus-mode");
+            focusModeToggle?.classList.remove(
+                "text-purple-600",
+                "bg-purple-50",
+                "dark:bg-purple-900/20",
+            );
+        }
+    }
+
+    focusModeToggle?.addEventListener("click", toggleFocusMode);
+    document.addEventListener("keydown", (e) => {
+        if (
+            e.key === "f" &&
+            !e.ctrlKey &&
+            !e.metaKey &&
+            document.activeElement.tagName !== "INPUT" &&
+            document.activeElement.tagName !== "TEXTAREA"
+        ) {
+            e.preventDefault();
+            toggleFocusMode();
+        }
+        if (e.key === "Escape" && focusModeActive) toggleFocusMode();
+    });
+
+    // --- Mobile Dock Event Bridge ---
+    window.addEventListener("toggle-toc", () =>
+        document.getElementById("toc-toggle")?.click(),
+    );
+    window.addEventListener("toggle-font-settings", () =>
+        document.getElementById("font-toggle")?.click(),
+    );
+    window.addEventListener("toggle-share", () =>
+        document.getElementById("share-toggle")?.click(),
+    );
+    window.addEventListener("toggle-focus-mode", () =>
+        document.getElementById("focus-mode-toggle")?.click(),
+    );
+
+    // Like Bridge & Sync
+    window.addEventListener("trigger-like", () => {
+        const btn = document.getElementById("like-btn");
+        if (btn) btn.click();
+
+        // Update Mobile Heart immediately
+        const mobileIcon = document.querySelector("#mobile-like-btn svg");
+        if (mobileIcon)
+            mobileIcon.classList.add("text-red-500", "fill-current");
+    });
+
+    // Sync Like Count
+    const likeCountSource = document.getElementById("like-count");
+    if (likeCountSource) {
+        const observer = new MutationObserver(() => {
+            const mobileCount = document.getElementById("mobile-like-count");
+            if (mobileCount)
+                mobileCount.textContent = likeCountSource.textContent;
+        });
+        observer.observe(likeCountSource, {
+            childList: true,
+            characterData: true,
+            subtree: true,
         });
     }
 </script>

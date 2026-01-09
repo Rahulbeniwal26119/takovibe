@@ -450,10 +450,10 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
 
     const containerClasses = [
         // Base: 
-        // Mobile: Fixed bottom, spanning width (left-4 right-4) to match ReaderToolbar
+        // Mobile: Fixed bottom inset-0 (full width bottom sheet)
         // Desktop: Fixed bottom-right corner
-        'fixed bottom-6 z-[9999] flex flex-col shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden',
-        'left-4 right-4 md:left-auto md:right-6',
+        'fixed bottom-0 z-[9999] flex flex-col shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden',
+        'inset-x-0 md:inset-auto md:left-auto md:right-6 md:bottom-6',
         'kumi-chatbot-container', // Hook for CSS
 
         // Origin:
@@ -475,10 +475,10 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
 
         // Exit/Scroll Animation Logic:
         isClosing
-            ? 'transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] opacity-0 scale-95 translate-y-4 rounded-[2rem] md:scale-0 md:translate-y-0 md:rounded-[5rem]' // Mobile: drop down | Desktop: shrink to circle
+            ? 'transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] opacity-0 scale-95 translate-y-full rounded-t-[2rem] md:rounded-[5rem] md:scale-0 md:translate-y-0' // Mobile: slide down | Desktop: shrink
             : isScrolling && !isMinimized
-                ? 'transition-all duration-500 cubic-bezier(0.4,0,0.2,1) translate-y-[calc(100%-3.5rem)] shadow-lg md:translate-y-0 md:shadow-2xl rounded-2xl'
-                : 'transition-all duration-500 cubic-bezier(0.19,1,0.22,1) translate-y-0 rounded-2xl',
+                ? 'transition-all duration-500 cubic-bezier(0.4,0,0.2,1) translate-y-[calc(100%-3.5rem)] shadow-lg md:translate-y-0 md:shadow-2xl rounded-t-3xl md:rounded-2xl'
+                : 'transition-all duration-500 cubic-bezier(0.19,1,0.22,1) translate-y-0 rounded-t-3xl md:rounded-2xl',
 
         isMinimized ? 'h-14 cursor-pointer md:w-72' : '', // Minimized spans mobile width
         !isMinimized && isExpanded ? 'h-[85vh] md:w-[800px]' : '',

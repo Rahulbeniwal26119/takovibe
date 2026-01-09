@@ -34,7 +34,12 @@ const formatDate = (dateString) => {
 
 const icon = getSeriesIcon(series.topic_covered || []);
 const totalArticles = series.planned_articles || 0;
-const publishedArticles = series.total_published_articles || 0;
+// Note: live-series and completed-series endpoints don't include articles_count
+// We'll show "?" for now or fetch from detail endpoint if needed
+const publishedArticles =
+    series.total_published_articles ||
+    series.articles_count ||
+    (series.latest_article ? 1 : 0);
 const progress =
     totalArticles > 0 ? (publishedArticles / totalArticles) * 100 : 0;
 const isOngoing = status === "live";

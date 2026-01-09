@@ -8,40 +8,52 @@ import SeriesCard from "../components/SeriesCard.astro";
 // Get API URL from environment
 const API_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
 
-// Fetch series data from API
-let seriesData = [];
+// Fetch series data from API using new endpoints
+let liveSeries = [];
+let completedSeries = [];
+let plannedSeries = [];
+let deactivatedSeries = [];
 let error = null;
 
 try {
-    const response = await fetch(`${API_URL}/api/blogs/series/`);
-    if (response.ok) {
-        const data = await response.json();
-        seriesData = data.results || [];
+    // Fetch live series
+    const liveResponse = await fetch(
+        `${API_URL}/api/blogs/series/live-series/`,
+    );
+    if (liveResponse.ok) {
+        const liveData = await liveResponse.json();
+        liveSeries = liveData.data || [];
     } else {
-        // If the backend is 500ing, we don't want to break the build,
-        // just show empty/error state.
-        console.warn(`Series API returned ${response.status}`);
-        error = `API Error: ${response.status}`;
+        console.warn(`Live series API returned ${liveResponse.status}`);
     }
+
+    // Fetch completed series
+    const completedResponse = await fetch(
+        `${API_URL}/api/blogs/series/completed-series/`,
+    );
+    if (completedResponse.ok) {
+        const completedData = await completedResponse.json();
+        completedSeries = completedData.data || [];
+    } else {
+        console.warn(
+            `Completed series API returned ${completedResponse.status}`,
+        );
+    }
+
+    // Optionally fetch all series to get planned/deactivated (if needed)
+    // For now, we'll just use live and completed
 } catch (e) {
     console.error("Failed to fetch series data:", e);
     error = e.message;
-    seriesData = [];
 }
 
-// Categorize series
-const liveSeries = seriesData.filter(
-    (series) =>
-        series.is_live && !series.is_completed && !series.is_deactivated,
-);
-const completedSeries = seriesData.filter(
-    (series) => series.is_completed && !series.is_deactivated,
-);
-const plannedSeries = seriesData.filter(
-    (series) =>
-        !series.is_live && !series.is_completed && !series.is_deactivated,
-);
-const deactivatedSeries = seriesData.filter((series) => series.is_deactivated);
+// Combine all series for stats
+const seriesData = [
+    ...liveSeries,
+    ...completedSeries,
+    ...plannedSeries,
+    ...deactivatedSeries,
+];
 ---
 
 <Layout

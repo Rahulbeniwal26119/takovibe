@@ -49,7 +49,8 @@ try {
 
   // If no initial data (e.g. running in SSR mode or fallback), try fetching
   if (!apiData) {
-    const API_BASE = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
+    const API_BASE = i;
+    mport.meta.env.PUBLIC_API_URL || "http://localhost:8000";
     // Using the same endpoint convention as list, but specific post if supported,
     // or falling back to the old endpoint if that was intentional.
     // Given the user context, we'll try to use the logic that works.

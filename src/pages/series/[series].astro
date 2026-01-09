@@ -1,117 +1,189 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import { getCollection } from 'astro:content';
+import Layout from "../../layouts/Layout.astro";
 
-const SERIES_DETAILS = {
-  "SOLID Principles": {
-    "Description": "Explore one of the most Essential LLD Topics in easy way with Python and Rust",
-    "Level": "Beginner to Intermediate",
-    "TotalArticle": "5"
-  },
-  "Think Different": {
-    "Description": "Unconventional approaches to problem-solving in programming and beyond, Let's Dig Deeper",
-    "Level": "Beginner to Advance",
-    "TotalArticle": "Inf"
-  },
-  "Application Security": {
-    "Description": "Master web application security from XSS to advanced attack vectors. Learn to build secure applications with practical examples and real-world scenarios.",
-    "Level": "Intermediate to Advanced",
-    "TotalArticle": "Inf"
-  },
-  "Machine Learning Fundamentals": {
-    "Description": "Master the core concepts of machine learning from ground up. Start learning with algorithms, data preprocessing, model evaluation, and deployment with hands-on Python examples and real-world projects.",
-    "Level": "Beginner to Intermediate",
-    "TotalArticle": "10"
+// Temporarily disable prerendering to debug API issues
+export const prerender = false;
+
+const API_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
+
+export async function getStaticPaths() {
+  try {
+    // Fetch all series (live + completed)
+    const [liveRes, completedRes] = await Promise.all([
+      fetch(`${API_URL}/api/blogs/series/live-series/`),
+      fetch(`${API_URL}/api/blogs/series/completed-series/`),
+    ]);
+
+    let allSeries = [];
+
+    if (liveRes.ok) {
+      const liveData = await liveRes.json();
+      allSeries = [...allSeries, ...(liveData.data || [])];
+    }
+
+    if (completedRes.ok) {
+      const completedData = await completedRes.json();
+      allSeries = [...allSeries, ...(completedData.data || [])];
+    }
+
+    // Generate paths for each series
+    return allSeries.map((series) => ({
+      params: { series: series.slug },
+      props: { seriesSlug: series.slug },
+    }));
+  } catch (e) {
+    console.error("Failed to fetch series for static paths:", e);
+    return [];
   }
 }
 
-export async function getStaticPaths() {
-  const blogEntries = await getCollection('blog');
-  
-  // Extract unique series from blog posts
-  const seriesMap = new Map();
-  
-  blogEntries.forEach(entry => {
-    // Look for series information in frontmatter
-    const series = entry.data.series;
-    if (series) {
-      if (!seriesMap.has(series)) {
-        seriesMap.set(series, []);
-      }
-      seriesMap.get(series).push(entry);
-    }
-  });
+// Get slug from URL params (works in both SSR and SSG)
+const seriesSlug = Astro.params.series;
 
-  return Array.from(seriesMap.entries()).map(([series, posts]) => ({
-    params: { series: series.toLowerCase().replace(/[^a-z0-9]/g, '-') },
-    props: { 
-      seriesName: series,
-      posts: posts.sort((a, b) => new Date(a.data.date).getTime() - new Date(b.data.date).getTime())
+// Fetch series details from API
+let seriesData = null;
+let articles = [];
+let error = null;
+
+try {
+  const response = await fetch(`${API_URL}/api/blogs/series/${seriesSlug}/`);
+
+  if (response.ok) {
+    const rawData = await response.json();
+
+    // The API returns: { message, code, data: { ...series, articles: [...] } }
+    if (rawData.data) {
+      seriesData = rawData.data;
+      articles = seriesData.articles || [];
+    } else {
+      // Fallback if structure is different
+      seriesData = rawData;
+      articles = seriesData.articles || [];
     }
-  }));
+  } else {
+    error = `Failed to load series: ${response.status}`;
+    console.error(error);
+  }
+} catch (e) {
+  error = `Error fetching series: ${e.message}`;
+  console.error(error);
 }
 
-const { seriesName, posts } = Astro.props;
-const series_details = SERIES_DETAILS[seriesName] || {};
-const currentPost = posts.find(post => post.slug === Astro.url.pathname.split('/').pop());
+// Redirect to 404 if series not found
+if (!seriesData && !error) {
+  return Astro.redirect("/404");
+}
 
-// Calculate series completion status
-const publishedArticlesCount = posts.filter(post => new Date(post.data.date) <= new Date()).length;
-const totalArticleValue = series_details?.TotalArticle;
-const plannedArticlesCount = totalArticleValue === "Inf" ? Infinity : (parseInt(totalArticleValue) || posts.length);
-const isSeriesComplete = plannedArticlesCount !== Infinity && plannedArticlesCount > 0 && publishedArticlesCount >= plannedArticlesCount;
-const progressPercentage = totalArticleValue === "Inf" ? 0 : (publishedArticlesCount / plannedArticlesCount) * 100;
+const seriesName = seriesData?.title || "Series";
+const seriesDescription =
+  seriesData?.description || seriesData?.short_description || "";
+const startLevel = seriesData?.start_level || "beginner";
+const endLevel = seriesData?.end_level || "intermediate";
+const isSeriesComplete = seriesData?.is_completed || false;
+const isLive = seriesData?.is_live || false;
 
-// Prepare article data
-const articlesData = posts.map((post, index) => {
-  const isPublished = new Date(post.data.date) <= new Date();
-  const isCurrent = currentPost?.slug === post.slug;
-  
+// Calculate progress
+const publishedArticlesCount =
+  seriesData?.total_published_articles || articles.length;
+const plannedArticlesCount = seriesData?.planned_articles || 0;
+const totalArticles =
+  plannedArticlesCount > 0 ? plannedArticlesCount : publishedArticlesCount;
+const isInfiniteSeries = plannedArticlesCount === 0;
+const progressPercentage =
+  !isInfiniteSeries && totalArticles > 0
+    ? (publishedArticlesCount / totalArticles) * 100
+    : 0;
+
+// Get current article slug from URL if present
+const currentSlug = Astro.url.pathname.split("/").filter(Boolean).pop();
+
+// Prepare article data - articles are nested under 'article' property
+const articlesData = articles.map((item, index) => {
+  // Extract the actual article from the nested structure
+  const article = item.article || item;
+  const isCurrent = currentSlug === article.slug;
+  // If is_published field exists, use it; otherwise assume true (API only returns published articles)
+  const isPublished =
+    article.is_published !== undefined ? article.is_published : true;
+
   return {
-    ...post,
+    ...article,
+    order: item.order || index + 1,
     index,
     isPublished,
-    isCurrent
+    isCurrent,
   };
 });
 ---
 
-<Layout 
+<Layout
   title={`${seriesName} Series - All Articles`}
-  description={`Complete ${seriesName} series with ${posts.length} articles covering everything from basics to advanced concepts.`}
+  description={`Complete ${seriesName} series with ${articles.length} articles covering everything from basics to advanced concepts.`}
 >
   <!-- Hero Section with Gradient -->
-  <section class="relative overflow-hidden bg-gradient-to-br from-purple-600 via-pink-600 to-blue-600 pt-24 pb-16">
+  <section
+    class="relative overflow-hidden bg-gradient-to-br from-purple-600 via-pink-600 to-blue-600 pt-24 pb-16"
+  >
     <!-- Decorative Elements -->
-    <div class="absolute top-10 right-10 w-32 h-32 bg-pink-500 rounded-full opacity-50 blur-3xl"></div>
-    <div class="absolute bottom-10 left-10 w-40 h-40 bg-blue-500 rounded-full opacity-50 blur-3xl"></div>
-    
+    <div
+      class="absolute top-10 right-10 w-32 h-32 bg-pink-500 rounded-full opacity-50 blur-3xl"
+    >
+    </div>
+    <div
+      class="absolute bottom-10 left-10 w-40 h-40 bg-blue-500 rounded-full opacity-50 blur-3xl"
+    >
+    </div>
+
     <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6">
       <!-- Breadcrumb -->
       <nav class="flex text-sm text-white/80 mb-8" aria-label="Breadcrumb">
         <ol class="inline-flex items-center space-x-1 md:space-x-3">
           <li class="inline-flex items-center">
-            <a href="/" class="inline-flex items-center hover:text-white transition-colors">
+            <a
+              href="/"
+              class="inline-flex items-center hover:text-white transition-colors"
+            >
               <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+                <path
+                  d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"
+                ></path>
               </svg>
               Home
             </a>
           </li>
           <li>
             <div class="flex items-center">
-              <svg class="w-6 h-6 text-white/60" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+              <svg
+                class="w-6 h-6 text-white/60"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                  clip-rule="evenodd"></path>
               </svg>
-              <a href="/series" class="ml-1 hover:text-white transition-colors">Series</a>
+              <a href="/series" class="ml-1 hover:text-white transition-colors"
+                >Series</a
+              >
             </div>
           </li>
           <li aria-current="page">
             <div class="flex items-center">
-              <svg class="w-6 h-6 text-white/60" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+              <svg
+                class="w-6 h-6 text-white/60"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                  clip-rule="evenodd"></path>
               </svg>
-              <span class="ml-1 text-white font-medium truncate max-w-[200px] sm:max-w-xs">{seriesName}</span>
+              <span
+                class="ml-1 text-white font-medium truncate max-w-[200px] sm:max-w-xs"
+                >{seriesName}</span
+              >
             </div>
           </li>
         </ol>
@@ -119,74 +191,133 @@ const articlesData = posts.map((post, index) => {
 
       <!-- Status Badge -->
       <div class="flex justify-center mb-6">
-        <div class={`inline-flex items-center gap-2 px-4 py-2 text-white text-sm font-semibold rounded-full backdrop-blur-sm border-2 ${
-          isSeriesComplete 
-            ? 'bg-green-500/20 border-green-300' 
-            : 'bg-yellow-500/20 border-yellow-300'
-        }`}>
-          {isSeriesComplete ? (
-            <>
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-              </svg>
-              <span>COMPLETED SERIES</span>
-            </>
-          ) : (
-            <>
-              <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-              <span>ONGOING SERIES</span>
-            </>
-          )}
+        <div
+          class={`inline-flex items-center gap-2 px-4 py-2 text-white text-sm font-semibold rounded-full backdrop-blur-sm border-2 ${
+            isSeriesComplete
+              ? "bg-green-500/20 border-green-300"
+              : "bg-yellow-500/20 border-yellow-300"
+          }`}
+        >
+          {
+            isSeriesComplete ? (
+              <>
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fill-rule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <span>COMPLETED SERIES</span>
+              </>
+            ) : (
+              <>
+                <div class="w-2 h-2 bg-white rounded-full animate-pulse" />
+                <span>ONGOING SERIES</span>
+              </>
+            )
+          }
         </div>
       </div>
-      
+
       <!-- Title -->
-      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-white text-center mb-6">
+      <h1
+        class="text-4xl sm:text-5xl lg:text-6xl font-bold text-white text-center mb-6"
+      >
         {seriesName}
       </h1>
-      
+
       <!-- Description -->
-      <p class="text-xl sm:text-2xl text-white/90 text-center max-w-4xl mx-auto mb-8 leading-relaxed">
-        {series_details?.Description || "Explore this comprehensive series covering essential topics with in-depth articles and practical insights."}
+      <p
+        class="text-xl sm:text-2xl text-white/90 text-center max-w-4xl mx-auto mb-8 leading-relaxed"
+      >
+        {
+          seriesDescription ||
+            "Explore this comprehensive series covering essential topics with in-depth articles and practical insights."
+        }
       </p>
-      
+
       <!-- Stats -->
-      <div class="flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-white/90">
-        <div class="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+      <div
+        class="flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-white/90"
+      >
+        <div
+          class="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+            ></path>
           </svg>
-          <span class="font-semibold">{publishedArticlesCount} / {totalArticleValue === "Inf" ? "∞" : totalArticleValue} Articles</span>
+          <span class="font-semibold"
+            >{publishedArticlesCount} / {isInfiniteSeries ? "∞" : totalArticles} Articles</span
+          >
         </div>
-        <div class="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        <div
+          class="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
-          <span class="font-semibold">~{posts.length * 8} min total</span>
+          <span class="font-semibold">~{articles.length * 8} min total</span>
         </div>
-        <div class="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        <div
+          class="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 10V3L4 14h7v7l9-11h-7z"></path>
           </svg>
-          <span class="font-semibold">{series_details?.Level || "All Levels"}</span>
+          <span class="font-semibold"
+            >{startLevel.charAt(0).toUpperCase() + startLevel.slice(1)} to {
+              endLevel.charAt(0).toUpperCase() + endLevel.slice(1)
+            }</span
+          >
         </div>
       </div>
 
       <!-- Progress Bar -->
-      {totalArticleValue !== "Inf" && (
-        <div class="mt-8 max-w-2xl mx-auto">
-          <div class="flex items-center justify-between mb-2 text-white/90 text-sm">
-            <span class="font-medium">Series Progress</span>
-            <span class="font-bold">{Math.round(progressPercentage)}%</span>
+      {
+        plannedArticlesCount > 0 && (
+          <div class="mt-8 max-w-2xl mx-auto">
+            <div class="flex items-center justify-between mb-2 text-white/90 text-sm">
+              <span class="font-medium">Series Progress</span>
+              <span class="font-bold">{Math.round(progressPercentage)}%</span>
+            </div>
+            <div class="w-full bg-white/20 backdrop-blur-sm rounded-full h-3 border border-white/30">
+              <div
+                class="bg-gradient-to-r from-green-400 to-emerald-400 h-full rounded-full transition-all duration-500 shadow-lg"
+                style={`width: ${progressPercentage}%`}
+              />
+            </div>
           </div>
-          <div class="w-full bg-white/20 backdrop-blur-sm rounded-full h-3 border border-white/30">
-            <div 
-              class="bg-gradient-to-r from-green-400 to-emerald-400 h-full rounded-full transition-all duration-500 shadow-lg"
-              style={`width: ${progressPercentage}%`}
-            ></div>
-          </div>
-        </div>
-      )}
+        )
+      }
     </div>
   </section>
 
@@ -205,148 +336,218 @@ const articlesData = posts.map((post, index) => {
 
       <!-- Articles Grid -->
       <div class="space-y-6">
-        {articlesData.map((article, idx) => (
-          <article class={`group relative overflow-hidden rounded-2xl border-2 transition-all duration-300 ${
-            article.isCurrent 
-              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-xl scale-[1.02]' 
-              : article.isPublished 
-                ? 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-purple-300 dark:hover:border-purple-600 hover:shadow-xl hover:-translate-y-1' 
-                : 'border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 opacity-70'
-          }`}>
-            
-            {/* Gradient Accent */}
-            {article.isPublished && (
-              <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-purple-500 via-pink-500 to-blue-500"></div>
-            )}
+        {
+          articlesData.map((article, idx) => (
+            <article
+              class={`group relative overflow-hidden rounded-2xl border-2 transition-all duration-300 ${
+                article.isCurrent
+                  ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-xl scale-[1.02]"
+                  : article.isPublished
+                    ? "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-purple-300 dark:hover:border-purple-600 hover:shadow-xl hover:-translate-y-1"
+                    : "border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 opacity-70"
+              }`}
+            >
+              {/* Gradient Accent */}
+              {article.isPublished && (
+                <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-purple-500 via-pink-500 to-blue-500" />
+              )}
 
-            <div class="flex items-start gap-6 p-6">
-              {/* Number Badge */}
-              <div class={`flex-shrink-0 w-14 h-14 rounded-xl flex items-center justify-center text-xl font-bold shadow-lg ${
-                article.isCurrent 
-                  ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white' 
-                  : article.isPublished 
-                    ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white' 
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
-              }`}>
-                {idx + 1}
-              </div>
-
-              {/* Content */}
-              <div class="flex-1 min-w-0">
-                {/* Status Badges */}
-                <div class="flex items-center gap-2 mb-3">
-                  {!article.isPublished && (
-                    <span class="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 text-xs font-semibold rounded-full">
-                      Coming Soon
-                    </span>
-                  )}
-                  {article.isCurrent && (
-                    <span class="px-3 py-1 bg-blue-500 text-white text-xs font-semibold rounded-full">
-                      📖 Currently Reading
-                    </span>
-                  )}
-                  {article.isPublished && !article.isCurrent && (
-                    <span class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-xs font-semibold rounded-full flex items-center gap-1">
-                      <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                      </svg>
-                      Published
-                    </span>
-                  )}
+              <div class="flex items-start gap-6 p-6">
+                {/* Number Badge */}
+                <div
+                  class={`flex-shrink-0 w-14 h-14 rounded-xl flex items-center justify-center text-xl font-bold shadow-lg ${
+                    article.isCurrent
+                      ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white"
+                      : article.isPublished
+                        ? "bg-gradient-to-br from-purple-500 to-pink-500 text-white"
+                        : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
+                  }`}
+                >
+                  {idx + 1}
                 </div>
 
-                {/* Title */}
-                <h3 class={`text-xl sm:text-2xl font-bold mb-3 ${
-                  article.isPublished 
-                    ? 'text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400' 
-                    : 'text-gray-500 dark:text-gray-400'
-                } transition-colors`}>
-                  {article.data.title}
-                </h3>
-                
-                {/* Description */}
-                <p class={`text-sm sm:text-base mb-4 line-clamp-2 ${
-                  article.isPublished ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'
-                }`}>
-                  {article.data.description}
-                </p>
-                
-                {/* Meta Info */}
-                <div class="flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mb-4">
-                  <span class="flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    {article.data.readingTime || '8 min read'}
-                  </span>
-                  <span>•</span>
-                  <span>{new Date(article.data.date).toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'short', 
-                    day: 'numeric' 
-                  })}</span>
-                  {article.data.tags && article.data.tags.length > 0 && (
-                    <>
-                      <span>•</span>
-                      <div class="flex gap-2">
-                        {article.data.tags.slice(0, 2).map((tag) => (
-                          <span class="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded text-xs font-medium">
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
+                {/* Content */}
+                <div class="flex-1 min-w-0">
+                  {/* Status Badges */}
+                  <div class="flex items-center gap-2 mb-3">
+                    {!article.isPublished && (
+                      <span class="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 text-xs font-semibold rounded-full">
+                        Coming Soon
+                      </span>
+                    )}
+                    {article.isCurrent && (
+                      <span class="px-3 py-1 bg-blue-500 text-white text-xs font-semibold rounded-full">
+                        📖 Currently Reading
+                      </span>
+                    )}
+                    {article.isPublished && !article.isCurrent && (
+                      <span class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-xs font-semibold rounded-full flex items-center gap-1">
+                        <svg
+                          class="w-3 h-3"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fill-rule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clip-rule="evenodd"
+                          />
+                        </svg>
+                        Published
+                      </span>
+                    )}
+                  </div>
 
-                {/* Action Button */}
-                {article.isPublished ? (
-                  <a 
-                    href={`/blog/${article.slug}`}
-                    class={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
-                      article.isCurrent 
-                        ? 'bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl' 
-                        : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl hover:scale-105'
+                  {/* Title */}
+                  <h3
+                    class={`text-xl sm:text-2xl font-bold mb-3 ${
+                      article.isPublished
+                        ? "text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400"
+                        : "text-gray-500 dark:text-gray-400"
+                    } transition-colors`}
+                  >
+                    {article.title}
+                  </h3>
+
+                  {/* Description */}
+                  <p
+                    class={`text-sm sm:text-base mb-4 line-clamp-2 ${
+                      article.isPublished
+                        ? "text-gray-600 dark:text-gray-300"
+                        : "text-gray-400 dark:text-gray-500"
                     }`}
                   >
-                    {article.isCurrent ? 'Continue Reading' : 'Read Article'}
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-                    </svg>
-                  </a>
-                ) : (
-                  <div class="inline-flex items-center gap-2 px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 rounded-xl cursor-not-allowed">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                    </svg>
-                    Coming Soon
+                    {article.description}
+                  </p>
+
+                  {/* Meta Info */}
+                  <div class="flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mb-4">
+                    <span class="flex items-center gap-1">
+                      <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      {article.reading_time
+                        ? `${article.reading_time} min read`
+                        : "8 min read"}
+                    </span>
+                    <span>•</span>
+                    <span>
+                      {article.created_at
+                        ? new Date(article.created_at).toLocaleDateString(
+                            "en-US",
+                            {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            },
+                          )
+                        : ""}
+                    </span>
+                    {article.tags && article.tags.length > 0 && (
+                      <>
+                        <span>•</span>
+                        <div class="flex gap-2">
+                          {article.tags.slice(0, 2).map((tag) => (
+                            <span class="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded text-xs font-medium">
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </div>
-                )}
+
+                  {/* Action Button */}
+                  {article.isPublished ? (
+                    <a
+                      href={`/blog/${article.slug}`}
+                      class={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                        article.isCurrent
+                          ? "bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl"
+                          : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl hover:scale-105"
+                      }`}
+                    >
+                      {article.isCurrent ? "Continue Reading" : "Read Article"}
+                      <svg
+                        class="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M17 8l4 4m0 0l-4 4m4-4H3"
+                        />
+                      </svg>
+                    </a>
+                  ) : (
+                    <div class="inline-flex items-center gap-2 px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 rounded-xl cursor-not-allowed">
+                      <svg
+                        class="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                        />
+                      </svg>
+                      Coming Soon
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          </article>
-        ))}
+            </article>
+          ))
+        }
       </div>
 
       <!-- CTA Section -->
-      <div class="mt-16 text-center p-8 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-2xl border border-purple-200 dark:border-purple-800">
+      <div
+        class="mt-16 text-center p-8 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-2xl border border-purple-200 dark:border-purple-800"
+      >
         <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
           Ready to Start Learning?
         </h3>
         <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-2xl mx-auto">
-          Begin your journey with the first article and work your way through the series at your own pace.
+          Begin your journey with the first article and work your way through
+          the series at your own pace.
         </p>
         <div class="flex flex-wrap gap-4 justify-center">
-          <a 
-            href={`/blog/${posts[0].slug}`}
+          <a
+            href={`/blog/${articles[0]?.slug || "#"}`}
             class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
           >
             <span>Start from Beginning</span>
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
             </svg>
           </a>
-          <a 
+          <a
             href="/series"
             class="inline-flex items-center gap-2 px-8 py-4 border-2 border-purple-600 dark:border-purple-500 text-purple-600 dark:text-purple-400 font-semibold rounded-xl hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-300"
           >

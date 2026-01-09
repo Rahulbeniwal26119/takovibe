@@ -484,7 +484,7 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
     const getContainerStyles = () => {
         const baseStyles = "bg-white dark:bg-gray-900 transition-none duration-0 ease-linear flex flex-col overflow-visible";
         switch (viewMode) {
-            case 'maximize': return `${baseStyles} fixed inset-0 z-[10000] h-full`;
+            case 'maximize': return `${baseStyles} fixed inset-x-0 bottom-0 h-[92vh] lg:h-full lg:inset-0 z-[10000] rounded-t-3xl lg:rounded-none shadow-2xl lg:shadow-none border-t lg:border-none border-gray-200 dark:border-gray-800`;
             // In split mode, Excalidraw is on the right, taking up the remaining space
             case 'split': return `${baseStyles} fixed top-0 bottom-0 right-0 z-[10000] shadow-2xl border-l border-gray-200 dark:border-gray-800`;
             default: return `${baseStyles} fixed top-[64px] bottom-0 right-0 w-0 z-[40] pointer-events-none opacity-0`;
