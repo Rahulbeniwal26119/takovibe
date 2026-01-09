@@ -40,10 +40,13 @@ if (postsToShow.length < limit) {
 
 {
   postsToShow.length > 0 && (
-    <section class="mt-16">
-      <h2 class="text-3xl font-bold mb-8 text-gray-900 dark:text-white">
-        Related Articles
-      </h2>
+    <section class="mt-24 mb-16">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl sm:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 mb-4 inline-block">
+          Related Articles
+        </h2>
+        <div class="h-1 w-24 mx-auto bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full opacity-50" />
+      </div>
       <div class="grid md:grid-cols-3 gap-8">
         {postsToShow.map((post) => (
           <PostPreview post={post} />
@@ -52,4 +55,3 @@ if (postsToShow.length < limit) {
     </section>
   )
 }
-

@@ -15,14 +15,10 @@ if (!slug) {
     title="Edit Story - TakoVibe"
     description="Edit your story."
     no_footer={true}
+    no_header={true}
 >
-    <div
-        id="editor-container"
-        class="min-h-screen bg-gray-50 dark:bg-slate-950 pt-20 pb-12"
-    >
-        <div class="max-w-[1200px] mx-auto px-4">
-            <EditPostLoader client:load slug={slug} />
-        </div>
+    <div id="editor-container" class="min-h-screen w-full">
+        <EditPostLoader client:load slug={slug} />
     </div>
 </Layout>
 

@@ -57,12 +57,12 @@ try {
     // We will keep a fallback fetch just in case logic changes to SSR later.
     const apiUrl = `${API_BASE}/api/blogs/blogs/?slug=${slug}&include_content=true`;
     const response = await fetch(apiUrl);
-    console.log(response);
+
     if (response.ok) {
       const result = await response.json();
       // Assuming filtered list returns array
       const posts = Array.isArray(result) ? result : result.results || [];
-      apiData = posts.find((p) => p.slug === slug);
+      apiData = posts.find((p: any) => p.slug === slug);
     }
   }
 

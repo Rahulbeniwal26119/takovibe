@@ -13,7 +13,8 @@ import node from '@astrojs/node';
 // Function to fetch blog posts for sitemap
 async function fetchBlogPosts() {
   try {
-    const API_URL = process.env.PUBLIC_API_URL || 'https://takovibe.com';
+    const API_URL = process.env.PUBLIC_API_URL || 'https://backend.takovibe.com';
+    console.log(`${API_URL}/api/blogs/blogs/`)
     const response = await fetch(`${API_URL}/api/blogs/blogs/`);
     if (!response.ok) {
       console.warn(`[Sitemap] Failed to fetch posts: ${response.statusText}`);
@@ -22,7 +23,7 @@ async function fetchBlogPosts() {
     const posts = await response.json();
 
     // Generate URLs with trailing slash to match Astro defaults
-    const urls = posts.map(post => `https://takovibe.com/blog/${post.slug}/`);
+    const urls = posts.map(post => `https://backend.takovibe.com/blog/${post.slug}/`);
     // Map URL -> updated_at
     const data = new Map(posts.map(post => [
       `https://takovibe.com/blog/${post.slug}/`,
@@ -42,6 +43,7 @@ const { urls: blogUrls, data: blogData } = await fetchBlogPosts();
 
 export default defineConfig({
   site: 'https://takovibe.com',
+  trailingSlash: 'ignore',
   // Enable hybrid mode for API endpoints while keeping static pages
   output: 'hybrid',
   adapter: node(

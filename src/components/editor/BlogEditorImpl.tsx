@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useRef, useLayoutEffect } from 'react';
 import { useEditor, EditorContent, BubbleMenu, FloatingMenu, ReactNodeViewRenderer } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Table from '@tiptap/extension-table';
@@ -18,6 +18,7 @@ import CodeBlockComponent from './CodeBlockComponent';
 import ImageNodeView from './ImageNodeView';
 import { fetchWithAuth } from '../../utils/api';
 import { SEOPreview } from './SEOPreview';
+import UserAuth from '../UserAuth';
 
 import '../../styles/editor.css';
 import {
@@ -104,7 +105,6 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
     const [tableDims, setTableDims] = useState({ rows: 3, cols: 3 });
     const [mediaInput, setMediaInput] = useState<{ type: 'image' | 'video' | 'link' | null; url: string }>({ type: null, url: '' });
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [isZenMode, setIsZenMode] = useState(false);
     const [canPublish, setCanPublish] = useState(false);
     const [isPublishing, setIsPublishing] = useState(false);
     const [showSeoPreview, setShowSeoPreview] = useState(false);
@@ -115,26 +115,34 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
     const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
 
-    const [showSettings, setShowSettings] = useState(true);
+    const [showSettings, setShowSettings] = useState(false);
     const [showShortcuts, setShowShortcuts] = useState(false);
     const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
     const titleRef = useRef<HTMLTextAreaElement>(null);
     const descriptionRef = useRef<HTMLTextAreaElement>(null);
 
-    // Auto-resize textareas
-    useEffect(() => {
+    // Auto-resize textareas (Robust: handles content change + window resize)
+    const adjustTextareaHeight = useCallback(() => {
         if (titleRef.current) {
             titleRef.current.style.height = 'auto';
             titleRef.current.style.height = `${titleRef.current.scrollHeight}px`;
         }
-    }, [frontmatter.title]);
-
-    useEffect(() => {
         if (descriptionRef.current) {
             descriptionRef.current.style.height = 'auto';
             descriptionRef.current.style.height = `${descriptionRef.current.scrollHeight}px`;
         }
-    }, [frontmatter.description]);
+    }, [frontmatter.title, frontmatter.description]);
+
+    // Adjust on content change
+    useLayoutEffect(() => {
+        adjustTextareaHeight();
+    }, [adjustTextareaHeight]);
+
+    // Adjust on window resize (fixes mobile rotation/screen size changes)
+    useEffect(() => {
+        window.addEventListener('resize', adjustTextareaHeight);
+        return () => window.removeEventListener('resize', adjustTextareaHeight);
+    }, [adjustTextareaHeight]);
 
     useEffect(() => {
         if (initialContent?.frontmatter) {
@@ -317,7 +325,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
         editorProps: {
             attributes: {
                 class:
-                    `prose prose-lg max-w-3xl mx-auto focus:outline-none h-full px-6 pb-4 dark:prose-invert light-mode-editor transition-all duration-500 ease-in-out`,
+                    `prose prose-lg max-w-4xl mx-auto focus:outline-none h-full px-6 pb-4 dark:prose-invert light-mode-editor transition-all duration-500 ease-in-out`,
                 'data-gramm': 'false',
             },
             handleDrop: (view, event, slice, moved) => {
@@ -367,18 +375,12 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
         };
     }, [editor]);
 
-    // Update editor width when Zen Mode toggles
+    // Mobile optimization: Focus handling
     useEffect(() => {
-        if (!editor) return;
-        const editorDom = editor.view.dom;
-
-        if (isZenMode) {
-            editorDom.classList.replace('max-w-3xl', 'max-w-5xl');
-            setShowSettings(false); // Auto-focus by closing settings
-        } else {
-            editorDom.classList.replace('max-w-5xl', 'max-w-3xl');
+        if (editor && titleRef.current) {
+            // Optional: simpler mobile-specific logic if needed
         }
-    }, [isZenMode, editor]);
+    }, [editor]);
 
     // Fetch User Details for Author Name
     useEffect(() => {
@@ -479,9 +481,20 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
     const handlePublish = async () => {
         if (!editor) return;
 
-        // Validate before publishing
-        if (!validateFrontmatter()) {
-            setSaveError("Please fill in all required fields before publishing");
+        // 1. Basic Content Validation
+        if (!frontmatter.title.trim() || !frontmatter.description.trim()) {
+            setSaveError("Please add a title and description.");
+            setTimeout(() => setSaveError(null), 3000);
+            return;
+        }
+
+        // 2. Meta Fields Validation (Tags, Slug, Image)
+        // If these are missing, we open the settings modal to let the user fill them in
+        if (!frontmatter.slug.trim() || !frontmatter.tags.trim() || !frontmatter.image.trim()) {
+            setShowSettings(true);
+            setSaveError("Please complete story details to publish.");
+            // Highlight missing fields logic could go here if we want to be fancy, 
+            // but opening the modal is a good first step.
             return;
         }
 
@@ -514,15 +527,14 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                 const originalContent = saveStatus.innerHTML;
                 saveStatus.innerHTML = `
                     <svg class="w-4 h-4 text-emerald-500" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                    <span class="text-emerald-500">Published Successfully!</span>
+                    <span class="text-emerald-500">Published!</span>
                 `;
                 saveStatus.classList.add('bg-emerald-50', 'dark:bg-emerald-900/20');
 
+                // Redirect to the blog post after a short delay
                 setTimeout(() => {
-                    saveStatus.innerHTML = originalContent;
-                    saveStatus.classList.remove('bg-emerald-50', 'dark:bg-emerald-900/20');
-                    setLastSaved(new Date());
-                }, 3000);
+                    window.location.href = `/blog/${frontmatter.slug}`;
+                }, 1500);
             }
 
         } catch (error: any) {
@@ -693,146 +705,122 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
             {/* Main Content Container */}
             <div className="w-full min-h-screen bg-white dark:bg-black transition-colors duration-500">
 
-                {/* Decorative Background Elements */}
-                {/* Decorative Background Elements - Fade out in Zen Mode */}
-                <div className={`absolute inset-0 overflow-hidden pointer-events-none transition-opacity duration-1000 ${isZenMode ? 'opacity-0' : 'opacity-100'}`}>
+                {/* Decorative Background Elements - OFF for clean look */}
+                {/* <div className={`absolute inset-0 overflow-hidden pointer-events-none transition-opacity duration-1000 ${isZenMode ? 'opacity-0' : 'opacity-100'}`}>
                     <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full blur-3xl opacity-20 bg-purple-400 dark:bg-purple-600" />
                     <div className="absolute top-[10%] -right-[10%] w-[40%] h-[40%] rounded-full blur-3xl opacity-20 bg-blue-400 dark:bg-blue-600" />
-                </div>
+                </div> */}
 
 
 
                 {/* Save Status Bar & Toolbar */}
-                {/* Save Status Bar & Toolbar - Dim in Zen Mode */}
-                <div className={`sticky top-0 z-40 flex items-center justify-between px-6 py-4 transition-all duration-500
-                    ${isZenMode
-                        ? 'bg-white/50 dark:bg-black/50 backdrop-blur-sm opacity-30 hover:opacity-100 border-transparent shadow-none'
-                        : 'backdrop-blur-xl border-b bg-white/80 dark:bg-slate-900/70 border-slate-200/50 dark:border-white/10 opacity-100'
-                    }`}>
+                <div className="sticky top-0 z-40 transition-all duration-500 backdrop-blur-xl border-b bg-white/80 dark:bg-slate-900/70 border-slate-200/50 dark:border-white/10 opacity-100">
+                    <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
 
-                    {/* Left: Status Indicators */}
-                    <div id="save-status" className="flex items-center gap-3 text-sm font-medium px-4 py-2 rounded-full transition-all duration-300 bg-slate-100/50 dark:bg-white/5 text-slate-600 dark:text-gray-300 hidden sm:flex">
-                        {isSaving ? (
-                            <>
-                                <Loader2 className="w-4 h-4 animate-spin text-purple-500" />
-                                <span className="text-purple-500">Saving...</span>
-                            </>
-                        ) : saveError ? (
-                            <>
-                                <AlertCircle className="w-4 h-4 text-red-500" />
-                                <span className="text-red-500">{saveError}</span>
-                            </>
-                        ) : hasUnsavedChanges ? (
-                            <>
-                                <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                                <span className="text-amber-500">Unsaved changes</span>
-                            </>
-                        ) : lastSaved ? (
-                            <>
-                                <Cloud className="w-4 h-4 text-emerald-500" />
-                                <span className="text-emerald-500">Saved</span>
-                            </>
-                        ) : (
-                            <span className="text-gray-400">Ready to write</span>
-                        )}
-                    </div>
-
-                    {/* Right: Actions */}
-                    <div className="flex items-center gap-3">
-                        {/* Zen Mode Toggle */}
-                        <button
-                            onClick={() => {
-                                setIsZenMode(!isZenMode);
-                                document.body.classList.toggle('zen-mode');
-                            }}
-                            className={`hidden sm:block p-2.5 rounded-xl transition-all duration-300 ${isZenMode
-                                ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400'
-                                : 'text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:text-gray-400 dark:hover:text-purple-400 dark:hover:bg-purple-900/20'
-                                }`}
-                            title="Toggle Zen Mode"
-                        >
-                            {isZenMode ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
-                        </button>
-
-                        {/* Shortcuts Toggle */}
-                        <button
-                            onClick={() => setShowShortcuts(true)}
-                            className="hidden sm:block p-2.5 rounded-xl text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:text-gray-400 dark:hover:text-purple-400 dark:hover:bg-purple-900/20 transition-all duration-300"
-                            title="Keyboard Shortcuts"
-                        >
-                            <Keyboard className="w-5 h-5" />
-                        </button>
-
-                        {/* Settings Button */}
-                        <button
-                            onClick={() => setShowSettings(!showSettings)}
-                            className="p-2.5 rounded-xl text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:text-gray-400 dark:hover:text-purple-400 dark:hover:bg-purple-900/20 transition-all duration-300"
-                            title="Story Settings"
-                        >
-                            <Settings className="w-5 h-5" />
-                        </button>
-
-                        {/* View Button */}
-                        {frontmatter.slug && (
-                            <a
-                                href={`/blog/${frontmatter.slug}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:text-gray-400 dark:hover:text-purple-400 dark:hover:bg-purple-900/20 transition-all duration-300"
-                                title="View Live Page"
-                            >
-                                <Eye className="w-5 h-5" />
-                                <span className="hidden sm:inline">View</span>
+                        {/* Left: Logo & Status */}
+                        <div className="flex items-center gap-4">
+                            <a href="/" className="flex items-center gap-2 group" title="Go to Dashboard">
+                                <img src="/images/logo.svg" alt="TakoVibe" className="w-8 h-8 rounded-full hover:rotate-12 transition-transform duration-300" />
                             </a>
-                        )}
+                            <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 hidden sm:block"></div>
 
-                        {/* Publish Button (Admins only) */}
-
-
-                        {/* Publish Button (Admins only) */}
-                        {canPublish && (
-                            <button
-                                onClick={handlePublish}
-                                disabled={isPublishing}
-                                className="px-4 py-1.5 rounded-full text-sm font-medium bg-green-600 hover:bg-green-700 text-white transition-all shadow-sm hover:shadow hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                                title="Ready to Publish?"
-                            >
-                                {isPublishing ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
+                            <div id="save-status" className="flex items-center gap-2 text-sm font-medium transition-all duration-300 text-gray-400 dark:text-gray-500">
+                                {isSaving ? (
+                                    <>
+                                        <Loader2 className="w-3 h-3 animate-spin text-purple-500" />
+                                        <span className="text-purple-500 text-xs">Saving...</span>
+                                    </>
+                                ) : saveError ? (
+                                    <>
+                                        <AlertCircle className="w-3 h-3 text-red-500" />
+                                        <span className="text-red-500 text-xs">{saveError}</span>
+                                    </>
+                                ) : hasUnsavedChanges ? (
+                                    <>
+                                        <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                                        <span className="text-amber-500 text-xs">Unsaved changes</span>
+                                    </>
                                 ) : (
-                                    <Send className="w-4 h-4" />
+                                    <span className="text-gray-500 dark:text-gray-400 text-sm">
+                                        {lastSaved ? 'Saved' : 'Ready to write'}
+                                    </span>
                                 )}
-                                <span>{isPublishing ? 'Publishing...' : 'Publish'}</span>
-                            </button>
-                        )}
+                            </div>
+                        </div>
 
-                        {/* Save Button */}
-                        <button
-                            onClick={handleSave}
-                            disabled={isSaving || !hasUnsavedChanges}
-                            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${hasUnsavedChanges
-                                ? 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                                : 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
-                                }`}
-                        >
-                            <Save className={`w-4 h-4 ${isSaving ? 'animate-pulse' : ''}`} />
-                            <span className="hidden sm:inline">{isSaving ? 'Saving...' : 'Saved'}</span>
-                        </button>
+                        {/* Right: Actions */}
+                        <div className="flex items-center gap-2 md:gap-3">
+
+                            {/* Shortcuts Toggle - Desktop Only */}
+                            <button
+                                onClick={() => setShowShortcuts(true)}
+                                className="hidden md:block p-2 md:p-2.5 rounded-xl text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:text-gray-400 dark:hover:text-purple-400 dark:hover:bg-purple-900/20 transition-all duration-300"
+                                title="Keyboard Shortcuts"
+                            >
+                                <Keyboard className="w-5 h-5" />
+                            </button>
+
+                            {/* Settings Button */}
+                            <button
+                                onClick={() => setShowSettings(!showSettings)}
+                                className="p-2 md:p-2.5 rounded-xl text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:text-gray-400 dark:hover:text-purple-400 dark:hover:bg-purple-900/20 transition-all duration-300"
+                                title="Story Settings"
+                            >
+                                <Settings className="w-5 h-5" />
+                            </button>
+
+                            {/* View Button */}
+                            {frontmatter.slug && (
+                                <a
+                                    href={`/blog/${frontmatter.slug}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="hidden sm:flex items-center gap-2 px-3 py-2 md:px-4 md:py-2.5 rounded-xl font-medium text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:text-gray-400 dark:hover:text-purple-400 dark:hover:bg-purple-900/20 transition-all duration-300"
+                                    title="View Live Page"
+                                >
+                                    <Eye className="w-5 h-5" />
+                                    <span className="hidden lg:inline">View</span>
+                                </a>
+                            )}
+
+                            {/* Publish Button (Admins only) */}
+                            {canPublish && (
+                                <button
+                                    onClick={handlePublish}
+                                    disabled={isPublishing}
+                                    className="px-3 py-1.5 md:px-4 md:py-1.5 rounded-full text-sm font-medium bg-green-600 hover:bg-green-700 text-white transition-all shadow-sm hover:shadow hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                    title="Ready to Publish?"
+                                >
+                                    {isPublishing ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <Send className="w-4 h-4" />
+                                    )}
+                                    <span className="hidden sm:inline">{isPublishing ? 'Publishing...' : 'Publish'}</span>
+                                </button>
+                            )}
+
+                            {/* User Profile */}
+                            <div className="pl-2 ml-1 border-l border-gray-200 dark:border-gray-700">
+                                <UserAuth />
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 {/* Scrollable Content Area */}
                 <div className="flex-1 overflow-y-auto w-full">
                     {/* Clean Title Input (Medium Style) */}
-                    <div className={`${isZenMode ? 'max-w-5xl' : 'max-w-3xl'} mx-auto w-full px-6 pt-8 pb-6 transition-all duration-500 ease-in-out`}>
+                    <div className="max-w-4xl mx-auto w-full px-4 md:px-6 pt-8 pb-2 transition-all duration-500 ease-in-out">
                         <textarea
                             ref={titleRef}
                             value={frontmatter.title}
                             onChange={(e) => {
                                 setFrontmatter({ ...frontmatter, title: e.target.value });
+                                setHasUnsavedChanges(true);
                                 if (validationErrors.includes('title')) setValidationErrors(prev => prev.filter(f => f !== 'title'));
                             }}
-                            className="w-full text-4xl md:text-5xl font-serif font-bold bg-transparent border-none outline-none p-0 placeholder:text-gray-300 dark:placeholder:text-gray-600 text-gray-900 dark:text-white transition-all leading-tight mb-4 resize-none overflow-hidden"
+                            className="w-full text-4xl md:text-5xl font-serif font-bold bg-transparent border-none outline-none p-0 placeholder:text-gray-300 dark:placeholder:text-gray-600 text-gray-900 dark:text-white transition-all leading-tight mb-2 resize-none overflow-hidden"
                             placeholder="Title"
                             rows={1}
                         />
@@ -842,130 +830,13 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                             value={frontmatter.description}
                             onChange={(e) => {
                                 setFrontmatter({ ...frontmatter, description: e.target.value });
+                                setHasUnsavedChanges(true);
                                 if (validationErrors.includes('description')) setValidationErrors(prev => prev.filter(f => f !== 'description'));
                             }}
-                            className="w-full text-xl bg-transparent border-none outline-none resize-none p-0 placeholder:text-gray-400 dark:placeholder:text-gray-600 text-gray-600 dark:text-gray-300 transition-all font-serif mb-8 resize-none overflow-hidden"
+                            className="w-full text-xl bg-transparent border-none outline-none resize-none p-0 placeholder:text-gray-400 dark:placeholder:text-gray-600 text-gray-600 dark:text-gray-300 transition-all font-serif mb-4 resize-none overflow-hidden"
                             placeholder="Tell your story..."
                             rows={1}
                         />
-
-                        {/* Collapsible Story Settings (Restored Original Options) */}
-                        <div className="border-b border-gray-100 dark:border-gray-800 mb-8 pb-8">
-                            <button
-                                onClick={() => setShowSettings(!showSettings)}
-                                className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-gray-300 transition-colors mb-4"
-                            >
-                                <Settings className="w-4 h-4" />
-                                <span>Story Settings</span>
-                                <ArrowDown className={`w-4 h-4 transition-transform duration-200 ${showSettings ? 'rotate-180' : ''}`} />
-                            </button>
-
-                            {showSettings && (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2">
-                                    {/* Cover Image */}
-                                    <div className="md:col-span-2 space-y-2">
-                                        <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Cover Image</label>
-                                        <div className="flex gap-4">
-                                            <input
-                                                type="text"
-                                                value={frontmatter.image}
-                                                onChange={(e) => setFrontmatter({ ...frontmatter, image: e.target.value })}
-                                                className="flex-1 bg-transparent border-b border-gray-200 dark:border-gray-700 py-1 text-sm focus:border-purple-500 outline-none transition-colors"
-                                                placeholder="https://..."
-                                            />
-                                            {frontmatter.image && (
-                                                <div className="w-16 h-10 rounded overflow-hidden bg-gray-100">
-                                                    <img src={frontmatter.image} alt="Preview" className="w-full h-full object-cover" />
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Author & Slug */}
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Author</label>
-                                        <input
-                                            type="text"
-                                            value={frontmatter.author}
-                                            readOnly
-                                            className="w-full bg-transparent border-b border-gray-200 dark:border-gray-700 py-1 text-sm text-gray-500 cursor-not-allowed"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Slug</label>
-                                        <input
-                                            type="text"
-                                            value={frontmatter.slug}
-                                            onChange={(e) => setFrontmatter({ ...frontmatter, slug: e.target.value })}
-                                            className="w-full bg-transparent border-b border-gray-200 dark:border-gray-700 py-1 text-sm focus:border-purple-500 outline-none transition-colors"
-                                            placeholder="post-url-slug"
-                                        />
-                                    </div>
-
-                                    {/* Date & Tags */}
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Publish Date</label>
-                                        <input
-                                            type="date"
-                                            value={frontmatter.date}
-                                            onChange={(e) => setFrontmatter({ ...frontmatter, date: e.target.value })}
-                                            className="w-full bg-transparent border-b border-gray-200 dark:border-gray-700 py-1 text-sm focus:border-purple-500 outline-none transition-colors"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Tags</label>
-                                        <input
-                                            type="text"
-                                            value={frontmatter.tags}
-                                            onChange={(e) => setFrontmatter({ ...frontmatter, tags: e.target.value })}
-                                            className="w-full bg-transparent border-b border-gray-200 dark:border-gray-700 py-1 text-sm focus:border-purple-500 outline-none transition-colors"
-                                            placeholder="comma, separated, tags"
-                                        />
-                                    </div>
-
-                                    {/* Series */}
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Series</label>
-                                        <input
-                                            type="text"
-                                            value={frontmatter.series}
-                                            onChange={(e) => setFrontmatter({ ...frontmatter, series: e.target.value })}
-                                            className="w-full bg-transparent border-b border-gray-200 dark:border-gray-700 py-1 text-sm focus:border-purple-500 outline-none transition-colors"
-                                            placeholder="Optional series name"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Order</label>
-                                        <input
-                                            type="number"
-                                            value={frontmatter.seriesOrder}
-                                            onChange={(e) => setFrontmatter({ ...frontmatter, seriesOrder: parseInt(e.target.value) || 0 })}
-                                            className="w-full bg-transparent border-b border-gray-200 dark:border-gray-700 py-1 text-sm focus:border-purple-500 outline-none transition-colors"
-                                        />
-                                    </div>
-
-                                    {/* SEO Preview Toggle */}
-                                    <div className="md:col-span-2 mt-4">
-                                        <button
-                                            onClick={() => setShowSeoPreview(!showSeoPreview)}
-                                            className="text-xs font-bold uppercase tracking-wider text-purple-600 hover:text-purple-700 flex items-center gap-1"
-                                        >
-                                            {showSeoPreview ? 'Hide' : 'Show'} SEO Preview
-                                        </button>
-                                        {showSeoPreview && (
-                                            <div className="mt-4">
-                                                <SEOPreview
-                                                    title={frontmatter.title}
-                                                    description={frontmatter.description}
-                                                    slug={frontmatter.slug}
-                                                    image={frontmatter.image}
-                                                />
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
                     </div>
 
 
@@ -1349,7 +1220,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
 
 
                     {/* Inline Status Info - Inside text flow */}
-                    <div className={`${isZenMode ? 'max-w-5xl' : 'max-w-3xl'} mx-auto w-full px-6 py-4 flex items-center gap-4 text-xs font-medium text-gray-400 dark:text-gray-500 transition-all duration-500 ease-in-out border-t border-gray-100 dark:border-gray-800 mt-8`}>
+                    <div className="max-w-4xl mx-auto w-full px-4 md:px-6 py-4 flex items-center gap-4 text-xs font-medium text-gray-400 dark:text-gray-500 transition-all duration-500 ease-in-out border-t border-gray-100 dark:border-gray-800 mt-8">
                         {editor && (
                             <>
                                 <div className="flex items-center gap-1.5 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
@@ -1371,6 +1242,129 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
 
 
             </div >
+            {/* Settings Modal */}
+            {showSettings && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden outline-none max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800 sticky top-0 bg-white dark:bg-slate-900 z-10">
+                            <div className="flex items-center gap-2">
+                                <Settings className="w-5 h-5 text-purple-600" />
+                                <h3 className="font-bold text-gray-900 dark:text-white">Story Settings</h3>
+                            </div>
+                            <button
+                                onClick={() => setShowSettings(false)}
+                                className="p-1 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Cover Image */}
+                            <div className="md:col-span-2 space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Cover Image</label>
+                                <div className="flex gap-4">
+                                    <input
+                                        type="text"
+                                        value={frontmatter.image}
+                                        onChange={(e) => setFrontmatter({ ...frontmatter, image: e.target.value })}
+                                        className="flex-1 bg-transparent border-b border-gray-200 dark:border-gray-700 py-1 text-sm focus:border-purple-500 outline-none transition-colors dark:text-white"
+                                        placeholder="https://..."
+                                    />
+                                    {frontmatter.image && (
+                                        <div className="w-16 h-10 rounded overflow-hidden bg-gray-100">
+                                            <img src={frontmatter.image} alt="Preview" className="w-full h-full object-cover" />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Author & Slug */}
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Author</label>
+                                <input
+                                    type="text"
+                                    value={frontmatter.author}
+                                    readOnly
+                                    className="w-full bg-transparent border-b border-gray-200 dark:border-gray-700 py-1 text-sm text-gray-500 cursor-not-allowed"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Slug</label>
+                                <input
+                                    type="text"
+                                    value={frontmatter.slug}
+                                    onChange={(e) => setFrontmatter({ ...frontmatter, slug: e.target.value })}
+                                    className="w-full bg-transparent border-b border-gray-200 dark:border-gray-700 py-1 text-sm focus:border-purple-500 outline-none transition-colors dark:text-white"
+                                    placeholder="post-url-slug"
+                                />
+                            </div>
+
+                            {/* Date & Tags */}
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Publish Date</label>
+                                <input
+                                    type="date"
+                                    value={frontmatter.date}
+                                    onChange={(e) => setFrontmatter({ ...frontmatter, date: e.target.value })}
+                                    className="w-full bg-transparent border-b border-gray-200 dark:border-gray-700 py-1 text-sm focus:border-purple-500 outline-none transition-colors dark:text-white"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Tags</label>
+                                <input
+                                    type="text"
+                                    value={frontmatter.tags}
+                                    onChange={(e) => setFrontmatter({ ...frontmatter, tags: e.target.value })}
+                                    className="w-full bg-transparent border-b border-gray-200 dark:border-gray-700 py-1 text-sm focus:border-purple-500 outline-none transition-colors dark:text-white"
+                                    placeholder="comma, separated, tags"
+                                />
+                            </div>
+
+                            {/* Series */}
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Series</label>
+                                <input
+                                    type="text"
+                                    value={frontmatter.series}
+                                    onChange={(e) => setFrontmatter({ ...frontmatter, series: e.target.value })}
+                                    className="w-full bg-transparent border-b border-gray-200 dark:border-gray-700 py-1 text-sm focus:border-purple-500 outline-none transition-colors dark:text-white"
+                                    placeholder="Optional series name"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Order</label>
+                                <input
+                                    type="number"
+                                    value={frontmatter.seriesOrder}
+                                    onChange={(e) => setFrontmatter({ ...frontmatter, seriesOrder: parseInt(e.target.value) || 0 })}
+                                    className="w-full bg-transparent border-b border-gray-200 dark:border-gray-700 py-1 text-sm focus:border-purple-500 outline-none transition-colors dark:text-white"
+                                />
+                            </div>
+
+                            {/* SEO Preview Toggle */}
+                            <div className="md:col-span-2 mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+                                <button
+                                    onClick={() => setShowSeoPreview(!showSeoPreview)}
+                                    className="text-xs font-bold uppercase tracking-wider text-purple-600 hover:text-purple-700 flex items-center gap-1"
+                                >
+                                    {showSeoPreview ? 'Hide' : 'Show'} SEO Preview
+                                </button>
+                                {showSeoPreview && (
+                                    <div className="mt-4">
+                                        <SEOPreview
+                                            title={frontmatter.title}
+                                            description={frontmatter.description}
+                                            slug={frontmatter.slug}
+                                            image={frontmatter.image}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
             {/* Shortcuts Modal */}
             {showShortcuts && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">

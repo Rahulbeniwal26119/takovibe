@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Excalidraw, MainMenu, WelcomeScreen, getSceneVersion, convertToExcalidrawElements } from "@excalidraw/excalidraw";
 import { parseMermaidToExcalidraw } from "@excalidraw/mermaid-to-excalidraw";
 import "@excalidraw/excalidraw/index.css";
-import { X, PenTool, Lock, Unlock, Minimize2, Maximize2, LayoutTemplate, Monitor } from 'lucide-react';
+import { X, PenTool, Lock, Unlock, Minimize2, Maximize2, LayoutTemplate, Monitor, GripVertical } from 'lucide-react';
 import { fetchWithAuth } from '../utils/api';
 import { showToast } from '../utils/toast';
 import drwnioLib from '../data/libraries/drwnio.json';
@@ -48,6 +48,10 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const lastSavedVersionRef = useRef(0);
 
+    // Split View State
+    const [splitRatio, setSplitRatio] = useState(50); // Percentage
+    const isDraggingRef = useRef(false);
+
     // Helper for wrapping text
     const wrapperText = (text: string, maxChars: number) => {
         if (!text) return "";
@@ -83,13 +87,7 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
     useEffect(() => {
         const checkDrawing = async () => {
             const token = localStorage.getItem('access_token');
-            if (!token) {
-                // Component might be rendered but hidden, so we won't force redirect immediately unless it's open?
-                // But original logic forced redirect. We'll keep it safe.
-                // Ideally authentication is handled upstream or by the Modal now. 
-                // But let's keep this check for data fetching.
-                return;
-            }
+            if (!token) return;
 
             try {
                 const response = await fetchWithAuth(`${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/chat/user-drawings/my_drawings/?blog_slug=${articleSlug}`);
@@ -189,15 +187,9 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                 }
 
                 if (importedElements && Array.isArray(importedElements) && importedElements.length > 0) {
-                    // Normalize AI elements
-                    // If it came from Mermaid, it's already ExcalidrawElement[], but we might still want to ensure IDs
                     const normalized = importedElements.flatMap((el: any) => {
-                        // Ensure ID exists
                         if (!el.id) el.id = Math.random().toString(36).substr(2, 9);
-
-                        const ghostColor = "#e0e0e0"; // Light gray for visibility on dark canvas
-
-                        // 1. Handle Arrays
+                        const ghostColor = "#e0e0e0";
                         if (el.type === "arrow" && el.start && el.end) {
                             return [{
                                 ...el,
@@ -207,108 +199,59 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                                 points: [[0, 0], [el.end.x - el.start.x, el.end.y - el.start.y]]
                             }];
                         }
-
-                        // 2. Handle Shapes with Labels (Rectangle, Ellipse, Diamond)
-                        // Ensure label is a string to avoid "[object Object]" artifacts from library metadata
                         if ((el.type === "rectangle" || el.type === "ellipse" || el.type === "diamond") && typeof el.label === 'string') {
                             const textId = Math.random().toString(36).substr(2, 9);
-
-                            // Create Text Element
-                            // Note: We don't need exact centering here because Excalidraw's container logic handles layout
-                            // BUT for raw elements, explicit positioning helps.
                             const fontSize = 20;
-                            const textY = el.y + (el.height / 2) - 10; // Approximate center
-
+                            const textY = el.y + (el.height / 2) - 10;
                             const textEl = {
                                 type: "text",
                                 id: textId,
-                                x: el.x, // Container x
-                                y: textY,
-                                width: el.width,
-                                height: el.height, // Bound to container
-                                text: wrapperText(el.label, 30), // Wrap text
-                                fontSize: fontSize,
-                                fontFamily: 1,
-                                textAlign: "center",
-                                verticalAlign: "middle",
-                                containerId: el.id,
-                                strokeColor: ghostColor
+                                x: el.x, y: textY,
+                                width: el.width, height: el.height,
+                                text: wrapperText(el.label, 30),
+                                fontSize: fontSize, fontFamily: 1,
+                                textAlign: "center", verticalAlign: "middle",
+                                containerId: el.id, strokeColor: ghostColor
                             };
-
-                            // Update Shape to bind text
                             const shapeEl = {
-                                ...el,
-                                strokeColor: ghostColor,
+                                ...el, strokeColor: ghostColor,
                                 boundElements: [{ id: textId, type: "text" }],
-                                label: undefined // Remove non-standard prop
+                                label: undefined
                             };
-
                             return [shapeEl, textEl];
                         }
-
                         return [{ ...el, strokeColor: el.strokeColor === '#000000' || !el.strokeColor ? ghostColor : el.strokeColor }];
                     }).sort((a, b) => (a.type === 'arrow' ? 1 : -1));
 
-                    // AI Diagram Logic
-                    // Calculate center offset safely
                     const xs = normalized.map(el => el.x || 0);
                     const ys = normalized.map(el => el.y || 0);
-                    const rights = normalized.map(el => (el.x || 0) + (el.width || 0));
-                    const bottoms = normalized.map(el => (el.y || 0) + (el.height || 0));
-
                     const minX = Math.min(...xs);
                     const minY = Math.min(...ys);
-                    const maxX = Math.max(...rights);
-                    const maxY = Math.max(...bottoms);
-
-                    const width = maxX - minX;
-                    const height = maxY - minY;
-
-                    // Fallback if width/height is 0 (single point)
-                    const safeWidth = width || 100;
-                    const safeHeight = height || 100;
-
-                    const offsetX = (cx - safeWidth / 2) - minX;
-                    const offsetY = (cy - safeHeight / 2) - minY;
+                    const width = Math.max(...normalized.map(el => (el.x || 0) + (el.width || 0))) - minX || 100;
+                    const height = Math.max(...normalized.map(el => (el.y || 0) + (el.height || 0))) - minY || 100;
+                    const offsetX = (cx - width / 2) - minX;
+                    const offsetY = (cy - height / 2) - minY;
 
                     newElements = convertToExcalidrawElements(normalized.map((el: any) => ({
-                        ...el,
-                        x: (el.x || 0) + offsetX,
-                        y: (el.y || 0) + offsetY,
+                        ...el, x: (el.x || 0) + offsetX, y: (el.y || 0) + offsetY
                     })));
 
-                    // ANIMATED DRAWING LOOP
                     let currentElements = excalidrawAPI.getSceneElements();
                     let accumElements = [...currentElements];
-
                     for (const el of newElements) {
                         accumElements.push(el);
-                        // Update scene with current batch
                         excalidrawAPI.updateScene({ elements: accumElements });
-
-                        // Pan to show the new element (animated)
-                        if (newElements.length > 1) { // Only animate diagrams
-                            try {
-                                excalidrawAPI.scrollToContent([el], { fitToContent: false, animate: true });
-                            } catch (e) { console.warn("Scroll error:", e); }
-                            // Wait for user to see it (500ms)
+                        if (newElements.length > 1) {
+                            try { excalidrawAPI.scrollToContent([el], { fitToContent: false, animate: true }); } catch (e) { }
                             await new Promise(r => setTimeout(r, 500));
                         }
                     }
-
-                    // Final Commit
                     excalidrawAPI.updateScene({
-                        elements: accumElements,
-                        commitToHistory: true,
-                        appState: {
-                            selectedElementIds: newElements.reduce((acc: any, el: any) => ({ ...acc, [el.id]: true }), {})
-                        }
+                        elements: accumElements, commitToHistory: true, appState: { selectedElementIds: newElements.reduce((acc: any, el: any) => ({ ...acc, [el.id]: true }), {}) }
                     });
-
-                    return; // Done
+                    return;
 
                 } else if (text) {
-                    // Text Note Logic
                     newElements = convertToExcalidrawElements([{
                         type: "text",
                         text: wrapperText(text, 40),
@@ -345,15 +288,8 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
         window.addEventListener('open-excalidraw', handleOpen);
         window.addEventListener('request-add-to-sketch', handleAddToSketch as EventListener);
 
-        // Handle Initial Request (if provided and API is ready)
         // @ts-ignore
         if (typeof initialRequest !== 'undefined' && initialRequest && excalidrawAPI) {
-            // We use a small timeout to let the editor fully init if it just mounted
-            // Use a flagging mechanism to avoid double draw if the parent passes it down again?
-            // Since this component is lazy loaded, it likely mounts fresh.
-            // We can check if we already have elements? No.
-            // We rely on the parent logic to only pass it once.
-            // Better: check if we have done it.
             if (!(window as any).__INITIAL_REQUEST_PROCESSED) {
                 (window as any).__INITIAL_REQUEST_PROCESSED = true;
                 handleAddToSketch({ detail: initialRequest });
@@ -449,74 +385,202 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
         }
     };
 
-    // Width & Layout Effects
-    const [drawerWidth, setDrawerWidth] = useState(0);
 
+    // --- IMMERSIVE SPLIT LOGIC ---
     useEffect(() => {
-        const updateWidth = () => {
-            setDrawerWidth(Math.max(400, window.innerWidth * 0.45));
-        };
-        updateWidth();
-        window.addEventListener('resize', updateWidth);
-        return () => window.removeEventListener('resize', updateWidth);
-    }, []);
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!isDraggingRef.current) return;
+            // Prevent selection
+            e.preventDefault();
 
-    useEffect(() => {
-        const mainElement = document.querySelector('main');
-        const header = document.getElementById('site-header');
-
-        const updateLayout = () => {
-            if (viewMode === 'split') {
-                if (mainElement) {
-                    mainElement.style.transition = 'padding-right 0.3s ease-out';
-                    mainElement.style.paddingRight = `${drawerWidth}px`;
-                }
-                if (header) header.style.display = '';
-                document.body.style.setProperty('--excalidraw-drawer-width', `${drawerWidth}px`);
-                document.body.classList.add('excalidraw-split-active');
-                document.body.classList.remove('excalidraw-fullscreen-active');
-            } else if (viewMode === 'maximize') {
-                if (mainElement) mainElement.style.paddingRight = '0px';
-                if (header) header.style.display = 'none';
-                document.body.style.removeProperty('--excalidraw-drawer-width');
-                document.body.classList.remove('excalidraw-split-active');
-                document.body.classList.add('excalidraw-fullscreen-active');
-            } else {
-                if (mainElement) mainElement.style.paddingRight = '0px';
-                if (header) header.style.display = '';
-                document.body.style.removeProperty('--excalidraw-drawer-width');
-                document.body.classList.remove('excalidraw-split-active');
-                document.body.classList.remove('excalidraw-fullscreen-active');
+            const newPercentage = (e.clientX / window.innerWidth) * 100;
+            // SAFETY: Constrain to 20-80
+            if (newPercentage > 20 && newPercentage < 80) {
+                setSplitRatio(newPercentage);
             }
         };
-        updateLayout();
+
+        const handleMouseUp = () => {
+            if (isDraggingRef.current) {
+                isDraggingRef.current = false;
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+                // Rerender Excalidraw to fit new size
+                if (excalidrawAPI) {
+                    setTimeout(() => excalidrawAPI.refresh(), 50);
+                }
+            }
+        };
+
+        if (viewMode === 'split') {
+            window.addEventListener('mousemove', handleMouseMove);
+            window.addEventListener('mouseup', handleMouseUp);
+        }
 
         return () => {
-            if (mainElement) mainElement.style.paddingRight = '0px';
-            if (header) header.style.display = '';
-            document.body.style.removeProperty('--excalidraw-drawer-width');
-            document.body.classList.remove('excalidraw-split-active');
-            document.body.classList.remove('excalidraw-fullscreen-active');
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
         };
-    }, [viewMode, drawerWidth]);
+    }, [viewMode, excalidrawAPI]);
 
+    // Force Zen Nav visibility and fix toolbars in split mode
     useEffect(() => {
-        if (!excalidrawAPI) return;
-        const timer = setTimeout(() => excalidrawAPI.refresh(), 350);
-        return () => clearTimeout(timer);
-    }, [viewMode, drawerWidth, excalidrawAPI]);
+        if (viewMode !== 'split') return;
+
+        const forceUIFixes = () => {
+            // Force Zen Nav visible
+            const zenNav = document.getElementById('zen-nav');
+            if (zenNav) {
+                zenNav.style.display = 'flex';
+                zenNav.style.visibility = 'visible';
+                zenNav.style.opacity = '1';
+                zenNav.style.zIndex = '30000';
+                zenNav.style.position = 'fixed';
+                zenNav.style.top = '1rem';
+                zenNav.style.left = '1rem';
+                zenNav.style.pointerEvents = 'auto';
+            }
+
+            // Fix code playground toolbars - constrain to left pane
+            const container = document.getElementById('immersive-article-container');
+            if (container) {
+                const toolbars = container.querySelectorAll('[class*="fixed"][class*="bottom"], .code-playground-toolbar');
+                toolbars.forEach((toolbar) => {
+                    const el = toolbar as HTMLElement;
+                    el.style.maxWidth = `${splitRatio}vw`;
+                    el.style.left = '0';
+                    el.style.right = 'auto';
+                });
+            }
+        };
+
+        // Run immediately and after delays to catch dynamically loaded elements
+        forceUIFixes();
+        const timer1 = setTimeout(forceUIFixes, 100);
+        const timer2 = setTimeout(forceUIFixes, 500);
+        const timer3 = setTimeout(forceUIFixes, 1000);
+
+        return () => {
+            clearTimeout(timer1);
+            clearTimeout(timer2);
+            clearTimeout(timer3);
+        };
+    }, [viewMode, splitRatio]);
+
+    // Add body class for split mode styling
+    useEffect(() => {
+        if (viewMode === 'split') {
+            document.body.classList.add('split-view-active');
+        } else {
+            document.body.classList.remove('split-view-active');
+        }
+
+        return () => {
+            document.body.classList.remove('split-view-active');
+        };
+    }, [viewMode]);
+
 
     const getContainerStyles = () => {
-        const baseStyles = "bg-white dark:bg-gray-900 transition-all duration-300 ease-in-out flex flex-col overflow-visible";
+        const baseStyles = "bg-white dark:bg-gray-900 transition-none duration-0 ease-linear flex flex-col overflow-visible";
         switch (viewMode) {
             case 'maximize': return `${baseStyles} fixed inset-0 z-[10000] h-full`;
-            case 'split': return `${baseStyles} fixed top-[64px] bottom-0 z-[40] border-l border-gray-200 dark:border-gray-800 shadow-2xl`;
-            default: return `${baseStyles} fixed top-[64px] bottom-0 z-[40] border-l border-gray-200 dark:border-gray-800 shadow-2xl pointer-events-none`;
+            // In split mode, Excalidraw is on the right, taking up the remaining space
+            case 'split': return `${baseStyles} fixed top-0 bottom-0 right-0 z-[10000] shadow-2xl border-l border-gray-200 dark:border-gray-800`;
+            default: return `${baseStyles} fixed top-[64px] bottom-0 right-0 w-0 z-[40] pointer-events-none opacity-0`;
         }
     };
 
     return (
         <>
+            {/* INJECTED STYLES FOR IMMERSIVE SPLIT */}
+            {viewMode === 'split' && (
+                <style>{`
+                    body { overflow: hidden !important; }
+                    /* Hide Standard Header & Footer */
+                    #site-header, footer, .reading-progress { display: none !important; }
+
+                    /* CRITICAL: Restore Zen Nav & Force on Top */
+                    #zen-nav {
+                        display: flex !important;
+                        visibility: visible !important;
+                        opacity: 1 !important;
+                        z-index: 30000 !important; /* Above everything including Excalidraw */
+                        position: fixed !important;
+                        top: 1rem !important;
+                        left: 1rem !important;
+                        pointer-events: auto !important;
+                    }
+                    
+                    /* Restore & Fix Selection Popover */
+                    #selection-popover {
+                        z-index: 20003 !important;
+                    }
+
+                    /* Constrain fixed bottom elements to left pane */
+                    #immersive-article-container .code-playground-toolbar,
+                    #immersive-article-container [class*="fixed"][class*="bottom"],
+                    .code-playground-toolbar {
+                        max-width: ${splitRatio}vw !important;
+                        left: 0 !important;
+                        right: auto !important;
+                    }
+
+                    /* Custom Scrollbar for Article */
+                    #immersive-article-container::-webkit-scrollbar {
+                        width: 8px;
+                    }
+                    #immersive-article-container::-webkit-scrollbar-thumb {
+                        background-color: rgba(156, 163, 175, 0.5);
+                        border-radius: 4px;
+                    }
+
+                    /* Transform Article Container */
+                    #immersive-article-container {
+                        position: fixed !important;
+                        top: 0 !important;
+                        left: 0 !important;
+                        bottom: 0 !important;
+                        width: ${splitRatio}% !important;
+                        max-width: none !important;
+                        margin: 0 !important;
+                        padding: 5rem 2rem 8rem !important;
+                        overflow-y: auto !important;
+                        overflow-x: hidden !important;
+                        z-index: 50 !important;
+                        background: var(--zen-bg, #ffffff);
+                        border-right: 1px solid #e5e7eb;
+                    }
+                    html.dark #immersive-article-container {
+                         background: var(--zen-bg, #0f1117);
+                         border-right: 1px solid #1f2937;
+                    }
+
+                    /* Hide Sidebars in Article */
+                    aside { display: none !important; }
+                    
+                    /* Ensure content fits */
+                    #immersive-article-container > div {
+                         max-width: 800px !important;
+                         margin: 0 auto !important;
+                         gap: 0 !important;
+                         padding-bottom: 4rem !important;
+                         display: block !important;
+                    }
+
+                    /* Fix code playground positioning */
+                    #immersive-article-container .code-playground {
+                        position: relative !important;
+                    }
+                    
+                     /* Adjust drag handle hovering */
+                    .split-drag-handle:hover {
+                        background: #a855f7;
+                    }
+                `}</style>
+            )}
+
+            {/* FLOATING TRIGGER (Only when hidden/minimized) */}
             <div className={`fixed bottom-24 right-6 z-[60] transition-all duration-300 ${viewMode === 'minimized' ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'}`}>
                 <button
                     onClick={() => setViewMode('split')}
@@ -524,69 +588,61 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                     title="Open Notes"
                 >
                     <PenTool className="w-6 h-6" />
-                    {hasUnsavedChanges && (
-                        <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>
-                    )}
                 </button>
             </div>
 
+            {/* DRAG HANDLE (Only in split) */}
+            {viewMode === 'split' && (
+                <div
+                    className="split-drag-handle fixed top-0 bottom-0 w-[6px] z-[10001] cursor-col-resize transition-colors duration-150 bg-gray-200 dark:bg-gray-800 hover:bg-purple-500 flex items-center justify-center group"
+                    style={{ left: `calc(${splitRatio}% - 3px)` }}
+                    onMouseDown={(e) => {
+                        e.preventDefault();
+                        isDraggingRef.current = true;
+                        document.body.style.cursor = 'col-resize';
+                        document.body.style.userSelect = 'none';
+                    }}
+                >
+                    {/* Visual Grip */}
+                    <div className="w-1 h-8 rounded-full bg-gray-400 group-hover:bg-white/90"></div>
+                </div>
+            )}
+
+            {/* MAIN DRAWER CONTAINER */}
             <div
                 className={getContainerStyles()}
                 style={{
-                    width: viewMode === 'maximize' ? '100%' : `${drawerWidth}px`,
-                    right: (viewMode === 'hidden' || viewMode === 'minimized') ? `-${drawerWidth}px` : '0px'
+                    width: viewMode === 'maximize' ? '100%' : viewMode === 'split' ? `${100 - splitRatio}%` : '0px',
                 }}
             >
+                {/* TOOLBAR HEADER */}
                 <div className="flex items-center justify-between p-2 px-4 border-b border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-sm relative z-[70]">
                     <div className="flex items-center gap-3">
+                        {/* Title Input */}
                         <div className="flex items-center gap-2">
                             <div className={`w-2 h-2 rounded-full ${hasUnsavedChanges ? 'bg-amber-500 animate-pulse' : 'bg-green-500'}`} />
-                            <span className="text-xs text-gray-400 font-medium">
-                                {isSaving ? 'Saving...' : hasUnsavedChanges ? 'Unsaved' : 'Saved'}
-                            </span>
-                        </div>
-                        <div className="flex items-center">
                             <input
                                 type="text"
                                 value={title}
-                                onChange={(e) => {
-                                    const v = e.target.value;
-                                    setTitle(v);
-                                    titleRef.current = v;
-                                    if (!hasUnsavedChanges) setHasUnsavedChanges(true);
-                                }}
-                                onBlur={() => {
-                                    if (excalidrawAPI) {
-                                        const els = excalidrawAPI.getSceneElements();
-                                        const st = excalidrawAPI.getAppState();
-                                        saveData(els, st, isPublic);
-                                    }
-                                }}
-                                className="text-sm font-semibold text-gray-700 dark:text-gray-200 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-purple-500 focus:outline-none w-32 sm:w-48 transition-colors truncate"
+                                onChange={(e) => { setTitle(e.target.value); titleRef.current = e.target.value; setHasUnsavedChanges(true); }}
+                                onBlur={() => excalidrawAPI && saveData(excalidrawAPI.getSceneElements(), excalidrawAPI.getAppState(), isPublic)}
+                                className="text-sm font-semibold text-gray-700 dark:text-gray-200 bg-transparent border-none focus:outline-none w-32 sm:w-48 transition-colors truncate"
                                 placeholder="Untitled Note"
                             />
                         </div>
                     </div>
 
                     <div className="flex items-center gap-1.5">
-                        <button
-                            onClick={togglePublic}
-                            className={`p-1.5 rounded-lg transition-colors ${isPublic
-                                ? 'text-green-600 bg-green-50 dark:bg-green-900/20'
-                                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800'
-                                }`}
-                            title={isPublic ? "Public Note" : "Private Note"}
-                        >
+                        <button onClick={togglePublic} className={`p-1.5 rounded-lg transition-colors ${isPublic ? 'text-green-600 bg-green-50 dark:bg-green-900/20' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}`}>
                             {isPublic ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
                         </button>
-
                         <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1" />
 
                         {!isMobile && (
                             <button
                                 onClick={() => setViewMode('split')}
                                 className={`p-1.5 rounded-lg transition-colors ${viewMode === 'split' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-                                title="Side View"
+                                title="Split View"
                             >
                                 <LayoutTemplate className="w-4 h-4" />
                             </button>
@@ -598,15 +654,6 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                         >
                             <Monitor className="w-4 h-4" />
                         </button>
-
-                        <button
-                            onClick={() => setViewMode('minimized')}
-                            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                            title="Minimize"
-                        >
-                            <Minimize2 className="w-4 h-4" />
-                        </button>
-
                         <button
                             onClick={() => setViewMode('hidden')}
                             className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors ml-1"
@@ -620,11 +667,8 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                 {showMobileWarning && isMobile && (
                     <div className="bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800 p-2 flex items-center justify-between text-xs sm:text-sm text-blue-800 dark:text-blue-200 px-4">
                         <span>For the best experience, please use a laptop or larger screen.</span>
-                        <button
-                            onClick={() => setShowMobileWarning(false)}
-                            className="p-1 hover:bg-blue-100 dark:hover:bg-blue-800 rounded-full ml-2"
-                        >
-                            <X className="w-3 h-3" />
+                        <button onClick={() => setShowMobileWarning(false)} className="p-1 hover:bg-blue-100 dark:hover:bg-blue-800 rounded-full ml-2">
+                            <X className="X w-3 h-3" />
                         </button>
                     </div>
                 )}
@@ -635,9 +679,7 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                         .excalidraw, .excalidraw-container { overflow: visible !important; }
                         .excalidraw .dropdown-menu { z-index: 9999 !important; position: absolute !important; }
                         .excalidraw .Island { z-index: 50 !important; overflow: visible !important; }
-                        .excalidraw .layer-ui__wrapper { overflow: visible !important; }
                         .excalidraw .layer-ui__library { border-radius: 0; }
-                        .excalidraw .library-menu-browse-button { display: none !important; }
                     `}</style>
                         {isLoading ? (
                             <div className="flex items-center justify-center h-full">
@@ -648,23 +690,13 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                                 initialData={
                                     drawingData ? {
                                         elements: drawingData.elements,
-                                        appState: {
-                                            ...drawingData.appState,
-                                            collaborators: new Map(),
-                                            viewBackgroundColor: "#ffffff"
-                                        },
+                                        appState: { ...drawingData.appState, collaborators: new Map(), viewBackgroundColor: "#ffffff" },
                                         libraryItems: initialLibraryItems as any,
                                         scrollToContent: true
-                                    } : {
-                                        libraryItems: initialLibraryItems as any
-                                    }
+                                    } : { libraryItems: initialLibraryItems as any }
                                 }
-                                onChange={(elements, appState) => {
-                                    handleChange(elements, appState)
-                                }}
-                                excalidrawAPI={(api) => {
-                                    setExcalidrawAPI(api);
-                                }}
+                                onChange={(elements, appState) => handleChange(elements, appState)}
+                                excalidrawAPI={(api) => setExcalidrawAPI(api)}
                                 theme={document.documentElement.classList.contains('dark') ? 'dark' : 'light'}
                                 UIOptions={{
                                     tools: { image: false },
@@ -680,12 +712,8 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                                 }}
                             >
                                 <WelcomeScreen>
-                                    <WelcomeScreen.Hints.MenuHint />
-                                    <WelcomeScreen.Hints.ToolbarHint />
                                     <WelcomeScreen.Center>
-                                        <WelcomeScreen.Center.Heading>
-                                            Sketch Your Ideas
-                                        </WelcomeScreen.Center.Heading>
+                                        <WelcomeScreen.Center.Heading>Sketch Your Ideas</WelcomeScreen.Center.Heading>
                                     </WelcomeScreen.Center>
                                 </WelcomeScreen>
                                 <MainMenu>

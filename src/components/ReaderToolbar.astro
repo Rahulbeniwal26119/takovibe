@@ -26,10 +26,115 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
             transform: translateX(-50%);
         }
 
-        /* When Split View is Active: Center in remaining space */
-        :global(body.excalidraw-split-active) #reader-toolbar-container {
-            left: calc((100% - var(--excalidraw-drawer-width, 0px)) / 2);
-            transform: translateX(-50%);
+        /* When Split View is Active: Collapse to compact pill */
+        :global(body.split-view-active) #reader-toolbar-container {
+            left: 1rem !important;
+            bottom: 1rem !important;
+            transform: none !important;
+            max-width: auto !important;
+            width: auto !important;
+            z-index: 30001 !important; /* Above Zen Nav */
+        }
+
+        :global(body.split-view-active) #reader-toolbar-container > div {
+            width: auto !important;
+            padding: 0.5rem !important;
+        }
+
+        /* Hide most buttons in split view, show only essential ones */
+        :global(body.split-view-active)
+            #reader-toolbar-container
+            button:not(#reader-toolbar-toggle) {
+            display: none !important;
+        }
+
+        :global(body.split-view-active) #reader-toolbar-container .w-px {
+            display: none !important;
+        }
+
+        /* Show toggle button */
+        #reader-toolbar-toggle {
+            display: none;
+        }
+
+        :global(body.split-view-active) #reader-toolbar-toggle {
+            display: flex !important;
+        }
+
+        /* Show all buttons when toolbar is expanded */
+        :global(body.split-view-active)
+            #reader-toolbar-container.toolbar-expanded
+            button:not(#reader-toolbar-toggle) {
+            display: flex !important;
+        }
+
+        :global(body.split-view-active)
+            #reader-toolbar-container.toolbar-expanded
+            .w-px {
+            display: block !important;
+        }
+
+        :global(body.split-view-active)
+            #reader-toolbar-container.toolbar-expanded
+            > div
+            > div {
+            display: flex !important;
+        }
+
+        :global(body.split-view-active)
+            #reader-toolbar-container.toolbar-expanded {
+            max-width: calc(50vw - 2rem) !important;
+        }
+
+        /* Mobile/Tablet: Minimize toolbar to pill (under 1024px) */
+        @media (max-width: 1023px) {
+            #reader-toolbar-container {
+                left: 1rem !important;
+                bottom: 1rem !important;
+                transform: none !important;
+                max-width: auto !important;
+                width: auto !important;
+            }
+
+            #reader-toolbar-container > div {
+                width: auto !important;
+                padding: 0.5rem !important;
+            }
+
+            /* Hide buttons on mobile by default */
+            #reader-toolbar-container button:not(#reader-toolbar-toggle),
+            #reader-toolbar-container > div > div {
+                display: none !important;
+            }
+
+            #reader-toolbar-container .w-px {
+                display: none !important;
+            }
+
+            /* Show toggle button on mobile */
+            #reader-toolbar-toggle {
+                display: flex !important;
+            }
+
+            /* Show all when expanded on mobile */
+            #reader-toolbar-container.toolbar-expanded
+                button:not(#reader-toolbar-toggle),
+            #reader-toolbar-container.toolbar-expanded > div > div {
+                display: flex !important;
+            }
+
+            #reader-toolbar-container.toolbar-expanded .w-px {
+                display: block !important;
+            }
+
+            #reader-toolbar-container.toolbar-expanded {
+                max-width: calc(100vw - 2rem) !important;
+            }
+
+            #reader-toolbar-container.toolbar-expanded > div {
+                width: auto !important;
+                max-width: calc(100vw - 3rem) !important;
+            }
         }
 
         /* Show AI Chat Button in Toolbar on Desktop when Split View is Active */
@@ -40,6 +145,28 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
     <div
         class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl p-2 pointer-events-auto flex items-center justify-between w-full gap-1 overflow-x-auto custom-scrollbar"
     >
+        <!-- Toggle Button (Only visible in split view) -->
+        <button
+            id="reader-toolbar-toggle"
+            class="p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+            aria-label="Reader Tools"
+            title="Reader Tools"
+        >
+            <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                ></path>
+            </svg>
+        </button>
+
         <!-- Section 1: Reader Controls -->
         <div class="flex items-center gap-1 shrink-0">
             <!-- Copy Link Button (Hidden on Mobile) -->
@@ -452,6 +579,36 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
 <CommentsDrawer slug={slug} />
 
 <script define:vars={{ slug, apiUrl }}>
+    // Reader Toolbar Toggle (for split view)
+    const readerToolbarToggle = document.getElementById(
+        "reader-toolbar-toggle",
+    );
+    const readerToolbarContainer = document.getElementById(
+        "reader-toolbar-container",
+    );
+    let toolbarExpanded = false;
+
+    if (readerToolbarToggle && readerToolbarContainer) {
+        readerToolbarToggle.addEventListener("click", (e) => {
+            e.stopPropagation();
+            toolbarExpanded = !toolbarExpanded;
+
+            if (toolbarExpanded) {
+                readerToolbarContainer.classList.add("toolbar-expanded");
+            } else {
+                readerToolbarContainer.classList.remove("toolbar-expanded");
+            }
+        });
+
+        // Close when clicking outside
+        document.addEventListener("click", (e) => {
+            if (toolbarExpanded && !readerToolbarContainer.contains(e.target)) {
+                toolbarExpanded = false;
+                readerToolbarContainer.classList.remove("toolbar-expanded");
+            }
+        });
+    }
+
     // Drawer Logic
     function setupDrawer(toggleId, drawerId) {
         const toggle = document.getElementById(toggleId);

@@ -19,7 +19,7 @@ const toc = headings.filter((h) => h.depth > 1 && h.depth <= 3);
         {
             toc.map((heading) => (
                 <li
-                    class={`toc-item depth-${heading.depth} border-l-2 border-transparent hover:border-purple-500 transition-colors duration-200`}
+                    class={`toc-item depth-${heading.depth} relative pl-3 border-l hover:border-gray-900 dark:hover:border-gray-100 transition-colors duration-200 border-transparent`}
                 >
                     <a
                         href={`#${heading.slug}`}
@@ -49,15 +49,20 @@ const toc = headings.filter((h) => h.depth > 1 && h.depth <= 3);
                         item.classList.remove("border-purple-500");
                     });
                     link?.parentElement?.classList.add("active");
-                    link?.parentElement?.classList.add("border-purple-500");
+                    link?.parentElement?.classList.add(
+                        "border-gray-900",
+                        "dark:border-white",
+                    ); // Active Border: Black/White
                     link?.classList.add(
-                        "text-purple-600",
-                        "dark:text-purple-400",
+                        "text-gray-900",
+                        "dark:text-white",
+                        "font-semibold",
                     );
                 } else {
                     link?.classList.remove(
-                        "text-purple-600",
-                        "dark:text-purple-400",
+                        "text-gray-900",
+                        "dark:text-white",
+                        "font-semibold",
                     );
                 }
             });
@@ -76,10 +81,10 @@ const toc = headings.filter((h) => h.depth > 1 && h.depth <= 3);
     }
 
     .toc-item.active {
-        @apply border-purple-500;
+        @apply border-gray-900 dark:border-white;
     }
 
     .toc-item.active a {
-        @apply text-purple-600 dark:text-purple-400 font-medium;
+        @apply text-gray-900 dark:text-white font-semibold;
     }
 </style>

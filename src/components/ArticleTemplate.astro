@@ -122,207 +122,432 @@ const breadcrumbStructuredData = {
     published_date={publishDate}
     modified_date={lastModified}
     no_footer={true}
+    no_header={true}
 >
-    <!-- Structured Data -->
-    <script
-        type="application/ld+json"
-        slot="head"
-        set:html={JSON.stringify(articleStructuredData)}
-    />
-    <script
-        type="application/ld+json"
-        slot="head"
-        set:html={JSON.stringify(breadcrumbStructuredData)}
-    />
-    {
-        post.contentJson && (
-            <script
-                type="application/ld+json"
-                slot="head"
-                set:html={generateFAQSchema(post.contentJson)}
-            />
-        )
-    }
-    <ReadingProgress />
-    <SelectionPopover />
-
-    <div class="min-h-screen">
-        <!-- Breadcrumbs -->
-        <div class="max-w-[1400px] mx-auto px-4 sm:px-6 pt-6">
-            <nav
-                class="flex text-sm text-gray-500 dark:text-gray-400 mb-6"
-                aria-label="Breadcrumb"
+    <!-- Smart Zen Navigation (Scroll-aware) -->
+    <nav
+        id="zen-nav"
+        class="fixed top-6 left-6 z-50 transition-all duration-500 ease-in-out transform translate-y-0 opacity-100"
+    >
+        <div class="relative group">
+            <!-- Trigger Button -->
+            <button
+                id="zen-menu-trigger"
+                class="p-3 rounded-full bg-white/10 dark:bg-black/20 backdrop-blur-md border border-gray-200/20 dark:border-white/10 shadow-lg hover:shadow-xl hover:bg-white/90 dark:hover:bg-gray-800 transition-all duration-300 group-hover:scale-105"
+                aria-label="Menu"
             >
-                <ol class="inline-flex items-center space-x-1 md:space-x-3">
-                    <li class="inline-flex items-center">
-                        <a
-                            href="/"
-                            class="inline-flex items-center hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-                        >
-                            <svg
-                                class="w-4 h-4 mr-2"
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                            >
-                                <path
-                                    d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"
-                                ></path>
-                            </svg>
-                            Home
-                        </a>
-                    </li>
-                    <li>
-                        <div class="flex items-center">
-                            <svg
-                                class="w-6 h-6 text-gray-400"
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                            >
-                                <path
-                                    fill-rule="evenodd"
-                                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                    clip-rule="evenodd"></path>
-                            </svg>
-                            <a
-                                href="/blog"
-                                class="ml-1 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-                                >Blog</a
-                            >
-                        </div>
-                    </li>
-                    <li aria-current="page">
-                        <div class="flex items-center">
-                            <svg
-                                class="w-6 h-6 text-gray-400"
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                            >
-                                <path
-                                    fill-rule="evenodd"
-                                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                    clip-rule="evenodd"></path>
-                            </svg>
-                            <span
-                                class="ml-1 text-gray-700 dark:text-gray-200 truncate max-w-[200px] sm:max-w-xs"
-                                >{post.data.title}</span
-                            >
-                        </div>
-                    </li>
-                </ol>
-            </nav>
-        </div>
+                <svg
+                    class="w-6 h-6 text-gray-900 dark:text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M4 6h16M4 12h16m-7 6h7"></path>
+                </svg>
+            </button>
 
-        <!-- Main Content Layout -->
-        <div class="max-w-[1400px] mx-auto px-4 sm:px-6 pb-24">
-            <div class="lg:grid lg:grid-cols-12 lg:gap-8 lg:items-start">
-                <!-- Left Sidebar: Table of Contents (Desktop) -->
-                <aside class="hidden lg:block lg:col-span-2">
-                    <div
-                        class="sticky top-24 max-h-[calc(100vh-6rem)] overflow-y-auto"
+            <!-- Dropdown Menu -->
+            <div
+                id="zen-menu-dropdown"
+                class="absolute top-full left-0 mt-3 w-48 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 rounded-2xl shadow-2xl overflow-hidden transform origin-top-left transition-all duration-200 opacity-0 scale-95 pointer-events-none"
+            >
+                <div class="p-1.5 space-y-1">
+                    <a
+                        href="/"
+                        class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-200 font-medium transition-colors"
                     >
+                        <svg
+                            class="w-5 h-5 opacity-70"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                            ></path>
+                        </svg>
+                        Home
+                    </a>
+                    <a
+                        href="/blog"
+                        class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-200 font-medium transition-colors"
+                    >
+                        <svg
+                            class="w-5 h-5 opacity-70"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
+                            ></path>
+                        </svg>
+                        Blog
+                    </a>
+                    <a
+                        href="/notes"
+                        class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-200 font-medium transition-colors"
+                    >
+                        <svg
+                            class="w-5 h-5 opacity-70"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            ></path>
+                        </svg>
+                        Notes
+                    </a>
+                    <a
+                        href="/series"
+                        class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-200 font-medium transition-colors"
+                    >
+                        <svg
+                            class="w-5 h-5 opacity-70"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+                            ></path>
+                        </svg>
+                        Series
+                    </a>
+                </div>
+                <a
+                    href="/saved"
+                    class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-200 font-medium transition-colors"
+                >
+                    <svg
+                        class="w-5 h-5 opacity-70"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                        ></path>
+                    </svg>
+                    Saved
+                </a>
+            </div>
+        </div>
+    </nav>
+</Layout>
+
+<script>
+    // Smart Scroll Logic for Zen Nav - DISABLED to keep it always visible
+    // Zen Nav now stays sticky at all times
+    /*
+    let lastScroll = 0;
+    const nav = document.getElementById("zen-nav");
+
+    window.addEventListener(
+        "scroll",
+        () => {
+            const currentScroll = window.scrollY;
+
+            if (!nav) return;
+
+            // Hide on scroll down (if moved more than 50px)
+            if (currentScroll > 100 && currentScroll > lastScroll) {
+                nav.classList.add("-translate-y-24", "opacity-0");
+
+                // Close menu on scroll away
+                const menu = document.getElementById("zen-menu-dropdown");
+                const trigger = document.getElementById("zen-menu-trigger");
+                if (menu) {
+                    menu.classList.add(
+                        "opacity-0",
+                        "scale-95",
+                        "pointer-events-none",
+                    );
+                    menu.classList.remove(
+                        "opacity-100",
+                        "scale-100",
+                        "pointer-events-auto",
+                    );
+                    trigger?.classList.remove(
+                        "bg-white/90",
+                        "dark:bg-gray-800",
+                        "ring-2",
+                        "ring-purple-500/50",
+                    );
+                }
+            } else {
+                // Show on scroll up
+                nav.classList.remove("-translate-y-24", "opacity-0");
+            }
+
+            lastScroll = currentScroll;
+        },
+        { passive: true },
+    );
+    */
+
+    // Zen Menu Toggle Logic
+    const zenTrigger = document.getElementById("zen-menu-trigger");
+    const zenMenu = document.getElementById("zen-menu-dropdown");
+
+    if (zenTrigger && zenMenu) {
+        zenTrigger.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const isOpen = zenMenu.classList.contains("opacity-100");
+
+            if (isOpen) {
+                // Close
+                zenMenu.classList.add(
+                    "opacity-0",
+                    "scale-95",
+                    "pointer-events-none",
+                );
+                zenMenu.classList.remove(
+                    "opacity-100",
+                    "scale-100",
+                    "pointer-events-auto",
+                );
+                zenTrigger.classList.remove(
+                    "bg-white/90",
+                    "dark:bg-gray-800",
+                    "ring-2",
+                    "ring-purple-500/50",
+                );
+            } else {
+                // Open
+                zenMenu.classList.remove(
+                    "opacity-0",
+                    "scale-95",
+                    "pointer-events-none",
+                );
+                zenMenu.classList.add(
+                    "opacity-100",
+                    "scale-100",
+                    "pointer-events-auto",
+                );
+                zenTrigger.classList.add(
+                    "bg-white/90",
+                    "dark:bg-gray-800",
+                    "ring-2",
+                    "ring-purple-500/50",
+                );
+            }
+        });
+
+        // Close when clicking outside
+        document.addEventListener("click", (e) => {
+            if (
+                !zenMenu.contains(e.target as Node) &&
+                !zenTrigger.contains(e.target as Node)
+            ) {
+                zenMenu.classList.add(
+                    "opacity-0",
+                    "scale-95",
+                    "pointer-events-none",
+                );
+                zenMenu.classList.remove(
+                    "opacity-100",
+                    "scale-100",
+                    "pointer-events-auto",
+                );
+                zenTrigger.classList.remove(
+                    "bg-white/90",
+                    "dark:bg-gray-800",
+                    "ring-2",
+                    "ring-purple-500/50",
+                );
+            }
+        });
+    }
+</script>
+<!-- Structured Data -->
+<script
+    type="application/ld+json"
+    slot="head"
+    set:html={JSON.stringify(articleStructuredData)}
+/>
+<script
+    type="application/ld+json"
+    slot="head"
+    set:html={JSON.stringify(breadcrumbStructuredData)}
+/>
+{
+    post.contentJson && (
+        <script
+            type="application/ld+json"
+            slot="head"
+            set:html={generateFAQSchema(post.contentJson)}
+        />
+    )
+}
+<ReadingProgress />
+<SelectionPopover />
+
+<div class="min-h-screen">
+    <!-- Main Content Layout -->
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 pb-0">
+        <!-- Main Content Layout (Flexbox for robust sidebar positioning) -->
+        <div
+            id="immersive-article-container"
+            class="max-w-[1600px] mx-auto px-4 sm:px-6 pb-12 transition-all duration-300"
+        >
+            <div
+                class="flex flex-col lg:flex-row gap-8 xl:gap-12 relative items-start justify-center"
+            >
+                <!-- Left Sidebar: Moved per user request -->
+                <aside class="hidden lg:block w-64 flex-shrink-0 sticky top-24">
+                    <div
+                        class="pr-6 border-r border-gray-100 dark:border-gray-800"
+                    >
+                        <h5
+                            class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4"
+                        >
+                            Contents
+                        </h5>
                         <TableOfContents headings={headings} />
+                    </div>
+
+                    <div class="mt-8 pr-6">
+                        <a
+                            href="/write"
+                            class="text-sm font-medium text-purple-600 hover:text-purple-700 flex items-center gap-1"
+                        >
+                            Write on TakoVibe &rarr;
+                        </a>
                     </div>
                 </aside>
 
                 <!-- Main Article Content -->
-                <main class="lg:col-span-10">
-                    <!-- Article Header with Gradient Background -->
-                    <header class="relative mb-12 overflow-hidden rounded-2xl">
-                        <!-- Gradient Background -->
-                        <div
-                            class="absolute inset-0 bg-gradient-to-br from-purple-600 via-pink-600 to-blue-600"
-                        >
-                        </div>
+                <main class="flex-1 min-w-0 max-w-5xl">
+                    <!-- min-w-0 prevents flex overflow -->
 
-                        <!-- Decorative Circle -->
-                        <div
-                            class="absolute top-6 right-6 w-24 h-24 bg-pink-500 rounded-full opacity-80"
-                        >
-                        </div>
-
-                        <!-- Content -->
-                        <div
-                            class="relative z-10 px-6 sm:px-12 py-12 sm:py-16 text-white max-w-4xl"
-                        >
-                            <!-- Meta Information -->
-                            <div class="flex flex-wrap items-center gap-3 mb-6">
+                    <!-- Native Clean Header (No gradients) -->
+                    <header class="mb-12 text-center pt-16">
+                        <div class="space-y-6">
+                            <!-- Series / Tags -->
+                            <div
+                                class="flex flex-wrap items-center justify-center gap-3 text-sm"
+                            >
                                 {
                                     post.data.series && (
                                         <a
                                             href={`/series/${post.data.series.toLowerCase().replace(/\s+/g, "-")}`}
-                                            class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-yellow-400/90 hover:bg-yellow-400 text-yellow-900 border border-yellow-500/50 transition-colors"
+                                            class="px-3 py-1 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 font-medium hover:bg-purple-200 dark:hover:bg-purple-900/60 transition-colors"
                                         >
-                                            📚 {post.data.series}
+                                            {post.data.series}
                                         </a>
                                     )
                                 }
+
                                 <span
-                                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-sm border border-white/30"
+                                    class="text-gray-500 dark:text-gray-400 font-mono text-xs uppercase tracking-wider"
                                 >
-                                    📅 Published
+                                    {
+                                        new Date(
+                                            post.data.date,
+                                        ).toLocaleDateString("en-US", {
+                                            month: "long",
+                                            day: "numeric",
+                                            year: "numeric",
+                                        })
+                                    }
                                 </span>
-                                <span class="text-sm font-medium text-white/90">
+                                <span class="text-gray-300 dark:text-gray-600"
+                                    >•</span
+                                >
+                                <span
+                                    class="text-gray-500 dark:text-gray-400 font-medium"
+                                >
                                     {post.data.readingTime || "5 min read"}
                                 </span>
-                                {
-                                    post.data.tags &&
-                                        post.data.tags
-                                            .slice(0, 2)
-                                            .map((tag: string) => (
-                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-sm border border-white/30">
-                                                    #{tag}
-                                                </span>
-                                            ))
-                                }
                             </div>
 
-                            <!-- Title -->
+                            <!-- Title (Native Font: Space Grotesk) -->
                             <h1
-                                class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 leading-tight"
+                                class="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 dark:text-gray-50 leading-[1.1]"
                             >
                                 {post.data.title}
                             </h1>
 
-                            <!-- Author and Date -->
-                            <div class="flex items-center gap-4">
+                            <!-- Tags (Under Title) -->
+                            <div
+                                class="flex flex-wrap items-center justify-center gap-2"
+                            >
+                                {
+                                    post.data.tags?.map((tag: string) => (
+                                        <a
+                                            href={`/blog?tag=${encodeURIComponent(tag.toLowerCase())}`}
+                                            class="px-3 py-1 rounded-full text-sm font-medium bg-gray-100/50 text-gray-600 hover:bg-purple-50 hover:text-purple-700 dark:bg-gray-800/50 dark:text-gray-400 dark:hover:bg-purple-900/20 dark:hover:text-purple-300 transition-colors border border-gray-100 dark:border-white/5"
+                                        >
+                                            #{tag}
+                                        </a>
+                                    ))
+                                }
+                            </div>
+
+                            <!-- Author Info -->
+                            <div
+                                class="flex items-center justify-center gap-4 pt-4"
+                            >
                                 <a
                                     href={`/profile/${post.authorUsername || post.data.author.toLowerCase().replace(/\s+/g, "-")}`}
-                                    class="flex items-center gap-4 group"
+                                    class="flex items-center gap-3 group/author"
                                 >
                                     <div
-                                        class="w-12 h-12 bg-pink-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:scale-105 transition-transform"
+                                        class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 font-bold text-sm ring-2 ring-white dark:ring-gray-800"
                                     >
                                         {post.data.author.charAt(0)}
                                     </div>
-                                    <div>
-                                        <div
-                                            class="font-semibold text-lg group-hover:underline decoration-2 underline-offset-4 decoration-purple-300"
+                                    <div class="flex flex-col text-left">
+                                        <span
+                                            class="text-sm font-semibold text-gray-900 dark:text-white group-hover/author:text-purple-500 transition-colors"
                                         >
                                             {post.data.author}
-                                        </div>
-                                        <time
-                                            datetime={post.data.date.toString()}
-                                            class="text-sm text-white/80 block"
+                                        </span>
+                                        <span
+                                            class="text-xs text-gray-500 dark:text-gray-400"
                                         >
-                                            {
-                                                new Date(
-                                                    post.data.date,
-                                                ).toLocaleDateString("en-US", {
-                                                    year: "numeric",
-                                                    month: "long",
-                                                    day: "numeric",
-                                                })
+                                            @{
+                                                post.authorUsername ||
+                                                    post.data.author
+                                                        .toLowerCase()
+                                                        .replace(/\s+/g, "")
                                             }
-                                        </time>
+                                        </span>
                                     </div>
                                 </a>
+
+                                <!-- Actions -->
                                 <div
-                                    class="ml-auto hidden sm:flex items-center gap-3"
+                                    class="ml-4 pl-4 border-l border-gray-200 dark:border-gray-800 flex items-center gap-2"
                                 >
                                     <button
-                                        class="save-btn inline-flex items-center gap-2 px-4 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl font-semibold transition-all border border-white/30 text-white"
+                                        class="save-btn p-2 text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all"
                                         data-blog-id={post.slug}
                                         aria-label="Save for later"
+                                        title="Save for Later"
                                     >
                                         <svg
                                             class="w-5 h-5"
@@ -337,43 +562,36 @@ const breadcrumbStructuredData = {
                                                 d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
                                             ></path>
                                         </svg>
-                                        <span>Save</span>
                                     </button>
-                                    <a
-                                        href="#Article"
-                                        class="inline-flex items-center gap-2 px-6 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl font-semibold transition-all border border-white/30"
-                                    >
-                                        <svg
-                                            class="w-5 h-5"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                                            ></path>
-                                        </svg>
-                                        Start Reading
-                                    </a>
                                 </div>
                             </div>
                         </div>
                     </header>
 
-                    <!-- Article Body -->
+                    <!-- Feature Image (Native Clean style) -->
+                    {
+                        post.data.image && (
+                            <div class="relative mb-12 rounded-xl overflow-hidden shadow-sm ring-1 ring-gray-900/5 dark:ring-white/10">
+                                <img
+                                    src={
+                                        post.data.image.startsWith("http")
+                                            ? post.data.image
+                                            : `https://takovibe.com${post.data.image}`
+                                    }
+                                    alt={post.data.title}
+                                    class="w-full h-auto object-cover max-h-[600px]"
+                                />
+                            </div>
+                        )
+                    }
+
+                    <!-- Article Body (Native Font) -->
                     <article
-                        class="prose sm:prose-lg dark:prose-invert max-w-none
-            prose-headings:font-bold prose-headings:text-purple-700 dark:prose-headings:text-purple-400
-            prose-p:text-gray-900 dark:prose-p:text-gray-300 prose-p:leading-relaxed
-            prose-a:text-purple-600 dark:prose-a:text-purple-400 prose-a:no-underline hover:prose-a:underline
-            prose-img:rounded-xl prose-img:shadow-lg
-            prose-code:text-purple-600 dark:prose-code:text-purple-400 prose-code:px-1 prose-code:py-0.5 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none
-            prose-pre:bg-white dark:prose-pre:bg-[#0d1117] prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-gray-800
-            prose-blockquote:border-l-4 prose-blockquote:border-purple-500 prose-blockquote:pl-6 prose-blockquote:py-2 prose-blockquote:not-italic
-            prose-li:text-gray-900 dark:prose-li:text-gray-300"
+                        class="prose prose-lg md:prose-xl dark:prose-invert max-w-none
+            prose-headings:font-bold prose-headings:tracking-tight
+            prose-p:text-gray-800 dark:prose-p:text-gray-300 prose-p:leading-relaxed
+            prose-code:text-purple-600 dark:prose-code:text-purple-400
+            prose-img:rounded-xl prose-img:shadow-sm"
                         id="Article"
                     >
                         <div class="mdx-content">
@@ -458,74 +676,313 @@ const breadcrumbStructuredData = {
                         )
                     }
 
-                    <!-- Tags -->
+                    <!-- Footer (Moved outside for full width) -->
+                </main>
+
+                <!-- Right Sidebar: Interactive Toolkit (Promotional) -->
+                <aside class="hidden xl:block w-72 flex-shrink-0 sticky top-24">
                     <div
-                        class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-800"
+                        class="pl-6 border-l border-gray-100 dark:border-gray-800 space-y-8"
                     >
-                        <div class="flex flex-wrap gap-2">
-                            {
-                                post.data.tags?.map((tag: string) => (
-                                    <a
-                                        href={`/blog?tag=${encodeURIComponent(tag.toLowerCase())}`}
-                                        class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-800 hover:bg-purple-100 hover:text-purple-800 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-purple-900/30 dark:hover:text-purple-300 transition-colors"
+                        <!-- Header -->
+                        <h5
+                            class="text-xs font-bold text-gray-500 uppercase tracking-widest"
+                        >
+                            Interactive Toolkit
+                        </h5>
+
+                        <!-- Kumi AI Card -->
+                        <div
+                            id="kumi-promo-card"
+                            class="group relative rounded-2xl p-5 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/10 dark:to-indigo-900/10 border border-purple-100 dark:border-purple-800/30 transition-all hover:shadow-lg hover:shadow-purple-500/5 hover:-translate-y-1 cursor-pointer"
+                        >
+                            <div
+                                class="absolute top-3 right-3 text-purple-200 dark:text-purple-800/30"
+                            >
+                                <svg
+                                    class="w-12 h-12"
+                                    fill="currentColor"
+                                    viewBox="0 0 24 24"
+                                    ><path
+                                        d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"
+                                    ></path><path
+                                        d="M12 6a1 1 0 0 0-1 1v2a1 1 0 0 0 2 0V7a1 1 0 0 0-1-1zm0 4a3 3 0 0 0-3 3v2a3 3 0 0 0 6 0v-2a3 3 0 0 0-3-3zm0 4a1 1 0 1 1 1-1 1 1 0 0 1-1 1z"
+                                    ></path></svg
+                                >
+                            </div>
+                            <div class="relative z-10">
+                                <div
+                                    class="w-10 h-10 rounded-xl bg-purple-500 text-white flex items-center justify-center mb-3 shadow-md group-hover:scale-110 transition-transform"
+                                >
+                                    <span class="text-xl">🤖</span>
+                                </div>
+                                <h3
+                                    class="font-bold text-gray-900 dark:text-white mb-1"
+                                >
+                                    Meet Kumi
+                                </h3>
+                                <p
+                                    class="text-xs text-gray-600 dark:text-gray-400 mb-3 leading-relaxed"
+                                >
+                                    Your AI coding companion. Chat with this
+                                    article, summarize code, or ask for
+                                    explanations.
+                                </p>
+                                <div
+                                    class="text-xs font-semibold text-purple-600 dark:text-purple-400 flex items-center gap-1 group-hover:underline"
+                                >
+                                    Click to Chat <span
+                                        class="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/50"
+                                        >✨</span
+                                    > icon below
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Visual Canvas Card -->
+                        <div
+                            id="notes-promo-card"
+                            class="group relative rounded-2xl p-5 bg-gradient-to-br from-blue-50 to-teal-50 dark:from-blue-900/10 dark:to-teal-900/10 border border-blue-100 dark:border-blue-800/30 transition-all hover:shadow-lg hover:shadow-blue-500/5 hover:-translate-y-1 cursor-pointer"
+                        >
+                            <div
+                                class="absolute top-3 right-3 text-blue-200 dark:text-blue-800/30"
+                            >
+                                <svg
+                                    class="w-12 h-12"
+                                    fill="currentColor"
+                                    viewBox="0 0 24 24"
+                                    ><path
+                                        d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                                    ></path></svg
+                                >
+                            </div>
+                            <div class="relative z-10">
+                                <div
+                                    class="w-10 h-10 rounded-xl bg-blue-500 text-white flex items-center justify-center mb-3 shadow-md group-hover:scale-110 transition-transform"
+                                >
+                                    <span class="text-xl">✏️</span>
+                                </div>
+                                <h3
+                                    class="font-bold text-gray-900 dark:text-white mb-1"
+                                >
+                                    Visual Notes
+                                </h3>
+                                <p
+                                    class="text-xs text-gray-600 dark:text-gray-400 mb-3 leading-relaxed"
+                                >
+                                    Sketch, draw, and take visual notes directly
+                                    on top of this content using Excalidraw.
+                                </p>
+                                <div
+                                    class="text-xs font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1 group-hover:underline"
+                                >
+                                    Click to Draw
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Smart Selection Card (Legend) -->
+                        <div
+                            class="group relative rounded-2xl p-5 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/10 dark:to-orange-900/10 border border-yellow-100 dark:border-yellow-800/30"
+                        >
+                            <div class="relative z-10">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div
+                                        class="w-10 h-10 rounded-xl bg-orange-500 text-white flex items-center justify-center shadow-md"
                                     >
-                                        #{tag}
-                                    </a>
-                                ))
-                            }
+                                        <span class="text-xl">✨</span>
+                                    </div>
+                                    <div>
+                                        <h3
+                                            class="font-bold text-gray-900 dark:text-white leading-tight"
+                                        >
+                                            Smart Actions
+                                        </h3>
+                                        <p
+                                            class="text-[10px] uppercase tracking-wider font-bold text-orange-600 dark:text-orange-400"
+                                        >
+                                            Select Text to Unlock
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Icon Legend Grid -->
+                                <div class="grid grid-cols-5 gap-1 mb-2">
+                                    <!-- Highlight -->
+                                    <div
+                                        class="flex flex-col items-center gap-1"
+                                    >
+                                        <div
+                                            class="w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-600 dark:text-yellow-400"
+                                        >
+                                            <svg
+                                                class="w-4 h-4"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                                ><path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                                                ></path></svg
+                                            >
+                                        </div>
+                                        <span
+                                            class="text-[9px] font-medium text-gray-500 dark:text-gray-400"
+                                            >Mark</span
+                                        >
+                                    </div>
+                                    <!-- Note -->
+                                    <div
+                                        class="flex flex-col items-center gap-1"
+                                    >
+                                        <div
+                                            class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400"
+                                        >
+                                            <svg
+                                                class="w-4 h-4"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                                ><path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+                                                ></path></svg
+                                            >
+                                        </div>
+                                        <span
+                                            class="text-[9px] font-medium text-gray-500 dark:text-gray-400"
+                                            >Note</span
+                                        >
+                                    </div>
+                                    <!-- Ask Kumi -->
+                                    <div
+                                        class="flex flex-col items-center gap-1"
+                                    >
+                                        <div
+                                            class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400"
+                                        >
+                                            <svg
+                                                class="w-4 h-4"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                                ><path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                                                ></path></svg
+                                            >
+                                        </div>
+                                        <span
+                                            class="text-[9px] font-medium text-gray-500 dark:text-gray-400"
+                                            >Ask AI</span
+                                        >
+                                    </div>
+                                    <!-- Sketch -->
+                                    <div
+                                        class="flex flex-col items-center gap-1"
+                                    >
+                                        <div
+                                            class="w-8 h-8 rounded-full bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center text-pink-600 dark:text-pink-400"
+                                        >
+                                            <svg
+                                                class="w-4 h-4"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                                ><path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                                                ></path><path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M3 21l3-3"></path></svg
+                                            >
+                                        </div>
+                                        <span
+                                            class="text-[9px] font-medium text-gray-500 dark:text-gray-400"
+                                            >Draw</span
+                                        >
+                                    </div>
+                                    <!-- Visualize -->
+                                    <div
+                                        class="flex flex-col items-center gap-1"
+                                    >
+                                        <div
+                                            class="w-8 h-8 rounded-full bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center text-teal-600 dark:text-teal-400"
+                                        >
+                                            <svg
+                                                class="w-4 h-4"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                                ><path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                                ></path></svg
+                                            >
+                                        </div>
+                                        <span
+                                            class="text-[9px] font-medium text-gray-500 dark:text-gray-400"
+                                            >See</span
+                                        >
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                </aside>
+            </div>
 
-                    <!-- Related Posts -->
-                    <div
-                        class="mt-16 pt-10 border-t border-gray-200 dark:border-gray-800"
-                    >
-                        <h2
-                            class="text-2xl font-bold text-gray-900 dark:text-white mb-8"
-                        >
-                            Read Next
-                        </h2>
-                        <RelatedPosts
-                            currentSlug={post.slug}
-                            tags={post.data.tags || []}
-                        />
-                    </div>
-
-                    <!-- Footer -->
-                    <div
-                        class="mt-16 pt-10 border-t border-gray-200 dark:border-gray-800 text-center"
-                    >
-                        <Footer />
-                    </div>
-                </main>
+            <!-- Related Posts (Global Width) -->
+            <div
+                class="mt-12 border-t border-gray-200 dark:border-white/10 pt-8"
+            >
+                <div class="max-w-7xl mx-auto">
+                    <RelatedPosts
+                        currentSlug={post.slug}
+                        tags={post.data.tags || []}
+                    />
+                </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Reader Toolbar -->
-    <ReaderToolbar
-        headings={headings}
-        title={post.data.title}
-        description={post.data.description}
-        url={Astro.url.href}
-        slug={post.slug}
-    />
-    <QuizHydrator client:idle />
-    <CodePlaygroundHydrator client:idle />
-    <ChatBot
-        client:idle
-        articleTitle={post.data.title}
-        articleId={post.slug}
-        articleContext={`Title: ${post.data.title}\n\nDescription: ${post.data.description}\n\nContent: ${post.contentJson ? JSON.stringify(post.contentJson) : htmlContent || ""}`}
-    />
-    <ExcalidrawHydrator
-        client:idle
-        articleSlug={post.slug}
-        initialOpen={Astro.url.searchParams.get("open_notes") === "true"}
-    />
-    <LoginPromptModal client:idle />
-    <DangerConfirmationModal client:idle />
-</Layout>
+<!-- Reader Toolbar -->
+<ReaderToolbar
+    headings={headings}
+    title={post.data.title}
+    description={post.data.description}
+    url={Astro.url.href}
+    slug={post.slug}
+/>
+<QuizHydrator client:idle />
+<CodePlaygroundHydrator client:idle />
+<Footer />
+<ChatBot
+    client:idle
+    articleTitle={post.data.title}
+    articleId={post.slug}
+    articleContext={`Title: ${post.data.title}\n\nDescription: ${post.data.description}\n\nContent: ${post.contentJson ? JSON.stringify(post.contentJson) : htmlContent || ""}`}
+/>
+<ExcalidrawHydrator
+    client:idle
+    articleSlug={post.slug}
+    initialOpen={Astro.url.searchParams.get("open_notes") === "true"}
+/>
+<LoginPromptModal client:idle />
+<DangerConfirmationModal client:idle />
 
 <style>
     /* Force dark text in light mode for article content */
@@ -927,4 +1384,49 @@ const breadcrumbStructuredData = {
     // Initialize
     setupSaveButtons();
     document.addEventListener("astro:after-swap", setupSaveButtons);
+
+    // Sidebar Promo Interactivity
+    function setupPromoCards() {
+        const kumiCard = document.getElementById("kumi-promo-card");
+        if (kumiCard) {
+            kumiCard.addEventListener("click", () => {
+                const token = localStorage.getItem("access_token");
+                if (!token) {
+                    const event = new CustomEvent("show-login-prompt", {
+                        detail: {
+                            feature: "Kumi AI",
+                            next:
+                                window.location.pathname +
+                                window.location.search,
+                        },
+                    });
+                    window.dispatchEvent(event);
+                    return;
+                }
+                window.dispatchEvent(new CustomEvent("toggle-ai-chat"));
+            });
+        }
+
+        const notesCard = document.getElementById("notes-promo-card");
+        if (notesCard) {
+            notesCard.addEventListener("click", () => {
+                const token = localStorage.getItem("access_token");
+                if (!token) {
+                    const event = new CustomEvent("show-login-prompt", {
+                        detail: {
+                            feature: "sketch notes",
+                            next:
+                                window.location.pathname +
+                                window.location.search,
+                        },
+                    });
+                    window.dispatchEvent(event);
+                    return;
+                }
+                window.dispatchEvent(new CustomEvent("toggle-excalidraw"));
+            });
+        }
+    }
+    setupPromoCards();
+    document.addEventListener("astro:after-swap", setupPromoCards);
 </script>
