@@ -8,6 +8,7 @@ export const prerender = true;
 const API_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
 
 export async function getStaticPaths() {
+  const API_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
   try {
     // Fetch all series (live + completed)
     const [liveRes, completedRes] = await Promise.all([
