@@ -813,7 +813,7 @@ const enableMobileDock =
 
         try {
             const res = await fetch(
-                `${apiUrl}/api/blogs/chat/user-drawings/my_drawings/?blog_slug=${slug}`,
+                `${apiUrl}/api/blogs/chat/user-drawings/?my_drawings=true&blog_slug=${slug}`,
                 {
                     headers: { Authorization: `Token ${token}` },
                 },
@@ -965,7 +965,7 @@ const enableMobileDock =
 
             try {
                 const res = await fetch(
-                    `${apiUrl}/api/blogs/chat/user-drawings/my_drawings?article_slug=${slug}`,
+                    `${apiUrl}/api/blogs/chat/user-drawings/?my_drawings=true&blog_slug=${slug}`,
                     {
                         headers: { Authorization: `Token ${token}` },
                     },

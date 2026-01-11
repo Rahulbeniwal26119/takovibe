@@ -90,7 +90,7 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
             if (!token) return;
 
             try {
-                const response = await fetchWithAuth(`${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/chat/user-drawings/my_drawings/?blog_slug=${articleSlug}`);
+                const response = await fetchWithAuth(`${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/chat/user-drawings/?my_drawings=true&blog_slug=${articleSlug}`);
                 if (response.ok) {
                     const data = await response.json();
                     const results = data.results || (Array.isArray(data) ? data : []);

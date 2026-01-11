@@ -10,7 +10,8 @@ interface Note {
     blog_title?: string;
     blog_slug?: string;
     is_public: boolean;
-    author_name?: string; // Assuming API returns this for public notes
+    user_name?: string;
+    display_title?: string;
     owner?: number;
 }
 
@@ -24,12 +25,8 @@ export const NotesList = () => {
     useEffect(() => {
         const token = localStorage.getItem('access_token');
         setIsAuthenticated(!!token);
-        // Default to 'private' if logged in? No, Community is nice default.
+        // Default to 'private' if logged in, 'public' if not.
         if (token && window.location.hash !== '#community') {
-            // Maybe user wants to see their notes first?
-            // Let's stick to community default for "Revamped" feel or check preference.
-            // Actually, if I created a note, I want to see mine.
-            // Let's default to 'private' if logged in, 'public' if not.
             setActiveTab('private');
         } else {
             setActiveTab('public');
@@ -37,50 +34,43 @@ export const NotesList = () => {
     }, []);
 
     useEffect(() => {
-        fetchNotes();
-    }, [activeTab, isAuthenticated]);
+        const timer = setTimeout(() => {
+            fetchNotes();
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [activeTab, isAuthenticated, search]);
 
     const fetchNotes = async () => {
         setLoading(true);
-        setNotes([]); // Clear prev
+        if (search) setNotes([]);
+
         try {
-            let url = '';
-            let useAuth = false;
+            let url = `${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/chat/user-drawings/?`;
+            const params = new URLSearchParams();
+
+            if (search) {
+                params.append('search', search);
+            }
 
             if (activeTab === 'private') {
                 if (!isAuthenticated) {
                     setLoading(false);
                     return;
                 }
-                url = `${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/chat/user-drawings/my_drawings/`;
-                useAuth = true;
+                params.append('my_drawings', 'true');
             } else {
-                // Public/Community Notes
-                // Attempting to fetch general list. If Backend filters by owner, this might only show mine if logged in.
-                // If I am guest, it might show public?
-                // Or there is a specific 'public' action.
-                // Assuming standard list endpoint returns public results if unauthenticated or filtered.
-                url = `${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/chat/user-drawings/?is_public=true`;
-                // We use generic fetch for public to avoid sending token if we want "Anonymous view" or standard auth
-                // Actually, often getting public notes as Authed user is fine.
-                useAuth = false; // Force public fetch without token to see "Public" view?
-                // But if API requires token for ANY access, this fails.
-                // User said "accessed without any kind of authentication".
-                // So plain fetch should work.
+                params.append('is_public', 'true');
             }
 
-            const res = useAuth ? await fetchWithAuth(url) : await fetch(url);
+            const finalUrl = `${url}${params.toString()}`;
+            const res = activeTab === 'private' ? await fetchWithAuth(finalUrl) : await fetch(finalUrl);
 
             if (res.ok) {
                 const data = await res.json();
-                // Handle pagination if results is array
                 const list = Array.isArray(data) ? data : (data.results || data.data || []);
                 setNotes(list);
             } else {
                 console.warn("Failed to fetch notes", res.status);
-                if (res.status === 401 && activeTab === 'public') {
-                    // Try fallback? 
-                }
             }
         } catch (e) {
             console.error("Error fetching notes:", e);
@@ -88,13 +78,6 @@ export const NotesList = () => {
             setLoading(false);
         }
     };
-
-    const filteredNotes = notes.filter(n => {
-        const searchLower = search.toLowerCase();
-        return (n.title?.toLowerCase() || '').includes(searchLower) ||
-            (n.blog_title?.toLowerCase() || '').includes(searchLower) ||
-            (n.author_name?.toLowerCase() || '').includes(searchLower);
-    });
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -174,7 +157,7 @@ export const NotesList = () => {
                         Log In
                     </a>
                 </div>
-            ) : filteredNotes.length === 0 ? (
+            ) : notes.length === 0 ? (
                 <div className="text-center py-20 bg-gray-50 dark:bg-gray-800/50 rounded-3xl border-2 border-dashed border-gray-200 dark:border-gray-700">
                     <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
                         <FileText className="w-10 h-10 text-gray-400" />
@@ -188,7 +171,7 @@ export const NotesList = () => {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredNotes.map(note => (
+                    {notes.map(note => (
                         <a
                             key={note.id}
                             href={note.blog_slug ? `/blog/${note.blog_slug}?open_notes=true` : `/notes/${note.id}`}
@@ -199,10 +182,12 @@ export const NotesList = () => {
                                 <div className="absolute inset-0 pattern-grid-lg opacity-5"></div>
                                 <FileText className="w-16 h-16 text-gray-300 dark:text-gray-600 group-hover:text-purple-400 dark:group-hover:text-purple-300 transition-colors transform group-hover:scale-110 duration-500" />
 
-                                {activeTab === 'public' && note.author_name && (
-                                    <div className="absolute bottom-3 left-3 flex items-center gap-1.5 bg-white/80 dark:bg-black/50 backdrop-blur px-2 py-1 rounded-full border border-white/20">
-                                        <User className="w-3 h-3 text-gray-500 dark:text-gray-400" />
-                                        <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{note.author_name}</span>
+                                {activeTab === 'public' && note.user_name && (
+                                    <div className="absolute bottom-3 left-3 flex items-center gap-1.5 bg-white/80 dark:bg-black/50 backdrop-blur px-2 py-1 rounded-full border border-white/20 shadow-sm">
+                                        <User className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                                        <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">
+                                            {note.user_name}
+                                        </span>
                                     </div>
                                 )}
                             </div>
