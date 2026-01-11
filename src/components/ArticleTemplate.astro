@@ -595,7 +595,7 @@ const breadcrumbStructuredData = {
                     <!-- Article Body (Native Font) -->
                     <article
                         class="prose prose-lg md:prose-xl dark:prose-invert max-w-none
-            prose-headings:font-bold prose-headings:tracking-tight
+            prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-gray-900 dark:prose-headings:text-gray-100
             prose-p:text-gray-800 dark:prose-p:text-gray-300 prose-p:leading-relaxed
             prose-code:text-purple-600 dark:prose-code:text-purple-400
             prose-img:rounded-xl prose-img:shadow-sm"
@@ -995,9 +995,7 @@ const breadcrumbStructuredData = {
             </div>
 
             <!-- Related Posts (Global Width) -->
-            <div
-                class="mt-12 border-t border-gray-200 dark:border-white/10 pt-8"
-            >
+            <div>
                 <div class="max-w-7xl mx-auto">
                     <RelatedPosts
                         currentSlug={post.slug}

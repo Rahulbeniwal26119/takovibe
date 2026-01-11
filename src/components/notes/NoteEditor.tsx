@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Excalidraw, WelcomeScreen, MainMenu, getSceneVersion } from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css";
-import { ArrowLeft, Save, Loader2, Cloud, CloudOff } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Cloud, CloudOff, Lock, Unlock } from 'lucide-react';
 import { fetchWithAuth } from '../../utils/api';
 import { showToast } from '../../utils/toast';
 import drwnioLib from '../../data/libraries/drwnio.json';
@@ -23,20 +23,24 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId }) => {
     const [excalidrawAPI, setExcalidrawAPI] = useState<any>(null);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [drawingData, setDrawingData] = useState<any>(null);
-    const [lastSaved, setLastSaved] = useState<Date | null>(null);
     const [isAutoSavePaused, setIsAutoSavePaused] = useState(false);
+
+    // Auth State
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isReadOnly, setIsReadOnly] = useState(false); // Default false, set to true if guest or not owner
 
     const titleRef = useRef(title);
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const lastSavedVersionRef = useRef(0);
-
     const drawingIdRef = useRef(noteId);
+
     useEffect(() => { if (drawingData?.id) drawingIdRef.current = drawingData.id; }, [drawingData?.id]);
 
     useEffect(() => {
         const token = localStorage.getItem('access_token');
+        setIsAuthenticated(!!token);
         if (!token) {
-            window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`;
+            setIsReadOnly(true); // Guests are always Read Only
         }
     }, []);
 
@@ -49,13 +53,19 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId }) => {
 
         const fetchNote = async () => {
             try {
-                const res = await fetchWithAuth(`${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/chat/user-drawings/${noteId}/`);
+                // Manually handle fetch to avoid auto-redirect from fetchWithAuth if 401
+                const token = localStorage.getItem('access_token');
+                const headers: any = {};
+                if (token) headers['Authorization'] = `Token ${token}`;
+
+                const url = `${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/chat/user-drawings/${noteId}/`;
+                const res = await fetch(url, { headers });
+
                 if (res.ok) {
                     const data = await res.json();
 
                     const elements = typeof data.elements === 'string' ? JSON.parse(data.elements) : data.elements || [];
                     const appState = typeof data.app_state === 'string' ? JSON.parse(data.app_state) : data.app_state || {};
-                    // Sanitize appState to prevent Excalidraw crash (collaborators typemismatch)
                     if (appState.collaborators) delete appState.collaborators;
 
                     const loadedTitle = data.title || appState.name || "Untitled Note";
@@ -66,16 +76,33 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId }) => {
                         elements,
                         appState,
                         is_public: data.is_public,
-                        id: data.id
+                        id: data.id,
+                        owner: data.owner // Assuming backend returns owner ID?
                     });
-                    setLastSaved(new Date(data.updated_at));
+
                     lastSavedVersionRef.current = getSceneVersion(elements || []);
                     if (data.id) drawingIdRef.current = data.id;
+
+                    // Determine ReadOnly if logged in but not owner
+                    // Since we don't have current User ID easily here, we assume Edit unless 403 on Save.
+                    // Or if backend provides `can_edit` flag?
+                    // For now, only enforce ReadOnly strictly for guests.
+                    if (!token) setIsReadOnly(true);
+
                 } else {
-                    console.error("Failed to load note");
+                    if (res.status === 401 || res.status === 403) {
+                        // Private note and not auth? Or Public but restricted?
+                        // If 403, it might mean "Private".
+                        console.error("Access Denied");
+                        showToast("You don't have permission to view this note.", 'error');
+                        setIsReadOnly(true);
+                    } else if (res.status === 404) {
+                        showToast("Note not found", 'error');
+                    }
                 }
             } catch (e) {
                 console.error(e);
+                showToast("Failed to load note", 'error');
             } finally {
                 setIsLoading(false);
             }
@@ -83,15 +110,10 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId }) => {
         fetchNote();
     }, [noteId]);
 
-    // Save logic is handled by executeSave
-
-
     const getErrorMessage = (err: any) => {
         if (typeof err === 'string') return err;
         if (err.non_field_errors) return err.non_field_errors.join(', ');
         if (err.detail) return err.detail;
-        if (err.blog_slug) return Array.isArray(err.blog_slug) ? err.blog_slug.join(', ') : err.blog_slug;
-        // Fallback: join all values
         return Object.values(err).flat().join(', ');
     };
 
@@ -99,10 +121,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId }) => {
     const pendingSaveRef = useRef(false);
 
     const executeSave = async (elements: any, appState: any) => {
-        if (isSavingRef.current) {
-            pendingSaveRef.current = true;
-            return;
-        }
+        if (isReadOnly || isSavingRef.current) return;
 
         isSavingRef.current = true;
         setIsSaving(true);
@@ -120,13 +139,13 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId }) => {
             let url = `${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/chat/user-drawings/`;
             let method = 'POST';
 
-            // Determine ID
             const activeId = drawingIdRef.current;
             if (activeId) {
                 url = `${url}${activeId}/`;
                 method = 'PUT';
             }
 
+            // Using fetchWithAuth here is fine as we expect to be logged in for SAVING
             const res = await fetchWithAuth(url, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
@@ -136,73 +155,49 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId }) => {
             if (res.ok) {
                 const saved = await res.json();
                 setDrawingData(prev => ({ ...prev, ...saved }));
-                setLastSaved(new Date());
                 setHasUnsavedChanges(false);
-                setIsAutoSavePaused(false); // Resume auto-save on success
+                setIsAutoSavePaused(false);
                 lastSavedVersionRef.current = getSceneVersion(elements);
                 if (!activeId && saved.id) {
                     drawingIdRef.current = saved.id;
                     window.history.replaceState(null, '', `/notes/${saved.id}`);
                 }
             } else {
-                const err = await res.json();
-                console.error("Save Error:", err);
-                const msg = getErrorMessage(err);
-
-                showToast(`Save failed: ${msg}`, 'error', 'bottom');
-
-                // Stop auto-save loop
+                if (res.status === 403) {
+                    setIsReadOnly(true); // Flip to ReadOnly if permission denied
+                    showToast("Read Only: You cannot edit this note.", 'error');
+                } else {
+                    const err = await res.json();
+                    showToast(`Save failed: ${getErrorMessage(err)}`, 'error');
+                }
                 setIsAutoSavePaused(true);
             }
         } catch (e) {
             console.error(e);
-            showToast("Network/Save Error", 'error', 'bottom');
             setIsAutoSavePaused(true);
         } finally {
             isSavingRef.current = false;
             setIsSaving(false);
-
-            // If another save was requested while we were saving, run it now
-            if (pendingSaveRef.current) {
-                // Ensure we use the latest elements/appState if possible?
-                // The args passed to executeSave are stale here?
-                // Yes. But if we re-call executeSave we need fresh args.
-                // How to get fresh args?
-                // We can't easily. 
-                // BUT, if we just trigger the next save, we should use the drawingData?
-                // Or better, ExcalidrawAPI?
-                // If we are in `executeSave`, we don't have access to API directly unless we stored it in state.
-                if (excalidrawAPI) {
-                    executeSave(excalidrawAPI.getSceneElements(), excalidrawAPI.getAppState());
-                }
+            if (pendingSaveRef.current && !isReadOnly && excalidrawAPI) {
+                executeSave(excalidrawAPI.getSceneElements(), excalidrawAPI.getAppState());
             }
         }
     };
 
-    // Auto-save debouncer
     const handleChange = useCallback((elements: any, appState: any) => {
-        if (isAutoSavePaused) return; // Stop loop
-
+        if (isReadOnly || isAutoSavePaused) return;
         const version = getSceneVersion(elements);
         if (version === lastSavedVersionRef.current) return;
 
         setHasUnsavedChanges(true);
         if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-
         saveTimeoutRef.current = setTimeout(() => {
-            // We need to pass the LATEST state to saveData
-            // But we can't easily access 'drawingData' state inside this stale closure if we don't depend on it.
-            // Best to call a ref-based saver or pass everything explicitly?
-            // Actually, for CREATE (POST), we need to handle the transition from ID=undefined to ID=set.
-            // If save happens, drawingData updates.
-            // Let's defer functionality slightly: 
-            // We'll call a ref-based saver or pass everything explicitly.
             executeSave(elements, appState);
         }, 2000);
-    }, [isAutoSavePaused]);
+    }, [isAutoSavePaused, isReadOnly]);
 
     const handleManualSave = () => {
-        if (excalidrawAPI) {
+        if (!isReadOnly && excalidrawAPI) {
             executeSave(excalidrawAPI.getSceneElements(), excalidrawAPI.getAppState());
         }
     };
@@ -210,50 +205,53 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId }) => {
     return (
         <div className="h-screen flex flex-col bg-white dark:bg-gray-900">
             {/* Header */}
-            <div className="h-14 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-4 bg-gray-50 dark:bg-gray-900">
+            <div className="h-14 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-4 bg-gray-50 dark:bg-gray-900 z-10 transition-colors">
                 <div className="flex items-center gap-4">
-                    <a href="/notes" className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                    <a href={isAuthenticated ? "/notes#private" : "/notes#public"} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors">
                         <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                     </a>
                     <input
                         type="text"
                         value={title}
+                        disabled={isReadOnly}
                         onChange={(e) => {
                             setTitle(e.target.value);
                             titleRef.current = e.target.value;
-                            setHasUnsavedChanges(true); // Trigger save eventually
+                            if (!isReadOnly) setHasUnsavedChanges(true);
                         }}
                         onBlur={() => handleManualSave()}
-                        className="bg-transparent text-gray-900 dark:text-white font-semibold text-lg focus:outline-none border-b border-transparent hover:border-gray-300 focus:border-purple-500 transition-colors"
+                        className={`bg-transparent text-gray-900 dark:text-white font-semibold text-lg focus:outline-none border-b border-transparent transition-colors ${isReadOnly ? 'opacity-80 cursor-default' : 'hover:border-gray-300 focus:border-purple-500'}`}
                     />
+                    {isReadOnly && (
+                        <span className="px-2 py-0.5 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs rounded font-medium flex items-center gap-1">
+                            <Lock className="w-3 h-3" /> Read Only
+                        </span>
+                    )}
                 </div>
                 <div className="flex items-center gap-4">
-                    {isAutoSavePaused && (
-                        <button
-                            onClick={handleManualSave}
-                            className="text-xs bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 px-3 py-1 rounded-full hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors animate-pulse"
-                        >
-                            Retry Save
-                        </button>
+                    {!isReadOnly && (
+                        <>
+                            {isAutoSavePaused && (
+                                <button onClick={handleManualSave} className="text-xs bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 px-3 py-1 rounded-full animate-pulse">
+                                    Retry Save
+                                </button>
+                            )}
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                                {isSaving ? (
+                                    <><Loader2 className="w-3 h-3 animate-spin" /><span>Saving...</span></>
+                                ) : hasUnsavedChanges ? (
+                                    <><CloudOff className="w-3 h-3" /><span>Unsaved</span></>
+                                ) : (
+                                    <><Cloud className="w-3 h-3" /><span>Saved</span></>
+                                )}
+                            </div>
+                        </>
                     )}
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                        {isSaving ? (
-                            <>
-                                <Loader2 className="w-3 h-3 animate-spin" />
-                                <span>Saving...</span>
-                            </>
-                        ) : hasUnsavedChanges ? (
-                            <>
-                                <CloudOff className="w-3 h-3" />
-                                <span>Unsaved changes</span>
-                            </>
-                        ) : (
-                            <>
-                                <Cloud className="w-3 h-3" />
-                                <span>Saved</span>
-                            </>
-                        )}
-                    </div>
+                    {!isAuthenticated && (
+                        <a href={`/login?next=/notes/${noteId || ''}`} className="text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700">
+                            Log In to Edit
+                        </a>
+                    )}
                 </div>
             </div>
 
@@ -276,6 +274,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId }) => {
                         onChange={(elements, appState) => handleChange(elements, appState)}
                         excalidrawAPI={(api) => setExcalidrawAPI(api)}
                         theme={document.documentElement.classList.contains('dark') ? 'dark' : 'light'}
+                        viewModeEnabled={isReadOnly}
                         UIOptions={{
                             tools: { image: false },
                             canvasActions: {
@@ -287,15 +286,15 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId }) => {
                             }
                         }}
                     >
-                        <WelcomeScreen>
-                            <WelcomeScreen.Hints.MenuHint />
-                            <WelcomeScreen.Hints.ToolbarHint />
-                            <WelcomeScreen.Center>
-                                <WelcomeScreen.Center.Heading>
-                                    Sketch Your Ideas
-                                </WelcomeScreen.Center.Heading>
-                            </WelcomeScreen.Center>
-                        </WelcomeScreen>
+                        {!noteId && !isReadOnly && (
+                            <WelcomeScreen>
+                                <WelcomeScreen.Hints.MenuHint />
+                                <WelcomeScreen.Hints.ToolbarHint />
+                                <WelcomeScreen.Center>
+                                    <WelcomeScreen.Center.Heading>Sketch Your Ideas</WelcomeScreen.Center.Heading>
+                                </WelcomeScreen.Center>
+                            </WelcomeScreen>
+                        )}
                         <MainMenu>
                             <MainMenu.DefaultItems.ClearCanvas />
                             <MainMenu.DefaultItems.SaveAsImage />
