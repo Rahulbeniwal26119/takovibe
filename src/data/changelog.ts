@@ -27,6 +27,77 @@ export interface ChangeLogEntry {
 
 export const changelogData: ChangeLogEntry[] = [
     {
+        "date": "2026-01-12",
+        "version": "Bug Fix",
+        "title": "Diagram & Editor Stability",
+        "description": "Major stability improvements for the editor and diagramming tools, ensuring a smoother creative workflow.",
+        "changes": [
+            {
+                "type": "fix",
+                "text": "Mermaid Diagrams: Fixed invisible text and arrows. Diagrams now render robustly with correct centering and high contrast.",
+                // "images": [
+                //     "https://ik.imagekit.io/bhu1voux5/mermaid_fix_demo.png"
+                // ]
+            },
+            {
+                "type": "improvement",
+                "text": "Editor Stability: Resolved an 'Infinite Save Loop' that was causing the editor to flash and reload."
+            },
+            {
+                "type": "new",
+                "text": "Public Notes: You can now toggle notes as Public or Private directly from the editor."
+            },
+            {
+                "type": "improvement",
+                "text": "Excalidraw Integration: Ported the robust 'Ghost Drawer' logic to the main Note Editor for consistent diagram handling."
+            }
+        ]
+    },
+    {
+        "date": "2026-01-11",
+        "version": "Feature Release",
+        "title": "Public Notes & Unified Filtering",
+        "description": "Added privacy controls for notes and improved site performance with unified data fetching.",
+        "changes": [
+            {
+                "type": "new",
+                "text": "Public/Private Toggle: New control in the editor to manage note privacy."
+            },
+            {
+                "type": "improvement",
+                "text": "Unified APIs: Consolidated multiple API calls for blogs and drawings into efficient, single endpoints."
+            },
+            {
+                "type": "fix",
+                "text": "Light Mode Styling: Fixed article heading visibility issues in light mode."
+            }
+        ]
+    },
+    {
+        "date": "2026-01-09",
+        "version": "Bug Fix",
+        "title": "Legacy Article Support",
+        "description": "Restored full interactive features for older MDX-based articles.",
+        "changes": [
+            {
+                "type": "fix",
+                "text": "Legacy UI Restoration: Zen Navigation and Reader Toolbar now work correctly on legacy MDX articles."
+            }
+        ]
+    },
+    {
+        "date": "2026-01-08",
+        "version": "Improvement",
+        "title": "Performance Tuning",
+        "description": "Backend and server configuration updates to improve load times.",
+        "changes": [
+            {
+                "type": "improvement",
+                "text": "TTFB Optimization: Debugged and optimized Nginx configurations to reduce server response times for static content."
+            }
+        ]
+    },
+    {
         "date": "2026-01-06",
         "version": "Feature Release",
         "title": "Notes Dashboard & Ghost Artist",
@@ -35,10 +106,10 @@ export const changelogData: ChangeLogEntry[] = [
             {
                 "type": "new",
                 "text": "Notes Dashboard: A brand new 'My Notes' page to manage all your drawings in one place.",
-                "images": [
-                    "https://ik.imagekit.io/bhu1voux5/notes-dashboard-standalone",
-                    "https://ik.imagekit.io/bhu1voux5/notes-dashboard-article"
-                ]
+                // "images": [
+                //     "https://ik.imagekit.io/bhu1voux5/notes-dashboard-standalone",
+                //     "https://ik.imagekit.io/bhu1voux5/notes-dashboard-article"
+                // ]
             },
             {
                 "type": "new",
@@ -80,7 +151,7 @@ export const changelogData: ChangeLogEntry[] = [
     },
     {
         "date": "2026-01-01",
-        "version": "Feature Update",
+        "version": "Improvement",
         "title": "Enhanced Profile, Stats & Editor Polish",
         "description": "We've improved the author profile experience with better statistics and refined the editor with tabbed code blocks.",
         "changes": [
@@ -148,7 +219,7 @@ export const changelogData: ChangeLogEntry[] = [
     },
     {
         "date": "2025-12-29",
-        "version": "Initial Version",
+        "version": "Feature Release",
         "title": "Header Improvements and New Pages Added",
         "description": "Header improved and new pages for Inbox and change log",
         "changes": [
