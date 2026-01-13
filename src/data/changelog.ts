@@ -27,6 +27,22 @@ export interface ChangeLogEntry {
 
 export const changelogData: ChangeLogEntry[] = [
     {
+        "date": "2026-01-13",
+        "version": "Feature Release",
+        "title": "Note Management Update",
+        "description": "Improved note management with deletion capabilities and better access to AI tools.",
+        "changes": [
+            {
+                "type": "new",
+                "text": "Delete Notes: You can now permanently delete notes from your collection."
+            },
+            {
+                "type": "improvement",
+                "text": "AI Diagram Access: The text-to-diagram tool is now visible to all users, prompting login when needed."
+            }
+        ]
+    },
+    {
         "date": "2026-01-12",
         "version": "Bug Fix",
         "title": "Diagram & Editor Stability",

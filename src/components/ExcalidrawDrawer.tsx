@@ -90,14 +90,14 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
             if (!token) return;
 
             try {
-                const response = await fetchWithAuth(`${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/chat/user-drawings/?my_drawings=true&blog_slug=${articleSlug}`);
+                const response = await fetchWithAuth(`${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/user-drawings/?my_drawings=true&blog_slug=${articleSlug}`);
                 if (response.ok) {
                     const data = await response.json();
                     const results = data.results || (Array.isArray(data) ? data : []);
                     if (Array.isArray(results)) {
                         const drawing = results.find((d: any) => d.blog_slug === articleSlug);
                         if (drawing) {
-                            const detailRes = await fetchWithAuth(`${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/chat/user-drawings/${drawing.id}/`);
+                            const detailRes = await fetchWithAuth(`${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/user-drawings/${drawing.id}/`);
                             if (detailRes.ok) {
                                 const fullDrawing = await detailRes.json();
                                 const elements = typeof fullDrawing.elements === 'string' ? JSON.parse(fullDrawing.elements) : fullDrawing.elements || [];
@@ -327,8 +327,8 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
 
             const method = drawingData?.id ? 'PUT' : 'POST';
             const url = drawingData?.id
-                ? `${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/chat/user-drawings/${drawingData.id}/`
-                : `${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/chat/user-drawings/`;
+                ? `${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/user-drawings/${drawingData.id}/`
+                : `${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/user-drawings/`;
 
             const response = await fetchWithAuth(url, {
                 method,
@@ -371,7 +371,7 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
         }
 
         try {
-            const response = await fetchWithAuth(`${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/chat/user-drawings/${drawingData.id}/toggle_public/`, {
+            const response = await fetchWithAuth(`${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/user-drawings/${drawingData.id}/toggle_public/`, {
                 method: 'POST'
             });
 

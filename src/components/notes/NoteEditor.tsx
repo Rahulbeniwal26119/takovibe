@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Excalidraw, WelcomeScreen, MainMenu, getSceneVersion, convertToExcalidrawElements } from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css";
-import { ArrowLeft, Save, Loader2, Cloud, CloudOff, Lock, Unlock, Wand2, X, Play, Code, Sparkles } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Cloud, CloudOff, Lock, Unlock, Wand2, X, Play, Code, Sparkles, Trash2, AlertTriangle } from 'lucide-react';
 import { parseMermaidToExcalidraw } from "@excalidraw/mermaid-to-excalidraw";
 import { fetchWithAuth } from '../../utils/api';
 import { showToast } from '../../utils/toast';
@@ -33,6 +33,8 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId }) => {
     const [mermaidCode, setMermaidCode] = useState("graph TD\n    A[Start] --> B{Is it working?}\n    B -->|Yes| C[Great!]\n    B -->|No| D[Debug]");
     const [aiPrompt, setAiPrompt] = useState("");
     const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isDeletingNote, setIsDeletingNote] = useState(false);
 
     // Auth State
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -67,7 +69,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId }) => {
                 const headers: any = {};
                 if (token) headers['Authorization'] = `Token ${token}`;
 
-                const url = `${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/chat/user-drawings/${noteId}/`;
+                const url = `${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/user-drawings/${noteId}/`;
                 const res = await fetch(url, { headers });
 
                 if (res.ok) {
@@ -142,7 +144,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId }) => {
                 is_public: isPublic
             };
 
-            let url = `${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/chat/user-drawings/`;
+            let url = `${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/user-drawings/`;
             let method = 'POST';
 
             const activeId = drawingIdRef.current;
@@ -222,7 +224,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId }) => {
         }
 
         try {
-            const response = await fetchWithAuth(`${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/chat/user-drawings/${noteId}/toggle_public/`, {
+            const response = await fetchWithAuth(`${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/user-drawings/${noteId}/toggle_public/`, {
                 method: 'POST'
             });
 
@@ -402,6 +404,28 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId }) => {
         }
     };
 
+    const handleDeleteNote = async () => {
+        if (!noteId) return;
+        setIsDeletingNote(true);
+        try {
+            const res = await fetchWithAuth(`${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/user-drawings/${noteId}/`, {
+                method: 'DELETE',
+            });
+
+            if (res.ok) {
+                showToast("Note deleted successfully", 'success');
+                window.location.href = '/notes';
+            } else {
+                showToast("Failed to delete note", 'error');
+                setIsDeletingNote(false);
+            }
+        } catch (e) {
+            console.error("Error deleting note:", e);
+            showToast("Error deleting note", 'error');
+            setIsDeletingNote(false);
+        }
+    };
+
 
     const handleAIGenerate = async () => {
         if (!aiPrompt.trim()) return;
@@ -464,15 +488,32 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId }) => {
                     )}
                 </div>
                 <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => {
+                            if (!isAuthenticated) {
+                                window.location.href = `/login?next=${window.location.pathname}`;
+                                return;
+                            }
+                            if (isReadOnly) {
+                                showToast("You cannot edit this note.", "error");
+                                return;
+                            }
+                            setIsMermaidModalOpen(true);
+                        }}
+                        className="p-1.5 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-800"
+                        title="Text to Diagram"
+                    >
+                        <Wand2 className="w-4 h-4" />
+                        <span className="hidden sm:inline">AI Diagram</span>
+                    </button>
                     {!isReadOnly && (
                         <>
                             <button
-                                onClick={() => setIsMermaidModalOpen(true)}
-                                className="p-1.5 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-800"
-                                title="Text to Diagram"
+                                onClick={() => setIsDeleteModalOpen(true)}
+                                className="p-1.5 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 dark:text-gray-400 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+                                title="Delete Note"
                             >
-                                <Wand2 className="w-4 h-4" />
-                                <span className="hidden sm:inline">AI Diagram</span>
+                                <Trash2 className="w-4 h-4" />
                             </button>
                             <button
                                 onClick={togglePublic}
@@ -649,6 +690,43 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId }) => {
                                 <Play className="w-4 h-4 fill-current" />
                                 Generate Diagram
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Delete Confirmation Modal */}
+            {isDeleteModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in text-left">
+                    <div className="bg-white dark:bg-[#1e1e1e] rounded-2xl shadow-2xl max-w-sm w-full border border-red-200 dark:border-red-900/30 overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="p-6">
+                            <div className="flex flex-col items-center text-center mb-6">
+                                <div className="w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4">
+                                    <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-500" />
+                                </div>
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                                    Delete Note?
+                                </h3>
+                                <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                                    This action cannot be undone. This note will be permanently removed.
+                                </p>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setIsDeleteModalOpen(false)}
+                                    className="flex-1 py-2.5 px-4 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 rounded-xl font-semibold transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleDeleteNote}
+                                    disabled={isDeletingNote}
+                                    className="flex-1 py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-lg shadow-red-500/20"
+                                >
+                                    {isDeletingNote ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                                    Delete
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

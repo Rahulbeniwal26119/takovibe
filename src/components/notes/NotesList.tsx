@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchWithAuth } from '../../utils/api';
-import { FileText, Plus, Search, Calendar, Globe, Lock, User, ExternalLink, Loader2 } from 'lucide-react';
+import { FileText, Plus, Search, Calendar, Globe, Lock, User, ExternalLink, Loader2, Trash2, AlertTriangle } from 'lucide-react';
 
 interface Note {
     id: number;
@@ -21,6 +21,8 @@ export const NotesList = () => {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         const token = localStorage.getItem('access_token');
@@ -45,7 +47,7 @@ export const NotesList = () => {
         if (search) setNotes([]);
 
         try {
-            let url = `${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/chat/user-drawings/?`;
+            let url = `${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/user-drawings/?`;
             const params = new URLSearchParams();
 
             if (search) {
@@ -76,6 +78,29 @@ export const NotesList = () => {
             console.error("Error fetching notes:", e);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteTargetId) return;
+        setIsDeleting(true);
+        try {
+            const res = await fetchWithAuth(`${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/user-drawings/${deleteTargetId}/`, {
+                method: 'DELETE',
+            });
+
+            if (res.ok) {
+                setNotes(prev => prev.filter(n => n.id !== deleteTargetId));
+                setDeleteTargetId(null);
+            } else {
+                console.error("Failed to delete note");
+                alert("Failed to delete note. Please try again.");
+            }
+        } catch (e) {
+            console.error("Error deleting note:", e);
+            alert("An error occurred while deleting the note.");
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -172,58 +197,111 @@ export const NotesList = () => {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {notes.map(note => (
-                        <a
-                            key={note.id}
-                            href={note.blog_slug ? `/blog/${note.blog_slug}?open_notes=true` : `/notes/${note.id}`}
-                            className="group flex flex-col bg-white dark:bg-gray-800 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-                        >
-                            {/* Card Header / Preview Area */}
-                            <div className="h-40 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 relative flex items-center justify-center p-6 group-hover:from-purple-50 group-hover:to-blue-50 dark:group-hover:from-purple-900/20 dark:group-hover:to-blue-900/20 transition-colors">
-                                <div className="absolute inset-0 pattern-grid-lg opacity-5"></div>
-                                <FileText className="w-16 h-16 text-gray-300 dark:text-gray-600 group-hover:text-purple-400 dark:group-hover:text-purple-300 transition-colors transform group-hover:scale-110 duration-500" />
+                        <div key={note.id} className="relative group/card">
+                            <a
+                                href={note.blog_slug ? `/blog/${note.blog_slug}?open_notes=true` : `/notes/${note.id}`}
+                                className="group flex flex-col bg-white dark:bg-gray-800 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 h-full"
+                            >
+                                {/* Card Header / Preview Area */}
+                                <div className="h-40 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 relative flex items-center justify-center p-6 group-hover:from-purple-50 group-hover:to-blue-50 dark:group-hover:from-purple-900/20 dark:group-hover:to-blue-900/20 transition-colors">
+                                    <div className="absolute inset-0 pattern-grid-lg opacity-5"></div>
+                                    <FileText className="w-16 h-16 text-gray-300 dark:text-gray-600 group-hover:text-purple-400 dark:group-hover:text-purple-300 transition-colors transform group-hover:scale-110 duration-500" />
 
-                                {activeTab === 'public' && note.user_name && (
-                                    <div className="absolute bottom-3 left-3 flex items-center gap-1.5 bg-white/80 dark:bg-black/50 backdrop-blur px-2 py-1 rounded-full border border-white/20 shadow-sm">
-                                        <User className="w-3 h-3 text-purple-600 dark:text-purple-400" />
-                                        <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">
-                                            {note.user_name}
-                                        </span>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Card Content */}
-                            <div className="flex-1 p-5 flex flex-col">
-                                <div className="mb-4">
-                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors line-clamp-1">
-                                        {note.title || "Untitled Note"}
-                                    </h3>
-                                    {note.blog_title && (
-                                        <p className="text-xs font-medium text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                                            <span>From:</span>
-                                            <span className="text-purple-600 dark:text-purple-400 line-clamp-1">{note.blog_title}</span>
-                                        </p>
+                                    {activeTab === 'public' && note.user_name && (
+                                        <div className="absolute bottom-3 left-3 flex items-center gap-1.5 bg-white/80 dark:bg-black/50 backdrop-blur px-2 py-1 rounded-full border border-white/20 shadow-sm">
+                                            <User className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                                            <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">
+                                                {note.user_name}
+                                            </span>
+                                        </div>
                                     )}
                                 </div>
 
-                                <div className="mt-auto flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
-                                    <div className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
-                                        <Calendar className="w-3 h-3" />
-                                        {new Date(note.updated_at).toLocaleDateString()}
+                                {/* Card Content */}
+                                <div className="flex-1 p-5 flex flex-col">
+                                    <div className="mb-4">
+                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors line-clamp-1">
+                                            {note.title || "Untitled Note"}
+                                        </h3>
+                                        {note.blog_title && (
+                                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                                                <span>From:</span>
+                                                <span className="text-purple-600 dark:text-purple-400 line-clamp-1">{note.blog_title}</span>
+                                            </p>
+                                        )}
                                     </div>
 
-                                    {activeTab === 'private' && (
-                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${note.is_public
-                                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                            : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
-                                            }`}>
-                                            {note.is_public ? 'Public' : 'Private'}
-                                        </span>
-                                    )}
+                                    <div className="mt-auto flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
+                                        <div className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
+                                            <Calendar className="w-3 h-3" />
+                                            {new Date(note.updated_at).toLocaleDateString()}
+                                        </div>
+
+                                        {activeTab === 'private' && (
+                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${note.is_public
+                                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                                : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+                                                }`}>
+                                                {note.is_public ? 'Public' : 'Private'}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        </a>
+                            </a>
+
+                            {/* Delete Button - Only in Private Tab */}
+                            {activeTab === 'private' && (
+                                <button
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setDeleteTargetId(note.id);
+                                    }}
+                                    className="absolute top-3 right-3 p-2 bg-white/90 dark:bg-gray-800/90 text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 opacity-0 group-hover/card:opacity-100 transition-all transform scale-90 hover:scale-100 z-10"
+                                    title="Delete Note"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
+                            )}
+                        </div>
                     ))}
+                </div>
+            )}
+            {/* Confirmation Modal */}
+            {deleteTargetId !== null && (
+                <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in text-left">
+                    <div className="bg-white dark:bg-[#1e1e1e] rounded-2xl shadow-2xl max-w-sm w-full border border-red-200 dark:border-red-900/30 overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="p-6">
+                            <div className="flex flex-col items-center text-center mb-6">
+                                <div className="w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4">
+                                    <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-500" />
+                                </div>
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                                    Delete Note?
+                                </h3>
+                                <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                                    This action cannot be undone. This note will be permanently removed from your collection.
+                                </p>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setDeleteTargetId(null)}
+                                    className="flex-1 py-2.5 px-4 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 rounded-xl font-semibold transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmDelete}
+                                    disabled={isDeleting}
+                                    className="flex-1 py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-lg shadow-red-500/20"
+                                >
+                                    {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
