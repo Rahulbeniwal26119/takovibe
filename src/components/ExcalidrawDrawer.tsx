@@ -286,6 +286,7 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
 
         window.addEventListener('toggle-excalidraw', handleToggle);
         window.addEventListener('open-excalidraw', handleOpen);
+        window.addEventListener('open-code-studio', () => setViewMode('hidden')); // Close when Code Studio opens
         window.addEventListener('request-add-to-sketch', handleAddToSketch as EventListener);
 
         // @ts-ignore

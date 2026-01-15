@@ -12,6 +12,7 @@ import DangerConfirmationModal from "./DangerConfirmationModal";
 import QuizHydrator from "./QuizHydrator";
 import CodePlaygroundHydrator from "./CodePlaygroundHydrator";
 import ExcalidrawHydrator from "./ExcalidrawHydrator";
+import CodeEditorDrawer from "./CodeEditorDrawer";
 import ChatBot from "./ChatBot";
 import { TiptapRenderer } from "./TiptapRenderer";
 import { generateFAQSchema } from "../utils/seo-utils";
@@ -436,14 +437,14 @@ const breadcrumbStructuredData = {
                         </div>
                     </div>
 
-                    <div class="mt-8 pr-6">
+                    <!-- <div class="mt-8 pr-6">
                         <a
                             href="/write"
                             class="text-sm font-medium text-purple-600 hover:text-purple-700 flex items-center gap-1"
                         >
                             Write on TakoVibe &rarr;
                         </a>
-                    </div>
+                    </div> -->
                 </aside>
 
                 <!-- Main Article Content -->
@@ -728,265 +729,74 @@ const breadcrumbStructuredData = {
                                 </div>
                             </div>
                         ) : (
-                            <!-- Original Interactive Toolkit (when NOT in a series) -->
-                            <div
-                                class="pl-6 border-l border-gray-100 dark:border-gray-800 space-y-8"
-                            >
-                                <!-- Header -->
-                                <h5
-                                    class="text-xs font-bold text-gray-500 uppercase tracking-widest"
-                                >
-                                    Interactive Toolkit
-                                </h5>
-
-                                <!-- Kumi AI Card -->
-                                <div
-                                    id="kumi-promo-card"
-                                    class="group relative rounded-2xl p-5 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/10 dark:to-indigo-900/10 border border-purple-100 dark:border-purple-800/30 transition-all hover:shadow-lg hover:shadow-purple-500/5 hover:-translate-y-1 cursor-pointer"
-                                >
-                                    <div
-                                        class="absolute top-3 right-3 text-purple-200 dark:text-purple-800/30"
-                                    >
-                                        <svg
-                                            class="w-12 h-12"
-                                            fill="currentColor"
-                                            viewBox="0 0 24 24"
-                                            ><path
-                                                d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"
-                                            ></path><path
-                                                d="M12 6a1 1 0 0 0-1 1v2a1 1 0 0 0 2 0V7a1 1 0 0 0-1-1zm0 4a3 3 0 0 0-3 3v2a3 3 0 0 0 6 0v-2a3 3 0 0 0-3-3zm0 4a1 1 0 1 1 1-1 1 1 0 0 1-1 1z"
-                                            ></path></svg
-                                        >
-                                    </div>
-                                    <div class="relative z-10">
-                                        <div
-                                            class="w-10 h-10 rounded-xl bg-purple-500 text-white flex items-center justify-center mb-3 shadow-md group-hover:scale-110 transition-transform"
-                                        >
-                                            <span class="text-xl">🤖</span>
-                                        </div>
-                                        <h3
-                                            class="font-bold text-gray-900 dark:text-white mb-1"
-                                        >
-                                            Meet Kumi
-                                        </h3>
-                                        <p
-                                            class="text-xs text-gray-600 dark:text-gray-400 mb-3 leading-relaxed"
-                                        >
-                                            Your AI coding companion. Chat with this
-                                            article, summarize code, or ask for
-                                            explanations.
-                                        </p>
-                                        <div
-                                            class="text-xs font-semibold text-purple-600 dark:text-purple-400 flex items-center gap-1 group-hover:underline"
-                                        >
-                                            Click to Chat <span
-                                                class="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/50"
-                                                >✨</span
-                                            > icon below
-                                        </div>
-                                    </div>
+                            <!-- Interactive Toolkit (Bento Grid) -->
+                            <div class="pl-6 border-l border-gray-100 dark:border-gray-800">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h5 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                        Toolkit
+                                    </h5>
+                                    <span class="text-[10px] font-mono text-purple-500 bg-purple-50 dark:bg-purple-900/30 px-1.5 py-0.5 rounded">All-in-One</span>
                                 </div>
-
-                                <!-- Visual Canvas Card -->
-                                <div
-                                    id="notes-promo-card"
-                                    class="group relative rounded-2xl p-5 bg-gradient-to-br from-blue-50 to-teal-50 dark:from-blue-900/10 dark:to-teal-900/10 border border-blue-100 dark:border-blue-800/30 transition-all hover:shadow-lg hover:shadow-blue-500/5 hover:-translate-y-1 cursor-pointer"
-                                >
-                                    <div
-                                        class="absolute top-3 right-3 text-blue-200 dark:text-blue-800/30"
+                                
+                                <div class="grid grid-cols-2 gap-2">
+                                    <!-- Kumi AI (Hero - Full Width) -->
+                                    <button
+                                        id="kumi-promo-card"
+                                        class="col-span-2 group relative overflow-hidden rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 p-0.5 transition-all hover:scale-[1.02] hover:shadow-lg hover:shadow-violet-500/25"
                                     >
-                                        <svg
-                                            class="w-12 h-12"
-                                            fill="currentColor"
-                                            viewBox="0 0 24 24"
-                                            ><path
-                                                d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
-                                            ></path></svg
-                                        >
-                                    </div>
-                                    <div class="relative z-10">
-                                        <div
-                                            class="w-10 h-10 rounded-xl bg-blue-500 text-white flex items-center justify-center mb-3 shadow-md group-hover:scale-110 transition-transform"
-                                        >
-                                            <span class="text-xl">✏️</span>
+                                        <div class="relative h-full w-full bg-white dark:bg-gray-900 rounded-[10px] p-3 flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-lg bg-violet-100 dark:bg-violet-900/50 text-violet-600 dark:text-violet-300 flex items-center justify-center text-xl shrink-0">
+                                                🤖
+                                            </div>
+                                            <div class="text-left flex-1">
+                                                <div class="flex items-center justify-between">
+                                                    <h3 class="font-bold text-gray-900 dark:text-white text-sm">Ask Kumi</h3>
+                                                    <span class="text-[9px] font-bold bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-1.5 py-0.5 rounded-full">AI</span>
+                                                </div>
+                                                <p class="text-[10px] text-gray-500 dark:text-gray-400 leading-tight mt-0.5 line-clamp-1">Chat & Summarize Article</p>
+                                            </div>
                                         </div>
-                                        <h3
-                                            class="font-bold text-gray-900 dark:text-white mb-1"
-                                        >
-                                            Visual Notes
-                                        </h3>
-                                        <p
-                                            class="text-xs text-gray-600 dark:text-gray-400 mb-3 leading-relaxed"
-                                        >
-                                            Sketch, draw, and take visual notes directly
-                                            on top of this content using Excalidraw.
-                                        </p>
-                                        <div
-                                            class="text-xs font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1 group-hover:underline"
-                                        >
-                                            Click to Draw
-                                        </div>
-                                    </div>
-                                </div>
+                                    </button>
 
-                                <!-- Smart Selection Card (Legend) -->
-                                <div
-                                    class="group relative rounded-2xl p-5 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/10 dark:to-orange-900/10 border border-yellow-100 dark:border-yellow-800/30"
-                                >
-                                    <div class="relative z-10">
-                                        <div class="flex items-center gap-3 mb-4">
-                                            <div
-                                                class="w-10 h-10 rounded-xl bg-orange-500 text-white flex items-center justify-center shadow-md"
-                                            >
-                                                <span class="text-xl">✨</span>
+                                    <!-- Code Studio (Square) -->
+                                    <button
+                                        id="code-promo-card"
+                                        class="col-span-1 group relative overflow-hidden rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 p-0.5 transition-all hover:scale-[1.02] hover:shadow-lg hover:shadow-emerald-500/25"
+                                    >
+                                        <div class="relative h-full w-full bg-white dark:bg-gray-900 rounded-[10px] p-3 flex flex-col items-center justify-center gap-2 text-center">
+                                            <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-300 flex items-center justify-center text-lg">
+                                                💻
                                             </div>
                                             <div>
-                                                <h3
-                                                    class="font-bold text-gray-900 dark:text-white leading-tight"
-                                                >
-                                                    Smart Actions
-                                                </h3>
-                                                <p
-                                                    class="text-[10px] uppercase tracking-wider font-bold text-orange-600 dark:text-orange-400"
-                                                >
-                                                    Select Text to Unlock
-                                                </p>
+                                                <h3 class="font-bold text-gray-900 dark:text-white text-xs">Run Code</h3>
+                                                <div class="text-[9px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">Live Editor</div>
                                             </div>
                                         </div>
+                                    </button>
 
-                                        <!-- Icon Legend Grid -->
-                                        <div class="grid grid-cols-5 gap-1 mb-2">
-                                            <!-- Highlight -->
-                                            <div
-                                                class="flex flex-col items-center gap-1"
-                                            >
-                                                <div
-                                                    class="w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-600 dark:text-yellow-400"
-                                                >
-                                                    <svg
-                                                        class="w-4 h-4"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        viewBox="0 0 24 24"
-                                                        ><path
-                                                            stroke-linecap="round"
-                                                            stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                                                        ></path></svg
-                                                    >
-                                                </div>
-                                                <span
-                                                    class="text-[9px] font-medium text-gray-500 dark:text-gray-400"
-                                                    >Mark</span
-                                                >
+                                    <!-- Visual Notes (Square) -->
+                                    <button
+                                        id="notes-promo-card"
+                                        class="col-span-1 group relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-400 to-cyan-600 p-0.5 transition-all hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/25"
+                                    >
+                                        <div class="relative h-full w-full bg-white dark:bg-gray-900 rounded-[10px] p-3 flex flex-col items-center justify-center gap-2 text-center">
+                                            <div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 flex items-center justify-center text-lg">
+                                                ✏️
                                             </div>
-                                            <!-- Note -->
-                                            <div
-                                                class="flex flex-col items-center gap-1"
-                                            >
-                                                <div
-                                                    class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400"
-                                                >
-                                                    <svg
-                                                        class="w-4 h-4"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        viewBox="0 0 24 24"
-                                                        ><path
-                                                            stroke-linecap="round"
-                                                            stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
-                                                        ></path></svg
-                                                    >
-                                                </div>
-                                                <span
-                                                    class="text-[9px] font-medium text-gray-500 dark:text-gray-400"
-                                                    >Note</span
-                                                >
-                                            </div>
-                                            <!-- Ask Kumi -->
-                                            <div
-                                                class="flex flex-col items-center gap-1"
-                                            >
-                                                <div
-                                                    class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400"
-                                                >
-                                                    <svg
-                                                        class="w-4 h-4"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        viewBox="0 0 24 24"
-                                                        ><path
-                                                            stroke-linecap="round"
-                                                            stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M13 10V3L4 14h7v7l9-11h-7z"
-                                                        ></path></svg
-                                                    >
-                                                </div>
-                                                <span
-                                                    class="text-[9px] font-medium text-gray-500 dark:text-gray-400"
-                                                    >Ask AI</span
-                                                >
-                                            </div>
-                                            <!-- Sketch -->
-                                            <div
-                                                class="flex flex-col items-center gap-1"
-                                            >
-                                                <div
-                                                    class="w-8 h-8 rounded-full bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center text-pink-600 dark:text-pink-400"
-                                                >
-                                                    <svg
-                                                        class="w-4 h-4"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        viewBox="0 0 24 24"
-                                                        ><path
-                                                            stroke-linecap="round"
-                                                            stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                                                        ></path><path
-                                                            stroke-linecap="round"
-                                                            stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M3 21l3-3"></path></svg
-                                                    >
-                                                </div>
-                                                <span
-                                                    class="text-[9px] font-medium text-gray-500 dark:text-gray-400"
-                                                    >Draw</span
-                                                >
-                                            </div>
-                                            <!-- Visualize -->
-                                            <div
-                                                class="flex flex-col items-center gap-1"
-                                            >
-                                                <div
-                                                    class="w-8 h-8 rounded-full bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center text-teal-600 dark:text-teal-400"
-                                                >
-                                                    <svg
-                                                        class="w-4 h-4"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        viewBox="0 0 24 24"
-                                                        ><path
-                                                            stroke-linecap="round"
-                                                            stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                                        ></path></svg
-                                                    >
-                                                </div>
-                                                <span
-                                                    class="text-[9px] font-medium text-gray-500 dark:text-gray-400"
-                                                    >See</span
-                                                >
+                                            <div>
+                                                <h3 class="font-bold text-gray-900 dark:text-white text-xs">Sketch</h3>
+                                                <div class="text-[9px] text-blue-600 dark:text-blue-400 font-medium mt-0.5">Visual Notes</div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </button>
+                                </div>
+                                
+                                <!-- Ultra-Compact Smart Actions -->
+                                <div class="mt-4 flex items-center gap-2 px-2 py-1.5 rounded-lg bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-800/20">
+                                    <span class="text-sm">✨</span>
+                                    <p class="text-[10px] font-medium text-orange-800 dark:text-orange-200">
+                                        <span class="font-bold">Pro Tip:</span> Select text to unlock smart tools.
+                                    </p>
                                 </div>
                             </div>
                         )
@@ -1037,6 +847,7 @@ const breadcrumbStructuredData = {
     articleSlug={post.slug}
     initialOpen={Astro.url.searchParams.get("open_notes") === "true"}
 />
+<CodeEditorDrawer client:only="react" articleSlug={post.slug} />
 <LoginPromptModal client:idle />
 <DangerConfirmationModal client:idle />
 
@@ -1515,6 +1326,21 @@ const breadcrumbStructuredData = {
                     return;
                 }
                 window.dispatchEvent(new CustomEvent("toggle-excalidraw"));
+            });
+        });
+
+        // Handle Code Studio Promo Cards
+        const codeCards = document.querySelectorAll("#code-promo-card");
+        codeCards.forEach(codeCard => {
+            codeCard.addEventListener("click", () => {
+                window.dispatchEvent(
+                    new CustomEvent("open-code-studio", {
+                        detail: {
+                            code: "",
+                            language: "python",
+                        },
+                    }),
+                );
             });
         });
     }

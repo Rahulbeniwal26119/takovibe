@@ -29,7 +29,7 @@ const enableMobileDock =
             transform: translateX(-50%);
         }
 
-        /* When Split View is Active: Collapse to compact pill */
+        /* When Split View is Active (Code Studio or Excalidraw): Collapse to compact pill on Left */
         :global(body.split-view-active) #reader-toolbar-container {
             left: 1rem !important;
             bottom: 1rem !important;
@@ -37,14 +37,16 @@ const enableMobileDock =
             max-width: auto !important;
             width: auto !important;
             z-index: 30001 !important; /* Above Zen Nav */
+            padding: 0 !important; /* Remove container padding to let inner div handle it */
         }
 
         :global(body.split-view-active) #reader-toolbar-container > div {
             width: auto !important;
             padding: 0.5rem !important;
+            gap: 0 !important;
         }
 
-        /* Hide most buttons in split view, show only essential ones */
+        /* Hide most buttons in split view, show only toggle */
         :global(body.split-view-active)
             #reader-toolbar-container
             button:not(#reader-toolbar-toggle) {
@@ -325,6 +327,34 @@ const enableMobileDock =
                             stroke-linejoin="round"
                             stroke-width="2"
                             d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                </div>
+            </button>
+
+            <!-- Code Studio Toggle -->
+            <button
+                id="code-editor-toggle"
+                class="p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all relative group"
+                aria-label="Code Studio"
+                title="Open Code Studio"
+            >
+                <div class="relative">
+                    <span
+                        class="absolute -top-2.5 -right-2.5 px-1 py-0.5 bg-gradient-to-r from-blue-600 to-cyan-600 text-[9px] font-bold text-white rounded-full shadow-lg border border-white/20 animate-pulse leading-none"
+                    >
+                        Preview
+                    </span>
+                    <svg
+                        class="w-5 h-5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <polyline points="16 18 22 12 16 6"></polyline>
+                        <polyline points="8 6 2 12 8 18"></polyline>
                     </svg>
                 </div>
             </button>
@@ -1102,6 +1132,22 @@ const enableMobileDock =
         }
         if (e.key === "Escape" && focusModeActive) toggleFocusMode();
     });
+
+    // Code Studio Toggle
+    const codeEditorToggle = document.getElementById("code-editor-toggle");
+    if (codeEditorToggle) {
+        codeEditorToggle.addEventListener("click", (e) => {
+            e.stopPropagation();
+            window.dispatchEvent(
+                new CustomEvent("open-code-studio", {
+                    detail: {
+                        code: "",
+                        language: "python", // Default for blank editor
+                    },
+                }),
+            );
+        });
+    }
 
     // --- Mobile Dock Event Bridge ---
     window.addEventListener("toggle-toc", () =>

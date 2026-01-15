@@ -5,6 +5,7 @@ import ReadingProgress from "../components/ReadingProgress.astro";
 import Footer from "../components/Footer.astro";
 import ContributorBanner from "../components/ContributorBanner.astro";
 import LoginPromptModal from "../components/LoginPromptModal";
+import ScrollIndicator from "../components/ScrollIndicator";
 
 interface Props {
     title: string;
@@ -282,6 +283,7 @@ const structuredData = {
             </div>
         </main>
         {!no_footer && <Footer />}
+        <ScrollIndicator client:idle />
         <LoginPromptModal client:idle />
     </body>
 </html>
@@ -381,30 +383,14 @@ const structuredData = {
         );
     }
 
-    /* Minimal scrollbar */
+    /* Invisible Scrollbar (User Preference) */
+    html {
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE and Edge */
+    }
+
     ::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    ::-webkit-scrollbar-track {
-        background: transparent;
-    }
-
-    ::-webkit-scrollbar-thumb {
-        background: rgba(0, 0, 0, 0.2);
-        border-radius: 3px;
-    }
-
-    .dark ::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.2);
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-        background: rgba(0, 0, 0, 0.3);
-    }
-
-    .dark ::-webkit-scrollbar-thumb:hover {
-        background: rgba(255, 255, 255, 0.3);
+        display: none; /* Chrome, Safari and Opera */
     }
 
     /* Smooth transitions */
@@ -651,5 +637,37 @@ const structuredData = {
 
     img[data-error="true"] {
         display: none;
+    }
+    /* Orbit Animations */
+    @keyframes orbit {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @keyframes orbit-reverse {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(-360deg);
+        }
+    }
+
+    .animate-orbit-slow {
+        animation: orbit 40s linear infinite;
+    }
+
+    .animate-orbit-reverse-slow {
+        animation: orbit-reverse 40s linear infinite;
+    }
+
+    /* Pause orbit on hover for better interaction */
+    .hover-pause:hover .animate-orbit-slow,
+    .hover-pause:hover .animate-orbit-reverse-slow {
+        animation-play-state: paused;
     }
 </style>

@@ -278,6 +278,44 @@ const { headings, title, description, url } = Astro.props;
                 >
             </button>
         </div>
+
+        <!-- Code Studio -->
+        <button
+            class="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            id="mobile-code-studio-btn"
+        >
+            <div class="relative">
+                <svg
+                    class="w-5 h-5 text-gray-600 dark:text-gray-400"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <polyline points="16 18 22 12 16 6"></polyline>
+                    <polyline points="8 6 2 12 8 18"></polyline>
+                </svg>
+                <span class="absolute -top-1 -right-1 flex h-2 w-2">
+                    <span
+                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"
+                    ></span>
+                    <span
+                        class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"
+                    ></span>
+                </span>
+            </div>
+            <div class="flex flex-col items-start">
+                <span class="text-sm font-medium text-gray-900 dark:text-white"
+                    >Code Studio</span
+                >
+                <span
+                    class="text-[10px] text-blue-500 font-bold uppercase tracking-wider"
+                    >Preview Feature</span
+                >
+            </div>
+        </button>
     </div>
 </div>
 
@@ -458,6 +496,21 @@ const { headings, title, description, url } = Astro.props;
             window.closeAllSheets();
             const saveBtn = document.querySelector(".save-btn");
             if (saveBtn) saveBtn.click();
+        });
+
+    // Code Studio
+    document
+        .getElementById("mobile-code-studio-btn")
+        ?.addEventListener("click", () => {
+            window.closeAllSheets();
+            window.dispatchEvent(
+                new CustomEvent("open-code-studio", {
+                    detail: {
+                        code: "",
+                        language: "python",
+                    },
+                }),
+            );
         });
 
     // --- Font Logic (Standalone) ---

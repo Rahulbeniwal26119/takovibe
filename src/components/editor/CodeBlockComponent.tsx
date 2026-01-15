@@ -261,13 +261,41 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                     <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0 ml-2">
                         <div className="w-px h-3 sm:h-4 bg-gray-600 mx-0.5 sm:mx-1" />
 
+
+
+                        {/* Code Studio Button (Only for supported languages) */}
+                        {(() => {
+                            const currentLang = (isTabbed ? codeTabs[activeTab]?.language : defaultLanguage) || 'plaintext';
+                            const supportedLangs = ['html', 'css', 'javascript', 'js', 'typescript', 'ts', 'python', 'py', 'rust', 'rs', 'go', 'golang'];
+                            return supportedLangs.includes(currentLang.toLowerCase());
+                        })() && (
+                                <button
+                                    onClick={() => {
+                                        const code = isTabbed ? codeTabs[activeTab]?.code : node.textContent;
+                                        const language = (isTabbed ? codeTabs[activeTab]?.language : defaultLanguage) || 'plaintext';
+                                        // Dispatch event to open CodeEditorDrawer
+                                        window.dispatchEvent(new CustomEvent('open-code-studio', {
+                                            detail: {
+                                                code: code,
+                                                language: language
+                                            }
+                                        }));
+                                    }}
+                                    className="flex items-center gap-1.5 px-2 py-1.5 sm:px-2.5 sm:py-1.5 rounded-md text-xs font-medium transition-all text-purple-600 hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/30"
+                                    title="Open in Code Studio"
+                                >
+                                    <Sparkles size={14} className="sm:w-[14px] sm:h-[14px]" />
+                                    <span className="hidden sm:inline">Studio</span>
+                                </button>
+                            )}
+
                         {/* Explain Button */}
                         <button
                             onClick={handleExplainCode}
                             className="flex items-center gap-1.5 px-2 py-1.5 sm:px-2.5 sm:py-1.5 rounded-md text-xs font-medium transition-all text-purple-600 hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/30"
                             title="Explain with AI"
                         >
-                            <Sparkles size={14} className="sm:w-[14px] sm:h-[14px]" />
+                            <Search size={14} className="sm:w-[14px] sm:h-[14px]" />
                             <span className="hidden sm:inline">Explain</span>
                         </button>
 
