@@ -8,7 +8,8 @@ import { rust as langRust } from '@codemirror/lang-rust';
 import { go as langGo } from '@codemirror/lang-go';
 import { autocompletion } from '@codemirror/autocomplete';
 import { githubLight, githubDark } from '@uiw/codemirror-theme-github';
-import { Play, RotateCcw, Box, Check, Loader2, GripVertical, Terminal, Eye, Trash2, Zap, ZapOff, Save } from 'lucide-react';
+import { Play, RotateCcw, Box, Check, Loader2, GripVertical, Terminal, Eye, Trash2, Zap, ZapOff, Save, Keyboard } from 'lucide-react';
+import { vim } from '@replit/codemirror-vim';
 import { fetchWithAuth } from '../../utils/api';
 import { showToast } from '../../utils/toast';
 
@@ -34,8 +35,8 @@ const SUPPORTED_LANGUAGES = [
     { value: 'html', label: 'HTML/Web' },
     { value: 'python', label: 'Python' },
     { value: 'javascript', label: 'Node.js' },
-    // { value: 'go', label: 'Go' }, // Disabled for now until engine support confirmed
-    // { value: 'rust', label: 'Rust' },
+    { value: 'go', label: 'Go' },
+    { value: 'rust', label: 'Rust' },
 ];
 
 const TabButton = ({ active, onClick, icon: Icon, label }: any) => (
@@ -62,16 +63,25 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
     title = 'Code Playground',
     saveStatus = 'saved'
 }) => {
+    // Default code templates
+    const DEFAULT_CODE: Record<string, string> = {
+        python: `def main():\n    print("Hello from Python!")\n\nif __name__ == "__main__":\n    main()`,
+        javascript: `console.log("Hello from NodeJS!");\n\nconst add = (a, b) => a + b;\nconsole.log("2 + 3 =", add(2, 3));`,
+        go: `package main\n\nimport "fmt"\n\nfunc main() {\n    fmt.Println("Hello from Go!")\n}`,
+        rust: `fn main() {\n    println!("Hello from Rust!");\n}`,
+        html: `<h1>Hello World</h1>`
+    };
+
     // Mode: 'web' (HTML/CSS/JS) or 'backend' (Python, etc.)
     const [mode, setMode] = useState<'web' | 'backend'>(initialLanguage === 'html' ? 'web' : 'backend');
 
     // State for WEB editor inputs
-    const [html, setHtml] = useState(initialHtml || '<h1>Hello World</h1>');
+    const [html, setHtml] = useState(initialHtml || DEFAULT_CODE.html);
     const [css, setCss] = useState(initialCss);
     const [js, setJs] = useState(initialJs);
 
     // State for BACKEND editor inputs
-    const [backendCode, setBackendCode] = useState(initialCode);
+    const [backendCode, setBackendCode] = useState(initialCode || DEFAULT_CODE[initialLanguage] || '');
     const [backendLanguage, setBackendLanguage] = useState(initialLanguage === 'html' ? 'python' : initialLanguage);
 
     // State for preview execution
@@ -82,11 +92,12 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
 
     // UI and control states
     const [activeTab, setActiveTab] = useState<'html' | 'css' | 'js'>('html');
-    const [activeOutput, setActiveOutput] = useState<'preview' | 'console'>('preview');
+    const [activeOutput, setActiveOutput] = useState<'preview' | 'console'>('console');
     const [autoRun, setAutoRun] = useState(mode === 'web');
     const [isDark, setIsDark] = useState(false);
     const [logs, setLogs] = useState<LogEntry[]>([]);
     const [isRunning, setIsRunning] = useState(false);
+    const [vimMode, setVimMode] = useState(false);
 
     // Resizing state
     const [topPanelHeight, setTopPanelHeight] = useState(60);
@@ -98,7 +109,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
         if (initialLanguage && initialLanguage !== 'html') {
             setMode('backend');
             setBackendLanguage(initialLanguage);
-            setBackendCode(initialCode || '');
+            setBackendCode(initialCode || DEFAULT_CODE[initialLanguage] || '');
             // Use console output for backend
             setActiveOutput('console');
             setAutoRun(false); // Disable auto-run for backend by default
@@ -185,6 +196,19 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
 
 
     const handleRun = async () => {
+        // Check Authentication First
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            const event = new CustomEvent('show-login-prompt', {
+                detail: {
+                    feature: 'Code Playground',
+                    message: 'Please log in to run code.'
+                }
+            });
+            window.dispatchEvent(event);
+            return;
+        }
+
         setLogs([]);
         if (mode === 'web') {
             setPreviewHtml(html);
@@ -200,9 +224,10 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
             try {
                 // Assuming execution-engine API is proxied or available
                 // Adjust URL based on actual setup (e.g., localhost:9001 if local, or via /api proxy)
-                const EXEC_API_URL = 'http://localhost:9001/execute'; // Direct for dev, or use proxy
+                // Use internal Astro API proxy which handles auth and connects to execution engine
+                const EXEC_API_URL = '/api/execute';
 
-                const response = await fetch(EXEC_API_URL, {
+                const response = await fetchWithAuth(EXEC_API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -226,10 +251,15 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                     setLogs(prev => [...prev, { type: 'info', message: 'Program executed successfully with no output.', timestamp: Date.now() }]);
                 }
 
-            } catch (error) {
+            } catch (error: any) {
+                if (error.message === 'Unauthorized') {
+                    // Login prompt will show, don't log system error
+                    setIsRunning(false);
+                    return;
+                }
                 setLogs(prev => [...prev, {
                     type: 'error',
-                    message: `Failed to connect to execution engine. Ensure it's running on port 9001. Error: ${error}`,
+                    message: `Execution Failed: ${error.message || 'Unknown error'}`,
                     timestamp: Date.now()
                 }]);
             } finally {
@@ -240,14 +270,14 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
 
     const handleReset = () => {
         if (mode === 'web') {
-            setHtml(initialHtml);
+            setHtml(initialHtml || DEFAULT_CODE.html);
             setCss(initialCss);
             setJs(initialJs);
-            setPreviewHtml(initialHtml);
+            setPreviewHtml(initialHtml || DEFAULT_CODE.html);
             setPreviewCss(initialCss);
             setPreviewJs(initialJs);
         } else {
-            setBackendCode(initialCode);
+            setBackendCode(initialCode || DEFAULT_CODE[backendLanguage] || '');
         }
         setLogs([]);
         setRunId(prev => prev + 1);
@@ -255,6 +285,10 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
 
     const getExtensions = () => {
         const extensions = [autocompletion()]; // Enable auto-complete
+
+        if (vimMode) {
+            extensions.push(vim());
+        }
 
         if (mode === 'backend') {
             if (backendLanguage === 'python') return [...extensions, langPython()];
@@ -367,10 +401,15 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                                 const val = e.target.value;
                                 if (val === 'html') {
                                     setMode('web');
-                                    setActiveOutput('preview');
+                                    setActiveOutput('console');
                                 } else {
                                     setMode('backend');
                                     setBackendLanguage(val);
+                                    // If switching languages, provide a fresh template if user hasn't typed custom code
+                                    const newDefault = DEFAULT_CODE[val] || '';
+                                    if (!backendCode || Object.values(DEFAULT_CODE).some(c => c.trim() === backendCode.trim()) || mode === 'web') {
+                                        setBackendCode(newDefault);
+                                    }
                                     setActiveOutput('console');
                                     setAutoRun(false);
                                 }
@@ -407,6 +446,15 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                     )}
 
                     <button
+                        onClick={() => setVimMode(!vimMode)}
+                        className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${vimMode ? 'text-green-600 bg-green-50 dark:bg-green-900/20' : 'text-gray-500 hover:bg-gray-200'}`}
+                        title={vimMode ? 'Vim Mode enabled' : 'Vim Mode disabled'}
+                    >
+                        <Keyboard size={14} />
+                        <span className="hidden sm:inline">Vim</span>
+                    </button>
+
+                    <button
                         onClick={handleRun}
                         disabled={isRunning}
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold text-white transition-colors shadow-sm active:translate-y-0.5 ${isRunning ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
@@ -423,6 +471,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                     </button>
 
                     {/* Future Save Button */}
+                    {/*
                     <button
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 dark:text-purple-400 dark:bg-purple-900/20 dark:hover:bg-purple-900/40 transition-colors"
                         title="Save Snippet (Coming Soon)"
@@ -430,6 +479,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                     >
                         <Save size={12} /> Save
                     </button>
+                    */}
                 </div>
             </div>
 
@@ -474,17 +524,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                 >
                     {/* Output Tabs */}
                     <div className="flex items-center border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 shrink-0">
-                        {mode === 'web' && (
-                            <button
-                                onClick={() => setActiveOutput('preview')}
-                                className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold transition-colors border-r border-gray-200 dark:border-gray-700 ${activeOutput === 'preview'
-                                    ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-b-2 border-b-purple-500'
-                                    : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'
-                                    }`}
-                            >
-                                <Eye size={14} /> Preview
-                            </button>
-                        )}
+                        {/* Preview Removed */}
                         <button
                             onClick={() => setActiveOutput('console')}
                             className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold transition-colors border-r border-gray-200 dark:border-gray-700 ${activeOutput === 'console'
@@ -513,17 +553,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
 
                     {/* Output Content */}
                     <div className="flex-1 relative overflow-hidden">
-                        {mode === 'web' && (
-                            <div className={`absolute inset-0 w-full h-full transition-opacity duration-200 ${activeOutput === 'preview' ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}>
-                                <iframe
-                                    key={runId}
-                                    srcDoc={srcDoc}
-                                    title="Code Preview"
-                                    className="w-full h-full border-0 bg-white ring-1 ring-gray-200 dark:ring-gray-800"
-                                    sandbox="allow-scripts allow-modals"
-                                />
-                            </div>
-                        )}
+                        {/* Preview Iframe Removed */}
                         <div className={`absolute inset-0 w-full h-full overflow-y-auto bg-gray-50 dark:bg-gray-900 font-mono text-sm p-4 flex flex-col gap-2 transition-opacity duration-200 ${activeOutput === 'console' ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}>
                             {logs.length === 0 ? (
                                 <div className="text-gray-400 dark:text-gray-500 italic text-center mt-10 select-none">

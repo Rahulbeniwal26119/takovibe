@@ -448,11 +448,11 @@ const breadcrumbStructuredData = {
                 </aside>
 
                 <!-- Main Article Content -->
-                <main class="flex-1 min-w-0 max-w-5xl">
+                <main class="flex-1 min-w-0 max-w-5xl w-full">
                     <!-- min-w-0 prevents flex overflow -->
 
                     <!-- Native Clean Header (No gradients) -->
-                    <header class="mb-12 text-center pt-16">
+                    <header class="mb-12 text-center pt-16 px-2 sm:px-0">
                         <div class="space-y-6">
                             <!-- Series / Tags -->
                             <div
@@ -494,7 +494,7 @@ const breadcrumbStructuredData = {
 
                             <!-- Title (Larger and Bolder for Dominance) -->
                             <h1
-                                class="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-gray-900 dark:text-gray-50 leading-[1.1] mb-6"
+                                class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-gray-900 dark:text-gray-50 leading-[1.1] mb-6 break-words"
                             >
                                 {post.data.title}
                             </h1>
@@ -1333,6 +1333,18 @@ const breadcrumbStructuredData = {
         const codeCards = document.querySelectorAll("#code-promo-card");
         codeCards.forEach(codeCard => {
             codeCard.addEventListener("click", () => {
+                const token = localStorage.getItem("access_token");
+                if (!token) {
+                    const event = new CustomEvent("show-login-prompt", {
+                        detail: {
+                            feature: "Code Studio",
+                            next: window.location.pathname + window.location.search,
+                        },
+                    });
+                    window.dispatchEvent(event);
+                    return;
+                }
+
                 window.dispatchEvent(
                     new CustomEvent("open-code-studio", {
                         detail: {

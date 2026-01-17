@@ -27,6 +27,70 @@ export interface ChangeLogEntry {
 
 export const changelogData: ChangeLogEntry[] = [
     {
+        "date": "2026-01-17",
+        "version": "Improvement",
+        "title": "Homepage & Layout Refinements",
+        "description": "Polished the homepage experience with consistent spacing and smoother interactive flows.",
+        "changes": [
+            {
+                "type": "improvement",
+                "text": "Code Playground Integration: Clicking 'Try It Out' on the homepage now instantly opens the Code Playground with a live example.",
+            },
+            {
+                "type": "improvement",
+                "text": "Visual Consistency: Standardized vertical spacing across all homepage sections for a more balanced rhythm.",
+            },
+            {
+                "type": "fix",
+                "text": "Mobile Typography: Optimized article headings on smaller screens (iPhone SE) to prevent text overflow and ensure proper padding.",
+            },
+        ],
+    },
+    {
+        "date": "2026-01-16",
+        "version": "Feature Release",
+        "title": "Series Redesign & Vim Mode",
+        "description": "A fresh look for the Series page and enhanced developer tools in the Code Studio.",
+        "changes": [
+            {
+                "type": "improvement",
+                "text": "Series Page Redesign: Replaced the timeline layout with a modern, responsive grid. Added image support for series cards with a stylish fallback."
+            },
+            {
+                "type": "new",
+                "text": "Vim Mode: Added Vim keybinding support to the Code Studio editor. Toggle it on for a keyboard-centric coding experience."
+            },
+            {
+                "type": "improvement",
+                "text": "UI Cleanup: Simplified series cards by removing read time indicators and refining the visual hierarchy."
+            },
+            {
+                "type": "fix",
+                "text": "Series Navigation: Fixed navigation issues in the 'Start from Beginning' and 'Jump to Latest' buttons."
+            }
+        ]
+    },
+    {
+        "date": "2026-01-15",
+        "version": "Beta Launch",
+        "title": "Code Playground",
+        "description": "Experiment with code directly in your browser. Now supporting multiple backend languages.",
+        "changes": [
+            {
+                "type": "new",
+                "text": "Code Playground: A robust, multi-language editor for testing snippets securely."
+            },
+            {
+                "type": "new",
+                "text": "Multi-Language Support: Added backend execution support for Python, Golang, and Rust, alongside standard Web (HTML/CSS/JS)."
+            },
+            {
+                "type": "improvement",
+                "text": "Secure Execution: Backend code runs in an isolated, secure environment."
+            }
+        ]
+    },
+    {
         "date": "2026-01-13",
         "version": "Feature Release",
         "title": "Note Management Update",

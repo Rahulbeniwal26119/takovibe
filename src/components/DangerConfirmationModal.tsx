@@ -35,7 +35,7 @@ export default function DangerConfirmationModal() {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in text-left">
+        <div className="fixed inset-0 z-[50000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in text-left">
             <div className="bg-white dark:bg-[#1e1e1e] rounded-2xl shadow-2xl max-w-sm w-full border border-red-200 dark:border-red-900/30 transform scale-100 transition-all overflow-hidden">
                 <div className="p-6">
                     <div className="flex flex-col items-center text-center mb-6">

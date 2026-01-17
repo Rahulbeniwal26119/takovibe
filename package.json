@@ -19,6 +19,7 @@
     "@excalidraw/excalidraw": "^0.18.0",
     "@excalidraw/mermaid-to-excalidraw": "^2.0.0",
     "@floating-ui/dom": "^1.6.12",
+    "@replit/codemirror-vim": "^6.3.0",
     "@rollup/rollup-linux-x64-gnu": "^4.52.4",
     "@studio-freight/lenis": "^1.0.39",
     "@tailwindcss/typography": "^0.5.15",

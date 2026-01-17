@@ -647,7 +647,7 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
         // Redirect helper
         const getRedirectUrl = () => {
             const params = new URLSearchParams(window.location.search);
-            return params.get("redirect") || "/";
+            return params.get("next") || params.get("redirect") || "/";
         };
 
         function handleGoogleCredentialResponse(response: any) {

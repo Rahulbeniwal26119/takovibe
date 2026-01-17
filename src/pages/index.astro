@@ -135,7 +135,7 @@ try {
               The Intelligent Knowledge Platform
             </div>
 
-            <h1 class="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 animate-fade-in-up animation-delay-200 leading-tight">
+            <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 animate-fade-in-up animation-delay-200 leading-tight">
               Don't just read. <br/>
               <span class="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]">
                 Experience it.
@@ -207,7 +207,7 @@ try {
              <!-- Abstract Background Shape -->
              <div class="absolute inset-0 bg-gradient-to-tr from-purple-500/20 to-blue-500/20 rounded-full blur-[100px] animate-blob"></div>
 
-             <div class="relative w-[300px] h-[300px] md:w-[540px] md:h-[540px] hover-pause flex items-center justify-center lg:-ml-12 perspective-1000">
+             <div class="relative w-[280px] h-[280px] sm:w-[350px] sm:h-[350px] md:w-[540px] md:h-[540px] hover-pause flex items-center justify-center lg:-ml-12 perspective-1000 scale-[0.85] sm:scale-100 origin-center">
                 <!-- Abstract Background Shape -->
                 <div class="absolute inset-0 bg-gradient-to-tr from-purple-500/10 to-blue-500/10 rounded-full blur-[80px] animate-pulse"></div>
 
@@ -316,7 +316,7 @@ try {
     </section>
 
     <!-- Smart Actions Toolbar Showcase -->
-    <section class="py-32 relative overflow-hidden">
+    <section class="py-20 sm:py-32 relative overflow-hidden">
        <!-- Gradient Background -->
        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-purple-50/50 to-transparent dark:via-purple-900/10 pointer-events-none"></div>
        <div class="absolute left-0 top-1/4 w-96 h-96 bg-purple-200/20 dark:bg-purple-900/10 rounded-full blur-[100px] pointer-events-none"></div>
@@ -339,7 +339,7 @@ try {
                    </div>
 
                    <!-- Content Analysis View -->
-                   <div class="p-8 md:p-10 font-serif text-lg md:text-xl leading-loose text-gray-700 dark:text-gray-300 relative group cursor-text">
+                   <div class="p-6 md:p-10 font-serif text-base md:text-xl leading-loose text-gray-700 dark:text-gray-300 relative group cursor-text">
                       <p class="mb-4 opacity-40 blur-[1px]">In the world of distributed systems, understanding consistency models is crucial. Eventual consistency offers...</p>
                       
                       <div class="relative">
@@ -450,7 +450,7 @@ try {
     </section>
 
     <!-- Code Playground Showcase -->
-    <section class="py-24 relative overflow-hidden bg-gray-900 text-white">
+    <section class="py-20 sm:py-24 relative overflow-hidden bg-gray-900 text-white">
       <!-- Background Effects -->
       <div class="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
       <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-500/20 blur-[120px] rounded-full pointer-events-none"></div>
@@ -477,7 +477,7 @@ try {
              </p>
 
              <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-               <a href="/blog" class="px-8 py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl transition-all hover:scale-105 hover:shadow-lg hover:shadow-green-500/25 flex items-center justify-center gap-2">
+               <a href={featuredPosts.length > 0 ? (featuredPosts[0].uri || `/blog/${featuredPosts[0].slug}`) + "?open_playground=true" : "/blog"} class="px-8 py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl transition-all hover:scale-105 hover:shadow-lg hover:shadow-green-500/25 flex items-center justify-center gap-2">
                  <span>Try It Out</span>
                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                </a>
@@ -585,7 +585,7 @@ try {
         )}
 
         {featuredPosts.length > 0 ? (
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-12 auto-rows-[400px]">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-12 auto-rows-[320px] md:auto-rows-[400px]">
             {featuredPosts.slice(0, 5).map((post, index) => {
               // Bento Grid Logic
               const isHero = index === 0;
@@ -709,7 +709,7 @@ try {
     </section>
 
     <!-- Featured Series Section -->
-    <section class="py-24 px-4 sm:px-6 relative overflow-visible">
+    <section class="py-20 sm:py-24 px-4 sm:px-6 relative overflow-visible">
        <!-- Decorative Background -->
        <div class="absolute inset-0 bg-gradient-to-b from-gray-50/50 via-purple-50/50 to-gray-50/50 dark:from-[#0B1120] dark:via-purple-900/10 dark:to-[#0B1120] pointer-events-none"></div>
        
@@ -745,7 +745,7 @@ try {
         </div>
       </div>
     </section>
-    <section class="py-20 sm:py-28 px-4 sm:px-6 relative overflow-hidden" id="topics">
+    <section class="py-20 sm:py-24 px-4 sm:px-6 relative overflow-hidden" id="topics">
       <!-- Background elements removed for global immersive bg -->
 
       <div class="max-w-7xl mx-auto relative z-10">

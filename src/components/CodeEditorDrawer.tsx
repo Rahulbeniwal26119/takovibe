@@ -39,6 +39,17 @@ const CodeEditorDrawer: React.FC<CodeEditorDrawerProps> = ({ articleSlug, initia
         window.addEventListener('resize', checkMobile);
 
         const handleOpen = (e: CustomEvent) => {
+            // Check authentication
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.dispatchEvent(new CustomEvent('show-login-prompt', {
+                    detail: {
+                        feature: 'Code Studio'
+                    }
+                }));
+                return;
+            }
+
             const { code: newCode, language: newLang } = e.detail;
             setCode(newCode || "");
             setLanguage(newLang || "javascript");
@@ -55,6 +66,30 @@ const CodeEditorDrawer: React.FC<CodeEditorDrawerProps> = ({ articleSlug, initia
             window.removeEventListener('resize', checkMobile);
             window.removeEventListener('open-code-studio', handleOpen as EventListener);
         };
+    }, []);
+
+    // Check for auto-open query param
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('open_playground') === 'true') {
+            const mobile = window.innerWidth < 1024;
+            if (mobile) setShowMobileWarning(true);
+
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                setViewMode(mobile ? 'maximize' : 'split');
+            } else {
+                // Optionally prompt login if not authenticated
+                window.dispatchEvent(new CustomEvent('show-login-prompt', {
+                    detail: { feature: 'Code Studio' }
+                }));
+            }
+
+            // Clean URL
+            const url = new URL(window.location.href);
+            url.searchParams.delete('open_playground');
+            window.history.replaceState({}, '', url.toString());
+        }
     }, []);
 
     // --- IMMERSIVE SPLIT LOGIC (Shared with ExcalidrawDrawer) ---
@@ -189,13 +224,15 @@ const CodeEditorDrawer: React.FC<CodeEditorDrawerProps> = ({ articleSlug, initia
                             <Code2 className="w-5 h-5 text-purple-600" />
                             <span>Code Studio</span>
                         </div>
-                        <input
+                        {/* Commenting it for future version */}
+                        {/* <input
                             type="text"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             className="text-sm font-medium text-gray-600 dark:text-gray-300 bg-transparent border-none focus:outline-none w-32 sm:w-48 transition-colors truncate focus:text-purple-600"
                             placeholder="Untitled Snippet"
                         />
+                        */}
                     </div>
 
                     <div className="flex items-center gap-1.5">
