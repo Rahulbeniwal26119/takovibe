@@ -27,6 +27,25 @@ export interface ChangeLogEntry {
 
 export const changelogData: ChangeLogEntry[] = [
     {
+        "date": "2026-01-19",
+        "version": "Feature Release",
+        "title": "Comments System",
+        "description": "Introduced threaded comments, allowing for structured conversations and deeper engagement within comment threads.",
+        "changes": [
+            {
+                "type": "new",
+                "text": "Threaded Comments: Introduced nested replies, allowing for structured conversations and deeper engagement within comment threads.",
+                "comparisons": [
+                    {
+                        "image_before": "https://ik.imagekit.io/bhu1voux5/comment_before",
+                        "image_after": "https://ik.imagekit.io/bhu1voux5/comment_after",
+                        "label": "Threaded Comments"
+                    }
+                ]
+            }
+        ],
+    },
+    {
         "date": "2026-01-17",
         "version": "Improvement",
         "title": "Homepage & Layout Refinements",

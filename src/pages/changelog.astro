@@ -187,6 +187,17 @@ const getIcon = (type: string) => {
                                                       </svg>
                                                   </div>
                                                 </div>
+
+                                                {/* Maximize Button - z-40 to sit above the slider input */}
+                                                <button
+                                                  class="absolute bottom-3 right-3 p-2 bg-black/60 hover:bg-black/80 text-white rounded-full backdrop-blur-md transition-all hover:scale-110 z-40 shadow-lg"
+                                                  onclick={`window.openImageModal('${comp.image_after}')`}
+                                                  title="View Fullscreen"
+                                                >
+                                                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+                                                  </svg>
+                                                </button>
                                             </div>
                                             <input 
                                               type="range" 

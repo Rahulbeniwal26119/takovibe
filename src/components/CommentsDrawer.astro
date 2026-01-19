@@ -154,6 +154,9 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
 
     let nextUrl = null;
     let isLoading = false;
+    let allComments = [];
+    let replyingToId = null;
+    let replyingToUser = null;
 
     // Auto-resize textarea
     commentInput?.addEventListener("input", function () {
@@ -171,12 +174,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
 
     // Drawer Control
     window.toggleComments = () => {
-        const isClosed = drawer.classList.contains("translate-y-full"); // Mobile check
-
-        // We check mobile class for 'closed' state as base
-        // If it has 'translate-y-full' (mobile) OR 'md:translate-x-full' (desktop), it's closed.
-        // But checking one is enough if we toggle both classes.
-
+        const isClosed = drawer.classList.contains("translate-y-full");
         if (isClosed) {
             openDrawer();
         } else {
@@ -185,46 +183,35 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
     };
 
     function openDrawer() {
-        // Mobile: Remove translate-y-full
         drawer.classList.remove("translate-y-full");
-
-        // Desktop: Remove closed state classes
         drawer.classList.remove(
             "md:translate-y-4",
             "md:opacity-0",
             "md:pointer-events-none",
         );
-
         backdrop.classList.remove("hidden");
         requestAnimationFrame(() => {
             backdrop.classList.remove("opacity-0");
         });
-
-        // Hide ChatBot (Kumi) to prevent overlap/distraction
         document.body.classList.add("comments-open");
 
-        fetchComments();
+        // Only fetch if empty
+        if (allComments.length === 0) {
+            fetchComments();
+        }
 
-        // Focus input after transition
         setTimeout(() => commentInput?.focus(), 500);
     }
 
     function closeDrawer() {
-        // Mobile: Add translate-y-full
         drawer.classList.add("translate-y-full");
-
-        // Desktop: Add closed state classes
         drawer.classList.add(
             "md:translate-y-4",
             "md:opacity-0",
             "md:pointer-events-none",
         );
-
         backdrop.classList.add("opacity-0");
-
-        // Show ChatBot again
         document.body.classList.remove("comments-open");
-
         setTimeout(() => {
             backdrop.classList.add("hidden");
         }, 300);
@@ -241,52 +228,27 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
         try {
             const fetchUrl =
                 url || `${apiUrl}/api/blogs/comments/?blog_slug=${slug}`;
-            const res = await fetch(fetchUrl);
+            const res = await fetch(fetchUrl, {
+                headers: getHeader(),
+            });
             const data = await res.json();
 
-            if (!url) commentsList.innerHTML = "";
+            if (!url) {
+                allComments = []; // Reset on fresh load
+            }
 
             if (data.results && data.results.length > 0) {
                 // Update badge
                 const badge = document.getElementById("comment-count-badge");
                 if (badge) {
-                    badge.innerText = data.count || data.results.length;
+                    badge.innerText =
+                        data.count || allComments.length + data.results.length;
                     badge.classList.remove("hidden");
                 }
 
-                const html = data.results
-                    .map(
-                        (comment) => `
-          <div class="group animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <div class="flex gap-4">
-              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white text-sm font-bold shadow-md ring-2 ring-white dark:ring-gray-800 shrink-0">
-                ${comment.user ? comment.user[0].toUpperCase() : "A"}
-              </div>
-              <div class="flex-1 min-w-0 space-y-1">
-                <div class="flex items-baseline justify-between">
-                    <span class="text-sm font-bold text-gray-900 dark:text-white">
-                      ${comment.user || "Anonymous"}
-                    </span>
-                    <span class="text-[10px] text-gray-400">
-                      ${formatDate(comment.created_at)}
-                    </span>
-                </div>
-                
-                <div class="bg-gray-50 dark:bg-gray-800/50 rounded-2xl rounded-tl-none px-4 py-3 text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap shadow-sm group-hover:bg-gray-100 dark:group-hover:bg-gray-800 transition-colors">
-                  ${comment.comment}
-                </div>
-              </div>
-            </div>
-          </div>
-        `,
-                    )
-                    .join("");
-
-                if (url) {
-                    commentsList.insertAdjacentHTML("beforeend", html);
-                } else {
-                    commentsList.innerHTML = html;
-                }
+                // Add new comments
+                allComments = [...allComments, ...data.results];
+                renderCommentsTree();
 
                 nextUrl = data.next;
                 if (nextUrl) {
@@ -294,8 +256,25 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
                 } else {
                     loadMoreContainer.classList.add("hidden");
                 }
-            } else if (!url) {
+            } else if (!url && allComments.length === 0) {
+                renderEmptyState();
+            }
+        } catch (err) {
+            console.error("Error fetching comments:", err);
+            if (!url && allComments.length === 0) {
                 commentsList.innerHTML = `
+                    <div class="text-center py-12 text-red-500 text-sm bg-red-50 dark:bg-red-900/10 rounded-xl m-4">
+                        Failed to load comments. Please try again.
+                    </div>
+                `;
+            }
+        } finally {
+            isLoading = false;
+        }
+    }
+
+    function renderEmptyState() {
+        commentsList.innerHTML = `
           <div class="flex flex-col items-center justify-center py-16 text-center opacity-60">
             <div class="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
                 <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
@@ -304,25 +283,242 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
             <p class="text-xs text-gray-400 mt-1">Be the first to start the conversation!</p>
           </div>
         `;
+    }
+
+    function renderCommentsTree() {
+        if (!allComments || !commentsList) return;
+
+        const commentMap = new Map();
+        allComments.forEach((c) => commentMap.set(c.id, c));
+
+        const roots = [];
+        const childrenMap = new Map();
+
+        allComments.forEach((c) => {
+            if (c.parent && commentMap.has(c.parent)) {
+                if (!childrenMap.has(c.parent)) childrenMap.set(c.parent, []);
+                childrenMap.get(c.parent).push(c);
+            } else {
+                roots.push(c);
+            }
+        });
+
+        // Render roots
+        if (roots.length === 0 && allComments.length === 0) {
+            renderEmptyState();
+            return;
+        }
+
+        // Sort roots: Newest first
+        roots.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        const html = roots
+            .map((c) => renderCommentNode(c, childrenMap))
+            .join("");
+        commentsList.innerHTML = html;
+
+        // Attach event listeners to Reply buttons
+        document.querySelectorAll(".reply-btn").forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+                const commentId = e.currentTarget.dataset.id;
+                const username = e.currentTarget.dataset.user;
+                startReply(commentId, username);
+            });
+        });
+
+        // Attach event listeners to Like buttons
+        document.querySelectorAll(".like-btn").forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+                const commentId = e.currentTarget.dataset.id;
+                toggleLike(commentId, btn);
+            });
+        });
+    }
+
+    async function toggleLike(commentId, btnElement) {
+        console.log("Toggle like clicked for:", commentId);
+        if (!localStorage.getItem("access_token")) {
+            console.log("No token found, dispatching login modal");
+            window.dispatchEvent(
+                new CustomEvent("show-login-prompt", {
+                    detail: { feature: "like comments" },
+                }),
+            );
+            return;
+        }
+
+        const isLiked = btnElement.dataset.liked === "true";
+        let count = parseInt(btnElement.dataset.count) || 0;
+
+        const newLiked = !isLiked;
+        const newCount = newLiked ? count + 1 : Math.max(0, count - 1);
+
+        console.log(
+            `Optimistic update: ${isLiked} -> ${newLiked}, Count: ${count} -> ${newCount}`,
+        );
+
+        btnElement.dataset.liked = newLiked.toString();
+        btnElement.dataset.count = newCount.toString();
+
+        if (newLiked) {
+            btnElement.classList.add("text-rose-600", "dark:text-rose-400");
+            btnElement.classList.remove("text-gray-500");
+        } else {
+            btnElement.classList.remove("text-rose-600", "dark:text-rose-400");
+            btnElement.classList.add("text-gray-500");
+        }
+
+        // Update Text
+        const textSpan = btnElement.querySelector(".like-text");
+        if (textSpan)
+            textSpan.innerText = newCount > 0 ? `Like (${newCount})` : "Like";
+
+        try {
+            const url = `${apiUrl}/api/blogs/comments/${commentId}/like/`;
+            console.log(`Sending POST to ${url}`);
+
+            const res = await fetch(url, {
+                method: "POST",
+                headers: getHeader(),
+            });
+
+            if (!res.ok) {
+                const txt = await res.text();
+                console.error("Like request failed:", txt);
+                throw new Error("Failed to like");
+            }
+
+            const data = await res.json();
+            console.log("Like successful, server data:", data);
+
+            // Update local store
+            const comment = allComments.find((c) => c.id == commentId);
+            if (comment) {
+                comment.like_count = data.like_count;
+                comment.is_liked = data.liked;
             }
         } catch (err) {
-            console.error("Error fetching comments:", err);
-            if (!url) {
-                commentsList.innerHTML = `
-          <div class="text-center py-12 text-red-500 text-sm bg-red-50 dark:bg-red-900/10 rounded-xl m-4">
-            Failed to load comments. Please try again.
-          </div>
-        `;
+            console.error("Like error caught:", err);
+            // Revert on error
+            btnElement.dataset.liked = isLiked.toString();
+            btnElement.dataset.count = count.toString();
+            if (textSpan)
+                textSpan.innerText = count > 0 ? `Like (${count})` : "Like";
+
+            if (isLiked) {
+                btnElement.classList.add("text-rose-600", "dark:text-rose-400");
+                btnElement.classList.remove("text-gray-500");
+            } else {
+                btnElement.classList.remove(
+                    "text-rose-600",
+                    "dark:text-rose-400",
+                );
+                btnElement.classList.add("text-gray-500");
             }
-        } finally {
-            isLoading = false;
         }
+    }
+
+    function renderCommentNode(comment, childrenMap) {
+        const children = childrenMap.get(comment.id) || [];
+        children.sort(
+            (a, b) => new Date(a.created_at) - new Date(b.created_at),
+        );
+        const hasChildren = children.length > 0;
+
+        const username =
+            comment.user && comment.user.username
+                ? comment.user.username
+                : typeof comment.user === "string"
+                  ? comment.user
+                  : "Anonymous";
+        const avatarLetter = (username[0] || "A").toUpperCase();
+
+        // Random pastel color based on username char
+        const colors = [
+            "bg-rose-500",
+            "bg-purple-500",
+            "bg-blue-500",
+            "bg-teal-500",
+            "bg-amber-500",
+            "bg-indigo-500",
+        ];
+        const colorIndex = username.charCodeAt(0) % colors.length;
+        const avatarBg = colors[colorIndex];
+
+        const isLiked = comment.is_liked || false;
+        const likeCount = comment.like_count || 0;
+        const likeColorClass = isLiked
+            ? "text-rose-600 dark:text-rose-400"
+            : "text-gray-500 hover:text-gray-800 dark:hover:text-gray-300";
+
+        return `
+            <div class="relative group" id="comment-${comment.id}">
+                
+                <div class="flex gap-3 py-3 px-2 hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg transition-colors border-b border-gray-100 dark:border-gray-800/50 last:border-0">
+                    <!-- Avatar -->
+                    <div class="flex-shrink-0 pt-1 relative">
+                        <div class="w-8 h-8 rounded-full ${avatarBg} flex items-center justify-center text-white text-xs font-bold shadow-sm ring-2 ring-white dark:ring-[#0f172a]">
+                            ${avatarLetter}
+                        </div>
+                        ${hasChildren ? `<div class="absolute top-9 left-1/2 -translate-x-1/2 w-px h-[calc(100%+12px)] bg-gray-200 dark:bg-gray-800"></div>` : ""}
+                    </div>
+
+                    <!-- Content Body -->
+                    <div class="flex-1 min-w-0">
+                        <!-- Header -->
+                        <div class="flex items-center gap-2 mb-0.5">
+                            <span class="text-[13px] font-bold text-gray-900 dark:text-gray-100 leading-none hover:underline cursor-pointer">
+                                ${username}
+                            </span>
+                            <span class="text-[11px] text-gray-400 dark:text-gray-500 leading-none">
+                                • ${formatDate(comment.created_at)}
+                            </span>
+                        </div>
+
+                        <!-- Text -->
+                        <div class="text-[13px] leading-snug text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words">
+                            ${comment.comment}
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="flex items-center gap-4 mt-2 select-none">
+                             <button 
+                                class="like-btn text-[11px] font-semibold ${likeColorClass} transition-colors cursor-pointer flex items-center gap-1"
+                                data-id="${comment.id}"
+                                data-liked="${isLiked}"
+                                data-count="${likeCount}"
+                             >
+                                <span class="like-text">${likeCount > 0 ? `Like (${likeCount})` : "Like"}</span>
+                             </button>
+                             <button 
+                                class="reply-btn text-[11px] font-semibold text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 transition-colors cursor-pointer"
+                                data-id="${comment.id}"
+                                data-user="${username}"
+                            >
+                                Reply
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nested Replies -->
+                ${
+                    hasChildren
+                        ? `
+                    <div class="pl-11 pr-2 pb-2 space-y-0">
+                        ${children.map((child) => renderCommentNode(child, childrenMap)).join("")}
+                    </div>
+                `
+                        : ""
+                }
+            </div>
+        `;
     }
 
     function formatDate(dateString) {
         const date = new Date(dateString);
         const now = new Date();
-        const diff = (now - date) / 1000; // seconds
+        const diff = (now - date) / 1000;
 
         if (diff < 60) return "Just now";
         if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
@@ -335,36 +531,110 @@ const apiUrl = import.meta.env.PUBLIC_API_URL;
         });
     }
 
+    // Reply Logic
+    function startReply(commentId, username) {
+        replyingToId = commentId;
+        replyingToUser = username;
+
+        // Show indicator logic
+        const inputArea = document.querySelector(
+            "#comments-drawer .absolute.bottom-0",
+        );
+        let indicator = document.getElementById("reply-indicator");
+
+        if (!indicator) {
+            indicator = document.createElement("div");
+            indicator.id = "reply-indicator";
+            indicator.className =
+                "flex items-center justify-between px-4 py-2 bg-purple-50 dark:bg-purple-900/20 text-xs text-purple-700 dark:text-purple-300 border-t border-purple-100 dark:border-purple-800/30 w-full animate-in slide-in-from-bottom-2";
+            inputArea.insertBefore(indicator, inputArea.firstChild);
+        }
+
+        indicator.innerHTML = `
+            <span>Replying to <b>@${username}</b></span>
+            <button id="cancel-reply" class="p-1 hover:bg-black/5 dark:hover:bg-white/10 rounded-full transition-colors">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        `;
+
+        document
+            .getElementById("cancel-reply")
+            .addEventListener("click", cancelReply);
+
+        inputArea.classList.toggle("pt-0", true); // Remove top padding if needed or adjust styling
+
+        commentInput.focus();
+        commentInput.placeholder = `Reply to ${username}...`;
+    }
+
+    function cancelReply() {
+        replyingToId = null;
+        replyingToUser = null;
+        const indicator = document.getElementById("reply-indicator");
+        if (indicator) indicator.remove();
+        commentInput.placeholder = "Write a comment...";
+    }
+
     async function postComment() {
         const text = commentInput.value.trim();
         if (!text) return;
 
         postBtn.disabled = true;
         const width = postBtn.offsetWidth;
-        postBtn.style.width = width + "px"; // Maintain width
+        postBtn.style.width = width + "px";
         const originalContent = postBtn.innerHTML;
         postBtn.innerHTML =
             '<svg class="w-5 h-5 animate-spin mx-auto" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
 
         try {
+            const body = { comment: text, blog: slug };
+            if (replyingToId) body.parent = replyingToId;
+
             const res = await fetch(`${apiUrl}/api/blogs/comments/`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ comment: text, blog: slug }),
+                headers: { "Content-Type": "application/json", ...getHeader() },
+                body: JSON.stringify(body),
             });
 
+            // Check for auth error
+            if (res.status === 401 || res.status === 403) {
+                // Trigger login modal logic if available, or alert
+                window.dispatchEvent(new CustomEvent("open-login-modal"));
+                // alert("Please login to comment"); - Optional fallback
+                return;
+            }
+
             if (res.ok) {
+                const newComment = await res.json();
                 commentInput.value = "";
-                commentInput.style.height = "auto"; // Reset height
-                fetchComments(); // Reload comments
+                commentInput.style.height = "auto";
+
+                // Add new comment to local state immediately
+                allComments.push(newComment);
+                renderCommentsTree();
+
+                // Clear reply state
+                cancelReply();
             }
         } catch (err) {
             console.error("Error posting comment:", err);
+            alert("Failed to post comment");
         } finally {
             postBtn.disabled = false;
             postBtn.style.width = "";
             postBtn.innerHTML = originalContent;
         }
+    }
+
+    function getHeader() {
+        const token = localStorage.getItem("access_token");
+        const headers = {
+            "Content-Type": "application/json",
+        };
+        if (token) {
+            headers["Authorization"] = `Token ${token}`;
+        }
+        return headers;
     }
 
     postBtn?.addEventListener("click", postComment);
