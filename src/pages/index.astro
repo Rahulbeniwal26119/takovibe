@@ -449,93 +449,122 @@ try {
 
     </section>
 
-    <!-- Code Playground Showcase -->
-    <section class="py-20 sm:py-24 relative overflow-hidden bg-gray-900 text-white">
+    <!-- AI Code Fix Showcase -->
+    <section class="py-20 sm:py-24 relative overflow-hidden bg-[#0B1120] text-white">
       <!-- Background Effects -->
-      <div class="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
-      <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-500/20 blur-[120px] rounded-full pointer-events-none"></div>
-      <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/20 blur-[120px] rounded-full pointer-events-none"></div>
+      <div class="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>
+      <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-purple-900/20 blur-[130px] rounded-full pointer-events-none"></div>
+      <div class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-900/10 blur-[130px] rounded-full pointer-events-none"></div>
 
       <div class="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
-        <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <div class="grid lg:grid-cols-2 gap-16 items-center">
           
           <!-- Text Content -->
-          <div class="text-center lg:text-left">
-             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 text-green-400 text-sm font-medium mb-6 border border-green-500/20">
-               <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-               Live Execution
+          <div class="text-center lg:text-left order-2 lg:order-1">
+             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 text-sm font-medium mb-6 border border-purple-500/20 shadow-lg shadow-purple-900/20">
+               <span class="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
+               Powered by Kumi AI
              </div>
              
-             <h2 class="text-3xl md:text-5xl font-bold mb-6 leading-tight">
-               Your Browser is now your <br/>
-               <span class="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-600">IDE.</span>
+             <h2 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight tracking-tight">
+               Code that <br/>
+               <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 animate-gradient">fixes itself.</span>
              </h2>
              
-             <p class="text-lg text-gray-300 mb-8 leading-relaxed">
-               Forget setting up environments. Run Python, JavaScript, and more directly inside articles. 
-               Test edge cases, visualize algorithms, and master concepts by doing.
+             <p class="text-lg text-slate-400 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
+               Stuck on a bug? <span class="text-white font-semibold">Kumi</span> analyzes your code, explains the runtime error, and proposes a fix in real-time. Review the diff and merge with one click.
              </p>
 
              <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-               <a href={featuredPosts.length > 0 ? (featuredPosts[0].uri || `/blog/${featuredPosts[0].slug}`) + "?open_playground=true" : "/blog"} class="px-8 py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl transition-all hover:scale-105 hover:shadow-lg hover:shadow-green-500/25 flex items-center justify-center gap-2">
-                 <span>Try It Out</span>
-                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+               <a href={featuredPosts.length > 0 ? (featuredPosts[0].uri || `/blog/${featuredPosts[0].slug}`) + "?open_playground=true" : "/blog"} class="group px-8 py-4 bg-white text-slate-900 font-bold rounded-xl transition-all hover:scale-105 hover:shadow-xl hover:shadow-purple-500/20 flex items-center justify-center gap-2">
+                 <span>Try Kumi</span>
+                 <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                </a>
              </div>
           </div>
 
           <!-- Visual Code Window -->
-          <div class="relative group">
-             <div class="relative bg-[#1E1E1E] rounded-xl shadow-2xl border border-gray-800 overflow-hidden transform transition-all duration-500 group-hover:scale-[1.02] group-hover:-rotate-1 group-hover:shadow-2xl group-hover:shadow-green-500/10">
+          <div class="relative group order-1 lg:order-2 perspective-1000">
+             <div class="relative bg-[#0D1117] rounded-xl shadow-2xl border border-gray-800 overflow-hidden transform transition-all duration-700 group-hover:rotate-y-2 group-hover:scale-[1.02] group-hover:shadow-purple-900/20">
+                
                 <!-- Window Controls -->
-                <div class="flex items-center gap-2 px-4 py-3 bg-[#252526] border-b border-gray-800">
+                <div class="flex items-center justify-between px-4 py-3 bg-[#161B22] border-b border-gray-800">
                    <div class="flex gap-1.5">
                       <div class="w-3 h-3 rounded-full bg-[#FF5F56]"></div>
                       <div class="w-3 h-3 rounded-full bg-[#FFBD2E]"></div>
                       <div class="w-3 h-3 rounded-full bg-[#27C93F]"></div>
                    </div>
-                   <div class="text-xs text-gray-500 font-mono ml-4">main.py</div>
+                   <div class="flex items-center gap-2">
+                      <span class="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Review Fix</span>
+                      <div class="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-[10px] font-bold text-blue-400 uppercase tracking-wider">
+                          <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                          Confidence: High
+                      </div>
+                   </div>
                 </div>
                 
-                <!-- Code Area -->
-                <div class="p-6 font-mono text-sm overflow-x-auto">
-                   <div class="flex gap-4">
-                      <div class="text-gray-600 select-none text-right">
-                         1<br/>2<br/>3<br/>4<br/>5<br/>6
-                      </div>
-                      <div class="text-gray-300">
-                         <span class="text-purple-400">def</span> <span class="text-yellow-400">fibonacci</span>(n):<br/>
-                         &nbsp;&nbsp;<span class="text-purple-400">if</span> n &lt;= 1:<br/>
-                         &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-purple-400">return</span> n<br/>
-                         &nbsp;&nbsp;<span class="text-purple-400">return</span> fibonacci(n-1) + fibonacci(n-2)<br/>
-                         <br/>
-                         <span class="text-gray-500"># Click 'Run' to see magic</span><br/>
-                         <span class="text-blue-400">print</span>(fibonacci(10))
-                      </div>
+                <!-- Diff Area -->
+                <div class="p-6 font-mono text-sm overflow-x-auto bg-[#0D1117]">
+                   <!-- Context -->
+                   <div class="text-gray-500 mb-2 opacity-50">def process_items(items):</div>
+                   
+                   <!-- Deletion -->
+                   <div class="flex bg-red-900/10 border-l-2 border-red-500/50 -mx-6 px-6 py-1 mb-1 relative overflow-hidden group/line">
+                       <span class="absolute left-2 text-red-500/50 select-none">-</span>
+                       <span class="ml-6 text-red-200 line-through opacity-70">return items[10]</span>
+                       <div class="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover/line:opacity-100 text-[10px] text-red-400 font-sans bg-red-950/50 px-2 py-0.5 rounded">IndexError: list index out of range</div>
                    </div>
+
+                   <!-- Addition -->
+                   <div class="flex bg-green-900/10 border-l-2 border-green-500/50 -mx-6 px-6 py-1 relative">
+                       <span class="absolute left-2 text-green-500/50 select-none">+</span>
+                       <span class="ml-6 text-green-300">
+                           <span class="text-purple-400">if</span> <span class="text-blue-400">len</span>(items) > 10:<br/>
+                           &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-purple-400">return</span> items[10]<br/>
+                           <span class="text-purple-400">return</span> None
+                       </span>
+                   </div>
+                   
+                   <!-- Context -->
+                   <div class="text-gray-500 mt-2 opacity-50"># End of function</div>
                 </div>
 
-                <!-- Fake Terminal/Output -->
-                <div class="bg-[#000000] p-4 border-t border-gray-800">
-                   <div class="flex items-center justify-between mb-2">
-                      <span class="text-xs text-gray-500 uppercase">Terminal</span>
-                      <span class="px-2 py-0.5 rounded text-[10px] bg-green-900/30 text-green-400 border border-green-900/50">Success</span>
+                <!-- AI Explanation Panel -->
+                <div class="bg-[#161B22] p-4 border-t border-gray-800 flex flex-col gap-3">
+                   <div class="flex items-start gap-3">
+                      <div class="w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 shrink-0 flex items-center justify-center text-[10px] font-bold text-white shadow-lg shadow-purple-500/20">K</div>
+                      <div class="space-y-1">
+                         <p class="text-xs text-slate-300 leading-relaxed">
+                            <span class="font-bold text-purple-400">Analysis:</span> The list index <code class="bg-gray-800 px-1 rounded">10</code> might be out of bounds if the list is shorter. Added a length check to prevent the crash.
+                         </p>
+                      </div>
                    </div>
-                   <div class="font-mono text-sm text-green-400">
-                      > 55
+
+                   <!-- Action Buttons -->
+                   <div class="flex items-center gap-2 mt-2 pt-3 border-t border-gray-800/50">
+                       <div class="flex-1"></div>
+                       <button class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-1.5 group/reject">
+                           <span>Reject</span>
+                           <span class="text-[10px] bg-gray-800 px-1 rounded text-gray-500 group-hover/reject:text-gray-400">Esc</span>
+                       </button>
+                       <button class="px-3 py-1.5 rounded-lg text-xs font-bold bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/20 transition-all active:scale-95 flex items-center gap-1.5">
+                           <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                           <span>Accept Fix</span>
+                           <span class="text-[10px] bg-black/20 px-1 rounded text-white/80">⌘⏎</span>
+                       </button>
                    </div>
                 </div>
              </div>
              
              <!-- Floating Badge -->
-             <div class="absolute -bottom-6 -right-6 md:-right-12 bg-white dark:bg-slate-800 p-4 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 animate-bounce-slight hidden md:block">
+             <div class="absolute -top-6 -right-6 bg-[#0D1117] p-3 rounded-xl shadow-xl border border-gray-800 animate-bounce-slight hidden lg:block hover:scale-105 transition-transform">
                 <div class="flex items-center gap-3">
-                   <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600">
-                      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                   <div class="p-2 bg-purple-500/10 rounded-lg text-purple-400">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
                    </div>
                    <div>
-                      <div class="font-bold text-gray-900 dark:text-white">50ms</div>
-                      <div class="text-xs text-gray-500">Execution Time</div>
+                      <div class="font-bold text-white text-sm">Auto-Fix</div>
+                      <div class="text-[10px] text-gray-500">Suggested in 120ms</div>
                    </div>
                 </div>
              </div>

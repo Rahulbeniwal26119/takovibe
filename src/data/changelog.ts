@@ -27,6 +27,22 @@ export interface ChangeLogEntry {
 
 export const changelogData: ChangeLogEntry[] = [
     {
+        "date": "2026-01-20",
+        "version": "Feature Release",
+        "title": "AI Fix Showcase & Editor Polish",
+        "description": "Showcasing the power of Kumi AI on the homepage and polishing the Code Studio experience.",
+        "changes": [
+            {
+                "type": "new",
+                "text": "Added new feature to let kumi fix code in playground",
+                "images": [
+                    "https://ik.imagekit.io/takovibe/fix_with_kumi",
+                    "https://ik.imagekit.io/takovibe/accept_reject_code"
+                ]
+            }
+        ]
+    },
+    {
         "date": "2026-01-19",
         "version": "Feature Release",
         "title": "Comments System",

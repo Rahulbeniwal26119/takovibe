@@ -870,7 +870,17 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                 >
                     {/* Output Tabs */}
                     <div className="flex items-center border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 shrink-0">
-                        {/* Preview Removed */}
+                        {mode === 'web' && (
+                            <button
+                                onClick={() => setActiveOutput('preview')}
+                                className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold transition-colors border-r border-gray-200 dark:border-gray-700 ${activeOutput === 'preview'
+                                    ? 'bg-white dark:bg-gray-900 text-purple-600 dark:text-purple-400 border-b-2 border-b-purple-500'
+                                    : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'
+                                    }`}
+                            >
+                                <Eye size={14} /> Preview
+                            </button>
+                        )}
                         <button
                             onClick={() => setActiveOutput('console')}
                             className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold transition-colors border-r border-gray-200 dark:border-gray-700 ${activeOutput === 'console'
@@ -899,7 +909,14 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
 
                     {/* Output Content */}
                     <div className="flex-1 relative overflow-hidden">
-                        {/* Preview Iframe Removed */}
+                        {/* Preview Iframe */}
+                        <iframe
+                            key={runId}
+                            title="Preview"
+                            srcDoc={srcDoc}
+                            className={`absolute inset-0 w-full h-full bg-white transition-opacity duration-200 ${activeOutput === 'preview' ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+                            sandbox="allow-scripts allow-modals"
+                        />
                         <div className={`absolute inset-0 w-full h-full overflow-y-auto bg-gray-50 dark:bg-gray-900 font-mono text-sm p-4 flex flex-col gap-2 transition-opacity duration-200 ${activeOutput === 'console' ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}>
                             {logs.length === 0 ? (
                                 <div className="text-gray-400 dark:text-gray-500 italic text-center mt-10 select-none">

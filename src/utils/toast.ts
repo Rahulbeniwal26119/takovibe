@@ -11,7 +11,7 @@ export function showToast(message: string, type: ToastType = 'info', position: '
             ? 'bottom-20 flex-col-reverse' // Bottom positioning
             : 'top-20 flex-col';           // Top positioning
 
-        container.className = `fixed ${positionClasses} left-1/2 transform -translate-x-1/2 z-[100] flex gap-3 pointer-events-none`;
+        container.className = `fixed ${positionClasses} left-1/2 transform -translate-x-1/2 z-[20000] flex gap-3 pointer-events-none`;
         document.body.appendChild(container);
     }
 
