@@ -156,10 +156,23 @@ const CodeEditorDrawer: React.FC<CodeEditorDrawerProps> = ({ articleSlug, initia
                         display: flex !important;
                         visibility: visible !important;
                         opacity: 1 !important;
-                        z-index: 30000 !important;
+                        z-index: 9999999 !important; /* Max z-index */
                         position: fixed !important;
-                        top: 1rem !important;
-                        left: 1rem !important;
+                        top: 1.5rem !important;
+                        left: 1.5rem !important;
+                        transform: none !important;
+                        pointer-events: auto !important;
+                    }
+                    /* Ensure trigger button is visible */
+                    #zen-nav #zen-menu-trigger {
+                        opacity: 1 !important;
+                        visibility: visible !important;
+                        background: rgba(255, 255, 255, 0.1) !important;
+                        backdrop-filter: blur(12px) !important;
+                    }
+                    html.dark #zen-nav #zen-menu-trigger {
+                        background: rgba(0, 0, 0, 0.4) !important;
+                        border: 1px solid rgba(255, 255, 255, 0.1) !important;
                     }
 
                     /* Transform Article Container */

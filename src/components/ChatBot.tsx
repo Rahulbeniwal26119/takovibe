@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, Suspense } from 'react';
-import { MessageCircle, X, Send, Sparkles, User, Minimize2, Maximize2, Minus, Volume2, VolumeX, Copy, Mic, MicOff, Trash2, Check } from 'lucide-react';
+import { MessageCircle, X, Send, Sparkles, User, Minimize2, Maximize2, Minus, Volume2, VolumeX, Copy, Mic, MicOff, Trash2, Check, Code2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
@@ -18,6 +18,7 @@ interface ChatBotProps {
 interface Message {
     role: 'user' | 'assistant';
     content: string;
+    mode?: string;
 }
 
 export default function ChatBot({ articleContext, articleTitle, articleId }: ChatBotProps) {
@@ -34,6 +35,7 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
     const shouldAutoScrollRef = useRef(true);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const [isPremium, setIsPremium] = useState(false); // Mock/State for Premium Feature
 
     const scrollToBottom = () => {
         if (shouldAutoScrollRef.current) {
@@ -114,6 +116,12 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
 
             if (mode === 'explain') {
                 setInput("Can you explain how this code works line-by-line?");
+            }
+
+            if (mode === 'debug') {
+                // Immediate "One-Click" fix
+                sendMessage("I'm getting this error. How can I fix it?", { context: selectedText });
+                return;
             }
 
             // Set the reply context instead of modifying input directly
@@ -360,7 +368,7 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
         }
 
         // Add User Message
-        const newMessages = [...messages, { role: 'user', content: userMessage } as Message];
+        const newMessages = [...messages, { role: 'user', content: userMessage, mode: options?.mode } as Message];
         setMessages(newMessages);
 
         setIsLoading(true);
@@ -384,7 +392,7 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
 
-            setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
+            setMessages(prev => [...prev, { role: 'assistant', content: '', mode: options?.mode }]);
 
             let aiResponse = '';
 
@@ -407,6 +415,14 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
 
             if (isSpeechEnabled && aiResponse) {
                 speak(aiResponse);
+            }
+
+            // Premium Nudge for Debug Mode
+            if (options?.mode === 'debug' && !isPremium) {
+                setMessages(prev => [...prev, {
+                    role: 'assistant',
+                    content: `**🚀 Upgrade to Premium**\n\nGet faster, more detailed debugging and unlimited queries with our Premium plan.\n\n[View Plans](/pricing)`
+                }]);
             }
 
         } catch (error) {
@@ -452,7 +468,8 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
         // Base: 
         // Mobile: Fixed bottom inset-0 (full width bottom sheet)
         // Desktop: Fixed bottom-right corner
-        'fixed bottom-0 z-[9999] flex flex-col shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden',
+        // FIX: Increased z-index to 20000 to be above CodeEditorDrawer (z-10000)
+        'fixed bottom-0 z-[20000] flex flex-col shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden',
         'inset-x-0 md:inset-auto md:left-auto md:right-6 md:bottom-6',
         'kumi-chatbot-container', // Hook for CSS
 
@@ -499,8 +516,8 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
                         <div className="flex items-center gap-2 text-white cursor-pointer" onClick={() => setIsMinimized(!isMinimized)}>
                             <Sparkles className="w-5 h-5" />
                             <span className="font-bold">Kumi</span>
-                            <span className="text-[10px] font-mono bg-white/20 px-1.5 py-0.5 rounded-full text-white/90 border border-white/10 shadow-sm ml-1">
-                                PREVIEW
+                            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full text-white/90 border border-white/10 shadow-sm ml-1 ${isPremium ? 'bg-gradient-to-r from-amber-400 to-orange-500' : 'bg-white/20'}`}>
+                                {isPremium ? 'PREMIUM' : 'FREE'}
                             </span>
                         </div>
                         <div className="flex items-center gap-1 text-white/80">
@@ -646,47 +663,55 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
 
                                                         // 3. Fallback / Standard Text
                                                         return (
-                                                            <ReactMarkdown
-                                                                remarkPlugins={[remarkGfm]}
-                                                                rehypePlugins={[rehypeHighlight]}
-                                                                components={{
-                                                                    pre: ({ node, ...props }) => (
-                                                                        <div className="relative group/code">
-                                                                            <pre {...props} className="bg-slate-950 rounded-lg p-4 overflow-x-auto my-2 text-sm" />
-                                                                            <button
-                                                                                onClick={(e) => {
-                                                                                    const code = (e.currentTarget.previousSibling as HTMLElement)?.textContent || '';
-                                                                                    navigator.clipboard.writeText(code);
-                                                                                    const btn = e.currentTarget;
-                                                                                    const scan = btn.querySelector('span');
-                                                                                    if (scan) scan.innerText = 'Copied!';
-                                                                                    setTimeout(() => { if (scan) scan.innerText = 'Copy'; }, 2000);
-                                                                                }}
-                                                                                className="absolute top-2 right-2 px-2 py-1 bg-white/10 hover:bg-white/20 text-xs text-white/70 hover:text-white rounded opacity-0 group-hover/code:opacity-100 transition-opacity"
-                                                                            >
-                                                                                <span>Copy</span>
-                                                                            </button>
-                                                                        </div>
-                                                                    ),
-                                                                    code: ({ node, className, children, ...props }) => {
-                                                                        const match = /language-(\w+)/.exec(className || '');
-                                                                        if (match && match[1] === 'mermaid') {
+                                                            <div className={isAssistant && message.mode === 'debug' ? "bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800/30 rounded-xl p-4 md:-mx-2" : ""}>
+                                                                {isAssistant && message.mode === 'debug' && (
+                                                                    <div className="flex items-center gap-2 mb-3 pb-3 border-b border-purple-100 dark:border-purple-800/30">
+                                                                        <div className="p-1.5 bg-purple-500 rounded text-white"><Code2 className="w-3 h-3" /></div>
+                                                                        <span className="text-xs font-bold text-purple-900 dark:text-purple-100 uppercase tracking-widest">Debug Solution</span>
+                                                                    </div>
+                                                                )}
+                                                                <ReactMarkdown
+                                                                    remarkPlugins={[remarkGfm]}
+                                                                    rehypePlugins={[rehypeHighlight]}
+                                                                    components={{
+                                                                        pre: ({ node, ...props }) => (
+                                                                            <div className="relative group/code">
+                                                                                <pre {...props} className="bg-slate-950 rounded-lg p-4 overflow-x-auto my-2 text-sm" />
+                                                                                <button
+                                                                                    onClick={(e) => {
+                                                                                        const code = (e.currentTarget.previousSibling as HTMLElement)?.textContent || '';
+                                                                                        navigator.clipboard.writeText(code);
+                                                                                        const btn = e.currentTarget;
+                                                                                        const scan = btn.querySelector('span');
+                                                                                        if (scan) scan.innerText = 'Copied!';
+                                                                                        setTimeout(() => { if (scan) scan.innerText = 'Copy'; }, 2000);
+                                                                                    }}
+                                                                                    className="absolute top-2 right-2 px-2 py-1 bg-white/10 hover:bg-white/20 text-xs text-white/70 hover:text-white rounded opacity-0 group-hover/code:opacity-100 transition-opacity"
+                                                                                >
+                                                                                    <span>Copy</span>
+                                                                                </button>
+                                                                            </div>
+                                                                        ),
+                                                                        code: ({ node, className, children, ...props }) => {
+                                                                            const match = /language-(\w+)/.exec(className || '');
+                                                                            if (match && match[1] === 'mermaid') {
+                                                                                return (
+                                                                                    <Suspense fallback={<div className="p-4 text-center text-gray-500">Loading Diagram...</div>}>
+                                                                                        <Mermaid chart={String(children).replace(/\n$/, '')} />
+                                                                                    </Suspense>
+                                                                                );
+                                                                            }
                                                                             return (
-                                                                                <Suspense fallback={<div className="p-4 text-center text-gray-500">Loading Diagram...</div>}>
-                                                                                    <Mermaid chart={String(children).replace(/\n$/, '')} />
-                                                                                </Suspense>
+                                                                                <code {...props} className={className + " bg-black/10 dark:bg-white/10 rounded px-1 py-0.5"}>
+                                                                                    {children}
+                                                                                </code>
                                                                             );
                                                                         }
-                                                                        return (
-                                                                            <code {...props} className={className + " bg-black/10 dark:bg-white/10 rounded px-1 py-0.5"}>
-                                                                                {children}
-                                                                            </code>
-                                                                        );
-                                                                    }
-                                                                }}
-                                                            >
-                                                                {message.content}
-                                                            </ReactMarkdown>
+                                                                    }}
+                                                                >
+                                                                    {message.content}
+                                                                </ReactMarkdown>
+                                                            </div>
                                                         );
                                                     })()}
                                                 </div>
@@ -694,15 +719,16 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
                                         </div>
                                     ))}
                                     {isLoading && messages[messages.length - 1]?.content === '' && (
-                                        <div className="flex gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shrink-0 text-white">
+                                        <div className="flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shrink-0 text-white shadow-sm ring-2 ring-white dark:ring-slate-800">
                                                 <Sparkles className="w-4 h-4 animate-pulse" />
                                             </div>
-                                            <div className="bg-white dark:bg-slate-800 px-4 py-3 rounded-2xl rounded-tl-sm border border-gray-100 dark:border-gray-700 shadow-sm">
+                                            <div className="bg-white dark:bg-slate-800 px-4 py-3 rounded-2xl rounded-tl-sm border border-gray-100 dark:border-gray-700 shadow-sm flex items-center gap-3">
+                                                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Kumi is thinking</span>
                                                 <div className="flex gap-1">
-                                                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                                                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                                                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                                                    <span className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                                                    <span className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                                                    <span className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
                                                 </div>
                                             </div>
                                         </div>

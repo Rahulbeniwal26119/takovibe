@@ -8,10 +8,103 @@ import { rust as langRust } from '@codemirror/lang-rust';
 import { go as langGo } from '@codemirror/lang-go';
 import { autocompletion } from '@codemirror/autocomplete';
 import { githubLight, githubDark } from '@uiw/codemirror-theme-github';
-import { Play, RotateCcw, Box, Check, Loader2, GripVertical, Terminal, Eye, Trash2, Zap, ZapOff, Save, Keyboard } from 'lucide-react';
+import { Play, RotateCcw, Box, Check, Loader2, GripVertical, Terminal, Eye, Trash2, Zap, ZapOff, Save, Keyboard, Sparkles, X, ChevronRight, CheckCircle2, AlertCircle, Diff as DiffIcon, ChevronDown, Monitor } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
+import 'highlight.js/styles/github-dark.css';
 import { vim } from '@replit/codemirror-vim';
 import { fetchWithAuth } from '../../utils/api';
 import { showToast } from '../../utils/toast';
+import { diffLines, type Change } from 'diff';
+
+const DiffView = ({ original, modified, explanation, onAccept, onReject }: { original: string, modified: string, explanation?: string, onAccept: () => void, onReject: () => void }) => {
+    const changes = diffLines(original, modified);
+
+    // Keyboard Shortcuts
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.shiftKey && e.key === 'Escape') {
+                e.preventDefault();
+                onReject();
+            }
+            if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') onAccept();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onAccept, onReject]);
+
+    return (
+        <div className="absolute inset-0 z-50 bg-white dark:bg-[#0d1117] flex flex-col animate-in fade-in duration-200">
+            {/* Diff Header */}
+            <div className="flex items-center justify-between px-4 py-3 bg-purple-100/50 dark:bg-purple-900/20 border-b border-purple-200 dark:border-purple-800 shrink-0">
+                <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-purple-900 dark:text-purple-100 uppercase tracking-wider">Review Fix</span>
+
+                    {/* Confidence Badge */}
+                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-800 text-[10px] font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wider">
+                        <Sparkles size={10} fill="currentColor" />
+                        High Confidence
+                    </div>
+
+                    <div className="h-4 w-px bg-purple-200 dark:bg-purple-800 mx-1" />
+
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 font-mono">- Original</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 font-mono">+ Modified</span>
+                </div>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={onReject}
+                        className="group flex items-center gap-2 px-4 py-2 text-xs font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all"
+                        title="Shift + Esc"
+                    >
+                        Reject
+                    </button>
+                    <button
+                        onClick={onAccept}
+                        className="group flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-lg shadow-sm shadow-green-900/20 transition-all active:scale-95"
+                        title="Cmd + Enter"
+                    >
+                        <Check size={14} className="stroke-[3px]" />
+                        Accept Fix
+                        <span className="hidden sm:inline-block font-mono text-[10px] bg-black/20 px-1.5 py-0.5 rounded text-white/90 group-hover:bg-black/30 transition-colors">⌘⏎</span>
+                    </button>
+                </div>
+            </div>
+
+            <div className="flex-1 flex min-h-0">
+                {/* Explanation Sidebar */}
+                {explanation && (
+                    <div className="w-1/3 border-r border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 overflow-y-auto p-4">
+                        <div className="flex items-center gap-2 mb-3 text-purple-600 dark:text-purple-400">
+                            <Sparkles size={14} />
+                            <span className="text-xs font-bold uppercase tracking-wider">Kumi's Insight</span>
+                        </div>
+                        <div className="prose prose-sm dark:prose-invert max-w-none prose-p:text-gray-600 dark:prose-p:text-gray-300 prose-code:text-purple-600 dark:prose-code:text-purple-400 prose-ul:pl-4 prose-li:my-1">
+                            <ReactMarkdown>{explanation}</ReactMarkdown>
+                        </div>
+                    </div>
+                )}
+
+                {/* Diff Content */}
+                <div className="flex-1 overflow-auto p-4 font-mono text-sm bg-white dark:bg-[#0d1117]">
+                    {changes.map((part, i) => {
+                        const color = part.added ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' :
+                            part.removed ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 decoration-line-through opacity-70' :
+                                'text-gray-500 dark:text-gray-400';
+                        return (
+                            <div key={i} className={`${color} whitespace-pre-wrap break-all px-2 border-l-2 ${part.added ? 'border-green-500' : part.removed ? 'border-red-500' : 'border-transparent'}`}>
+                                {part.value}
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
 
 interface LogEntry {
     type: 'log' | 'warn' | 'error' | 'info';
@@ -23,8 +116,8 @@ interface CodePlaygroundProps {
     initialHtml?: string;
     initialCss?: string;
     initialJs?: string;
-    initialCode?: string; // Generic code input
-    initialLanguage?: string; // Generic language input
+    initialCode?: string;
+    initialLanguage?: string;
     onSave?: (html: string, css: string, js: string) => void;
     isEditable?: boolean;
     title?: string;
@@ -52,6 +145,7 @@ const TabButton = ({ active, onClick, icon: Icon, label }: any) => (
     </button>
 );
 
+// Component Definition
 export const CodePlayground: React.FC<CodePlaygroundProps> = ({
     initialHtml = '',
     initialCss = '',
@@ -98,6 +192,110 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
     const [logs, setLogs] = useState<LogEntry[]>([]);
     const [isRunning, setIsRunning] = useState(false);
     const [vimMode, setVimMode] = useState(false);
+    const [showShortcuts, setShowShortcuts] = useState(false);
+    const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+
+    // Inline AI Fix State
+    const [fixingErrorIndex, setFixingErrorIndex] = useState<number | null>(null); // Index of error being fixed
+    const [aiFixData, setAiFixData] = useState<Record<number, { loading: boolean, content?: string, extractedCode?: string }>>({});
+    const [reviewingFixIndex, setReviewingFixIndex] = useState<number | null>(null); // State for visual diff review
+
+    const extractCodeBlock = (markdown: string): string | null => {
+        // Find all code blocks
+        const matches = [...markdown.matchAll(/```(?:\w+)?\s+([\s\S]*?)```/g)];
+        if (matches.length > 0) {
+            // Return the content of the LAST matched block
+            return matches[matches.length - 1][1].trim();
+        }
+        return null;
+    };
+
+    const handleApplyFix = (code: string, index: number) => {
+        if (mode === 'backend') {
+            setBackendCode(code);
+        } else {
+            // For web mode, simplistic check for now
+            const langMatch = aiFixData[index]?.content?.match(/```(\w+)\s+/);
+            const lang = langMatch ? langMatch[1] : '';
+
+            if (lang === 'html') setHtml(code);
+            else if (lang === 'css') setCss(code);
+            else setJs(code); // default to js
+        }
+
+        showToast("Fix applied successfully!", "success");
+        setReviewingFixIndex(null);
+        closeFix(index);
+    };
+
+    const handleAskKumi = async (errorMsg: string, index: number) => {
+        if (aiFixData[index]?.loading) return;
+
+        setFixingErrorIndex(index);
+        setAiFixData(prev => ({ ...prev, [index]: { loading: true } }));
+
+        try {
+            const codeContext = `Code:\n\`\`\`${mode === 'web' ? 'html' : backendLanguage}\n${getCurrentValue()}\n\`\`\`\n\nError:\n${errorMsg}`;
+
+            const response = await fetch('/api/ai/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    messages: [
+                        { role: 'user', content: "I'm getting this error. \n1. Briefly explain the fix in bullet points (Issue: ... Fix: ...).\n2. Add a line at the end: 'Why this matters: [explanation]'.\n3. finally provide the COMPLETE FULL FILE CONTENT in a markdown code block.\n\nIMPORTANT: Return the ENTIRE file with the fix applied. DO NOT return fragments, snippets, or placeholders like '// ... rest of code'. The response must be a valid, complete, and executable file.\n\n" + codeContext, mode: 'debug' }
+                    ],
+                    mode: 'debug'
+                })
+            });
+
+            if (!response.body) throw new Error("No response body");
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let result = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                const chunk = decoder.decode(value, { stream: true });
+                result += chunk;
+
+                // Real-time extraction
+                const extracted = extractCodeBlock(result);
+                setAiFixData(prev => ({ ...prev, [index]: { loading: true, content: result, extractedCode: extracted || undefined } }));
+            }
+
+            const finalExtracted = extractCodeBlock(result);
+
+            // Remove code blocks from the explanation text to avoid duplication
+            const cleanExplanation = result.replace(/```[\s\S]*?```/g, '').trim();
+
+            setAiFixData(prev => ({
+                ...prev,
+                [index]: {
+                    loading: false,
+                    content: cleanExplanation || "Fix generated.", // Use clean explanation 
+                    extractedCode: finalExtracted || undefined
+                }
+            }));
+
+            if (finalExtracted) {
+                setReviewingFixIndex(index);
+            }
+
+        } catch (e) {
+            console.error(e);
+            setAiFixData(prev => ({ ...prev, [index]: { loading: false, content: "**Error getting fix.** Please try again." } }));
+        }
+    };
+
+    const closeFix = (index: number) => {
+        setAiFixData(prev => {
+            const next = { ...prev };
+            delete next[index];
+            return next;
+        });
+    };
 
     // Resizing state
     const [topPanelHeight, setTopPanelHeight] = useState(60);
@@ -166,6 +364,14 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                 e.preventDefault();
                 e.stopPropagation();
                 handleRun();
+            }
+
+            // Prevent Ctrl+W from closing tab (Best Effort)
+            // Note: Most browsers block this for security, but it may work in PWA/App mode
+            if ((e.ctrlKey || e.metaKey) && e.key === 'w') {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log("Ctrl+W intercepted");
             }
         };
         // Use capture phase to intercept before CodeMirror
@@ -321,38 +527,38 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
     const srcDoc = (() => {
         // If user writes a full HTML document, use it directly but inject script logic
         // This is a simple check; for production, a more robust parser might be needed
-        const isFullDoc = /^\s*<!DOCTYPE/i.test(previewHtml) || /^\s*<html/i.test(previewHtml);
+        const isFullDoc = /^\s*<!DOCTYPE/i.test(previewHtml) || /^\s*<html /i.test(previewHtml);
 
         const consoleScript = `
-            <script>
-                (function() {
+                    <script>
+                        (function() {
                     const send = (type, args) => {
                         try {
                             const message = args.map(arg => {
                                 if (typeof arg === 'object') return JSON.stringify(arg, null, 2);
-                                return String(arg);
+                        return String(arg);
                             }).join(' ');
-                            window.parent.postMessage({ type: 'console', level: type, args: message }, '*');
-                        } catch (e) {}
+                        window.parent.postMessage({type: 'console', level: type, args: message }, '*');
+                        } catch (e) { }
                     };
-                    const originalLog = console.log;
-                    const originalWarn = console.warn;
-                    const originalError = console.error;
-                    const originalInfo = console.info;
-                    console.log = (...args) => { originalLog.apply(console, args); send('log', args); };
-                    console.warn = (...args) => { originalWarn.apply(console, args); send('warn', args); };
-                    console.error = (...args) => { originalError.apply(console, args); send('error', args); };
-                    console.info = (...args) => { originalInfo.apply(console, args); send('info', args); };
-                    window.onerror = function(msg, url, line) { send('error', [msg]); return false; };
+                        const originalLog = console.log;
+                        const originalWarn = console.warn;
+                        const originalError = console.error;
+                        const originalInfo = console.info;
+                    console.log = (...args) => {originalLog.apply(console, args); send('log', args); };
+                    console.warn = (...args) => {originalWarn.apply(console, args); send('warn', args); };
+                    console.error = (...args) => {originalError.apply(console, args); send('error', args); };
+                    console.info = (...args) => {originalInfo.apply(console, args); send('info', args); };
+                        window.onerror = function(msg, url, line) {send('error', [msg]); return false; };
                 })();
-            </script>
-        `;
+                    </script>
+                    `;
 
         const executionScript = `
-            <script>
-                try { ${previewJs} } catch (e) { console.error(e.message); }
-            </script>
-        `;
+                    <script>
+                        try {${previewJs} } catch (e) {console.error(e.message); }
+                    </script>
+                    `;
 
         if (isFullDoc) {
             // Inject scripts into the user's document
@@ -371,55 +577,190 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
 
         // Standard wrapper
         return `
-            <!DOCTYPE html>
-            <html>
-                <head>
-                    <style>
-                        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; padding: 1rem; margin: 0; }
-                        ${previewCss}
-                    </style>
-                    ${consoleScript}
-                </head>
-                <body>
-                    ${previewHtml}
-                    ${executionScript}
-                </body>
-            </html>
-        `;
+                        <!DOCTYPE html>
+                        <html>
+                            <head>
+                                <style>
+                                    body {font - family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; padding: 1rem; margin: 0; }
+                                    ${previewCss}
+                                </style>
+                                ${consoleScript}
+                            </head>
+                            <body>
+                                ${previewHtml}
+                                ${executionScript}
+                            </body>
+                        </html>
+                        `;
     })();
 
     return (
-        <div className="flex flex-col h-full rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-lg bg-white dark:bg-gray-900 not-prose">
-            {/* Header */}
+        <div className="flex flex-col h-full rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-lg bg-white dark:bg-gray-900 not-prose relative">
+            {/* Diff View Overlay */}
+            {reviewingFixIndex !== null && aiFixData[reviewingFixIndex]?.extractedCode && (
+                <DiffView
+                    original={getCurrentValue()}
+                    modified={aiFixData[reviewingFixIndex].extractedCode!}
+                    explanation={aiFixData[reviewingFixIndex].content}
+                    onAccept={() => handleApplyFix(aiFixData[reviewingFixIndex].extractedCode!, reviewingFixIndex)}
+                    onReject={() => setReviewingFixIndex(null)}
+                />
+            )}
+
+            {/* Shortcuts Modal */}
+            {showShortcuts && (
+                <div className="absolute inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-md overflow-hidden relative">
+                        <button
+                            onClick={() => setShowShortcuts(false)}
+                            className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                        >
+                            <X size={18} />
+                        </button>
+
+                        <div className="p-5">
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-4">
+                                <Keyboard size={20} className="text-purple-600" />
+                                Keyboard Shortcuts
+                            </h3>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">General</h4>
+                                    <div className="grid gap-2">
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-700 dark:text-gray-300">Run Code</span>
+                                            <span className="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded border border-gray-200 dark:border-gray-700">Ctrl + Enter</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Review Mode</h4>
+                                    <div className="grid gap-2">
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-700 dark:text-gray-300">Accept Fix</span>
+                                            <span className="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded border border-gray-200 dark:border-gray-700">Ctrl + Enter</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-700 dark:text-gray-300">Reject Fix</span>
+                                            <span className="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded border border-gray-200 dark:border-gray-700">Shift + Esc</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {vimMode && (
+                                    <div>
+                                        <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Vim Mode</h4>
+                                        <div className="grid gap-2 text-sm text-gray-700 dark:text-gray-300">
+                                            <div className="flex justify-between">
+                                                <span>Normal Mode</span>
+                                                <code className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">Esc</code>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span>Insert Mode</span>
+                                                <code className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">i</code>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span>Save (Mock)</span>
+                                                <code className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">:w</code>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="bg-gray-50 dark:bg-gray-800 px-5 py-3 text-xs text-center text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700">
+                            Press <span className="font-bold">Esc</span> to close this guide
+                        </div>
+                    </div>
+                </div>
+            )}
             <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shrink-0">
                 <div className="flex items-center gap-4">
-                    {/* Language/Mode Selector */}
+                    {/* Modern Language Selector */}
                     <div className="relative">
-                        <select
-                            value={mode === 'web' ? 'html' : backendLanguage}
-                            onChange={(e) => {
-                                const val = e.target.value;
-                                if (val === 'html') {
-                                    setMode('web');
-                                    setActiveOutput('console');
-                                } else {
-                                    setMode('backend');
-                                    setBackendLanguage(val);
-                                    // If switching languages, provide a fresh template if user hasn't typed custom code
-                                    const newDefault = DEFAULT_CODE[val] || '';
-                                    if (!backendCode || Object.values(DEFAULT_CODE).some(c => c.trim() === backendCode.trim()) || mode === 'web') {
-                                        setBackendCode(newDefault);
-                                    }
-                                    setActiveOutput('console');
-                                    setAutoRun(false);
-                                }
-                            }}
-                            className="bg-gray-200 dark:bg-gray-700 border-none text-xs font-bold rounded-md px-2 py-1.5 focus:ring-2 focus:ring-purple-500 cursor-pointer"
+                        <button
+                            onClick={() => setShowLanguageMenu(!showLanguageMenu)}
+                            className="flex items-center gap-2 text-gray-700 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-400 bg-gray-100 dark:bg-gray-800 hover:bg-white dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 text-xs font-bold rounded-lg px-3 py-1.5 transition-all shadow-sm group"
                         >
-                            {SUPPORTED_LANGUAGES.map(l => (
-                                <option key={l.value} value={l.value}>{l.label}</option>
-                            ))}
-                        </select>
+                            <span className="capitalize">{SUPPORTED_LANGUAGES.find(l => l.value === (mode === 'web' ? 'html' : backendLanguage))?.label}</span>
+                            <ChevronDown size={14} className={`text-gray-400 group-hover:text-purple-500 transition-transform duration-200 ${showLanguageMenu ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {showLanguageMenu && (
+                            <>
+                                <div
+                                    className="fixed inset-0 z-30"
+                                    onClick={() => setShowLanguageMenu(false)}
+                                />
+                                <div className="absolute top-full left-0 mt-2 min-w-[200px] bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 rounded-xl shadow-2xl z-40 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 ring-1 ring-black/5">
+                                    <div className="p-1.5">
+                                        <div className="px-3 py-1.5 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-0.5">
+                                            Platform
+                                        </div>
+                                        {/* Web / HTML */}
+                                        <button
+                                            onClick={() => {
+                                                setMode('web');
+                                                setActiveOutput('console');
+                                                setShowLanguageMenu(false);
+                                            }}
+                                            className={`w-full flex items-center justify-between px-3 py-2.5 text-xs font-medium rounded-lg transition-all ${mode === 'web'
+                                                ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300'
+                                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                                                }`}
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <div className={`w-1.5 h-1.5 rounded-full ${mode === 'web' ? 'bg-purple-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                                                <span>HTML / Web</span>
+                                            </div>
+                                            {mode === 'web' && <Check size={14} className="text-purple-600 dark:text-purple-400" />}
+                                        </button>
+
+                                        <div className="my-1.5 border-t border-gray-100 dark:border-gray-800" />
+
+                                        <div className="px-3 py-1.5 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-0.5">
+                                            Backend
+                                        </div>
+                                        <div className="grid grid-cols-1 gap-0.5">
+                                            {SUPPORTED_LANGUAGES.filter(l => l.value !== 'html').map(lang => {
+                                                const isActive = mode === 'backend' && backendLanguage === lang.value;
+                                                return (
+                                                    <button
+                                                        key={lang.value}
+                                                        onClick={() => {
+                                                            setMode('backend');
+                                                            setBackendLanguage(lang.value);
+                                                            const newDefault = DEFAULT_CODE[lang.value] || '';
+                                                            // Keep code if it matches default or if switching modes, otherwise preserve user code if desirable (logic can vary)
+                                                            // Here we just ensure we have code
+                                                            if (!backendCode || Object.values(DEFAULT_CODE).some(c => c.trim() === backendCode.trim()) || mode === 'web') {
+                                                                setBackendCode(newDefault);
+                                                            }
+                                                            setActiveOutput('console');
+                                                            setAutoRun(false);
+                                                            setShowLanguageMenu(false);
+                                                        }}
+                                                        className={`w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-lg transition-all ${isActive
+                                                            ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300'
+                                                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                                                            }`}
+                                                    >
+                                                        <div className="flex items-center gap-2">
+                                                            <div className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-purple-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                                                            <span>{lang.label}</span>
+                                                        </div>
+                                                        {isActive && <Check size={14} className="text-purple-600 dark:text-purple-400" />}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
+                        )}
                     </div>
 
                     {/* Web Mode Tabs */}
@@ -446,11 +787,19 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                     )}
 
                     <button
+                        onClick={() => setShowShortcuts(true)}
+                        className="p-1.5 rounded-md text-gray-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
+                        title="Keyboard Shortcuts"
+                    >
+                        <Keyboard size={16} />
+                    </button>
+
+                    <button
                         onClick={() => setVimMode(!vimMode)}
                         className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${vimMode ? 'text-green-600 bg-green-50 dark:bg-green-900/20' : 'text-gray-500 hover:bg-gray-200'}`}
                         title={vimMode ? 'Vim Mode enabled' : 'Vim Mode disabled'}
                     >
-                        <Keyboard size={14} />
+                        <span className="font-bold font-mono text-xs">VIM</span>
                         <span className="hidden sm:inline">Vim</span>
                     </button>
 
@@ -463,9 +812,6 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                         {isRunning ? 'Running...' : (
                             <>
                                 <span>Run</span>
-                                <span className="ml-1 text-[10px] opacity-60 font-mono hidden sm:inline" title="Cmd/Ctrl + Enter">
-                                    (⌘↵)
-                                </span>
                             </>
                         )}
                     </button>
@@ -561,12 +907,74 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                                 </div>
                             ) : (
                                 logs.map((log, i) => (
-                                    <div key={i} className={`flex gap-2 border-b border-gray-200 dark:border-gray-800 pb-1 last:border-0 ${log.type === 'error' ? 'text-red-600 dark:text-red-400' :
+                                    <div key={i} className={`group flex flex-col gap-1 border-b border-gray-200 dark:border-gray-800 pb-1 last:border-0 ${log.type === 'error' ? 'text-red-600 dark:text-red-400' :
                                         log.type === 'warn' ? 'text-yellow-600 dark:text-yellow-400' :
                                             'text-gray-700 dark:text-gray-300'
                                         }`}>
-                                        <span className="opacity-40 select-none">[{new Date(log.timestamp).toLocaleTimeString().split(' ')[0]}]</span>
-                                        <span className="flex-1 whitespace-pre-wrap break-all">{'> '}{log.message}</span>
+                                        <div className="flex gap-2">
+                                            <span className="opacity-40 select-none">[{new Date(log.timestamp).toLocaleTimeString().split(' ')[0]}]</span>
+                                            <span className="flex-1 whitespace-pre-wrap break-all">{'> '}{log.message}</span>
+                                        </div>
+                                        {/* Ask Kumi / Inline Fix */}
+                                        {log.type === 'error' && (
+                                            <div className="mt-2 pl-6">
+                                                {!aiFixData[i] ? (
+                                                    <button
+                                                        onClick={() => handleAskKumi(log.message, i)}
+                                                        className="flex items-center gap-1.5 px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-[10px] uppercase tracking-wider font-bold rounded-md hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors opacity-0 group-hover:opacity-100"
+                                                    >
+                                                        <Sparkles size={10} />
+                                                        Ask Kumi to Fix
+                                                    </button>
+                                                ) : (
+                                                    <div className="relative rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-900/10 overflow-hidden shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+                                                        {/* Header */}
+                                                        <div className="flex items-center justify-between px-3 py-2 bg-purple-100/50 dark:bg-purple-900/30 border-b border-purple-100 dark:border-purple-800/50">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="p-1 bg-purple-500 rounded text-white">
+                                                                    <Sparkles size={12} fill="currentColor" />
+                                                                </div>
+                                                                <span className="text-xs font-bold text-purple-900 dark:text-purple-100 uppercase tracking-wider">As per Kumi</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                {aiFixData[i].extractedCode && !aiFixData[i].loading && (
+                                                                    <button
+                                                                        onClick={() => setReviewingFixIndex(i)}
+                                                                        className="flex items-center gap-1.5 px-2.5 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-[10px] font-bold uppercase tracking-wider rounded-md hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors animate-in fade-in zoom-in duration-300"
+                                                                    >
+                                                                        <DiffIcon size={12} />
+                                                                        Review Fix
+                                                                    </button>
+                                                                )}
+                                                                <button
+                                                                    onClick={() => closeFix(i)}
+                                                                    className="text-purple-400 hover:text-purple-700 dark:hover:text-purple-200 transition-colors"
+                                                                >
+                                                                    <X size={14} />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Content */}
+                                                        <div className="p-4 prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-pre:bg-gray-800 prose-pre:text-white prose-code:text-purple-600 dark:prose-code:text-purple-300">
+                                                            {aiFixData[i].loading && !aiFixData[i].content ? (
+                                                                <div className="flex items-center gap-2 text-purple-500">
+                                                                    <Loader2 size={16} className="animate-spin" />
+                                                                    <span className="text-xs font-medium">Analyzing error...</span>
+                                                                </div>
+                                                            ) : (
+                                                                <ReactMarkdown
+                                                                    remarkPlugins={[remarkGfm]}
+                                                                    rehypePlugins={[rehypeHighlight]}
+                                                                >
+                                                                    {aiFixData[i].content || ""}
+                                                                </ReactMarkdown>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 ))
                             )}

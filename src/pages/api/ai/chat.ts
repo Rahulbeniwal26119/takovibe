@@ -159,6 +159,19 @@ The diagram should visualizes the following context:
 ${optimizedContext}`;
         }
 
+        if (mode === 'debug') {
+            systemPrompt = `You are Kumi, a Senior Software Engineer helping a user debug their code.
+The user has provided their code and an error message.
+Your Goal: Explain the error clearly and provide the corrected code.
+
+Guidelines:
+1. Be concise and direct.
+2. Explain WHY the error happened.
+3. Provide the FIXED code snippet.
+4. If the error is logical, explain the logic flaw.
+5. Use markdown for code blocks.`;
+        }
+
         const stream = await openai.chat.completions.create({
             model: 'gpt-4o-mini',
             messages: [
