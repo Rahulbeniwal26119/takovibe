@@ -1,5 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { generateServerHtml } from "../utils/generateHtml";
 import Footer from "./Footer.astro";
 import RelatedPosts from "./RelatedPosts.astro";
 import ReaderToolbar from "./ReaderToolbar.astro";
@@ -53,6 +54,8 @@ const getLastModified = () => {
 const lastModified = getLastModified();
 const publishDate = new Date(post.data.date).toISOString();
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site).toString();
+
+const serverHtml = htmlContent || (post.contentJson ? generateServerHtml(post.contentJson): '');
 
 const articleStructuredData = {
     "@context": "https://schema.org",
@@ -415,7 +418,7 @@ const breadcrumbStructuredData = {
 
 <div class="min-h-screen">
     <!-- Main Content Layout -->
-    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 pb-0">
+    <main class="max-w-[1600px] mx-auto px-4 sm:px-6 pb-0">
         <!-- Main Content Layout (Flexbox for robust sidebar positioning) -->
         <div
             id="immersive-article-container"
@@ -450,8 +453,8 @@ const breadcrumbStructuredData = {
                     </div> -->
                 </aside>
 
-                <!-- Main Article Content -->
-                <main class="flex-1 min-w-0 max-w-5xl w-full">
+                    <!-- Main Article Content -->
+                    <article class="flex-1 min-w-0 max-w-5xl w-full" id="article">
                     <!-- min-w-0 prevents flex overflow -->
 
                     <!-- Native Clean Header (No gradients) -->
@@ -597,15 +600,16 @@ const breadcrumbStructuredData = {
                     }
 
                     <!-- Article Body (Native Font) -->
-                    <article
-                        class="prose prose-lg md:prose-xl dark:prose-invert max-w-none
+
+
+
+                        <div
+                            class="mdx-content prose prose-lg md:prose-xl dark:prose-invert max-w-none
             prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-gray-900 dark:prose-headings:text-gray-100
             prose-p:text-gray-800 dark:prose-p:text-gray-300 prose-p:leading-relaxed
             prose-code:text-purple-600 dark:prose-code:text-purple-400
             prose-img:rounded-xl prose-img:shadow-sm"
-                        id="Article"
-                    >
-                        <div class="mdx-content">
+                        >
                             {
                                 isStatic && Content ? (
                                     <Content />
@@ -614,36 +618,18 @@ const breadcrumbStructuredData = {
                                         client:only="react"
                                         content={post.contentJson}
                                     >
-                                        <div
-                                            slot="fallback"
-                                            class="animate-pulse space-y-6 py-6 font-sans"
-                                        >
-                                            {/* Paragraph Skeleton */}
-                                            <div class="space-y-3">
-                                                <div class="h-4 bg-gray-200 dark:bg-gray-800 rounded w-full" />
-                                                <div class="h-4 bg-gray-200 dark:bg-gray-800 rounded w-5/6" />
-                                                <div class="h-4 bg-gray-200 dark:bg-gray-800 rounded w-4/6" />
-                                            </div>
-
-                                            {/* Block/Image Skeleton */}
-                                            <div class="h-48 sm:h-64 bg-gray-100 dark:bg-gray-900 rounded-xl w-full border border-gray-200 dark:border-gray-800" />
-
-                                            {/* Paragraph Skeleton */}
-                                            <div class="space-y-3">
-                                                <div class="h-4 bg-gray-200 dark:bg-gray-800 rounded w-11/12" />
-                                                <div class="h-4 bg-gray-200 dark:bg-gray-800 rounded w-full" />
-                                                <div class="h-4 bg-gray-200 dark:bg-gray-800 rounded w-3/4" />
-                                            </div>
-                                        </div>
+                                        <div slot="fallback" set:html={serverHtml} />
                                     </TiptapRenderer>
                                 ) : (
                                     <div set:html={htmlContent} />
                                 )
                             }
+
+
                         </div>
                     </article>
                     <!-- Footer (Moved outside for full width) -->
-                </main>
+
 
                 <!-- Right Sidebar: Series Navigation (if part of series) OR Interactive Toolkit -->
                 <aside class="hidden xl:block w-72 flex-shrink-0 sticky top-24">
@@ -767,12 +753,15 @@ const breadcrumbStructuredData = {
                                         class="col-span-1 group relative overflow-hidden rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 p-0.5 transition-all hover:scale-[1.02] hover:shadow-lg hover:shadow-emerald-500/25"
                                     >
                                         <div class="relative h-full w-full bg-white dark:bg-gray-900 rounded-[10px] p-3 flex flex-col items-center justify-center gap-2 text-center">
-                                            <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-300 flex items-center justify-center text-lg">
+                                            <div class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800">
+                                                <span class="text-[8px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider block leading-none">New</span>
+                                            </div>
+                                            <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-300 flex items-center justify-center text-lg mt-1">
                                                 💻
                                             </div>
                                             <div>
-                                                <h3 class="font-bold text-gray-900 dark:text-white text-xs">Run Code</h3>
-                                                <div class="text-[9px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">Live Editor</div>
+                                                <h3 class="font-bold text-gray-900 dark:text-white text-xs">Smart Code</h3>
+                                                <div class="text-[9px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">Run & Compare Fixes</div>
                                             </div>
                                         </div>
                                     </button>
@@ -817,7 +806,7 @@ const breadcrumbStructuredData = {
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 </div>
 
 <!-- Mobile Action Dock (Phase 1) -->

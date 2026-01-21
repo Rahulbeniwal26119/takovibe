@@ -4,7 +4,7 @@
 
 <div
     id="contributor-float"
-    class="fixed bottom-6 right-6 z-[90] translate-y-32 opacity-0 transition-all duration-700 ease-out hidden sm:flex items-center gap-3 p-2 pr-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-purple-500/30 rounded-full shadow-2xl hover:scale-105"
+    class="fixed top-24 right-6 z-[90] -translate-y-10 opacity-0 transition-all duration-700 ease-out hidden sm:flex items-center gap-3 p-2 pr-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-purple-500/30 rounded-full shadow-2xl hover:scale-105"
 >
     <!-- Badge -->
     <div class="relative flex h-10 w-10 shrink-0">
@@ -89,12 +89,12 @@
 
         // Show after delay
         setTimeout(() => {
-            banner.classList.remove("translate-y-32", "opacity-0");
+            banner.classList.remove("-translate-y-10", "opacity-0");
         }, 1500);
 
         // Close handler
         closeBtn?.addEventListener("click", () => {
-            banner.classList.add("translate-y-32", "opacity-0");
+            banner.classList.add("-translate-y-10", "opacity-0");
             setTimeout(() => banner.remove(), 500);
             sessionStorage.setItem(STORAGE_KEY, "true");
         });

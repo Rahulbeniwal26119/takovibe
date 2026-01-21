@@ -1,0 +1,118 @@
+---
+
+---
+
+<div
+    id="top-banner"
+    class="relative w-full z-[100] -mt-12 transition-[margin] duration-500 ease-out bg-gradient-to-r from-purple-900 via-indigo-900 to-purple-900 text-white border-b border-white/10 shadow-lg"
+    style="display: none;"
+>
+    <div
+        class="max-w-7xl mx-auto px-4 sm:px-6 py-2 flex items-center justify-between gap-4"
+    >
+        <!-- Message -->
+        <div class="flex items-center gap-3 overflow-hidden">
+            <span
+                class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/20 text-xs"
+            >
+                👋
+            </span>
+            <p class="text-sm font-medium truncate">
+                <span class="hidden sm:inline"
+                    >We are looking for contributors!</span
+                >
+                <span class="sm:hidden">Contributors wanted!</span>
+                <span class="opacity-75 mx-2 hidden md:inline">|</span>
+                <span class="opacity-90 hidden md:inline"
+                    >Join the TakoVibe core team</span
+                >
+            </p>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center gap-3 shrink-0">
+            <div class="flex items-center gap-2">
+                <a
+                    href="/contact?subject=contribution-writing"
+                    class="px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 text-xs font-semibold transition-colors flex items-center gap-1.5 border border-white/10"
+                >
+                    <span>✍️</span>
+                    <span class="hidden sm:inline">Write</span>
+                </a>
+                <a
+                    href="/contact?subject=contribution-development"
+                    class="px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 text-xs font-semibold transition-colors flex items-center gap-1.5 border border-white/10"
+                >
+                    <span>💻</span>
+                    <span class="hidden sm:inline">Code</span>
+                </a>
+            </div>
+
+            <!-- Close -->
+            <button
+                id="close-banner"
+                class="p-1 rounded-full hover:bg-white/20 text-white/70 hover:text-white transition-colors"
+                aria-label="Dismiss"
+            >
+                <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const BANNER_KEY = "takovibe_top_banner_closed_ts";
+    const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+
+    function initBanner() {
+        const banner = document.getElementById("top-banner");
+        const closeBtn = document.getElementById("close-banner");
+
+        if (!banner) return;
+
+        // Check Local Storage
+        const lastClosed = localStorage.getItem(BANNER_KEY);
+        if (lastClosed) {
+            const timePassed = Date.now() - parseInt(lastClosed, 10);
+            if (timePassed < TWENTY_FOUR_HOURS) {
+                // Still within 24 hours, keeping hidden
+                return;
+            }
+        }
+
+        // Show Banner
+        banner.style.display = "block";
+        // Small delay for slide-down animation
+        requestAnimationFrame(() => {
+            banner.classList.remove("-mt-12");
+        });
+
+        // Handle Close
+        closeBtn?.addEventListener("click", () => {
+            banner.classList.add("-mt-12");
+
+            // Record timestamp
+            localStorage.setItem(BANNER_KEY, Date.now().toString());
+
+            // Remove from DOM after transition
+            setTimeout(() => {
+                banner.style.display = "none";
+            }, 500); // Match duration-500
+        });
+    }
+
+    // Run on every page load (View Transitions compatible)
+    document.addEventListener("astro:page-load", initBanner);
+    document.addEventListener("DOMContentLoaded", initBanner);
+</script>
