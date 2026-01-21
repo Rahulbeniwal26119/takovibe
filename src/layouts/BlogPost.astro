@@ -72,6 +72,7 @@ const canonicalUrl = canonical || `https://takovibe.com${Astro.url.pathname}`;
 const articleStructuredData = {
   "@context": "https://schema.org",
   "@type": "BlogPosting",
+  "@id": canonicalUrl,
   headline: title,
   datePublished: publishDate,
   dateModified: lastModified,
@@ -81,12 +82,18 @@ const articleStructuredData = {
     url: "https://takovibe.com/about/",
   },
   description: description,
-  image: {
-    "@type": "ImageObject",
-    url: image?.startsWith("http") ? image : `https://takovibe.com${image}`,
-    height: "630",
-    width: "1200",
-  },
+  image: [
+    {
+      "@type": "ImageObject",
+      url: image
+        ? image.startsWith("http")
+          ? image
+          : `https://takovibe.com${image}`
+        : "https://takovibe.com/images/default-og.png",
+      width: 1200,
+      height: 630,
+    },
+  ],
   url: canonicalUrl,
   mainEntityOfPage: {
     "@type": "WebPage",
@@ -98,11 +105,12 @@ const articleStructuredData = {
     name: "TakoVibe",
     logo: {
       "@type": "ImageObject",
-      url: "https://takovibe.com/images/logo.svg",
+      url: "https://takovibe.com/images/logo.png",
       width: "192",
       height: "192",
     },
   },
+  articleSection: tags?.[0],
 };
 
 // Breadcrumb structured data
@@ -151,9 +159,6 @@ const breadcrumbStructuredData = {
 
   <!-- SEO Meta Tags -->
   <link rel="canonical" href={canonicalUrl} slot="head" />
-  <meta property="article:published_time" content={publishDate} slot="head" />
-  <meta property="article:modified_time" content={lastModified} slot="head" />
-  <meta property="article:author" content={author} slot="head" />
   {
     tags?.map((tag) => (
       <meta property="article:tag" content={tag} slot="head" />

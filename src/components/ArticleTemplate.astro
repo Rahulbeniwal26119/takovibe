@@ -57,23 +57,26 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site).toString();
 const articleStructuredData = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
+    "@id": canonicalUrl,
     headline: post.data.title,
     datePublished: publishDate,
     dateModified: lastModified,
     author: {
         "@type": "Person",
         name: post.data.author,
-        url: "https://takovibe.com/about/",
+        url: `https://takovibe.com/profile/${post.authorUsername || post.data.author.toLowerCase().replace(/\s+/g, "-")}`,
     },
     description: post.data.description,
-    image: {
-        "@type": "ImageObject",
-        url: post.data.image?.startsWith("http")
-            ? post.data.image
-            : `https://takovibe.com${post.data.image}`,
-        height: "630",
-        width: "1200",
-    },
+    image: [
+        {
+            "@type": "ImageObject",
+            url: (post.data.image?.startsWith("http")
+                ? post.data.image
+                : `https://takovibe.com${post.data.image}`) + (post.data.image?.match(/\.[a-zA-Z0-9]+$/) ? "" : ".png"),
+            width: 1200,
+            height: 630,
+        },
+    ],
     url: canonicalUrl,
     mainEntityOfPage: {
         "@type": "WebPage",
@@ -85,7 +88,7 @@ const articleStructuredData = {
         name: "TakoVibe",
         logo: {
             "@type": "ImageObject",
-            url: "https://takovibe.com/images/logo.svg",
+            url: "https://takovibe.com/images/logo.png",
             width: "192",
             height: "192",
         },
