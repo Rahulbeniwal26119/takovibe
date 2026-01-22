@@ -11,7 +11,8 @@ interface Props {
     title: string;
     description?: string;
     image?: string;
-    type?: "website" | "article";
+    image?: string;
+    type?: "website" | "article" | "profile";
     tags?: string[];
     author?: string;
     noAds?: boolean;
@@ -26,7 +27,7 @@ const {
     title,
     description,
     image,
-    type,
+    type = "website",
     noAds = false,
     author = "TakoVibe",
     tags = [],
@@ -170,7 +171,14 @@ const structuredData = {
             />
         </noscript>
         <meta name="generator" content={Astro.generator} />
-        <title>{title} | Rahul Beniwal | TakoVibe</title>
+        <meta name="generator" content={Astro.generator} />
+        <title>
+            {
+                type === "article" || type === "profile"
+                    ? `${title} | ${author} | TakoVibe`
+                    : title
+            }
+        </title>
 
         <slot name="head" />
 
