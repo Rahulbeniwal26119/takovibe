@@ -608,7 +608,7 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
                                 <div
                                     ref={chatContainerRef}
                                     onScroll={handleScroll}
-                                    className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-slate-800/50 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600"
+                                    className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-100 dark:bg-slate-800/50 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600"
                                 >
                                     {messages.map((message, index) => (
                                         <div
@@ -624,12 +624,12 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
                                             <div
                                                 className={`max-w-[80%] px-4 py-3 rounded-2xl text-base leading-relaxed ${message.role === 'user'
                                                     ? 'bg-purple-600 text-white rounded-tr-sm'
-                                                    : 'bg-white dark:bg-slate-800 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700 shadow-sm rounded-tl-sm'
+                                                    : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 shadow-sm rounded-tl-sm'
                                                     }`}
                                             >
                                                 <div className={`prose max-w-none ${message.role === 'user'
                                                     ? 'prose-invert'
-                                                    : 'dark:prose-invert'
+                                                    : 'prose-slate dark:prose-invert prose-p:text-slate-700 dark:prose-p:text-gray-300 prose-headings:text-slate-900 dark:prose-headings:text-gray-100 prose-strong:text-slate-900 dark:prose-strong:text-white prose-ul:text-slate-700 dark:prose-ul:text-gray-300 prose-ol:text-slate-700 dark:prose-ol:text-gray-300 prose-li:text-slate-700 dark:prose-li:text-gray-300 prose-code:text-pink-600 dark:prose-code:text-pink-400 prose-blockquote:text-slate-600 dark:prose-blockquote:text-gray-400 prose-a:text-purple-600 dark:prose-a:text-purple-400'
                                                     }`}>
                                                     {(() => {
                                                         const isAssistant = message.role === 'assistant';
@@ -773,7 +773,7 @@ Format:
                                                         key={i}
                                                         // @ts-ignore
                                                         onClick={() => sendMessage(starter.prompt || starter.text, starter.mode ? { mode: starter.mode } : undefined)}
-                                                        className="text-left p-3 rounded-xl bg-gray-50 dark:bg-slate-800 hover:bg-purple-50 dark:hover:bg-slate-700 hover:border-purple-200 dark:hover:border-purple-700/50 border border-gray-200 dark:border-gray-700 transition-all group flex items-start gap-3 shadow-sm hover:shadow-md"
+                                                        className="text-left p-3 rounded-xl bg-white dark:bg-slate-800 hover:bg-purple-50 dark:hover:bg-slate-700 hover:border-purple-200 dark:hover:border-purple-700/50 border border-gray-200 dark:border-gray-700 transition-all group flex items-start gap-3 shadow-sm hover:shadow-md"
                                                     >
                                                         {/* @ts-ignore */}
                                                         <span className="text-xl bg-white dark:bg-slate-900 w-8 h-8 flex items-center justify-center rounded-lg shadow-sm group-hover:scale-110 transition-transform shrink-0">{starter.icon}</span>
@@ -795,7 +795,7 @@ Format:
                                 {/* Input Area */}
                                 <form onSubmit={handleSubmit} className="p-4 bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-gray-800">
                                     {replyContext && (
-                                        <div key={replyContext} className="mb-3 p-3 bg-gray-50 dark:bg-slate-800/80 rounded-lg border-l-4 border-purple-500 relative flex justify-between items-start group/reply animate-in slide-in-from-bottom-2 duration-200">
+                                        <div key={replyContext} className="mb-3 p-3 bg-gray-100 dark:bg-slate-800/80 rounded-lg border-l-4 border-purple-500 relative flex justify-between items-start group/reply animate-in slide-in-from-bottom-2 duration-200">
                                             <div className="flex-1 pr-6">
                                                 <div className="flex items-center gap-1.5 mb-1 text-xs font-semibold text-purple-600 dark:text-purple-400">
                                                     <Sparkles className="w-3 h-3" />

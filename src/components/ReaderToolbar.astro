@@ -148,7 +148,7 @@ const enableMobileDock =
         }
     </style>
     <div
-        class={`bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl p-2 pointer-events-auto items-center justify-between w-full gap-1 overflow-x-auto custom-scrollbar ${enableMobileDock ? "hidden lg:flex" : "flex"}`}
+        class={`bg-gray-100/95 dark:bg-gray-900/80 backdrop-blur-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-2xl shadow-2xl p-2 pointer-events-auto items-center justify-between w-full gap-1 overflow-x-auto custom-scrollbar ${enableMobileDock ? "hidden lg:flex" : "flex"}`}
     >
         <!-- Toggle Button (Only visible in split view) -->
         <button
@@ -870,12 +870,13 @@ const enableMobileDock =
 
     // Font Size Logic (Robust)
     function initFontSize() {
+        console.log("Initializing Font Size Logic");
         const MIN_SIZE = 16;
         const MAX_SIZE = 24;
         const DEFAULT_SIZE = 18;
 
         let currentSize = parseInt(
-            localStorage.getItem("blog-font-size") || DEFAULT_SIZE,
+            localStorage.getItem("blog-font-size") || DEFAULT_SIZE.toString(),
         );
 
         const display = document.getElementById("currentSize");
@@ -892,6 +893,7 @@ const enableMobileDock =
         }
 
         function applySize(size) {
+            console.log("Applying font size:", size);
             // Create or update style tag
             let style = document.getElementById("dynamic-font-size");
             if (!style) {
@@ -901,21 +903,22 @@ const enableMobileDock =
             }
 
             style.textContent = `
-        article.prose p, 
-        article.prose li, 
-        article.prose span, 
-        article.prose div, 
-        article.prose blockquote {
+        #article .prose p, 
+        #article .prose li, 
+        #article .prose ul, 
+        #article .prose ol,
+        .mdx-content p,
+        .mdx-content li {
           font-size: ${size}px !important;
           line-height: 1.7 !important;
         }
-        article.prose h1 { font-size: ${size * 2.2}px !important; }
-        article.prose h2 { font-size: ${size * 1.8}px !important; }
-        article.prose h3 { font-size: ${size * 1.5}px !important; }
-        article.prose h4 { font-size: ${size * 1.25}px !important; }
+        #article .prose h1, .mdx-content h1 { font-size: ${size * 2.2}px !important; }
+        #article .prose h2, .mdx-content h2 { font-size: ${size * 1.8}px !important; }
+        #article .prose h3, .mdx-content h3 { font-size: ${size * 1.5}px !important; }
+        #article .prose h4, .mdx-content h4 { font-size: ${size * 1.25}px !important; }
       `;
 
-            localStorage.setItem("blog-font-size", size);
+            localStorage.setItem("blog-font-size", size.toString());
         }
 
         function setSize(size) {

@@ -8,6 +8,10 @@ Disallow: /_astro/
 Disallow: /api/
 Disallow: /.env
 Disallow: /_*
+Disallow: /blog/?tag=
+Disallow: /blog/?category=
+Disallow: /blog?tag=
+Disallow: /blog?category=
 
 # -------- Disallow specific AI scraping bots --------
 User-agent: GPTBot
