@@ -27,6 +27,22 @@ export interface ChangeLogEntry {
 
 export const changelogData: ChangeLogEntry[] = [
     {
+        "date": "2026-01-27",
+        "version": "Feature Release",
+        "title": "Series Management Upgrades",
+        "description": "Added new section in dashboard to manage series.",
+        "changes": [
+            {
+                "type": "new",
+                "text": "Added a new section to create or manage your series.",
+                "images": [
+                    "https://ik.imagekit.io/bhu1voux5/new_series_page",
+                    "https://ik.imagekit.io/bhu1voux5/new_series_page_2"
+                ]
+            }
+        ]
+    },
+    {
         "date": "2026-01-20",
         "version": "Feature Release",
         "title": "AI Fix Showcase & Editor Polish",
