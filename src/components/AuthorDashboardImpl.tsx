@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, User as UserIcon, Plus, Edit3, Eye, Trash2, Save, Github, Linkedin, Globe, Link as LinkIcon, Camera, AlertCircle, Inbox } from 'lucide-react';
+import { FileText, User as UserIcon, Plus, Edit3, Eye, Trash2, Save, Github, Linkedin, Globe, Link as LinkIcon, Camera, AlertCircle, Inbox, Layers, X } from 'lucide-react';
 import { Loader } from './ui/Loader';
 import { ContactManager } from './admin/ContactManager';
+import { SeriesManager } from './dashboard/SeriesManager';
 
 
 const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
@@ -46,7 +47,8 @@ interface DashboardStats {
 const AuthorDashboard: React.FC = () => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'my-posts' | 'profile' | 'inbox'>('my-posts');
+    const [activeTab, setActiveTab] = useState<'my-posts' | 'series' | 'profile' | 'inbox'>('my-posts');
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [postTab, setPostTab] = useState<'drafts' | 'published'>('published');
 
     // Data State
@@ -292,13 +294,15 @@ const AuthorDashboard: React.FC = () => {
         );
     }
 
-    return (
-        <div className="flex flex-col md:flex-row min-h-screen max-w-7xl mx-auto pt-24 px-4 sm:px-6 gap-8">
+    // ... existing ...
 
-            {/* Mobile Navigation (Visible only on mobile) */}
-            <div className="md:hidden space-y-4 mb-4">
-                <div className="flex items-center gap-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-4 rounded-2xl border border-gray-200/50 dark:border-gray-800/50 shadow-sm">
-                    <div className="w-12 h-12 rounded-full p-0.5 bg-gradient-to-tr from-purple-500 to-blue-500 flex-shrink-0">
+    return (
+        <div className="flex flex-col lg:flex-row min-h-screen max-w-7xl mx-auto pt-6 lg:pt-24 px-4 sm:px-6 gap-8 relative">
+
+            {/* Mobile Menu Toggle Bar */}
+            <div className="lg:hidden flex items-center justify-between mb-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-4 rounded-2xl border border-gray-200/50 dark:border-gray-800/50 shadow-sm sticky top-20 z-30">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full p-0.5 bg-gradient-to-tr from-purple-500 to-blue-500 flex-shrink-0">
                         <img
                             src={user?.image || `https://ui-avatars.com/api/?name=${user?.name}&background=random`}
                             alt={user?.name}
@@ -306,52 +310,46 @@ const AuthorDashboard: React.FC = () => {
                         />
                     </div>
                     <div>
-                        <h2 className="text-lg font-bold text-gray-900 dark:text-white">{user?.name}</h2>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
+                        <h2 className="text-sm font-bold text-gray-900 dark:text-white">{user?.name}</h2>
+                        <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">{activeTab.replace('-', ' ')}</span>
                     </div>
                 </div>
-
-                {/* Mobile Tabs */}
-                <div className="flex overflow-x-auto gap-2 p-1 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm rounded-xl border border-gray-200/50 dark:border-gray-800/50 scrollbar-hide">
-                    <button
-                        onClick={() => setActiveTab('my-posts')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all ${activeTab === 'my-posts'
-                            ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/25'
-                            : 'text-gray-600 dark:text-gray-400'
-                            }`}
-                    >
-                        <FileText size={16} />
-                        My Posts
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('profile')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all ${activeTab === 'profile'
-                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25'
-                            : 'text-gray-600 dark:text-gray-400'
-                            }`}
-                    >
-                        <UserIcon size={16} />
-                        Profile
-                    </button>
-                    {(user?.manage_contact_us || user?.is_superuser) && (
-                        <button
-                            onClick={() => setActiveTab('inbox')}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all ${activeTab === 'inbox'
-                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
-                                : 'text-gray-600 dark:text-gray-400'
-                                }`}
-                        >
-                            <Inbox size={16} />
-                            Inbox
-                        </button>
-                    )}
-                </div>
+                <button
+                    onClick={() => setIsMobileMenuOpen(true)}
+                    className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-gray-600 dark:text-gray-300"
+                >
+                    <Layers className="w-6 h-6" />
+                </button>
             </div>
 
-            {/* Desktop Sidebar (Hidden on mobile) */}
-            <aside className="hidden md:block w-72 flex-shrink-0">
-                <div className="sticky top-28 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-200/50 dark:border-gray-800/50 p-6 transition-all duration-300 hover:shadow-md hover:border-purple-500/10 dark:hover:border-purple-500/10">
-                    <div className="flex flex-col items-center mb-8 relative">
+            {/* Mobile Sidebar Overlay */}
+            {isMobileMenuOpen && (
+                <div
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden animate-in fade-in"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                />
+            )}
+
+            {/* Responsive Sidebar */}
+            <aside className={`
+                fixed top-24 bottom-4 left-4 z-50 w-72 bg-white dark:bg-slate-950 lg:bg-transparent lg:dark:bg-transparent 
+                rounded-3xl lg:rounded-none border border-gray-200/50 dark:border-gray-800/50 lg:border-none shadow-2xl lg:shadow-none
+                transform transition-transform duration-300 ease-in-out lg:transform-none lg:relative lg:block lg:inset-auto
+                ${isMobileMenuOpen ? 'translate-x-0 p-6' : '-translate-x-[110%] lg:translate-x-0 p-0 lg:p-0'}
+            `}>
+                <div className={`
+                    h-full lg:h-auto flex flex-col lg:sticky lg:top-28 
+                    bg-transparent lg:bg-white/80 dark:bg-transparent lg:dark:bg-slate-900/80 lg:backdrop-blur-xl lg:rounded-2xl lg:shadow-sm lg:border lg:border-gray-200/50 lg:dark:border-gray-800/50 lg:p-6
+                `}>
+                    {/* Mobile Close Button */}
+                    <div className="flex items-center justify-between mb-8 lg:hidden">
+                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Menu</h2>
+                        <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full">
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+
+                    <div className="flex flex-col items-center mb-8 relative hidden lg:flex">
                         {/* Decorative background glow behind avatar */}
                         <div className="absolute top-0 w-32 h-32 bg-purple-500/20 rounded-full blur-2xl pointer-events-none" />
 
@@ -373,9 +371,9 @@ const AuthorDashboard: React.FC = () => {
                         <p className="text-sm font-medium text-gray-500 dark:text-gray-400 relative z-10">{user?.email}</p>
                     </div>
 
-                    <nav className="space-y-2">
+                    <nav className="space-y-2 flex-1">
                         <button
-                            onClick={() => setActiveTab('my-posts')}
+                            onClick={() => { setActiveTab('my-posts'); setIsMobileMenuOpen(false); }}
                             className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-xl font-semibold transition-all duration-300 group ${activeTab === 'my-posts'
                                 ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-lg shadow-purple-500/25'
                                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-purple-600 dark:hover:text-purple-400'
@@ -386,7 +384,18 @@ const AuthorDashboard: React.FC = () => {
                             {activeTab === 'my-posts' && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
                         </button>
                         <button
-                            onClick={() => setActiveTab('profile')}
+                            onClick={() => { setActiveTab('series'); setIsMobileMenuOpen(false); }}
+                            className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-xl font-semibold transition-all duration-300 group ${activeTab === 'series'
+                                ? 'bg-gradient-to-r from-pink-600 to-pink-500 text-white shadow-lg shadow-pink-500/25'
+                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-pink-600 dark:hover:text-pink-400'
+                                }`}
+                        >
+                            <Layers className={`w-5 h-5 ${activeTab === 'series' ? 'text-white' : 'text-gray-400 group-hover:text-pink-500 transition-colors'}`} />
+                            <span className="tracking-wide">Series</span>
+                            {activeTab === 'series' && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
+                        </button>
+                        <button
+                            onClick={() => { setActiveTab('profile'); setIsMobileMenuOpen(false); }}
                             className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-xl font-semibold transition-all duration-300 group ${activeTab === 'profile'
                                 ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/25'
                                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-blue-600 dark:hover:text-blue-400'
@@ -399,7 +408,7 @@ const AuthorDashboard: React.FC = () => {
 
                         {(user?.manage_contact_us || user?.is_superuser) && (
                             <button
-                                onClick={() => setActiveTab('inbox')}
+                                onClick={() => { setActiveTab('inbox'); setIsMobileMenuOpen(false); }}
                                 className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-xl font-semibold transition-all duration-300 group ${activeTab === 'inbox'
                                     ? 'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-lg shadow-indigo-500/25'
                                     : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-indigo-600 dark:hover:text-indigo-400'
@@ -635,6 +644,13 @@ const AuthorDashboard: React.FC = () => {
                                 </div>
                             )}
                         </div>
+                    </div>
+                )}
+
+                {/* Series View */}
+                {activeTab === 'series' && (
+                    <div className="animate-fade-in w-full">
+                        <SeriesManager />
                     </div>
                 )}
 

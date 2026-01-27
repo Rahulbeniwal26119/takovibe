@@ -19,6 +19,7 @@ import ImageNodeView from './ImageNodeView';
 import { fetchWithAuth } from '../../utils/api';
 import { SEOPreview } from './SEOPreview';
 import UserAuth from '../UserAuth';
+import { Select } from '../ui/Select';
 
 import '../../styles/editor.css';
 import {
@@ -1322,7 +1323,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                             </div>
 
                             {/* Series */}
-                            <div className="space-y-2">
+                            {/* <div className="space-y-2">
                                 <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Series</label>
                                 <input
                                     type="text"
@@ -1340,7 +1341,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                     onChange={(e) => setFrontmatter({ ...frontmatter, seriesOrder: parseInt(e.target.value) || 0 })}
                                     className="w-full bg-transparent border-b border-gray-200 dark:border-gray-700 py-1 text-sm focus:border-purple-500 outline-none transition-colors dark:text-white"
                                 />
-                            </div>
+                            </div> */}
 
                             {/* SEO Preview Toggle */}
                             <div className="md:col-span-2 mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
