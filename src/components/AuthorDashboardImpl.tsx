@@ -69,7 +69,6 @@ const AuthorDashboard: React.FC = () => {
     // Profile Form State
     const [profileForm, setProfileForm] = useState({
         name: '',
-        bio: '',
         github_url: '',
         linkedin_url: '',
         website_url: ''
@@ -85,7 +84,6 @@ const AuthorDashboard: React.FC = () => {
         if (user) {
             setProfileForm({
                 name: user.name || '',
-                bio: user.bio || '',
                 github_url: user.github_url || '',
                 linkedin_url: user.linkedin_url || '',
                 website_url: user.website_url || ''
@@ -696,18 +694,7 @@ const AuthorDashboard: React.FC = () => {
                                             />
                                         </div>
 
-                                        <div>
-                                            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
-                                                Bio
-                                            </label>
-                                            <textarea
-                                                value={profileForm.bio}
-                                                onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
-                                                rows={4}
-                                                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all font-medium resize-none"
-                                                placeholder="Tell your story..."
-                                            />
-                                        </div>
+
                                     </div>
                                 </div>
 
