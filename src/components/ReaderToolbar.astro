@@ -1122,8 +1122,10 @@ const enableMobileDock =
             e.key === "f" &&
             !e.ctrlKey &&
             !e.metaKey &&
+            !e.shiftKey && 
             document.activeElement.tagName !== "INPUT" &&
-            document.activeElement.tagName !== "TEXTAREA"
+            document.activeElement.tagName !== "TEXTAREA" &&
+            !document.activeElement.isContentEditable 
         ) {
             e.preventDefault();
             toggleFocusMode();

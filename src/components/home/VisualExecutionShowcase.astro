@@ -1,0 +1,269 @@
+<section
+    class="py-24 sm:py-32 relative overflow-hidden bg-white dark:bg-[#0B1120]"
+>
+    <!-- Background Gradients -->
+    <div
+        class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none"
+    >
+        <div
+            class="absolute -top-[20%] -right-[10%] w-[700px] h-[700px] bg-purple-200/30 dark:bg-purple-900/10 blur-[120px] rounded-full mix-blend-multiply dark:mix-blend-screen"
+        >
+        </div>
+        <div
+            class="absolute top-[20%] -left-[10%] w-[600px] h-[600px] bg-blue-200/30 dark:bg-blue-900/10 blur-[120px] rounded-full mix-blend-multiply dark:mix-blend-screen"
+        >
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+        <!-- Section Header -->
+        <div class="text-center mb-20">
+            <div
+                class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300 text-sm font-bold mb-6 border border-blue-100 dark:border-blue-800"
+            >
+                <span class="animate-pulse">⚡</span>
+                <span>Visual Execution</span>
+            </div>
+
+            <h2
+                class="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight"
+            >
+                See the <span
+                    class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400"
+                    >Invisible.</span
+                >
+            </h2>
+
+            <p
+                class="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed"
+            >
+                Stop guessing what your code does. Watch it run, step-by-step. <br
+                    class="hidden md:block"
+                />
+                Inspect variables, catch logic errors, and build mental models instantly.
+            </p>
+        </div>
+
+        <!-- The Visualizer Demo UI -->
+        <div class="relative max-w-5xl mx-auto">
+            <!-- Decorator Blob -->
+            <div
+                class="absolute -inset-1 bg-gradient-to-r from-blue-500 to-teal-500 rounded-2xl blur opacity-20 dark:opacity-40 animate-pulse"
+            >
+            </div>
+
+            <!-- Window Frame -->
+            <div
+                class="relative bg-white dark:bg-[#0D1117] rounded-2xl shadow-xl overflow-hidden border border-gray-200 dark:border-gray-800 flex flex-col md:flex-row min-h-[500px]"
+            >
+                <!-- Left: Code Editor Mock -->
+                <div
+                    class="w-full md:w-1/2 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-800 flex flex-col"
+                >
+                    <!-- Header -->
+                    <div
+                        class="px-4 py-3 bg-gray-50 dark:bg-[#161B22] border-b border-gray-200 dark:border-gray-800 flex items-center justify-between"
+                    >
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 rounded-full bg-red-400"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-400">
+                            </div>
+                            <div class="w-3 h-3 rounded-full bg-green-400">
+                            </div>
+                        </div>
+                        <div class="text-xs font-mono text-gray-500">
+                            recursive_fib.py
+                        </div>
+                    </div>
+
+                    <!-- Code Area -->
+                    <div
+                        class="flex-1 p-6 font-mono text-sm leading-relaxed overflow-hidden relative bg-white dark:bg-[#0D1117]"
+                    >
+                        <!-- Active Line Highlight Overlay -->
+                        <div
+                            class="absolute top-[124px] left-0 w-full h-[24px] bg-yellow-100/50 dark:bg-yellow-900/20 border-l-4 border-yellow-500"
+                        >
+                        </div>
+
+                        <div
+                            class="relative z-10 text-gray-800 dark:text-gray-300"
+                        >
+                            <div class="opacity-50">1 def fibonacci(n):</div>
+                            <div class="opacity-50">2 if n &lt;= 1:</div>
+                            <div class="opacity-50">3 return n</div>
+                            <div class="opacity-50">4</div>
+                            <div
+                                class="text-gray-900 dark:text-white font-bold"
+                            >
+                                5 return fibonacci(n-1) + fibonacci(n-2)
+                            </div>
+                            <div class="opacity-50">6</div>
+                            <div class="opacity-50">
+                                7 # Calculate 5th number
+                            </div>
+                            <div class="opacity-50">
+                                8 result = fibonacci(5)
+                            </div>
+                            <div class="opacity-50">
+                                9 print(f"Result: &#123;result&#125;")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Execution Timeline Mock -->
+                <div
+                    class="w-full md:w-1/2 flex flex-col bg-gray-50 dark:bg-[#0B1120]"
+                >
+                    <!-- Timeline Header -->
+                    <div
+                        class="px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#161B22] flex items-center justify-between"
+                    >
+                        <div class="flex items-center gap-2">
+                            <div
+                                class="w-2 h-2 rounded-full bg-purple-500 animate-pulse"
+                            >
+                            </div>
+                            <span
+                                class="text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-gray-300"
+                                >Timeline / Step 14</span
+                            >
+                        </div>
+                        <div class="flex gap-1">
+                            <div
+                                class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                            >
+                                <svg
+                                    class="w-4 h-4 text-gray-500"
+                                    fill="currentColor"
+                                    viewBox="0 0 24 24"
+                                    ><path d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
+                                    ></path></svg
+                                >
+                            </div>
+                            <div
+                                class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                            >
+                                <svg
+                                    class="w-4 h-4 text-gray-500"
+                                    fill="currentColor"
+                                    viewBox="0 0 24 24"
+                                    ><path d="M8 5v14l11-7z"></path></svg
+                                >
+                            </div>
+                            <div
+                                class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                            >
+                                <svg
+                                    class="w-4 h-4 text-gray-500"
+                                    fill="currentColor"
+                                    viewBox="0 0 24 24"
+                                    ><path d="M4 19l7-7-7-7m8 14l7-7-7-7"
+                                    ></path></svg
+                                >
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="flex-1 p-6 flex flex-col gap-6">
+                        <!-- Call Stack Visualization -->
+                        <div class="flex-1">
+                            <h4
+                                class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3"
+                            >
+                                Call Stack
+                            </h4>
+                            <div class="space-y-2">
+                                <div
+                                    class="p-3 rounded-lg bg-white dark:bg-[#161B22] border border-gray-200 dark:border-gray-700 shadow-sm flex justify-between items-center opacity-50 scale-95 origin-top"
+                                >
+                                    <span class="font-mono text-xs"
+                                        >fibonacci(5)</span
+                                    >
+                                    <span
+                                        class="text-[10px] bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-gray-500"
+                                        >Waiting</span
+                                    >
+                                </div>
+                                <div
+                                    class="p-3 rounded-lg bg-white dark:bg-[#161B22] border border-gray-200 dark:border-gray-700 shadow-sm flex justify-between items-center opacity-70 scale-98 origin-top"
+                                >
+                                    <span class="font-mono text-xs"
+                                        >fibonacci(4)</span
+                                    >
+                                    <span
+                                        class="text-[10px] bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-gray-500"
+                                        >Waiting</span
+                                    >
+                                </div>
+                                <div
+                                    class="p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 shadow-md flex justify-between items-center transform transition-all border-l-4 border-l-purple-500"
+                                >
+                                    <span
+                                        class="font-mono text-xs font-bold text-purple-700 dark:text-purple-300"
+                                        >fibonacci(3)</span
+                                    >
+                                    <span
+                                        class="text-[10px] bg-purple-200 dark:bg-purple-800 px-1.5 py-0.5 rounded text-purple-800 dark:text-purple-200 font-bold"
+                                        >Active</span
+                                    >
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Scope Variables -->
+                        <div>
+                            <h4
+                                class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3"
+                            >
+                                Local Scope
+                            </h4>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div
+                                    class="p-3 bg-white dark:bg-[#161B22] rounded-lg border border-gray-200 dark:border-gray-700"
+                                >
+                                    <div class="text-[10px] text-gray-500 mb-1">
+                                        n
+                                    </div>
+                                    <div
+                                        class="font-mono text-sm font-bold text-blue-600 dark:text-blue-400"
+                                    >
+                                        3
+                                    </div>
+                                </div>
+                                <div
+                                    class="p-3 bg-white dark:bg-[#161B22] rounded-lg border border-gray-200 dark:border-gray-700"
+                                >
+                                    <div class="text-[10px] text-gray-500 mb-1">
+                                        return_val
+                                    </div>
+                                    <div
+                                        class="font-mono text-sm font-bold text-gray-400 italic"
+                                    >
+                                        pending...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Scrubber -->
+                    <div
+                        class="px-6 py-4 bg-gray-50 dark:bg-[#0B1120] border-t border-gray-200 dark:border-gray-800"
+                    >
+                        <div
+                            class="relative w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden"
+                        >
+                            <div
+                                class="absolute left-0 top-0 h-full w-[60%] bg-purple-500 rounded-full"
+                            >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, type FC, type MouseEvent as ReactMouseEvent, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import CodeMirror from '@uiw/react-codemirror';
 import { html as langHtml } from '@codemirror/lang-html';
 import { css as langCss } from '@codemirror/lang-css';
@@ -8,15 +8,19 @@ import { rust as langRust } from '@codemirror/lang-rust';
 import { go as langGo } from '@codemirror/lang-go';
 import { autocompletion } from '@codemirror/autocomplete';
 import { githubLight, githubDark } from '@uiw/codemirror-theme-github';
-import { Play, RotateCcw, Box, Check, Loader2, GripVertical, Terminal, Eye, Trash2, Zap, ZapOff, Save, Keyboard, Sparkles, X, ChevronRight, CheckCircle2, AlertCircle, Diff as DiffIcon, ChevronDown, Monitor } from 'lucide-react';
+import { Play, RotateCcw, Box, Check, Loader2, GripVertical, Terminal, Eye, Trash2, Zap, ZapOff, Save, Keyboard, Sparkles, X, ChevronRight, CheckCircle2, AlertCircle, Diff as DiffIcon, ChevronDown, Monitor, BugPlay } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/github-dark.css';
 import { vim } from '@replit/codemirror-vim';
+import 'highlight.js/styles/github-dark.css';
 import { fetchWithAuth } from '../../utils/api';
 import { showToast } from '../../utils/toast';
 import { diffLines, type Change } from 'diff';
+import { EditorView } from '@codemirror/view';
+import { EditorSelection } from '@codemirror/state';
+import { ExecutionTimeline } from './ExecutionTimeline';
 
 const DiffView = ({ original, modified, explanation, onAccept, onReject }: { original: string, modified: string, explanation?: string, onAccept: () => void, onReject: () => void }) => {
     const changes = diffLines(original, modified);
@@ -168,6 +172,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
 
     // Mode: 'web' (HTML/CSS/JS) or 'backend' (Python, etc.)
     const [mode, setMode] = useState<'web' | 'backend'>(initialLanguage === 'html' ? 'web' : 'backend');
+    const [view, setView] = useState<EditorView | null>(null);
 
     // State for WEB editor inputs
     const [html, setHtml] = useState(initialHtml || DEFAULT_CODE.html);
@@ -199,6 +204,10 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
     const [fixingErrorIndex, setFixingErrorIndex] = useState<number | null>(null); // Index of error being fixed
     const [aiFixData, setAiFixData] = useState<Record<number, { loading: boolean, content?: string, extractedCode?: string }>>({});
     const [reviewingFixIndex, setReviewingFixIndex] = useState<number | null>(null); // State for visual diff review
+
+    // Debug / Visual Execution State
+    const [debugTrace, setDebugTrace] = useState<any[] | null>(null);
+    const [debugStep, setDebugStep] = useState(0);
 
     const extractCodeBlock = (markdown: string): string | null => {
         // Find all code blocks
@@ -375,8 +384,8 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
             }
         };
         // Use capture phase to intercept before CodeMirror
-        window.addEventListener('keydown', handleKeyDown, { capture: true });
-        return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
     }, [html, css, js, backendCode, mode, backendLanguage]);
 
     // Resizing Logic
@@ -401,7 +410,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
     };
 
 
-    const handleRun = async () => {
+    const handleRun = async (debugMode = false) => {
         // Check Authentication First
         const token = localStorage.getItem('access_token');
         if (!token) {
@@ -416,6 +425,8 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
         }
 
         setLogs([]);
+        setDebugTrace(null); // Clear previous trace
+
         if (mode === 'web') {
             setPreviewHtml(html);
             setPreviewCss(css);
@@ -438,7 +449,8 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         language: backendLanguage,
-                        code: backendCode
+                        code: backendCode,
+                        debug: debugMode // Pass debug flag
                     })
                 });
 
@@ -453,7 +465,18 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                 if (result.error) {
                     setLogs(prev => [...prev, { type: 'error', message: `System Error: ${result.error}`, timestamp: Date.now() }]);
                 }
-                if (!result.stdout && !result.stderr && !result.error) {
+
+                // Handle Trace Data
+                if (result.trace && Array.isArray(result.trace)) {
+                    setDebugTrace(result.trace);
+                    setDebugStep(0);
+                    // Automatically switch to Visual Mode if trace exists
+                    showToast("Debug trace captured! Visualizing...", "success");
+                } else if (debugMode) {
+                    showToast("No trace data generated.", "info");
+                }
+
+                if (!result.stdout && !result.stderr && !result.error && !result.trace) {
                     setLogs(prev => [...prev, { type: 'info', message: 'Program executed successfully with no output.', timestamp: Date.now() }]);
                 }
 
@@ -489,25 +512,55 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
         setRunId(prev => prev + 1);
     };
 
-    const getExtensions = () => {
-        const extensions = [autocompletion()]; // Enable auto-complete
+    const extensions = useMemo(() => {
+        const exts = [autocompletion()];
 
         if (vimMode) {
-            extensions.push(vim());
+            exts.push(vim());
         }
+
+        // Highlight Active Debug Line logic (using EditorSelection for simplicity)
+        // Note: Ideally we'd use a decorations extension, but selection is a decent proxy for "focus"
 
         if (mode === 'backend') {
-            if (backendLanguage === 'python') return [...extensions, langPython()];
-            if (backendLanguage === 'rust') return [...extensions, langRust()];
-            if (backendLanguage === 'go') return [...extensions, langGo()];
-            if (backendLanguage === 'javascript') return [...extensions, langJs()];
-            return [...extensions];
+            if (backendLanguage === 'python') return [...exts, langPython()];
+            if (backendLanguage === 'rust') return [...exts, langRust()];
+            if (backendLanguage === 'go') return [...exts, langGo()];
+            if (backendLanguage === 'javascript') return [...exts, langJs()];
+            return [...exts];
         }
 
-        if (activeTab === 'html') return [...extensions, langHtml()];
-        if (activeTab === 'css') return [...extensions, langCss()];
-        return [...extensions, langJs()];
-    };
+        if (activeTab === 'html') return [...exts, langHtml()];
+        if (activeTab === 'css') return [...exts, langCss()];
+        return [...exts, langJs()];
+    }, [mode, backendLanguage, activeTab, vimMode]);
+
+    // Effect: Highlight Active Debug Line
+    useEffect(() => {
+        if (!view || !debugTrace || !debugTrace[debugStep]) return;
+
+        try {
+            const line = debugTrace[debugStep].line;
+            const doc = view.state.doc;
+
+            // Validate line number
+            if (line < 1 || line > doc.lines) return;
+
+            const lineInfo = doc.line(line);
+
+            // Create selection and scroll effect
+            // We select the whole line or just the start to indicator position
+            view.dispatch({
+                selection: EditorSelection.single(lineInfo.from),
+                effects: [
+                    EditorView.scrollIntoView(lineInfo.from, { y: 'center' }),
+                    // We could add a special line decoration here but selection is the MVP request
+                ]
+            });
+        } catch (e) {
+            console.error("Error updating debug selection:", e);
+        }
+    }, [debugStep, debugTrace, view]);
 
     const getCurrentValue = () => {
         if (mode === 'backend') return backendCode;
@@ -606,6 +659,9 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                     onReject={() => setReviewingFixIndex(null)}
                 />
             )}
+
+            {/* Visual Execution Timeline */}
+
 
             {/* Shortcuts Modal */}
             {showShortcuts && (
@@ -803,18 +859,34 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                         <span className="hidden sm:inline">Vim</span>
                     </button>
 
-                    <button
-                        onClick={handleRun}
-                        disabled={isRunning}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold text-white transition-colors shadow-sm active:translate-y-0.5 ${isRunning ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
-                    >
-                        {isRunning ? <Loader2 size={12} className="animate-spin" /> : <Play size={12} fill="currentColor" />}
-                        {isRunning ? 'Running...' : (
-                            <>
-                                <span>Run</span>
-                            </>
+                    {/* Run Button Group */}
+                    <div className="flex items-center rounded-lg shadow-sm">
+                        <button
+                            onClick={() => handleRun(false)}
+                            disabled={isRunning}
+                            className={`flex items-center gap-2 px-4 py-1.5 bg-green-600 hover:bg-green-500 text-white text-xs font-bold transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${mode === 'backend' && backendLanguage === 'python' ? 'rounded-l-lg' : 'rounded-lg'}`}
+                        >
+                            {isRunning ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} fill="currentColor" />}
+                            Run
+                        </button>
+
+                        {/* Debug Split Button (Only for Python for now) */}
+                        {mode === 'backend' && backendLanguage === 'python' && (
+                            <button
+                                onClick={() => handleRun(true)}
+                                disabled={isRunning}
+                                className="px-2 py-1.5 bg-green-700 hover:bg-green-600 text-white/90 border-l border-green-800 rounded-r-lg transition-all active:scale-95 disabled:opacity-50"
+                                title="Debug (Visual Execution)"
+                            >
+                                <BugPlay size={14} />
+                            </button>
                         )}
-                    </button>
+
+                        {/* If not python, complete the rounded corners for run button */}
+                        {!(mode === 'backend' && backendLanguage === 'python') && (
+                            <div className="w-0" />
+                        )}
+                    </div>
 
                     {/* Future Save Button */}
                     {/*
@@ -841,8 +913,9 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                             value={getCurrentValue()}
                             height="100%"
                             theme={isDark ? githubDark : githubLight}
-                            extensions={getExtensions()}
+                            extensions={extensions}
                             onChange={handleChange}
+                            onCreateEditor={setView}
                             className="h-full text-base"
                             basicSetup={{
                                 lineNumbers: true,
@@ -868,137 +941,149 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                 <div
                     className={`flex flex-col relative bg-white dark:bg-gray-900 flex-1 min-h-0 ${isDragging ? 'pointer-events-none' : ''}`}
                 >
-                    {/* Output Tabs */}
-                    <div className="flex items-center border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 shrink-0">
-                        {mode === 'web' && (
-                            <button
-                                onClick={() => setActiveOutput('preview')}
-                                className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold transition-colors border-r border-gray-200 dark:border-gray-700 ${activeOutput === 'preview'
-                                    ? 'bg-white dark:bg-gray-900 text-purple-600 dark:text-purple-400 border-b-2 border-b-purple-500'
-                                    : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'
-                                    }`}
-                            >
-                                <Eye size={14} /> Preview
-                            </button>
-                        )}
-                        <button
-                            onClick={() => setActiveOutput('console')}
-                            className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold transition-colors border-r border-gray-200 dark:border-gray-700 ${activeOutput === 'console'
-                                ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white' + (mode === 'backend' ? ' border-b-2 border-b-purple-500' : '')
-                                : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'
-                                }`}
-                        >
-                            <Terminal size={14} /> {mode === 'web' ? 'Console' : 'Output'}
-                            {logs.length > 0 && (
-                                <span className="ml-1 px-1.5 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700 text-[10px] font-mono">
-                                    {logs.length}
-                                </span>
-                            )}
-                        </button>
-                        <div className="flex-1" />
-                        {(activeOutput === 'console' || mode === 'backend') && (
-                            <button
-                                onClick={() => setLogs([])}
-                                className="mr-2 p-1.5 text-gray-400 hover:text-red-500 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                                title="Clear Console"
-                            >
-                                <Trash2 size={14} />
-                            </button>
-                        )}
-                    </div>
+                    {debugTrace ? (
+                        <div className="flex-1 min-h-0">
+                            <ExecutionTimeline
+                                trace={debugTrace}
+                                onStepChange={setDebugStep}
+                                onClose={() => setDebugTrace(null)}
+                            />
+                        </div>
+                    ) : (
+                        <>
+                            {/* Output Tabs Header */}
+                            <div className="flex items-center border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 shrink-0">
+                                {mode === 'web' && (
+                                    <button
+                                        onClick={() => setActiveOutput('preview')}
+                                        className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold transition-colors border-r border-gray-200 dark:border-gray-700 ${activeOutput === 'preview'
+                                            ? 'bg-white dark:bg-gray-900 text-purple-600 dark:text-purple-400 border-b-2 border-b-purple-500'
+                                            : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'
+                                            }`}
+                                    >
+                                        <Eye size={14} /> Preview
+                                    </button>
+                                )}
+                                <button
+                                    onClick={() => setActiveOutput('console')}
+                                    className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold transition-colors border-r border-gray-200 dark:border-gray-700 ${activeOutput === 'console'
+                                        ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white' + (mode === 'backend' ? ' border-b-2 border-b-purple-500' : '')
+                                        : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'
+                                        }`}
+                                >
+                                    <Terminal size={14} /> {mode === 'web' ? 'Console' : 'Output'}
+                                    {logs.length > 0 && (
+                                        <span className="ml-1 px-1.5 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700 text-[10px] font-mono">
+                                            {logs.length}
+                                        </span>
+                                    )}
+                                </button>
+                                <div className="flex-1" />
+                                {(activeOutput === 'console' || mode === 'backend') && (
+                                    <button
+                                        onClick={() => setLogs([])}
+                                        className="mr-2 p-1.5 text-gray-400 hover:text-red-500 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                                        title="Clear Console"
+                                    >
+                                        <Trash2 size={14} />
+                                    </button>
+                                )}
+                            </div>
 
-                    {/* Output Content */}
-                    <div className="flex-1 relative overflow-hidden">
-                        {/* Preview Iframe */}
-                        <iframe
-                            key={runId}
-                            title="Preview"
-                            srcDoc={srcDoc}
-                            className={`absolute inset-0 w-full h-full bg-white transition-opacity duration-200 ${activeOutput === 'preview' ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
-                            sandbox="allow-scripts allow-modals"
-                        />
-                        <div className={`absolute inset-0 w-full h-full overflow-y-auto bg-gray-50 dark:bg-gray-900 font-mono text-sm p-4 flex flex-col gap-2 transition-opacity duration-200 ${activeOutput === 'console' ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}>
-                            {logs.length === 0 ? (
-                                <div className="text-gray-400 dark:text-gray-500 italic text-center mt-10 select-none">
-                                    {isRunning ? 'Running...' : (mode === 'backend' ? 'Run code to see output' : 'No logs yet...')}
-                                </div>
-                            ) : (
-                                logs.map((log, i) => (
-                                    <div key={i} className={`group flex flex-col gap-1 border-b border-gray-200 dark:border-gray-800 pb-1 last:border-0 ${log.type === 'error' ? 'text-red-600 dark:text-red-400' :
-                                        log.type === 'warn' ? 'text-yellow-600 dark:text-yellow-400' :
-                                            'text-gray-700 dark:text-gray-300'
-                                        }`}>
-                                        <div className="flex gap-2">
-                                            <span className="opacity-40 select-none">[{new Date(log.timestamp).toLocaleTimeString().split(' ')[0]}]</span>
-                                            <span className="flex-1 whitespace-pre-wrap break-all">{'> '}{log.message}</span>
+                            {/* Output Content Body */}
+                            <div className="flex-1 relative overflow-hidden">
+                                {/* Preview Iframe */}
+                                <iframe
+                                    key={runId}
+                                    title="Preview"
+                                    srcDoc={srcDoc}
+                                    className={`absolute inset-0 w-full h-full bg-white transition-opacity duration-200 ${activeOutput === 'preview' ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+                                    sandbox="allow-scripts allow-modals"
+                                />
+                                <div className={`absolute inset-0 w-full h-full overflow-y-auto bg-gray-50 dark:bg-gray-900 font-mono text-sm p-4 flex flex-col gap-2 transition-opacity duration-200 ${activeOutput === 'console' ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}>
+                                    {logs.length === 0 ? (
+                                        <div className="text-gray-400 dark:text-gray-500 italic text-center mt-10 select-none">
+                                            {isRunning ? 'Running...' : (mode === 'backend' ? 'Run code to see output' : 'No logs yet...')}
                                         </div>
-                                        {/* Ask Kumi / Inline Fix */}
-                                        {log.type === 'error' && (
-                                            <div className="mt-2 pl-6">
-                                                {!aiFixData[i] ? (
-                                                    <button
-                                                        onClick={() => handleAskKumi(log.message, i)}
-                                                        className="flex items-center gap-1.5 px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-[10px] uppercase tracking-wider font-bold rounded-md hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors opacity-0 group-hover:opacity-100"
-                                                    >
-                                                        <Sparkles size={10} />
-                                                        Ask Kumi to Fix
-                                                    </button>
-                                                ) : (
-                                                    <div className="relative rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-900/10 overflow-hidden shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
-                                                        {/* Header */}
-                                                        <div className="flex items-center justify-between px-3 py-2 bg-purple-100/50 dark:bg-purple-900/30 border-b border-purple-100 dark:border-purple-800/50">
-                                                            <div className="flex items-center gap-2">
-                                                                <div className="p-1 bg-purple-500 rounded text-white">
-                                                                    <Sparkles size={12} fill="currentColor" />
+                                    ) : (
+                                        logs.map((log, i) => (
+                                            <div key={i} className={`group flex flex-col gap-1 border-b border-gray-200 dark:border-gray-800 pb-1 last:border-0 ${log.type === 'error' ? 'text-red-600 dark:text-red-400' :
+                                                log.type === 'warn' ? 'text-yellow-600 dark:text-yellow-400' :
+                                                    'text-gray-700 dark:text-gray-300'
+                                                }`}>
+                                                <div className="flex gap-2">
+                                                    <span className="opacity-40 select-none">[{new Date(log.timestamp).toLocaleTimeString().split(' ')[0]}]</span>
+                                                    <span className="flex-1 whitespace-pre-wrap break-all">{'> '}{log.message}</span>
+                                                </div>
+                                                {/* Ask Kumi / Inline Fix */}
+                                                {log.type === 'error' && (
+                                                    <div className="mt-2 pl-6">
+                                                        {!aiFixData[i] ? (
+                                                            <button
+                                                                onClick={() => handleAskKumi(log.message, i)}
+                                                                className="flex items-center gap-1.5 px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-[10px] uppercase tracking-wider font-bold rounded-md hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors opacity-0 group-hover:opacity-100"
+                                                            >
+                                                                <Sparkles size={10} />
+                                                                Ask Kumi to Fix
+                                                            </button>
+                                                        ) : (
+                                                            <div className="relative rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-900/10 overflow-hidden shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+                                                                {/* Header */}
+                                                                <div className="flex items-center justify-between px-3 py-2 bg-purple-100/50 dark:bg-purple-900/30 border-b border-purple-100 dark:border-purple-800/50">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <div className="p-1 bg-purple-500 rounded text-white">
+                                                                            <Sparkles size={12} fill="currentColor" />
+                                                                        </div>
+                                                                        <span className="text-xs font-bold text-purple-900 dark:text-purple-100 uppercase tracking-wider">As per Kumi</span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        {aiFixData[i].extractedCode && !aiFixData[i].loading && (
+                                                                            <button
+                                                                                onClick={() => setReviewingFixIndex(i)}
+                                                                                className="flex items-center gap-1.5 px-2.5 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-[10px] font-bold uppercase tracking-wider rounded-md hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors animate-in fade-in zoom-in duration-300"
+                                                                            >
+                                                                                <DiffIcon size={12} />
+                                                                                Review Fix
+                                                                            </button>
+                                                                        )}
+                                                                        <button
+                                                                            onClick={() => closeFix(i)}
+                                                                            className="text-purple-400 hover:text-purple-700 dark:hover:text-purple-200 transition-colors"
+                                                                        >
+                                                                            <X size={14} />
+                                                                        </button>
+                                                                    </div>
                                                                 </div>
-                                                                <span className="text-xs font-bold text-purple-900 dark:text-purple-100 uppercase tracking-wider">As per Kumi</span>
-                                                            </div>
-                                                            <div className="flex items-center gap-2">
-                                                                {aiFixData[i].extractedCode && !aiFixData[i].loading && (
-                                                                    <button
-                                                                        onClick={() => setReviewingFixIndex(i)}
-                                                                        className="flex items-center gap-1.5 px-2.5 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-[10px] font-bold uppercase tracking-wider rounded-md hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors animate-in fade-in zoom-in duration-300"
-                                                                    >
-                                                                        <DiffIcon size={12} />
-                                                                        Review Fix
-                                                                    </button>
-                                                                )}
-                                                                <button
-                                                                    onClick={() => closeFix(i)}
-                                                                    className="text-purple-400 hover:text-purple-700 dark:hover:text-purple-200 transition-colors"
-                                                                >
-                                                                    <X size={14} />
-                                                                </button>
-                                                            </div>
-                                                        </div>
 
-                                                        {/* Content */}
-                                                        <div className="p-4 prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-pre:bg-gray-800 prose-pre:text-white prose-code:text-purple-600 dark:prose-code:text-purple-300">
-                                                            {aiFixData[i].loading && !aiFixData[i].content ? (
-                                                                <div className="flex items-center gap-2 text-purple-500">
-                                                                    <Loader2 size={16} className="animate-spin" />
-                                                                    <span className="text-xs font-medium">Analyzing error...</span>
+                                                                {/* Content */}
+                                                                <div className="p-4 prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-pre:bg-gray-800 prose-pre:text-white prose-code:text-purple-600 dark:prose-code:text-purple-300">
+                                                                    {aiFixData[i].loading && !aiFixData[i].content ? (
+                                                                        <div className="flex items-center gap-2 text-purple-500">
+                                                                            <Loader2 size={16} className="animate-spin" />
+                                                                            <span className="text-xs font-medium">Analyzing error...</span>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <ReactMarkdown
+                                                                            remarkPlugins={[remarkGfm]}
+                                                                            rehypePlugins={[rehypeHighlight]}
+                                                                        >
+                                                                            {aiFixData[i].content || ""}
+                                                                        </ReactMarkdown>
+                                                                    )}
                                                                 </div>
-                                                            ) : (
-                                                                <ReactMarkdown
-                                                                    remarkPlugins={[remarkGfm]}
-                                                                    rehypePlugins={[rehypeHighlight]}
-                                                                >
-                                                                    {aiFixData[i].content || ""}
-                                                                </ReactMarkdown>
-                                                            )}
-                                                        </div>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
-                                        )}
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };

@@ -43,13 +43,18 @@ export const POST: APIRoute = async ({ request }) => {
             return new Response(JSON.stringify({ error: 'Execution token not found.' }), { status: 500 });
         }
 
+        const debug = payload.debug || false;
+
         const execResponse = await fetch(`${EXECUTION_API_URL}/execute`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'x-execution-token': EXECUTION_TOKEN
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({
+                ...payload,
+                debug
+            })
         });
 
         const result = await execResponse.json();
