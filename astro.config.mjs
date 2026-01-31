@@ -10,35 +10,67 @@ import compress from 'astro-compress';
 import pwa from '@vite-pwa/astro';
 import node from '@astrojs/node';
 
-// Function to fetch blog posts for sitemap
-async function fetchBlogPosts() {
+// Function to fetch site data (blogs and series) for sitemap
+async function fetchSiteData() {
   try {
     const API_URL = process.env.PUBLIC_API_URL || 'https://backend.takovibe.com';
-    const response = await fetch(`${API_URL}/api/blogs/blogs/`);
-    if (!response.ok) {
-      console.warn(`[Sitemap] Failed to fetch posts: ${response.statusText}`);
-      return { urls: [], data: new Map() };
+
+    console.log('[Sitemap] Fetching site data...');
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+    const [blogsResponse, seriesResponse] = await Promise.all([
+      fetch(`${API_URL}/api/blogs/blogs/?no_pagination=true`, { signal: controller.signal }),
+      fetch(`${API_URL}/api/blogs/series/?no_pagination=true`, { signal: controller.signal })
+    ]);
+    clearTimeout(timeoutId);
+
+
+    let blogs = [];
+    if (blogsResponse.ok) {
+      const json = await blogsResponse.json();
+      blogs = Array.isArray(json) ? json : (json.results || []);
+    } else {
+      console.warn(`[Sitemap] Failed to fetch blogs: ${blogsResponse.statusText}`);
     }
-    const posts = await response.json();
 
-    // Generate URLs with trailing slash to match Astro defaults
-    const urls = posts.map(post => `https://backend.takovibe.com/blog/${post.slug}/`);
-    // Map URL -> updated_at
-    const data = new Map(posts.map(post => [
-      `https://takovibe.com/blog/${post.slug}/`,
-      post.updated_at || new Date().toISOString()
-    ]));
+    let series = [];
+    if (seriesResponse.ok) {
+      const json = await seriesResponse.json();
+      series = Array.isArray(json) ? json : (json.results || []);
+    } else {
+      console.warn(`[Sitemap] Failed to fetch series: ${seriesResponse.statusText}`);
+    }
 
-    console.log(`[Sitemap] Fetched ${urls.length} posts from API`);
-    return { urls, data };
+    const urls = [];
+    const data = new Map();
+
+    // Process Blogs
+    blogs.forEach(post => {
+      const url = `https://takovibe.com/blog/${post.slug}/`;
+      data.set(url, post.updated_at || new Date().toISOString());
+    });
+
+    // Process Series (Filter by status)
+    series.forEach(item => {
+      if (item.status === 'approved' || item.status === 'completed') {
+        const url = `https://takovibe.com/series/${item.slug}/`;
+        // Prefer updated_at, fallback to release_date, then current date
+        const dateStr = item.updated_at || item.release_date || new Date().toISOString();
+        data.set(url, dateStr);
+      }
+    });
+
+    console.log(`[Sitemap] Fetched ${blogs.length} posts and ${series.length} series from API`);
+    return { data };
   } catch (error) {
-    console.warn('[Sitemap] Error fetching posts:', error);
-    return { urls: [], data: new Map() };
+    console.warn('[Sitemap] Error fetching site data:', error);
+    return { data: new Map() };
   }
 }
 
-// Fetch posts at config load time
-const { urls: blogUrls, data: blogData } = await fetchBlogPosts();
+// Fetch sitemap data at config load time
+const { data: siteData } = await fetchSiteData();
 
 export default defineConfig({
   site: 'https://takovibe.com',
@@ -82,45 +114,36 @@ export default defineConfig({
           !page.includes('/signup/') &&
           !page.includes('/forgot-password/') &&
           !page.includes('/reset-password/') &&
-          !page.includes('/unsubscribe/');
+          !page.includes('/unsubscribe/') &&
+          !page.includes('/status/healthz/');
       },
       customPages: [],
       serialize(item) {
-        // Base configuration
-        let priority = 0.7;
-        let changefreq = 'weekly';
-
         // Get the file's last modified date
         let lastmod = new Date();
 
-        if (blogData.has(item.url)) {
+        if (siteData.has(item.url)) {
           // Use API data if available
-          lastmod = new Date(blogData.get(item.url));
+          const apiDate = siteData.get(item.url);
+          if (apiDate) {
+            lastmod = new Date(apiDate);
+          }
         }
 
-        // Customize based on URL pattern
-        // Customize based on URL pattern
-        if (item.url === 'https://takovibe.com/') {
-          priority = 1.0;
-          changefreq = 'daily';
-        } else if (item.url === 'https://takovibe.com/blog/' ||
-          item.url === 'https://takovibe.com/about/' ||
-          item.url === 'https://takovibe.com/notes/') {
-          // Main Listing Pages
-          priority = 0.9;
-          changefreq = 'weekly';
-        } else if (item.url.includes('/blog/')) {
-          // Individual blog posts
-          priority = 0.8;
-          changefreq = 'monthly';
-        }
+        // Format as YYYY-MM-DD
+        const lastmodStr = lastmod.toISOString().split('T')[0];
 
-        return {
+        // Create the new item preserving existing properties (like links for i18n)
+        const newItem = {
           ...item,
-          changefreq,
-          priority,
-          lastmod: lastmod.toISOString()
+          lastmod: lastmodStr
         };
+
+        // Remove changefreq and priority
+        delete newItem.changefreq;
+        delete newItem.priority;
+
+        return newItem;
       }
     }),
     compress({
