@@ -27,6 +27,28 @@ export interface ChangeLogEntry {
 
 export const changelogData: ChangeLogEntry[] = [
     {
+        "date": "2026-01-30",
+        "version": "Feature Release",
+        "title": "Python Debugger & Dashboard Profile Link",
+        "description": "Enhanced the Code Playground with a Python debugger and added quick access to public profiles in the dashboard.",
+        "changes": [
+            {
+                "type": "new",
+                "text": "Python Debugger: Added a time-machine style debugger for Python in the Code Playground, allowing step-by-step execution visualization.",
+                "images": [
+                    "https://ik.imagekit.io/bhu1voux5/python_time_machine.png"
+                ]
+            },
+            {
+                "type": "new",
+                "text": "Dashboard Profile Link: Added a direct link to view your public profile from the Author Dashboard settings.",
+                "images": [
+                    "https://ik.imagekit.io/bhu1voux5/public_profile.png"
+                ]
+            }
+        ]
+    },
+    {
         "date": "2026-01-27",
         "version": "Feature Release",
         "title": "Series Management Upgrades",

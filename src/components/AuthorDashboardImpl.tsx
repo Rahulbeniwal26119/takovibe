@@ -144,6 +144,7 @@ const AuthorDashboard: React.FC = () => {
             const userObj: User = {
                 id: userData.id,
                 name: userData.name || `${userData.first_name || ''} ${userData.last_name || ''}`.trim(),
+                username: userData.username,
                 email: userData.email,
                 image: userData.profile_image || userData.image || userData.avatar || '',
                 bio: userData.bio || '',
@@ -655,9 +656,22 @@ const AuthorDashboard: React.FC = () => {
                 {/* Profile View */}
                 {activeTab === 'profile' && (
                     <div className="animate-fade-in max-w-4xl">
-                        <div className="mb-10">
-                            <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-2">Profile Settings</h1>
-                            <p className="text-gray-500 dark:text-gray-400 text-lg">Manage your public information</p>
+                        <div className="mb-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                            <div>
+                                <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-2">Profile Settings</h1>
+                                <p className="text-gray-500 dark:text-gray-400 text-lg">Manage your public information</p>
+                            </div>
+                            {user?.username && (
+                                <a
+                                    href={`/profile/${user.username}/`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 hover:border-purple-500 dark:hover:border-purple-500 text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 font-semibold rounded-xl transition-all shadow-sm group"
+                                >
+                                    <Globe className="w-4.5 h-4.5 group-hover:animate-pulse" />
+                                    <span>View Public Profile</span>
+                                </a>
+                            )}
                         </div>
                         <form onSubmit={handleProfileUpdate} className="space-y-8">
                             {saveMessage && (
