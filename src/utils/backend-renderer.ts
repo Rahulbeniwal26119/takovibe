@@ -190,7 +190,25 @@ export async function processBackendContent(contentJson: any) {
         QuizSchema,
         CodePlaygroundSchema,
         FAQSchema,
-        Link.configure({
+        Link.extend({
+            addAttributes() {
+                return {
+                    ...this.parent?.(),
+                    href: {
+                        default: null,
+                        parseHTML: element => element.getAttribute('href'),
+                        renderHTML: attributes => {
+                            let href = attributes.href;
+                            // Fix relative blog numbering
+                            if (href && href.startsWith("blog/")) {
+                                href = "/" + href;
+                            }
+                            return { href };
+                        },
+                    },
+                };
+            },
+        }).configure({
             openOnClick: false,
             autolink: true,
             defaultProtocol: 'https',

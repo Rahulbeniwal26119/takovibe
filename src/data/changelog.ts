@@ -29,9 +29,13 @@ export const changelogData: ChangeLogEntry[] = [
     {
         "date": "2026-02-03",
         "version": "Feature Release",
-        "title": "Series Filter & Dashboard Polish",
-        "description": "Introduced new admin tools for filtering series and polished the author dashboard UI.",
+        "title": "Support Author & Series Filter",
+        "description": "Launched the 'Support Author' feature, dynamic UI components, and improved admin tools for series management.",
         "changes": [
+            {
+                "type": "new",
+                "text": "Support Author: Authors can now add a 'Buy Author a Coffee' link to their profile. This appears dynamically on all their articles as a sidebar card and footer section.",
+            },
             {
                 "type": "new",
                 "text": "Series Author Filter: Admins can now filter series by author using a new polished dropdown menu.",

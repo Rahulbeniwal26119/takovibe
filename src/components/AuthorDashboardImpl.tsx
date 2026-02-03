@@ -24,6 +24,7 @@ interface User {
     manage_contact_us?: boolean;
     can_manage_authors?: boolean;
     is_author?: boolean;
+    support_url?: string;
 }
 
 interface BlogPost {
@@ -74,7 +75,8 @@ const AuthorDashboard: React.FC = () => {
         name: '',
         github_url: '',
         linkedin_url: '',
-        website_url: ''
+        website_url: '',
+        support_url: ''
     });
     const [isSaving, setIsSaving] = useState(false);
     const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -89,7 +91,8 @@ const AuthorDashboard: React.FC = () => {
                 name: user.name || '',
                 github_url: user.github_url || '',
                 linkedin_url: user.linkedin_url || '',
-                website_url: user.website_url || ''
+                website_url: user.website_url || '',
+                support_url: user.support_url || ''
             });
 
             if (user.can_manage_authors) {
@@ -163,6 +166,7 @@ const AuthorDashboard: React.FC = () => {
                 manage_contact_us: userData.can_manage_contact_us || userData.manage_contact_us || false,
                 can_manage_authors: userData.can_manage_authors || false,
                 is_author: userData.is_author || false,
+                support_url: userData.support_url || '',
             };
             setUser(userObj);
 
@@ -788,6 +792,19 @@ const AuthorDashboard: React.FC = () => {
                                                     onChange={(e) => setProfileForm({ ...profileForm, website_url: e.target.value })}
                                                     className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all font-medium"
                                                     placeholder="https://yourwebsite.com"
+                                                />
+                                            </div>
+
+                                            <div className="relative group">
+                                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                    <span className="text-xl">☕</span>
+                                                </div>
+                                                <input
+                                                    type="url"
+                                                    value={profileForm.support_url}
+                                                    onChange={(e) => setProfileForm({ ...profileForm, support_url: e.target.value })}
+                                                    className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500/20 focus:border-yellow-500 transition-all font-medium"
+                                                    placeholder="https://buymeacoffee.com/yourname (Support URL)"
                                                 />
                                             </div>
                                         </div>

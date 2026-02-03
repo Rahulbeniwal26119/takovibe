@@ -627,12 +627,109 @@ const breadcrumbStructuredData = {
 
 
                         </div>
+
+                        <!-- Support Section (Client-side rendered) -->
+                        <div id="support-footer-container" class="hidden mb-12"></div>
+                        
+                        <script>
+                        async function loadSupportInfo() {
+                            // Find username from profile link
+                            const profileLink = document.querySelector('a[href^="/profile/"]');
+                            let username = '';
+                            if (profileLink) {
+                                const parts = profileLink.getAttribute('href').split('/');
+                                username = parts[parts.length - 1] || parts[parts.length - 2];
+                            }
+
+                            if (!username) return;
+
+                            const API_BASE = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
+                            
+                            try {
+                                const res = await fetch(`${API_BASE}/api/users/profile/${username}/`);
+                                if (!res.ok) return;
+                                
+                                const data = await res.json();
+                                const supportUrl = data.profile?.support_url;
+                                
+                                if (supportUrl) {
+                                    // Render Sidebar Card
+                                    const sidebarContainers = document.querySelectorAll('#support-sidebar-container, #support-sidebar-b-container');
+                                    sidebarContainers.forEach(container => {
+                                        if (container) {
+                                            container.innerHTML = `
+                                            <div class="p-4 rounded-xl bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/10 dark:to-orange-900/10 border border-yellow-100 dark:border-yellow-800/30 text-left">
+                                                    <div class="flex items-center gap-2 mb-2">
+                                                        <span class="text-lg">☕</span>
+                                                        <h5 class="text-xs font-bold text-yellow-800 dark:text-yellow-500 uppercase tracking-widest">
+                                                            Support
+                                                        </h5>
+                                                    </div>
+                                                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-3 leading-relaxed">
+                                                        Enjoying the read? Support helps keep the tutorials coming!
+                                                    </p>
+                                                    <a
+                                                        href="${supportUrl}"
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        class="block w-full py-2 px-3 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold text-xs text-center rounded-lg shadow-sm hover:shadow-md transition-all transform hover:-translate-y-0.5"
+                                                    >
+                                                        Buy Author a Coffee
+                                                    </a>
+                                                </div>
+                                            `;
+                                            container.classList.remove('hidden');
+                                        }
+                                    });
+
+                                    // Render Footer
+                                    const footerContainer = document.getElementById('support-footer-container');
+                                    if (footerContainer) {
+                                        footerContainer.innerHTML = `
+                                            <div class="p-8 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-800/50 dark:to-slate-900/50 border border-gray-100 dark:border-gray-800 text-center relative overflow-hidden group">
+                                                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 to-orange-500 opacity-80"></div>
+                                                
+                                                <div class="relative z-10 max-w-lg mx-auto">
+                                                    <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-3xl shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                                        ☕
+                                                    </div>
+                                                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                                                        Found this helpful?
+                                                    </h3>
+                                                    <p class="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
+                                                        Creating high-quality tutorials takes time and coffee. If you learned something new today, consider supporting my work!
+                                                    </p>
+                                                    <a
+                                                        href="${supportUrl}"
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        class="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-bold rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                                                    >
+                                                        <span>Buy Author a Coffee</span>
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                                        </svg>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        `;
+                                        footerContainer.classList.remove('hidden');
+                                    }
+                                }
+                            } catch (e) {
+                                console.error('Failed to load support info', e);
+                            }
+                        }
+
+                        // Run on load and after Astro swaps
+                        loadSupportInfo();
+                        document.addEventListener("astro:after-swap", loadSupportInfo);
+                        </script>
                     </article>
                     <!-- Footer (Moved outside for full width) -->
 
 
-                <!-- Right Sidebar: Series Navigation (if part of series) OR Interactive Toolkit -->
-                <aside class="hidden xl:block w-72 flex-shrink-0 sticky top-24">
+                <aside class="hidden xl:block w-72 flex-shrink-0 sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto custom-scrollbar text-left">
                     {
                         post.data.series ? (
                             <!-- Series Navigation -->
@@ -664,48 +761,46 @@ const breadcrumbStructuredData = {
                                     </a>
                                 </div>
 
-                                <!-- Progress Bar (Coming in future release with user tracking) -->
-                                <!-- <div id="series-progress-container" class="mb-6">
-                                    Will be populated by JavaScript
-                                </div> -->
-
-                                <!-- Interactive Tools Compact (Moved above articles) -->
-                                <div class="mb-6 pb-6 border-b border-gray-100 dark:border-gray-800 space-y-3">
+                                <!-- Interactive Tools Compact (Grid) -->
+                                <div class="mb-6 pb-6 border-b border-gray-100 dark:border-gray-800">
                                     <h5 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">
                                         Quick Tools
                                     </h5>
                                     
-                                    <!-- Compact Kumi -->
-                                    <button
-                                        id="kumi-promo-card"
-                                        class="w-full flex items-center gap-3 p-3 rounded-xl bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800/30 hover:shadow-md transition-all cursor-pointer"
-                                    >
-                                        <div class="w-8 h-8 rounded-lg bg-purple-500 text-white flex items-center justify-center shadow-sm flex-shrink-0">
-                                            <span class="text-sm">🤖</span>
-                                        </div>
-                                        <div class="text-left flex-1 min-w-0">
-                                            <div class="text-xs font-semibold text-gray-900 dark:text-white">Ask Kumi AI</div>
-                                            <div class="text-[10px] text-gray-600 dark:text-gray-400 truncate">Chat about this article</div>
-                                        </div>
-                                    </button>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <!-- Compact Kumi -->
+                                        <button
+                                            id="kumi-promo-card"
+                                            class="flex flex-col items-center gap-2 p-3 rounded-xl bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800/30 hover:shadow-md transition-all cursor-pointer text-center group"
+                                        >
+                                            <div class="w-8 h-8 rounded-lg bg-purple-500 text-white flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                                                <span class="text-sm">🤖</span>
+                                            </div>
+                                            <div class="min-w-0">
+                                                <div class="text-[11px] font-semibold text-gray-900 dark:text-white leading-tight">Ask Kumi AI</div>
+                                            </div>
+                                        </button>
 
-                                    <!-- Compact Notes -->
-                                    <button
-                                        id="notes-promo-card"
-                                        class="w-full flex items-center gap-3 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/30 hover:shadow-md transition-all cursor-pointer"
-                                    >
-                                        <div class="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center shadow-sm flex-shrink-0">
-                                            <span class="text-sm">✏️</span>
-                                        </div>
-                                        <div class="text-left flex-1 min-w-0">
-                                            <div class="text-xs font-semibold text-gray-900 dark:text-white">Visual Notes</div>
-                                            <div class="text-[10px] text-gray-600 dark:text-gray-400 truncate">Sketch & draw</div>
-                                        </div>
-                                    </button>
+                                        <!-- Compact Notes -->
+                                        <button
+                                            id="notes-promo-card"
+                                            class="flex flex-col items-center gap-2 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/30 hover:shadow-md transition-all cursor-pointer text-center group"
+                                        >
+                                            <div class="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                                                <span class="text-sm">✏️</span>
+                                            </div>
+                                            <div class="min-w-0">
+                                                <div class="text-[11px] font-semibold text-gray-900 dark:text-white leading-tight">Visual Notes</div>
+                                            </div>
+                                        </button>
+                                    </div>
                                 </div>
 
-                                <!-- Articles List (Scrollable) -->
-                                <div class="max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
+                                <!-- Support Card (Client-side rendered) -->
+                                <div id="support-sidebar-container" class="mb-6 hidden"></div>
+
+                                <!-- Articles List (Full height in scrolled container) -->
+                                <div class="pr-2 pb-10">
                                     <h5 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">
                                         Series Articles
                                     </h5>
@@ -783,6 +878,9 @@ const breadcrumbStructuredData = {
                                     </button>
                                 </div>
                                 
+                                <!-- Support Card (Client-side rendered) -->
+                                <div id="support-sidebar-b-container" class="mb-6 hidden"></div>
+
                                 <!-- Ultra-Compact Smart Actions -->
                                 <div class="mt-4 flex items-center gap-2 px-2 py-1.5 rounded-lg bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-800/20">
                                     <span class="text-sm">✨</span>
@@ -1363,9 +1461,8 @@ const breadcrumbStructuredData = {
         const API_BASE = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
 
         try {
-            // Fetch series details
-            const seriesSlug = seriesTitle.toLowerCase().replace(/\s+/g, '-');
-            const response = await fetch(`${API_BASE}/api/blogs/series/${seriesSlug}/`);
+            // Fetch series details using the dedicated endpoint (User requested)
+            const response = await fetch(`${API_BASE}/api/blogs/series/get-series-by-article/?slug=${currentSlug}`);
             
             if (!response.ok) {
                 throw new Error('Failed to fetch series');
@@ -1373,11 +1470,14 @@ const breadcrumbStructuredData = {
 
             const rawData = await response.json();
             
-            // API returns: { message, code, data: { articles: [...], ... } }
+            // API returns: { message, data: { articles: [...], ... } }
             const seriesData = rawData.data || rawData;
             const articlesRaw = seriesData.articles || [];
             
             // Extract articles from nested structure: { article: {...}, order: 1 }
+            // The SeriesArticleSerializer returns flattened structure? Let's check backend.
+            // SeriesArticleSerializer has: article (SeriesBlogSerializer), order.
+            // So structure is: [ { article: {title, slug}, order: 1 }, ... ]
             const articles = articlesRaw.map(item => ({
                 ...(item.article || item),
                 order: item.order
@@ -1410,17 +1510,14 @@ const breadcrumbStructuredData = {
                     let borderClass = '';
                     
                     if (isCurrent) {
-                        statusIcon = '▶️';
                         statusColor = 'text-purple-600 dark:text-purple-400';
                         bgClass = 'bg-purple-50 dark:bg-purple-900/20';
                         borderClass = 'border-purple-300 dark:border-purple-700';
                     } else if (isCompleted) {
-                        statusIcon = '✅';
                         statusColor = 'text-green-600 dark:text-green-400';
                         bgClass = 'bg-white dark:bg-gray-800/50';
                         borderClass = 'border-gray-200 dark:border-gray-700';
                     } else {
-                        statusIcon = '⏸️';
                         statusColor = 'text-gray-400 dark:text-gray-500';
                         bgClass = 'bg-gray-50 dark:bg-gray-800/30';
                         borderClass = 'border-gray-200 dark:border-gray-700';
@@ -1440,7 +1537,6 @@ const breadcrumbStructuredData = {
                                 <!-- Article Info -->
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center gap-2 mb-1">
-                                        <span class="text-sm">${statusIcon}</span>
                                         ${isCurrent ? '<span class="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Reading</span>' : ''}
                                     </div>
                                     <h4 class="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">

@@ -66,6 +66,27 @@ try {
     }
   }
 
+  // 1.1 Fetch Series Data (Separate API per user request)
+  if (apiData) {
+    try {
+      const API_BASE =
+        import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
+      const seriesResponse = await fetch(
+        `${API_BASE}/api/blogs/series/get-series-by-article/?slug=${slug}`,
+      );
+      if (seriesResponse.ok) {
+        const seriesData = await seriesResponse.json();
+        if (seriesData.data && seriesData.data.title) {
+          apiData.series = seriesData.data.title;
+          // You could also store specific series data if needed
+          // apiData.seriesDetails = seriesData.data;
+        }
+      }
+    } catch (seriesErr) {
+      console.warn("Failed to fetch series details:", seriesErr);
+    }
+  }
+
   if (apiData && !apiData.is_legacy) {
     // Transform API data to match local post structure
     post = {
@@ -80,6 +101,7 @@ try {
         readingTime: apiData.reading_time
           ? `${apiData.reading_time} min read`
           : "5 min read",
+        support_url: apiData.author?.support_url,
       },
       slug: apiData.slug,
       id: apiData.id,

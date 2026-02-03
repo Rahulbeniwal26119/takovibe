@@ -917,7 +917,7 @@
                 );
                 const id = saved ? saved.id : Date.now(); // Fallback ID
                 highlightRange(activeRange, "highlight-blue", noteContent, id);
-                alert("Note saved!");
+                // alert("Note saved!");
             } catch (e) {
                 console.warn("Failed to save note selection", e);
             }
