@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, User as UserIcon, Plus, Edit3, Eye, Trash2, Save, Github, Linkedin, Globe, Link as LinkIcon, Camera, AlertCircle, Inbox, Layers, X } from 'lucide-react';
 import { Loader } from './ui/Loader';
+import { Select } from './ui/Select';
 import { ContactManager } from './admin/ContactManager';
 import { SeriesManager } from './dashboard/SeriesManager';
 import UserManagement from './admin/UserManagement';
@@ -22,6 +23,7 @@ interface User {
     is_superuser?: boolean;
     manage_contact_us?: boolean;
     can_manage_authors?: boolean;
+    is_author?: boolean;
 }
 
 interface BlogPost {
@@ -93,8 +95,12 @@ const AuthorDashboard: React.FC = () => {
             if (user.can_manage_authors) {
                 fetchAuthors();
             }
+
+            if (!user.is_author && !user.is_superuser && (activeTab === 'my-posts' || activeTab === 'series')) {
+                setActiveTab('profile');
+            }
         }
-    }, [user]);
+    }, [user, activeTab]);
 
     // Debounce Search
     useEffect(() => {
@@ -156,6 +162,7 @@ const AuthorDashboard: React.FC = () => {
                 is_superuser: userData.is_superuser || false,
                 manage_contact_us: userData.can_manage_contact_us || userData.manage_contact_us || false,
                 can_manage_authors: userData.can_manage_authors || false,
+                is_author: userData.is_author || false,
             };
             setUser(userObj);
 
@@ -372,28 +379,32 @@ const AuthorDashboard: React.FC = () => {
                     </div>
 
                     <nav className="space-y-2 flex-1">
-                        <button
-                            onClick={() => { setActiveTab('my-posts'); setIsMobileMenuOpen(false); }}
-                            className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-xl font-semibold transition-all duration-300 group ${activeTab === 'my-posts'
-                                ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-lg shadow-purple-500/25'
-                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-purple-600 dark:hover:text-purple-400'
-                                }`}
-                        >
-                            <FileText className={`w-5 h-5 ${activeTab === 'my-posts' ? 'text-white' : 'text-gray-400 group-hover:text-purple-500 transition-colors'}`} />
-                            <span className="tracking-wide">My Posts</span>
-                            {activeTab === 'my-posts' && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
-                        </button>
-                        <button
-                            onClick={() => { setActiveTab('series'); setIsMobileMenuOpen(false); }}
-                            className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-xl font-semibold transition-all duration-300 group ${activeTab === 'series'
-                                ? 'bg-gradient-to-r from-pink-600 to-pink-500 text-white shadow-lg shadow-pink-500/25'
-                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-pink-600 dark:hover:text-pink-400'
-                                }`}
-                        >
-                            <Layers className={`w-5 h-5 ${activeTab === 'series' ? 'text-white' : 'text-gray-400 group-hover:text-pink-500 transition-colors'}`} />
-                            <span className="tracking-wide">Series</span>
-                            {activeTab === 'series' && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
-                        </button>
+                        {(user?.is_author || user?.is_superuser) && (
+                            <button
+                                onClick={() => { setActiveTab('my-posts'); setIsMobileMenuOpen(false); }}
+                                className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-xl font-semibold transition-all duration-300 group ${activeTab === 'my-posts'
+                                    ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-lg shadow-purple-500/25'
+                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-purple-600 dark:hover:text-purple-400'
+                                    }`}
+                            >
+                                <FileText className={`w-5 h-5 ${activeTab === 'my-posts' ? 'text-white' : 'text-gray-400 group-hover:text-purple-500 transition-colors'}`} />
+                                <span className="tracking-wide">My Posts</span>
+                                {activeTab === 'my-posts' && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
+                            </button>
+                        )}
+                        {(user?.is_author || user?.is_superuser) && (
+                            <button
+                                onClick={() => { setActiveTab('series'); setIsMobileMenuOpen(false); }}
+                                className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-xl font-semibold transition-all duration-300 group ${activeTab === 'series'
+                                    ? 'bg-gradient-to-r from-pink-600 to-pink-500 text-white shadow-lg shadow-pink-500/25'
+                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-pink-600 dark:hover:text-pink-400'
+                                    }`}
+                            >
+                                <Layers className={`w-5 h-5 ${activeTab === 'series' ? 'text-white' : 'text-gray-400 group-hover:text-pink-500 transition-colors'}`} />
+                                <span className="tracking-wide">Series</span>
+                                {activeTab === 'series' && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
+                            </button>
+                        )}
                         <button
                             onClick={() => { setActiveTab('profile'); setIsMobileMenuOpen(false); }}
                             className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-xl font-semibold transition-all duration-300 group ${activeTab === 'profile'
@@ -488,22 +499,19 @@ const AuthorDashboard: React.FC = () => {
                                 <div className="flex-1 flex gap-4 w-full justify-end">
                                     {/* Author Dropdown (Admin Only) */}
                                     {user?.can_manage_authors && authors.length > 0 && (
-                                        <div className="relative w-full sm:w-64">
-                                            <select
+                                        <div className="w-full sm:w-64">
+                                            <Select
                                                 value={selectedAuthor}
-                                                onChange={(e) => setSelectedAuthor(e.target.value)}
-                                                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all appearance-none cursor-pointer"
-                                            >
-                                                <option value="">All Authors</option>
-                                                {authors.map(author => (
-                                                    <option key={author.username} value={author.username}>
-                                                        {author.first_name} {author.last_name}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                            <div className="absolute right-3 top-3 pointer-events-none text-gray-500">
-                                                <UserIcon size={16} />
-                                            </div>
+                                                onChange={(val) => setSelectedAuthor(val)}
+                                                options={[
+                                                    { value: '', label: 'All Authors' },
+                                                    ...authors.map(author => ({
+                                                        value: author.username,
+                                                        label: `${author.first_name} ${author.last_name}`
+                                                    }))
+                                                ]}
+                                                placeholder="Filter by Author"
+                                            />
                                         </div>
                                     )}
 

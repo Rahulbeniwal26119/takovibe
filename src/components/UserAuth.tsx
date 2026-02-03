@@ -9,6 +9,7 @@ interface User {
     username?: string;
     manage_contact_us?: boolean;
     is_superuser?: boolean;
+    is_author?: boolean;
 }
 
 const getInitialsAvatar = (name: string) => {
@@ -71,12 +72,12 @@ const UserAuthContent: React.FC = () => {
 
     useEffect(() => {
         // Check auth status on mount
-        const checkAuthStatus = () => {
+        const checkAuthStatus = async () => {
             const token = localStorage.getItem('access_token');
             const storedUser = localStorage.getItem('user');
             const tokenExpiry = localStorage.getItem('token_expiry');
 
-            if (token && storedUser) {
+            if (token) {
                 // Check for expiration
                 if (tokenExpiry && new Date() > new Date(tokenExpiry)) {
                     console.log('Session expired');
@@ -84,27 +85,61 @@ const UserAuthContent: React.FC = () => {
                     return;
                 }
 
-                try {
-                    const parsedUser = JSON.parse(storedUser);
-                    if (parsedUser && typeof parsedUser === 'object') {
-                        // Ensure name exists
-                        if (!parsedUser.name) {
-                            parsedUser.name = 'User';
+                // If we have a stored user, set it initially for fast render
+                if (storedUser) {
+                    try {
+                        const parsedUser = JSON.parse(storedUser);
+                        if (parsedUser) {
+                            if (parsedUser.email === 'rahulbeniwal26119@gmail.com') {
+                                parsedUser.manage_contact_us = true;
+                            }
+                            setUser(parsedUser);
                         }
-                        // Add cache/fallback logic here to persistent state if needed, 
-                        // but updating state is enough since component re-renders.
-                        // We also patch the object if it's missing the flag but matches the email, 
-                        // to ensure consistent UI even if the cached user object is old.
-                        if (parsedUser.email === 'rahulbeniwal26119@gmail.com') {
-                            parsedUser.manage_contact_us = true;
-                        }
-                        setUser(parsedUser);
-                    } else {
-                        localStorage.removeItem('user');
+                    } catch (e) {
+                        console.error('Failed to parse cached user data', e);
                     }
-                } catch (e) {
-                    console.error('Failed to parse user data', e);
-                    localStorage.removeItem('user');
+                }
+
+                // Always verify/refresh with backend
+                try {
+                    const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
+                    const res = await fetch(`${API_URL}/api/users/me/`, {
+                        headers: {
+                            'Authorization': `Token ${token}`
+                        }
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        const userData = data.data || data;
+
+                        // Normalize user object standardizing fields
+                        const updatedUser: User = {
+                            name: userData.name || `${userData.first_name || ''} ${userData.last_name || ''}`.trim(),
+                            email: userData.email,
+                            image: userData.profile_image || userData.image || userData.avatar || '',
+                            username: userData.username,
+                            manage_contact_us: userData.can_manage_contact_us || userData.manage_contact_us || false,
+                            is_superuser: userData.is_superuser || false,
+                            is_author: userData.is_author || false
+                        };
+
+                        // Fallback for hardcoded admin
+                        if (updatedUser.email === 'rahulbeniwal26119@gmail.com') {
+                            updatedUser.manage_contact_us = true;
+                        }
+
+                        setUser(updatedUser);
+                        localStorage.setItem('user', JSON.stringify(updatedUser));
+
+                    } else if (res.status === 401) {
+                        // Token invalid
+                        handleLogout();
+                        return;
+                    }
+                } catch (error) {
+                    console.error("Failed to verify session:", error);
+                    // If network error, we might stick with stored user if available, or do nothing
                 }
             }
             setLoading(false);
@@ -197,12 +232,14 @@ const UserAuthContent: React.FC = () => {
                                 Dashboard
                             </a>
 
-                            <a
-                                href="/post/new"
-                                className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-                            >
-                                New Post
-                            </a>
+                            {(user.is_author || user.is_superuser) && (
+                                <a
+                                    href="/post/new"
+                                    className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                                >
+                                    New Post
+                                </a>
+                            )}
 
                             <div className="h-px bg-gray-100 dark:bg-gray-800 my-1"></div>
 

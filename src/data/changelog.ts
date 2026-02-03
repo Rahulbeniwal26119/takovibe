@@ -27,6 +27,22 @@ export interface ChangeLogEntry {
 
 export const changelogData: ChangeLogEntry[] = [
     {
+        "date": "2026-02-03",
+        "version": "Feature Release",
+        "title": "Series Filter & Dashboard Polish",
+        "description": "Introduced new admin tools for filtering series and polished the author dashboard UI.",
+        "changes": [
+            {
+                "type": "new",
+                "text": "Series Author Filter: Admins can now filter series by author using a new polished dropdown menu.",
+            },
+            {
+                "type": "improvement",
+                "text": "Unified UI Components: Updated the 'Your Stories' and 'Series' dashboards to use consistent dropdown components.",
+            }
+        ]
+    },
+    {
         "date": "2026-01-30",
         "version": "Feature Release",
         "title": "Python Debugger & Dashboard Profile Link",
