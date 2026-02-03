@@ -658,7 +658,7 @@ const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
     });
 
     article.innerHTML = `
-      <a href="${post.uri || `/blog/${post.slug}`}" class="relative flex flex-col h-full bg-white/10 dark:bg-[#131B2E]/60 border border-gray-100/10 dark:border-gray-800/50 rounded-2xl overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-2 group-hover:border-purple-500/20 dark:group-hover:border-purple-500/20 backdrop-blur-md">
+      <a href="/blog/${post.slug}/" class="relative flex flex-col h-full bg-white/10 dark:bg-[#131B2E]/60 border border-gray-100/10 dark:border-gray-800/50 rounded-2xl overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-2 group-hover:border-purple-500/20 dark:group-hover:border-purple-500/20 backdrop-blur-md">
         <!-- Image Container -->
         <div class="relative aspect-[16/9] overflow-hidden bg-gray-100 dark:bg-gray-800">
           ${

@@ -19,7 +19,7 @@ interface Props {
 const { post } = Astro.props;
 const { title, date, author, description, image, tags, readingTime } =
   post.data;
-const postUrl = post.uri || `/blog/${post.slug}`;
+const postUrl = `/blog/${post.slug}/`;
 
 const formattedDate = new Date(date).toLocaleDateString("en-US", {
   month: "short",
