@@ -94,11 +94,12 @@ try {
                 </h1>
 
                 <p
-                    class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-12 leading-relaxed animate-fade-in-up animation-delay-400"
+                    class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-12 leading-relaxed animate-fade-in-up animation-delay-400"
                 >
-                    We're a community of developers documenting the journey of
-                    building production-grade software. No fluff, just deep
-                    technical expertise.
+                    Production-first engineering knowledge covering lessons, fundamentals, and tools—built from real production experience.
+                    <br class="hidden md:block" />
+                    <span class="font-semibold text-purple-600 dark:text-purple-400">No fluff. No surface-level tutorials.</span>
+                    Only technical depth that matters.
                 </p>
 
                 <!-- Stats Grid (Home Page Style) -->
@@ -203,7 +204,7 @@ try {
             </div>
         </section>
 
-        <!-- Mission / Philosophy -->
+        <!-- Mission / Why We Started -->
         <section
             class="py-24 relative overflow-hidden bg-white/50 dark:bg-[#0B1120]/50 backdrop-blur-sm z-10 border-y border-gray-200 dark:border-gray-800"
         >
@@ -222,53 +223,28 @@ try {
                             class="space-y-6 text-lg text-gray-600 dark:text-gray-300 leading-relaxed"
                         >
                             <p>
-                                The internet is flooded with "Hello World"
-                                tutorials. But where are the guides for when
-                                things break in production? Or when you need to
-                                scale to millions of requests?
+                                The internet is full of “Hello World” tutorials. But when systems face real production challenges, require architectural clarity, or must remain reliable over time, practical guidance becomes harder to find.
                             </p>
                             <p>
-                                We built TakoVibe to bridge the gap between
-                                basic tutorials and complex documentation. We
-                                believe that true engineering wisdom comes from
-                                experience, sharing the "gotchas," the
-                                trade-offs, and the architectural decisions that
-                                usually happen behind closed doors.
+                                TakoVibe bridges the gap between basic tutorials and real engineering practice. We share tutorials, lessons, and core knowledge shaped by real-world experience not toy examples. We believe meaningful engineering insight comes from:
                             </p>
-                            <div class="flex items-center gap-4 pt-4">
-                                <div
-                                    class="h-px bg-purple-200 dark:bg-purple-900/50 flex-1"
-                                >
-                                </div>
-                                <span
-                                    class="text-sm font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wide"
-                                    >Our Core Values</span
-                                >
-                                <div
-                                    class="h-px bg-purple-200 dark:bg-purple-900/50 flex-1"
-                                >
-                                </div>
-                            </div>
                             <ul class="space-y-3">
                                 <li class="flex items-center gap-3">
-                                    <span
-                                        class="w-1.5 h-1.5 rounded-full bg-purple-600"
-                                    ></span>
-                                    <span>Quality over Quantity</span>
+                                    <span class="w-2 h-2 rounded-full bg-purple-600"></span>
+                                    <span>Building and maintaining production systems</span>
                                 </li>
                                 <li class="flex items-center gap-3">
-                                    <span
-                                        class="w-1.5 h-1.5 rounded-full bg-blue-600"
-                                    ></span>
-                                    <span>Deep Technical Accuracy</span>
+                                    <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                                    <span>Making difficult architectural trade-offs</span>
                                 </li>
                                 <li class="flex items-center gap-3">
-                                    <span
-                                        class="w-1.5 h-1.5 rounded-full bg-pink-600"
-                                    ></span>
-                                    <span>Open Knowledge Sharing</span>
+                                    <span class="w-2 h-2 rounded-full bg-pink-600"></span>
+                                    <span>Running into failures and learning what actually works</span>
                                 </li>
                             </ul>
+                            <p>
+                                TakoVibe is our attempt to document those lessons openly for engineers who want to go deeper.
+                            </p>
                         </div>
                     </div>
                     <div class="lg:w-1/2">
@@ -289,13 +265,14 @@ try {
                                 <p
                                     class="text-gray-600 dark:text-gray-400 italic text-lg mb-8"
                                 >
-                                    "We tell the stories of systems. Every bug
-                                    is a plot twist, every deployment is a
-                                    climax, and every refactor is character
-                                    development."
+                                    We don't just write code we explain why things were built the way they were, including the failures and trade-offs.
                                 </p>
                                 <div class="flex items-center gap-4">
-                                    <!-- Signature or Name -->
+                                    <div
+                                        class="w-12 h-12 rounded-full bg-gradient-to-tr from-purple-600 to-blue-600 p-0.5"
+                                    >
+                                        <div class="w-full h-full rounded-full bg-white dark:bg-[#0B1120] flex items-center justify-center font-bold">RB</div>
+                                    </div>
                                     <div>
                                         <div
                                             class="font-bold text-gray-900 dark:text-white"
@@ -316,6 +293,96 @@ try {
             </div>
         </section>
 
+        <!-- Differentiation Section -->
+        <section class="py-24 relative z-10 border-b border-gray-200 dark:border-gray-800">
+            <div class="max-w-7xl mx-auto px-6">
+                <div class="grid lg:grid-cols-2 gap-16 items-center">
+                    <div class="order-2 lg:order-1">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {[
+                                { title: "Implementation Experience", desc: "Articles are written from real implementation experience, not just theory." },
+                                { title: "System Behavior", desc: "Topics go beyond basics into system behavior and design reasoning." },
+                                { title: "No Trend-Chasing", desc: "We avoid shallow explainers or chasing temporary hype." },
+                                { title: "By Engineers, For Engineers", desc: "Content written by practitioners who build and scale systems." }
+                            ].map((item, i) => (
+                                <div class={`p-6 rounded-2xl bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 shadow-sm hover:shadow-md transition-shadow`}>
+                                    <h4 class="font-bold text-gray-900 dark:text-white mb-2">{item.title}</h4>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed text-wrap">{item.desc}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    <div class="order-1 lg:order-2">
+                        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
+                            What Makes TakoVibe <span class="text-purple-600 dark:text-purple-400">Different</span>
+                        </h2>
+                        <p class="text-lg text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
+                            Unlike generic tech blogs, TakoVibe focuses on depth, clarity, and authenticity. Our goal is not to publish more, our goal is to publish meaningful engineering knowledge.
+                        </p>
+                        <div class="inline-flex items-center gap-2 px-6 py-3 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-xl font-semibold">
+                            <span>Quality > Quantity</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Core Values Section -->
+        <section class="py-24 relative z-10 bg-gray-50/50 dark:bg-black/20">
+            <div class="max-w-7xl mx-auto px-6">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Our Core Values</h2>
+                    <div class="w-20 h-1 bg-gradient-to-r from-purple-600 to-blue-600 mx-auto rounded-full"></div>
+                </div>
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    {[
+                        { title: "Quality over Quantity", desc: "Fewer articles, but deeply researched and thoughtfully written." },
+                        { title: "Technical Accuracy", desc: "Content reviewed with real-world applicability in mind." },
+                        { title: "Experience-Driven", desc: "We value lessons learned from building and maintaining systems." },
+                        { title: "Open Knowledge", desc: "Engineering insights should be accessible, honest, and practical." }
+                    ].map((value) => (
+                        <div class="text-center p-8 rounded-3xl bg-white dark:bg-[#131B2E] border border-gray-100 dark:border-gray-800 shadow-sm">
+                            <h3 class="font-bold text-gray-900 dark:text-white mb-3 text-lg">{value.title}</h3>
+                            <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{value.desc}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </section>
+
+        <!-- Topics Section -->
+        <section class="py-24 relative z-10 border-y border-gray-200 dark:border-gray-800">
+            <div class="max-w-7xl mx-auto px-6">
+                <div class="flex flex-col md:flex-row items-end justify-between mb-12 gap-6">
+                    <div class="max-w-2xl">
+                        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">What We Write About</h2>
+                        <p class="text-lg text-gray-600 dark:text-gray-400">
+                            TakoVibe covers topics that matter when software moves beyond tutorials.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-4">
+                    {[
+                        { label: "Backend Engineering & APIs", highlight: "Modern API Development", icon: "⚙️" },
+                        { label: "Containers & DevOps", highlight: "Cloud-Native Infrastructure", icon: "🐳" },
+                        { label: "Core Python Mastery", highlight: "Language Internals & Design", icon: "🐍" },
+                        { label: "System Design & Architecture", highlight: "Scalability & Trade-offs", icon: "🏗️" },
+                        { label: "Performance & Reliability", highlight: "Production-Grade Systems", icon: "⚡" },
+                        { label: "Engineering Learnings", highlight: "Practical Case Studies", icon: "📚" }
+                    ].map((topic) => (
+                        <div class="flex items-center gap-4 px-6 py-4 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl hover:border-purple-500/50 transition-colors group">
+                            <span class="text-2xl">{topic.icon}</span>
+                            <div>
+                                <h4 class="font-bold text-gray-900 dark:text-white text-sm">{topic.label}</h4>
+                                <p class="text-xs text-purple-600 dark:text-purple-400 font-medium">{topic.highlight}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </section>
+
         <!-- Team Section -->
         {authors.length > 0 && (
         <section class="py-24 relative z-10">
@@ -332,7 +399,7 @@ try {
                     <p
                         class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto"
                     >
-                        The engineers behind the insights.
+                        TakoVibe is written by active practitioners and technical contributors who build, scale, and maintain real-world systems. Every piece of content undergoes a rigorous peer-review and technical validation process to ensure it meets our standards of depth, clarity, and practical accuracy.
                     </p>
                 </div>
 
@@ -454,6 +521,22 @@ try {
         </section>
         )}
 
+        <!-- Promise Section -->
+        <section class="py-24 relative z-10 bg-gradient-to-b from-transparent to-purple-500/5">
+            <div class="max-w-4xl mx-auto px-6 text-center">
+                <div class="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-xs font-bold uppercase tracking-wider mb-6">
+                    Our Promise
+                </div>
+                <h2 class="text-3xl md:text-5xl font-bold text-gray-900 dark:text-white mb-8 leading-tight">
+                    Every article is published with care.
+                </h2>
+                <p class="text-xl text-gray-600 dark:text-gray-400 mb-12 italic">
+                    "Because engineers don’t need more content, they need better content."
+                </p>
+                <div class="w-24 h-1 bg-purple-600 mx-auto rounded-full"></div>
+            </div>
+        </section>
+
         <!-- Connect / Newsletter -->
         <section class="py-24 relative overflow-hidden">
             <div class="max-w-4xl mx-auto px-6 relative z-10">
@@ -469,8 +552,8 @@ try {
                         class="text-xl text-gray-600 dark:text-gray-400 leading-relaxed mb-10 max-w-2xl mx-auto"
                     >
                         We're always looking for quality contributors. If you
-                        have deep expertise in a topic, we'd love to help you
-                        share it with thousands of developers.
+                        have deep engineering expertise, we'd love to help you
+                        share it with the community.
                     </p>
 
                     <div
