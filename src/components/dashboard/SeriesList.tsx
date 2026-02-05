@@ -40,7 +40,7 @@ export const SeriesList: React.FC<SeriesListProps> = ({ onCreate, onEdit }) => {
                 const user = JSON.parse(userStr);
                 setCurrentUser(user);
                 // Fetch authors if user is admin
-                if (user.can_manage_authors || user.is_superuser) {
+                if (user.can_manage_authors || user.is_superuser || user.client_type === 'Admin') {
                     fetchAuthors();
                 }
             } catch (e) {
@@ -102,7 +102,7 @@ export const SeriesList: React.FC<SeriesListProps> = ({ onCreate, onEdit }) => {
                 // UNLESS the user wants to see "All Series" from "All Authors".
 
                 // Refinment:
-                if (currentUser?.can_manage_authors || currentUser?.is_superuser) {
+                if (currentUser?.can_manage_authors || currentUser?.is_superuser || currentUser?.client_type === 'Admin') {
                     // Admin view
                     if (selectedAuthor) {
                         params.append('username', selectedAuthor);
@@ -203,7 +203,7 @@ export const SeriesList: React.FC<SeriesListProps> = ({ onCreate, onEdit }) => {
             </div>
 
             {/* Filter Section (Admin Only) */}
-            {(currentUser?.can_manage_authors || currentUser?.is_superuser) && authors.length > 0 && (
+            {(currentUser?.can_manage_authors || currentUser?.is_superuser || currentUser?.client_type === 'Admin') && authors.length > 0 && (
                 <div className="flex justify-end">
                     <div className="w-full sm:w-64">
                         <Select

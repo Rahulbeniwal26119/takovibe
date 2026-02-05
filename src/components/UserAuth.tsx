@@ -10,6 +10,7 @@ interface User {
     manage_contact_us?: boolean;
     is_superuser?: boolean;
     is_author?: boolean;
+    client_type?: string;
 }
 
 const getInitialsAvatar = (name: string) => {
@@ -121,7 +122,8 @@ const UserAuthContent: React.FC = () => {
                             username: userData.username,
                             manage_contact_us: userData.can_manage_contact_us || userData.manage_contact_us || false,
                             is_superuser: userData.is_superuser || false,
-                            is_author: userData.is_author || false
+                            is_author: userData.is_author || false,
+                            client_type: userData.client_type || 'Reader'
                         };
 
                         // Fallback for hardcoded admin
@@ -216,7 +218,7 @@ const UserAuthContent: React.FC = () => {
                             <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-800">
                                 <div className="flex items-center justify-between mb-0.5">
                                     <p className="text-sm font-semibold text-gray-900 dark:text-white truncate max-w-[100px]">{user.name}</p>
-                                    {(user.manage_contact_us || user.is_superuser) && (
+                                    {(user.manage_contact_us || user.is_superuser || user.client_type === 'Admin') && (
                                         <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 uppercase tracking-wide scale-90">
                                             ADMIN
                                         </span>
@@ -232,7 +234,7 @@ const UserAuthContent: React.FC = () => {
                                 Dashboard
                             </a>
 
-                            {(user.is_author || user.is_superuser) && (
+                            {(user.is_author || user.is_superuser || ['Author', 'Editor', 'Admin'].includes(user.client_type || '')) && (
                                 <a
                                     href="/post/new"
                                     className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"

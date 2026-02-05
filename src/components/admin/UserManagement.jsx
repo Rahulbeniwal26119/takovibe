@@ -3,7 +3,18 @@ import { createPortal } from "react-dom";
 
 const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
 
-const UserManagement = () => {
+const UserManagement = ({ currentUser }) => {
+    const getRank = (user) => {
+        if (!user) return 0;
+        if (user.rank) return user.rank;
+        if (user.is_superuser) return 5;
+        if (user.client_type === 'Admin') return 4;
+        if (user.client_type === 'Editor') return 3;
+        if (user.client_type === 'Author') return 2;
+        return 1;
+    };
+
+    const currentRank = getRank(currentUser);
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
@@ -20,7 +31,8 @@ const UserManagement = () => {
         website_url: "",
         github_url: "",
         linkedin_url: "",
-        profile_image: ""
+        profile_image: "",
+        client_type: "Reader"
     });
 
     const [toast, setToast] = useState(null);
@@ -100,29 +112,7 @@ const UserManagement = () => {
         }
     };
 
-    const handleToggleAuthor = async (user) => {
-        try {
-            const token = localStorage.getItem("access_token");
-            const res = await fetch(`${API_URL}/api/users/${user.id}/`, {
-                method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Token ${token}`,
-                },
-                body: JSON.stringify({ is_author: !user.is_author }),
-            });
-            const data = await res.json();
-            if (res.ok) {
-                setUsers(users.map(u => u.id === user.id ? { ...u, is_author: !user.is_author } : u)); // Assuming verified serializer adds is_author
-                showToast(`User role updated to ${!user.is_author ? 'Author' : 'Member'}`);
-            } else {
-                showToast("Failed to update role", "error");
-            }
-        } catch (e) {
-            console.error(e);
-            showToast("An error occurred", "error");
-        }
-    };
+    // handleToggleAuthor removed as per requirement
 
     const handleEditClick = (user) => {
         setEditingUser(user);
@@ -133,7 +123,8 @@ const UserManagement = () => {
             website_url: user.website_url || "",
             github_url: user.github_url || "",
             linkedin_url: user.linkedin_url || "",
-            profile_image: user.profile_image || ""
+            profile_image: user.profile_image || "",
+            client_type: user.client_type || "Reader"
         });
     };
 
@@ -199,7 +190,7 @@ const UserManagement = () => {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">User</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Username</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Role</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
                                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
@@ -241,18 +232,17 @@ const UserManagement = () => {
                                                 {user.is_active ? 'Active' : 'Inactive'}
                                             </button>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            <button
-                                                onClick={() => handleToggleAuthor(user)}
-                                                className={`px-2 py-1 rounded text-xs transition-colors ${user.is_author ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-gray-100 text-gray-600 hover:bg-purple-50 hover:text-purple-600'}`}
-                                            >
-                                                {user.is_author ? 'Author' : 'Make Author'}
-                                            </button>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.is_superuser ? 'bg-amber-100 text-amber-800' : user.client_type === 'Admin' ? 'bg-indigo-100 text-indigo-800' : user.client_type === 'Editor' ? 'bg-blue-100 text-blue-800' : user.client_type === 'Author' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'}`}>
+                                                {user.is_superuser ? 'SuperUser' : (user.client_type || 'Reader')}
+                                            </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <button onClick={() => handleEditClick(user)} className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">
-                                                Edit
-                                            </button>
+                                            {(currentRank === 5 || currentRank > getRank(user)) && (
+                                                <button onClick={() => handleEditClick(user)} className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">
+                                                    Edit
+                                                </button>
+                                            )}
                                         </td>
                                     </tr>
                                 ))
@@ -293,9 +283,11 @@ const UserManagement = () => {
                                             <span className="text-gray-900 dark:text-white">{user.username}</span>
                                         </div>
                                         <div className="flex justify-end items-end">
-                                            <button onClick={() => handleEditClick(user)} className="text-blue-600 text-xs font-semibold">
-                                                Edit Profile
-                                            </button>
+                                            {(currentRank === 5 || currentRank > getRank(user)) && (
+                                                <button onClick={() => handleEditClick(user)} className="text-blue-600 text-xs font-semibold">
+                                                    Edit Profile
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
 
@@ -307,12 +299,11 @@ const UserManagement = () => {
                                             {user.is_active ? 'Active' : 'Inactive'}
                                         </button>
 
-                                        <button
-                                            onClick={() => handleToggleAuthor(user)}
-                                            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${user.is_author ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-gray-100 text-gray-600 hover:bg-purple-50 hover:text-purple-600'}`}
-                                        >
-                                            {user.is_author ? 'Author' : 'Make Author'}
-                                        </button>
+                                        <div className="flex items-center gap-2">
+                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.is_superuser ? 'bg-amber-100 text-amber-800' : user.client_type === 'Admin' ? 'bg-indigo-100 text-indigo-800' : user.client_type === 'Editor' ? 'bg-blue-100 text-blue-800' : user.client_type === 'Author' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'}`}>
+                                                {user.is_superuser ? 'SuperUser' : (user.client_type || 'Reader')}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
@@ -419,7 +410,7 @@ const UserManagement = () => {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Website URL</label>
                                     <input
@@ -429,6 +420,21 @@ const UserManagement = () => {
                                         onChange={(e) => setEditForm({ ...editForm, website_url: e.target.value })}
                                     />
                                 </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
+                                    <select
+                                        className="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                        value={editForm.client_type}
+                                        onChange={(e) => setEditForm({ ...editForm, client_type: e.target.value })}
+                                    >
+                                        {currentRank > 1 && <option value="Reader">Reader</option>}
+                                        {currentRank > 2 && <option value="Author">Author</option>}
+                                        {currentRank > 3 && <option value="Editor">Editor</option>}
+                                        {currentRank > 4 && <option value="Admin">Admin</option>}
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">GitHub URL</label>
                                     <input

@@ -495,6 +495,8 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                                         "",
                                     is_author: userObj.is_author || false,
                                     is_superuser: userObj.is_superuser || false,
+                                    client_type:
+                                        userObj.client_type || "Reader",
                                 };
                             }
 
@@ -534,6 +536,9 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                                                 userData.is_author || false,
                                             is_superuser:
                                                 userData.is_superuser || false,
+                                            client_type:
+                                                userData.client_type ||
+                                                "Reader",
                                         };
                                     } else {
                                         console.warn(
@@ -558,6 +563,7 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                                             username: data.username,
                                             is_author: false,
                                             is_superuser: false,
+                                            client_type: "Reader",
                                         };
                                     }
                                 }
@@ -763,6 +769,8 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                                     is_author: userData.is_author || false,
                                     is_superuser:
                                         userData.is_superuser || false,
+                                    client_type:
+                                        userData.client_type || "Reader",
                                 };
                             }
                         } catch (err) {
@@ -776,6 +784,7 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                             ...userObj,
                             is_author: !!userObj.is_author,
                             is_superuser: !!userObj.is_superuser,
+                            client_type: userObj.client_type || "Reader",
                         };
                         localStorage.setItem("user", JSON.stringify(userObj));
                     }

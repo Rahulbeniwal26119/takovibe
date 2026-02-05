@@ -25,6 +25,7 @@ interface User {
     can_manage_authors?: boolean;
     is_author?: boolean;
     support_url?: string;
+    client_type?: string;
 }
 
 interface BlogPost {
@@ -95,11 +96,11 @@ const AuthorDashboard: React.FC = () => {
                 support_url: user.support_url || ''
             });
 
-            if (user.can_manage_authors) {
+            if (user.can_manage_authors || user.is_superuser || user.client_type === 'Admin') {
                 fetchAuthors();
             }
 
-            if (!user.is_author && !user.is_superuser && (activeTab === 'my-posts' || activeTab === 'series')) {
+            if (!user.is_author && user.client_type !== 'Author' && user.client_type !== 'Admin' && user.client_type !== 'Editor' && !user.is_superuser && (activeTab === 'my-posts' || activeTab === 'series')) {
                 setActiveTab('profile');
             }
         }
@@ -167,6 +168,7 @@ const AuthorDashboard: React.FC = () => {
                 can_manage_authors: userData.can_manage_authors || false,
                 is_author: userData.is_author || false,
                 support_url: userData.support_url || '',
+                client_type: userData.client_type || 'Reader',
             };
             setUser(userObj);
 
@@ -383,7 +385,7 @@ const AuthorDashboard: React.FC = () => {
                     </div>
 
                     <nav className="space-y-2 flex-1">
-                        {(user?.is_author || user?.is_superuser) && (
+                        {(user?.is_author || user?.is_superuser || user?.client_type === 'Author' || user?.client_type === 'Admin' || user?.client_type === 'Editor') && (
                             <button
                                 onClick={() => { setActiveTab('my-posts'); setIsMobileMenuOpen(false); }}
                                 className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-xl font-semibold transition-all duration-300 group ${activeTab === 'my-posts'
@@ -396,7 +398,7 @@ const AuthorDashboard: React.FC = () => {
                                 {activeTab === 'my-posts' && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
                             </button>
                         )}
-                        {(user?.is_author || user?.is_superuser) && (
+                        {(user?.is_author || user?.is_superuser || user?.client_type === 'Author' || user?.client_type === 'Admin' || user?.client_type === 'Editor') && (
                             <button
                                 onClick={() => { setActiveTab('series'); setIsMobileMenuOpen(false); }}
                                 className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-xl font-semibold transition-all duration-300 group ${activeTab === 'series'
@@ -421,7 +423,7 @@ const AuthorDashboard: React.FC = () => {
                             {activeTab === 'profile' && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
                         </button>
 
-                        {(user?.manage_contact_us || user?.is_superuser) && (
+                        {(user?.manage_contact_us || user?.is_superuser || user?.client_type === 'Admin') && (
                             <button
                                 onClick={() => { setActiveTab('inbox'); setIsMobileMenuOpen(false); }}
                                 className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-xl font-semibold transition-all duration-300 group ${activeTab === 'inbox'
@@ -435,7 +437,7 @@ const AuthorDashboard: React.FC = () => {
                             </button>
                         )}
 
-                        {(user?.is_superuser || user?.can_manage_authors) && (
+                        {(user?.is_superuser || user?.can_manage_authors || user?.client_type === 'Admin') && (
                             <button
                                 onClick={() => { setActiveTab('users'); setIsMobileMenuOpen(false); }}
                                 className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-xl font-semibold transition-all duration-300 group ${activeTab === 'users'
@@ -502,7 +504,7 @@ const AuthorDashboard: React.FC = () => {
 
                                 <div className="flex-1 flex gap-4 w-full justify-end">
                                     {/* Author Dropdown (Admin Only) */}
-                                    {user?.can_manage_authors && authors.length > 0 && (
+                                    {(user?.can_manage_authors || user?.is_superuser || user?.client_type === 'Admin') && authors.length > 0 && (
                                         <div className="w-full sm:w-64">
                                             <Select
                                                 value={selectedAuthor}
@@ -835,21 +837,21 @@ const AuthorDashboard: React.FC = () => {
                 }
 
                 {/* Inbox View */}
-                {activeTab === 'inbox' && (user?.manage_contact_us || user?.is_superuser) && (
+                {activeTab === 'inbox' && (user?.manage_contact_us || user?.is_superuser || user?.client_type === 'Admin') && (
                     <div className="animate-fade-in w-full">
                         <ContactManager />
                     </div>
                 )}
 
                 {/* Users View */}
-                {activeTab === 'users' && (user?.is_superuser || user?.can_manage_authors) && (
+                {activeTab === 'users' && (user?.is_superuser || user?.can_manage_authors || user?.client_type === 'Admin') && (
                     <div className="animate-fade-in w-full">
                         <div className="mb-8">
                             <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-2">User Management</h1>
                             <p className="text-gray-500 dark:text-gray-400 text-lg">Manage registered users and their roles</p>
                         </div>
                         <div className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm rounded-3xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm">
-                            <UserManagement />
+                            <UserManagement currentUser={user} />
                         </div>
                     </div>
                 )}
