@@ -27,6 +27,35 @@ export interface ChangeLogEntry {
 
 export const changelogData: ChangeLogEntry[] = [
     {
+        "date": "2026-02-11",
+        "version": "Feature Release",
+        "title": "Interactive Sketch Notes Promotion",
+        "description": "Enhanced the homepage to showcase our new 'Sketch Notes' visual thinking platform.",
+        "changes": [
+            {
+                "type": "new",
+                "text": "Sketch Notes Showcase: A high-impact section on the homepage featuring interactive architecture diagrams and visual mental models."
+            },
+            {
+                "type": "improvement",
+                "text": "Header Navigation:  'Notes' to the main navigation bar for better accessibility."
+            }
+        ],
+        "images": ["https://ik.imagekit.io/bhu1voux5/image.png"]
+    },
+    {
+        "date": "2026-02-11",
+        "version": "Feature Release",
+        "title": "Why TakoVibe? Page Launch",
+        "description": "Launched a dedicated page explaining our mission, vision, and the engineering gap we aim to fill.",
+        "changes": [
+            {
+                "type": "new",
+                "text": "'Why TakoVibe?' Page: A new immersive page detailing our commitment to experience-driven technical knowledge and system internals."
+            }
+        ]
+    },
+    {
         "date": "2026-02-03",
         "version": "Feature Release",
         "title": "Support Author & Series Filter",

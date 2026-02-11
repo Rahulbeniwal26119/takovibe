@@ -8,14 +8,17 @@ const currentPath = Astro.url.pathname;
 const navItems = [
   { href: "/", label: "Home" },
   { href: "/blog", label: "Blog" },
-  { href: "/notes", label: "Notes" },
-  { href: "/about", label: "About" },
   { href: "/series", label: "Series" },
+  { href: "/notes", label: "Notes" },
+  { href: "/why-takovibe", label: "Why TakoVibe?" },
   { href: "/changelog", label: "Changelog" },
-  { href: "/why-takovibe", label: "Why Takovibe?" },
+  { href: "/about", label: "About" },
   { href: "/saved", label: "Saved" },
   { href: "/contact", label: "Contact" },
 ];
+
+const mainNav = navItems.slice(0, 5);
+const moreNav = navItems.slice(5);
 ---
 
 <header
@@ -78,53 +81,31 @@ const navItems = [
 
         <!-- Center: Navigation (Desktop) -->
         <nav
-          class="hidden lg:flex flex-1 items-center justify-center gap-8 px-4"
+          class="hidden lg:flex flex-1 items-center justify-center gap-2 xl:gap-4 px-4"
         >
-          <a
-            href="/"
-            class={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 whitespace-nowrap relative group overflow-hidden ${
-              currentPath === "/"
-                ? "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/10 shadow-sm shadow-purple-500/10"
-                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/50"
-            }`}
-          >
-            Home
-          </a>
-          <a
-            href="/blog"
-            class={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 whitespace-nowrap ${
-              currentPath.startsWith("/blog")
-                ? "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/10 shadow-sm shadow-purple-500/10"
-                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/50"
-            }`}
-          >
-            Blog
-          </a>
-          <a
-            href="/notes"
-            class={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 whitespace-nowrap ${
-              currentPath.startsWith("/notes")
-                ? "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/10 shadow-sm shadow-purple-500/10"
-                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/50"
-            }`}
-          >
-            Notes
-          </a>
-          <a
-            href="/changelog"
-            class={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 whitespace-nowrap ${
-              currentPath.startsWith("/changelog")
-                ? "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/10 shadow-sm shadow-purple-500/10"
-                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/50"
-            }`}
-          >
-            Changelog
-          </a>
+          {
+            mainNav.map((item) => (
+              <a
+                href={item.href}
+                class={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 whitespace-nowrap ${
+                  (
+                    item.href === "/"
+                      ? currentPath === "/"
+                      : currentPath.startsWith(item.href)
+                  )
+                    ? "text-purple-600 dark:text-purple-400 bg-white/50 dark:bg-white/5 shadow-[0_0_15px_-3px_rgba(147,51,234,0.1)] ring-1 ring-purple-500/10"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-white/[0.03]"
+                }`}
+              >
+                {item.label}
+              </a>
+            ))
+          }
 
           <!-- More Dropdown -->
           <div class="relative group">
             <button
-              class="flex items-center gap-1 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 whitespace-nowrap text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/50"
+              class="flex items-center gap-1 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 whitespace-nowrap text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-white/[0.03]"
             >
               More
               <svg
@@ -147,48 +128,31 @@ const navItems = [
               <div
                 class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden p-1"
               >
-                <a
-                  href="/about"
-                  class="block px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-                >
-                  About
-                </a>
-                <a
-                  href="/series"
-                  class="block px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-                >
-                  Series
-                </a>
-                <a
-                  href="/why-takovibe"
-                  class="block px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-                >
-                  Why TakoVibe?
-                </a>
-                <a
-                  href="/saved"
-                  class="block px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-                >
-                  Saved
-                </a>
-                <div class="h-px bg-gray-100 dark:bg-gray-800 my-1"></div>
-                <a
-                  href="/contact"
-                  class="block px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-                >
-                  Contact
-                </a>
+                {
+                  moreNav.map((item, idx) => (
+                    <>
+                      {idx === 3 && (
+                        <div class="h-px bg-gray-100 dark:bg-gray-800 my-1" />
+                      )}
+                      <a
+                        href={item.href}
+                        class="block px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                      >
+                        {item.label}
+                      </a>
+                    </>
+                  ))
+                }
               </div>
             </div>
           </div>
         </nav>
 
         <!-- Right: Search & Auth -->
-        <div class="flex items-center gap-2 sm:gap-4 shrink-0">
-          <!-- Desktop Search Trigger -->
+        <div class="flex items-center gap-2 sm:gap-3 shrink-0">
           <button
             id="searchTriggerBtn"
-            class="hidden xl:flex items-center gap-3 w-64 px-4 py-2 bg-gray-50 dark:bg-slate-800/50 hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 dark:text-gray-500 rounded-xl transition-all group border border-transparent hover:border-purple-500/10"
+            class="hidden xl:flex items-center gap-3 w-48 px-4 py-2 bg-gray-50/50 dark:bg-white/[0.03] hover:bg-gray-100 dark:hover:bg-white/[0.05] text-gray-500 dark:text-gray-400 rounded-xl transition-all border border-transparent hover:border-purple-500/20 group"
             aria-label="Search"
           >
             <svg
@@ -205,35 +169,40 @@ const navItems = [
             </svg>
             <span class="text-sm font-medium">Search...</span>
             <div
-              class="ml-auto text-xs text-gray-300 dark:text-gray-600 font-mono"
+              class="ml-auto text-xs text-gray-400 dark:text-gray-600 font-mono"
             >
-              ⌘ /
+              ⌘K
             </div>
           </button>
 
           <a
             href="/post/new"
-            class="hidden xl:flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all duration-300 whitespace-nowrap text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 hover:-translate-y-0.5"
+            class="hidden xl:flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold transition-all duration-300 text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:shadow-[0_0_20px_-5px_rgba(147,51,234,0.5)] hover:-translate-y-0.5 active:scale-95"
           >
             <svg
-              class="w-4 h-4 text-white"
+              class="w-4 h-4"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
-              ><path
+            >
+              <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="2"
-                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-              ></path></svg
-            >
-            Write with Us
+                d="M12 4v16m8-8H4"></path>
+            </svg>
+            Write
           </a>
 
-          <!-- Mobile Search Toggle (Visible on all screens smaller than XL) -->
+          <div
+            class="h-6 w-px bg-gray-200/50 dark:bg-gray-800/50 hidden sm:block mx-1"
+          >
+          </div>
+
+          <!-- Mobile Search Toggle -->
           <button
             id="mobileSearchBtn"
-            class="block xl:hidden w-10 h-10 grid place-items-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors"
+            class="block xl:hidden w-10 h-10 grid place-items-center rounded-xl hover:bg-gray-100/50 dark:hover:bg-white/[0.03] text-gray-600 dark:text-gray-300 transition-colors"
             aria-label="Open search"
           >
             <svg
@@ -254,10 +223,9 @@ const navItems = [
           <!-- Theme Toggle -->
           <button
             id="global-theme-toggle"
-            class="w-10 h-10 grid place-items-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors"
+            class="w-10 h-10 grid place-items-center rounded-xl hover:bg-gray-100/50 dark:hover:bg-white/[0.03] text-gray-600 dark:text-gray-300 transition-colors"
             aria-label="Toggle theme"
           >
-            <!-- Sun Icon -->
             <svg
               class="w-5 h-5 hidden dark:block"
               fill="none"
@@ -271,7 +239,6 @@ const navItems = [
                 d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
               ></path>
             </svg>
-            <!-- Moon Icon -->
             <svg
               class="w-5 h-5 block dark:hidden"
               fill="none"
@@ -287,92 +254,173 @@ const navItems = [
             </svg>
           </button>
 
-          <div class="h-6 w-px bg-gray-200 dark:bg-gray-800 hidden sm:block">
-          </div>
-
-          <div class="auth-wrapper" onclick="event.stopPropagation();">
-            <UserAuth client:only="react">
-              <div
-                slot="fallback"
-                class="flex items-center gap-2 animate-pulse"
-              >
-                <div class="w-9 h-9 rounded-full bg-gray-200 dark:bg-gray-700">
-                </div>
-                <!-- Hide text placeholder on mobile to match UserAuth loading state logic if needed, or keep consistent -->
-                <div
-                  class="hidden md:block w-20 h-4 bg-gray-200 dark:bg-gray-700 rounded"
-                >
-                </div>
-              </div>
-            </UserAuth>
-          </div>
+          <UserAuth client:only="react">
+            <div
+              slot="fallback"
+              class="w-9 h-9 rounded-full bg-gray-200/50 dark:bg-gray-800/50 animate-pulse"
+            >
+            </div>
+          </UserAuth>
         </div>
       </div>
+    </div>
 
-      <!-- FULL HEADER SEARCH BAR (Hidden by default) -->
-      <div
-        id="full-header-search"
-        class="absolute inset-0 flex items-center px-4 sm:px-6 lg:px-8 bg-white dark:bg-slate-900 opacity-0 pointer-events-none transition-all duration-300 scale-95"
-      >
-        <div class="w-full max-w-4xl mx-auto flex items-center gap-4">
-          <div class="flex-1">
-            <Search variant="full-header" />
-          </div>
+    <!-- FULL HEADER SEARCH BAR (Hidden by default) -->
+    <div
+      id="full-header-search"
+      class="absolute inset-0 flex items-center px-4 sm:px-6 lg:px-8 bg-white dark:bg-slate-900 opacity-0 pointer-events-none transition-all duration-300 scale-95"
+    >
+      <div class="w-full max-w-4xl mx-auto flex items-center gap-4">
+        <div class="flex-1">
+          <Search variant="full-header" />
+        </div>
 
-          <div class="flex items-center gap-2">
-            <kbd
-              class="hidden md:inline-flex items-center gap-1 px-2 py-0.5 text-xs text-gray-400 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 font-mono"
-              >ESC</kbd
+        <div class="flex items-center gap-2">
+          <kbd
+            class="hidden md:inline-flex items-center gap-1 px-2 py-0.5 text-xs text-gray-400 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 font-mono"
+            >ESC</kbd
+          >
+          <button
+            id="closeFullSearchBtn"
+            class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-colors"
+            aria-label="Close search"
+          >
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              ><path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"></path></svg
             >
-            <button
-              id="closeFullSearchBtn"
-              class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-colors"
-              aria-label="Close search"
-            >
-              <svg
-                class="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                ><path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M6 18L18 6M6 6l12 12"></path></svg
-              >
-            </button>
-          </div>
+          </button>
         </div>
       </div>
     </div>
   </div>
+</header>
 
-  <!-- MOBILE DRAWER -->
+<!-- MOBILE DRAWER -->
+<div
+  id="drawerBackdrop"
+  class="fixed inset-0 z-[65] bg-black/40 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300"
+>
+</div>
+
+<aside
+  id="drawer"
+  class="fixed left-0 top-0 z-[66] w-[85vw] max-w-[320px] h-full -translate-x-full transition-transform duration-300 cubic-bezier(0.4, 0, 0.2, 1)
+           bg-white dark:bg-[#0f1117] border-r border-gray-200 dark:border-gray-800 flex flex-col shadow-2xl"
+  aria-label="Mobile menu"
+>
+  <!-- Drawer Header -->
   <div
-    id="drawerBackdrop"
-    class="fixed inset-0 z-[65] bg-black/40 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300"
+    class="h-20 px-6 flex items-center justify-between border-b border-gray-100 dark:border-gray-800/50"
   >
+    <div class="flex items-center gap-3">
+      <img src="/images/logo.svg" alt="Logo" class="w-8 h-8 rounded-full" />
+      <span class="font-bold text-lg text-gray-900 dark:text-white">Menu</span>
+    </div>
+    <button
+      id="closeDrawerBtn"
+      aria-label="Close menu"
+      class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 transition-colors"
+    >
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
   </div>
 
-  <aside
-    id="drawer"
-    class="fixed left-0 top-0 z-[66] w-[85vw] max-w-[320px] h-full -translate-x-full transition-transform duration-300 cubic-bezier(0.4, 0, 0.2, 1)
-           bg-white dark:bg-[#0f1117] border-r border-gray-200 dark:border-gray-800 flex flex-col shadow-2xl"
-    aria-label="Mobile menu"
-  >
-    <!-- Drawer Header -->
+  <!--
+    <a href="/community" class="block px-4 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-white transition-colors">
+      Community
+    </a>
+    -->
+
+  <!-- Drawer Nav -->
+  <nav class="flex-1 overflow-y-auto px-4 py-2 space-y-1">
+    {
+      navItems.map((item) => {
+        const isActive =
+          item.href === "/"
+            ? currentPath === "/"
+            : currentPath.startsWith(item.href);
+        return (
+          <a
+            href={item.href}
+            class={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+              isActive
+                ? "bg-purple-50 dark:bg-purple-900/10 text-purple-600 dark:text-purple-400"
+                : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-white"
+            }`}
+          >
+            {item.label}
+          </a>
+        );
+      })
+    }
+
+    <!-- Mobile Auth Links -->
     <div
-      class="h-20 px-6 flex items-center justify-between border-b border-gray-100 dark:border-gray-800/50"
+      id="mobile-auth-links"
+      class="pt-4 mt-4 border-t border-gray-100 dark:border-gray-800/50 space-y-2 hidden"
     >
-      <div class="flex items-center gap-3">
-        <img src="/images/logo.svg" alt="Logo" class="w-8 h-8 rounded-full" />
-        <span class="font-bold text-lg text-gray-900 dark:text-white">Menu</span
-        >
+      <a
+        href="/login"
+        class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-white transition-colors"
+      >
+        Log in
+      </a>
+      <a
+        href="/signup"
+        class="flex items-center justify-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 transition-colors shadow-sm shadow-purple-500/20"
+      >
+        Sign up
+      </a>
+    </div>
+
+    <!-- Mobile User Profile (Hidden by default) -->
+    <div
+      id="mobile-user-profile"
+      class="pt-4 mt-4 border-t border-gray-100 dark:border-gray-800/50 hidden"
+    >
+      <div class="flex items-center gap-3 px-4 mb-4">
+        <img
+          id="mobile-user-avatar"
+          src=""
+          alt="User"
+          class="w-10 h-10 rounded-full border border-gray-200 dark:border-gray-700"
+        />
+        <div>
+          <div
+            id="mobile-user-name"
+            class="font-medium text-gray-900 dark:text-white"
+          >
+          </div>
+          <div
+            id="mobile-user-email"
+            class="text-xs text-gray-500 dark:text-gray-400"
+          >
+          </div>
+        </div>
       </div>
       <button
-        id="closeDrawerBtn"
-        aria-label="Close menu"
-        class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 transition-colors"
+        id="mobile-logout-btn"
+        class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
       >
         <svg
           width="20"
@@ -384,511 +432,403 @@ const navItems = [
           stroke-linecap="round"
           stroke-linejoin="round"
         >
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
         </svg>
+        Log out
       </button>
     </div>
+  </nav>
+</aside>
 
-    <!--
-    <a href="/community" class="block px-4 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-white transition-colors">
-      Community
-    </a>
-    -->
+<script is:inline>
+  (function () {
+    function initThemeToggle() {
+      const themeToggleBtn = document.getElementById("global-theme-toggle");
 
-    <!-- Drawer Nav -->
-    <nav class="flex-1 overflow-y-auto px-4 py-2 space-y-1">
-      {
-        navItems.map((item) => {
-          const isActive =
-            item.href === "/"
-              ? currentPath === "/"
-              : currentPath.startsWith(item.href);
-          return (
-            <a
-              href={item.href}
-              class={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
-                isActive
-                  ? "bg-purple-50 dark:bg-purple-900/10 text-purple-600 dark:text-purple-400"
-                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-white"
-              }`}
-            >
-              {item.label}
-            </a>
+      if (themeToggleBtn) {
+        // Remove existing listeners to prevent duplicates if any
+        const newBtn = themeToggleBtn.cloneNode(true);
+        themeToggleBtn.parentNode.replaceChild(newBtn, themeToggleBtn);
+
+        newBtn.addEventListener("click", async (e) => {
+          // Fallback for browsers that don't support View Transitions
+          if (!document.startViewTransition) {
+            document.documentElement.classList.toggle("dark");
+            localStorage.theme = document.documentElement.classList.contains(
+              "dark",
+            )
+              ? "dark"
+              : "light";
+            return;
+          }
+
+          // Get click coordinates
+          const x = e.clientX;
+          const y = e.clientY;
+
+          // Calculate radius to cover the screen
+          const endRadius = Math.hypot(
+            Math.max(x, innerWidth - x),
+            Math.max(y, innerHeight - y),
           );
-        })
-      }
 
-      <!-- Mobile Auth Links -->
-      <div
-        id="mobile-auth-links"
-        class="pt-4 mt-4 border-t border-gray-100 dark:border-gray-800/50 space-y-2 hidden"
-      >
-        <a
-          href="/login"
-          class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-white transition-colors"
-        >
-          Log in
-        </a>
-        <a
-          href="/signup"
-          class="flex items-center justify-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 transition-colors shadow-sm shadow-purple-500/20"
-        >
-          Sign up
-        </a>
-      </div>
-
-      <!-- Mobile User Profile (Hidden by default) -->
-      <div
-        id="mobile-user-profile"
-        class="pt-4 mt-4 border-t border-gray-100 dark:border-gray-800/50 hidden"
-      >
-        <div class="flex items-center gap-3 px-4 mb-4">
-          <img
-            id="mobile-user-avatar"
-            src=""
-            alt="User"
-            class="w-10 h-10 rounded-full border border-gray-200 dark:border-gray-700"
-          />
-          <div>
-            <div
-              id="mobile-user-name"
-              class="font-medium text-gray-900 dark:text-white"
-            >
-            </div>
-            <div
-              id="mobile-user-email"
-              class="text-xs text-gray-500 dark:text-gray-400"
-            >
-            </div>
-          </div>
-        </div>
-        <button
-          id="mobile-logout-btn"
-          class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-            <polyline points="16 17 21 12 16 7"></polyline>
-            <line x1="21" y1="12" x2="9" y2="12"></line>
-          </svg>
-          Log out
-        </button>
-      </div>
-    </nav>
-  </aside>
-
-  <script is:inline>
-    (function () {
-      function initThemeToggle() {
-        const themeToggleBtn = document.getElementById("global-theme-toggle");
-
-        if (themeToggleBtn) {
-          // Remove existing listeners to prevent duplicates if any
-          const newBtn = themeToggleBtn.cloneNode(true);
-          themeToggleBtn.parentNode.replaceChild(newBtn, themeToggleBtn);
-
-          newBtn.addEventListener("click", async (e) => {
-            // Fallback for browsers that don't support View Transitions
-            if (!document.startViewTransition) {
-              document.documentElement.classList.toggle("dark");
-              localStorage.theme = document.documentElement.classList.contains(
-                "dark",
-              )
-                ? "dark"
-                : "light";
-              return;
-            }
-
-            // Get click coordinates
-            const x = e.clientX;
-            const y = e.clientY;
-
-            // Calculate radius to cover the screen
-            const endRadius = Math.hypot(
-              Math.max(x, innerWidth - x),
-              Math.max(y, innerHeight - y),
-            );
-
-            // Start the transition
-            const transition = document.startViewTransition(() => {
-              document.documentElement.classList.toggle("dark");
-              localStorage.theme = document.documentElement.classList.contains(
-                "dark",
-              )
-                ? "dark"
-                : "light";
-            });
-
-            // Wait for the pseudo-elements to be created
-            await transition.ready;
-
-            // Animate the clip-path
-            const clipPath = [
-              `circle(0px at ${x}px ${y}px)`,
-              `circle(${endRadius}px at ${x}px ${y}px)`,
-            ];
-
-            document.documentElement.animate(
-              {
-                clipPath: document.documentElement.classList.contains("dark")
-                  ? [...clipPath].reverse()
-                  : clipPath,
-              },
-              {
-                duration: 500,
-                easing: "ease-in",
-                pseudoElement: document.documentElement.classList.contains(
-                  "dark",
-                )
-                  ? "::view-transition-old(root)"
-                  : "::view-transition-new(root)",
-              },
-            );
+          // Start the transition
+          const transition = document.startViewTransition(() => {
+            document.documentElement.classList.toggle("dark");
+            localStorage.theme = document.documentElement.classList.contains(
+              "dark",
+            )
+              ? "dark"
+              : "light";
           });
-        }
+
+          // Wait for the pseudo-elements to be created
+          await transition.ready;
+
+          // Animate the clip-path
+          const clipPath = [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${endRadius}px at ${x}px ${y}px)`,
+          ];
+
+          document.documentElement.animate(
+            {
+              clipPath: document.documentElement.classList.contains("dark")
+                ? [...clipPath].reverse()
+                : clipPath,
+            },
+            {
+              duration: 500,
+              easing: "ease-in",
+              pseudoElement: document.documentElement.classList.contains("dark")
+                ? "::view-transition-old(root)"
+                : "::view-transition-new(root)",
+            },
+          );
+        });
+      }
+    }
+
+    // Run on initial load
+    initThemeToggle();
+
+    // Re-run on view transitions if applicable
+    document.addEventListener("astro:page-load", initThemeToggle);
+    document.addEventListener("DOMContentLoaded", initThemeToggle);
+  })();
+</script>
+
+<script is:inline>
+  function initHeaderScripts() {
+    // Elements
+    const header = document.getElementById("site-header");
+    const drawer = document.querySelector("#drawer");
+    const backdrop = document.querySelector("#drawerBackdrop");
+    const openBtn = document.querySelector("#openDrawerBtn");
+    const closeBtn = document.querySelector("#closeDrawerBtn");
+
+    // Search elements
+    const searchTriggerBtn = document.getElementById("searchTriggerBtn");
+    const mobileSearchBtn = document.getElementById("mobileSearchBtn"); // Navbar icon
+    const mobileMenuSearchBtn = document.getElementById("mobileMenuSearchBtn"); // Drawer button
+    const searchOverlay = document.getElementById("searchOverlay");
+    const searchModal = document.getElementById("searchModal");
+    const closeSearchBtn = document.getElementById("closeSearchBtn");
+    const modalInput = document.getElementById("modal-search-input");
+
+    // Move overlay to body to avoid clipping by header transform
+    if (searchOverlay && searchOverlay.parentNode !== document.body) {
+      document.body.appendChild(searchOverlay);
+    }
+
+    function openDrawer() {
+      drawer?.classList.remove("-translate-x-full");
+      backdrop?.classList.remove("pointer-events-none", "opacity-0");
+      backdrop?.classList.add("opacity-100");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeDrawer() {
+      drawer?.classList.add("-translate-x-full");
+      backdrop?.classList.add("pointer-events-none", "opacity-0");
+      backdrop?.classList.remove("opacity-100");
+      document.body.style.overflow = "";
+    }
+
+    function openSearch() {
+      const mainContent = document.getElementById("main-header-content");
+      const fullSearch = document.getElementById("full-header-search");
+      const fullSearchInput = document.getElementById(
+        "full-header-search-input",
+      );
+
+      if (!mainContent || !fullSearch) {
+        return;
       }
 
-      // Run on initial load
-      initThemeToggle();
+      // Hide main content
+      mainContent.classList.add("opacity-0", "pointer-events-none", "scale-95");
 
-      // Re-run on view transitions if applicable
-      document.addEventListener("astro:page-load", initThemeToggle);
-      document.addEventListener("DOMContentLoaded", initThemeToggle);
-    })();
-  </script>
+      // Show search bar
+      fullSearch.classList.remove(
+        "opacity-0",
+        "pointer-events-none",
+        "scale-95",
+      );
+      fullSearch.classList.add("opacity-100", "scale-100");
 
-  <script is:inline>
-    function initHeaderScripts() {
-      // Elements
+      // Close drawer if open
+      closeDrawer();
+
+      setTimeout(() => {
+        if (fullSearchInput) {
+          fullSearchInput.focus();
+        }
+      }, 100);
+    }
+
+    function closeSearch() {
+      const mainContent = document.getElementById("main-header-content");
+      const fullSearch = document.getElementById("full-header-search");
+
+      if (!mainContent || !fullSearch) return;
+
+      // Hide search bar
+      fullSearch.classList.remove("opacity-100", "scale-100");
+      fullSearch.classList.add("opacity-0", "pointer-events-none", "scale-95");
+
+      // Show main content
+      mainContent.classList.remove(
+        "opacity-0",
+        "pointer-events-none",
+        "scale-95",
+      );
+    }
+
+    // Event Listeners (remove old ones to prevent duplicates if any)
+    // Note: In Astro, it's safer to just add them as the elements are fresh on page logic
+
+    openBtn?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openDrawer();
+    });
+
+    closeBtn?.addEventListener("click", closeDrawer);
+    backdrop?.addEventListener("click", closeDrawer);
+
+    // Search Triggers
+    searchTriggerBtn?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openSearch();
+    });
+
+    mobileSearchBtn?.addEventListener("click", (e) => {
+      openSearch();
+    });
+
+    mobileMenuSearchBtn?.addEventListener("click", (e) => {
+      openSearch();
+    });
+
+    document.addEventListener("click", (e) => {
+      const target = e.target;
+      // Close on X button click
+      if (target.closest("#closeFullSearchBtn")) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeSearch();
+      }
+
+      // Close if clicking outside header when search is open
       const header = document.getElementById("site-header");
-      const drawer = document.querySelector("#drawer");
-      const backdrop = document.querySelector("#drawerBackdrop");
-      const openBtn = document.querySelector("#openDrawerBtn");
-      const closeBtn = document.querySelector("#closeDrawerBtn");
-
-      // Search elements
-      const searchTriggerBtn = document.getElementById("searchTriggerBtn");
-      const mobileSearchBtn = document.getElementById("mobileSearchBtn"); // Navbar icon
-      const mobileMenuSearchBtn = document.getElementById(
-        "mobileMenuSearchBtn",
-      ); // Drawer button
-      const searchOverlay = document.getElementById("searchOverlay");
-      const searchModal = document.getElementById("searchModal");
-      const closeSearchBtn = document.getElementById("closeSearchBtn");
-      const modalInput = document.getElementById("modal-search-input");
-
-      // Move overlay to body to avoid clipping by header transform
-      if (searchOverlay && searchOverlay.parentNode !== document.body) {
-        document.body.appendChild(searchOverlay);
+      const fullSearch = document.getElementById("full-header-search");
+      if (
+        fullSearch &&
+        !fullSearch.classList.contains("opacity-0") &&
+        !header.contains(target)
+      ) {
+        closeSearch();
       }
+    });
 
-      function openDrawer() {
-        drawer?.classList.remove("-translate-x-full");
-        backdrop?.classList.remove("pointer-events-none", "opacity-0");
-        backdrop?.classList.add("opacity-100");
-        document.body.style.overflow = "hidden";
-      }
-
-      function closeDrawer() {
-        drawer?.classList.add("-translate-x-full");
-        backdrop?.classList.add("pointer-events-none", "opacity-0");
-        backdrop?.classList.remove("opacity-100");
-        document.body.style.overflow = "";
-      }
-
-      function openSearch() {
-        const mainContent = document.getElementById("main-header-content");
-        const fullSearch = document.getElementById("full-header-search");
-        const fullSearchInput = document.getElementById(
-          "full-header-search-input",
-        );
-
-        if (!mainContent || !fullSearch) {
-          return;
-        }
-
-        // Hide main content
-        mainContent.classList.add(
-          "opacity-0",
-          "pointer-events-none",
-          "scale-95",
-        );
-
-        // Show search bar
-        fullSearch.classList.remove(
-          "opacity-0",
-          "pointer-events-none",
-          "scale-95",
-        );
-        fullSearch.classList.add("opacity-100", "scale-100");
-
-        // Close drawer if open
+    // Close on Escape
+    const handleKeydown = (e) => {
+      if (e.key === "Escape") {
         closeDrawer();
-
-        setTimeout(() => {
-          if (fullSearchInput) {
-            fullSearchInput.focus();
-          }
-        }, 100);
+        closeSearch();
       }
 
-      function closeSearch() {
-        const mainContent = document.getElementById("main-header-content");
-        const fullSearch = document.getElementById("full-header-search");
-
-        if (!mainContent || !fullSearch) return;
-
-        // Hide search bar
-        fullSearch.classList.remove("opacity-100", "scale-100");
-        fullSearch.classList.add(
-          "opacity-0",
-          "pointer-events-none",
-          "scale-95",
-        );
-
-        // Show main content
-        mainContent.classList.remove(
-          "opacity-0",
-          "pointer-events-none",
-          "scale-95",
-        );
+      if ((e.metaKey || e.ctrlKey) && e.key === "/") {
+        e.preventDefault();
+        openSearch();
       }
+    };
 
-      // Event Listeners (remove old ones to prevent duplicates if any)
-      // Note: In Astro, it's safer to just add them as the elements are fresh on page logic
+    // Remove previous listener to avoid duplicates if re-running
+    window.removeEventListener("keydown", handleKeydown);
+    // But passing the same function reference is hard with inline closure.
+    // Better to just add it. If page reloads, window is fresh-ish or we rely on Astro cleaning.
+    // Actually, relying on cleaner cleanup is better.
+    window.addEventListener("keydown", handleKeydown);
 
-      openBtn?.addEventListener("click", (e) => {
-        e.stopPropagation();
-        openDrawer();
-      });
-
-      closeBtn?.addEventListener("click", closeDrawer);
-      backdrop?.addEventListener("click", closeDrawer);
-
-      // Search Triggers
-      searchTriggerBtn?.addEventListener("click", (e) => {
-        e.stopPropagation();
-        openSearch();
-      });
-
-      mobileSearchBtn?.addEventListener("click", (e) => {
-        openSearch();
-      });
-
-      mobileMenuSearchBtn?.addEventListener("click", (e) => {
-        openSearch();
-      });
-
-      document.addEventListener("click", (e) => {
-        const target = e.target;
-        // Close on X button click
-        if (target.closest("#closeFullSearchBtn")) {
-          e.preventDefault();
-          e.stopPropagation();
-          closeSearch();
-        }
-
-        // Close if clicking outside header when search is open
-        const header = document.getElementById("site-header");
-        const fullSearch = document.getElementById("full-header-search");
-        if (
-          fullSearch &&
-          !fullSearch.classList.contains("opacity-0") &&
-          !header.contains(target)
-        ) {
-          closeSearch();
-        }
-      });
-
-      // Close on Escape
-      const handleKeydown = (e) => {
-        if (e.key === "Escape") {
-          closeDrawer();
-          closeSearch();
-        }
-
-        if ((e.metaKey || e.ctrlKey) && e.key === "/") {
-          e.preventDefault();
-          openSearch();
-        }
-      };
-
-      // Remove previous listener to avoid duplicates if re-running
-      window.removeEventListener("keydown", handleKeydown);
-      // But passing the same function reference is hard with inline closure.
-      // Better to just add it. If page reloads, window is fresh-ish or we rely on Astro cleaning.
-      // Actually, relying on cleaner cleanup is better.
-      window.addEventListener("keydown", handleKeydown);
-
-      // Scroll Behavior for Floating Header
-      let ticking = false;
-      const onScroll = () => {
-        if (!ticking) {
-          window.requestAnimationFrame(() => {
-            const header = document.getElementById("site-header");
-            const headerContent = header?.querySelector("div"); // The inner background div
-            if (!header || !headerContent) {
-              ticking = false;
-              return;
-            }
-
-            const currentScrollY = window.scrollY;
-
-            if (currentScrollY > 20) {
-              // Scrolled State: Floating Island
-              // Only add classes if not already present to minimize DOM touches
-              if (!header.classList.contains("py-2")) {
-                header.classList.add("py-2");
-                headerContent.classList.remove("w-full");
-                headerContent.classList.add(
-                  "max-w-[1400px]",
-                  "mx-auto",
-                  "rounded-2xl",
-                  "shadow-lg",
-                  "border",
-                  "border-white/20",
-                  "dark:border-white/10",
-                  "bg-white/90",
-                  "dark:bg-slate-900/90",
-                  "backdrop-blur-xl",
-                );
-                headerContent.classList.remove(
-                  "bg-white/80",
-                  "dark:bg-slate-900/80",
-                  "border-b",
-                  "border-gray-200/30",
-                  "dark:border-gray-800/30",
-                );
-              }
-            } else {
-              // Top State: Full Width
-              if (header.classList.contains("py-2")) {
-                header.classList.remove("py-2");
-                headerContent.classList.add("w-full");
-                headerContent.classList.remove(
-                  "max-w-[1400px]",
-                  "mx-auto",
-                  "rounded-2xl",
-                  "shadow-lg",
-                  "border",
-                  "border-white/20",
-                  "dark:border-white/10",
-                  "bg-white/90",
-                  "dark:bg-slate-900/90",
-                  "backdrop-blur-xl",
-                );
-                headerContent.classList.add(
-                  "bg-white/80",
-                  "dark:bg-slate-900/80",
-                  "border-b",
-                  "border-gray-200/30",
-                  "dark:border-gray-800/30",
-                );
-              }
-            }
+    // Scroll Behavior for Floating Header
+    let ticking = false;
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const header = document.getElementById("site-header");
+          const headerContent = header?.querySelector("div"); // The inner background div
+          if (!header || !headerContent) {
             ticking = false;
-          });
-          ticking = true;
-        }
-      };
-
-      window.addEventListener("scroll", onScroll, { passive: true });
-      // Trigger once on load
-      onScroll();
-
-      // Check auth status for mobile menu
-      const checkMobileAuth = () => {
-        const userStr = localStorage.getItem("user");
-        const mobileAuthLinks = document.getElementById("mobile-auth-links");
-
-        const mobileUserProfile = document.getElementById(
-          "mobile-user-profile",
-        );
-        const mobileUserName = document.getElementById("mobile-user-name");
-        const mobileUserEmail = document.getElementById("mobile-user-email");
-        const mobileUserAvatar = document.getElementById("mobile-user-avatar");
-
-        if (userStr) {
-          // User is logged in
-          try {
-            const user = JSON.parse(userStr);
-            if (mobileAuthLinks) mobileAuthLinks.classList.add("hidden");
-
-            if (mobileUserProfile) mobileUserProfile.classList.remove("hidden");
-
-            if (mobileUserName) mobileUserName.textContent = user.name;
-            if (mobileUserEmail) mobileUserEmail.textContent = user.email;
-            if (mobileUserAvatar) {
-              if (!user.image) {
-                const safeName = user.name || "User";
-                const initial = safeName.charAt(0).toUpperCase();
-                // Simple random color generator based on name
-                const colors = [
-                  "#EF5350",
-                  "#EC407A",
-                  "#AB47BC",
-                  "#7E57C2",
-                  "#5C6BC0",
-                  "#42A5F5",
-                ];
-                const color = colors[safeName.charCodeAt(0) % colors.length];
-                const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="${color}"/><text x="50" y="50" dy=".35em" fill="white" font-family="Arial" font-size="40" text-anchor="middle">${initial}</text></svg>`;
-                const base64 = btoa(unescape(encodeURIComponent(svg)));
-                mobileUserAvatar.src = `data:image/svg+xml;base64,${base64}`;
-              } else {
-                mobileUserAvatar.src = user.image;
-              }
-            }
-          } catch (e) {
-            console.error("Error parsing user data", e);
-            localStorage.removeItem("user");
+            return;
           }
-        } else {
-          // User is logged out
-          if (mobileAuthLinks) mobileAuthLinks.classList.remove("hidden");
 
-          if (mobileUserProfile) mobileUserProfile.classList.add("hidden");
+          const currentScrollY = window.scrollY;
+
+          if (currentScrollY > 20) {
+            // Scrolled State: Floating Island
+            // Only add classes if not already present to minimize DOM touches
+            if (!header.classList.contains("py-2")) {
+              header.classList.add("py-2");
+              headerContent.classList.remove("w-full");
+              headerContent.classList.add(
+                "max-w-[1400px]",
+                "mx-auto",
+                "rounded-2xl",
+                "shadow-lg",
+                "border",
+                "border-white/20",
+                "dark:border-white/10",
+                "bg-white/90",
+                "dark:bg-slate-900/90",
+                "backdrop-blur-xl",
+              );
+              headerContent.classList.remove(
+                "bg-white/80",
+                "dark:bg-slate-900/80",
+                "border-b",
+                "border-gray-200/30",
+                "dark:border-gray-800/30",
+              );
+            }
+          } else {
+            // Top State: Full Width
+            if (header.classList.contains("py-2")) {
+              header.classList.remove("py-2");
+              headerContent.classList.add("w-full");
+              headerContent.classList.remove(
+                "max-w-[1400px]",
+                "mx-auto",
+                "rounded-2xl",
+                "shadow-lg",
+                "border",
+                "border-white/20",
+                "dark:border-white/10",
+                "bg-white/90",
+                "dark:bg-slate-900/90",
+                "backdrop-blur-xl",
+              );
+              headerContent.classList.add(
+                "bg-white/80",
+                "dark:bg-slate-900/80",
+                "border-b",
+                "border-gray-200/30",
+                "dark:border-gray-800/30",
+              );
+            }
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    // Trigger once on load
+    onScroll();
+
+    // Check auth status for mobile menu
+    const checkMobileAuth = () => {
+      const userStr = localStorage.getItem("user");
+      const mobileAuthLinks = document.getElementById("mobile-auth-links");
+
+      const mobileUserProfile = document.getElementById("mobile-user-profile");
+      const mobileUserName = document.getElementById("mobile-user-name");
+      const mobileUserEmail = document.getElementById("mobile-user-email");
+      const mobileUserAvatar = document.getElementById("mobile-user-avatar");
+
+      if (userStr) {
+        // User is logged in
+        try {
+          const user = JSON.parse(userStr);
+          if (mobileAuthLinks) mobileAuthLinks.classList.add("hidden");
+
+          if (mobileUserProfile) mobileUserProfile.classList.remove("hidden");
+
+          if (mobileUserName) mobileUserName.textContent = user.name;
+          if (mobileUserEmail) mobileUserEmail.textContent = user.email;
+          if (mobileUserAvatar) {
+            if (!user.image) {
+              const safeName = user.name || "User";
+              const initial = safeName.charAt(0).toUpperCase();
+              // Simple random color generator based on name
+              const colors = [
+                "#EF5350",
+                "#EC407A",
+                "#AB47BC",
+                "#7E57C2",
+                "#5C6BC0",
+                "#42A5F5",
+              ];
+              const color = colors[safeName.charCodeAt(0) % colors.length];
+              const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="${color}"/><text x="50" y="50" dy=".35em" fill="white" font-family="Arial" font-size="40" text-anchor="middle">${initial}</text></svg>`;
+              const base64 = btoa(unescape(encodeURIComponent(svg)));
+              mobileUserAvatar.src = `data:image/svg+xml;base64,${base64}`;
+            } else {
+              mobileUserAvatar.src = user.image;
+            }
+          }
+        } catch (e) {
+          console.error("Error parsing user data", e);
+          localStorage.removeItem("user");
         }
-      };
+      } else {
+        // User is logged out
+        if (mobileAuthLinks) mobileAuthLinks.classList.remove("hidden");
 
-      // Logout handler
-      const mobileLogoutBtn = document.getElementById("mobile-logout-btn");
-      mobileLogoutBtn?.addEventListener("click", () => {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
-        localStorage.removeItem("user");
-        window.location.href = "/";
-      });
+        if (mobileUserProfile) mobileUserProfile.classList.add("hidden");
+      }
+    };
 
-      checkMobileAuth();
-      // Re-check when drawer opens
-      openBtn?.addEventListener("click", checkMobileAuth);
-    }
+    // Logout handler
+    const mobileLogoutBtn = document.getElementById("mobile-logout-btn");
+    mobileLogoutBtn?.addEventListener("click", () => {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("user");
+      window.location.href = "/";
+    });
 
-    // Run on initial load and view transitions
-    document.addEventListener("DOMContentLoaded", initHeaderScripts);
-    document.addEventListener("astro:page-load", initHeaderScripts);
-  </script>
+    checkMobileAuth();
+    // Re-check when drawer opens
+    openBtn?.addEventListener("click", checkMobileAuth);
+  }
 
-  <style>
-    /* Ensure content isn't hidden behind fixed header */
-    :global(body) {
-      padding-top: 0; /* Reset */
-    }
+  // Run on initial load and view transitions
+  document.addEventListener("DOMContentLoaded", initHeaderScripts);
+  document.addEventListener("astro:page-load", initHeaderScripts);
+</script>
 
-    /* Add padding to main content wrapper instead if needed, 
+<style>
+  /* Ensure content isn't hidden behind fixed header */
+  :global(body) {
+    padding-top: 0; /* Reset */
+  }
+
+  /* Add padding to main content wrapper instead if needed, 
      but sticky header usually sits on top. 
      If using fixed, we need padding. 
      Here we use sticky, so it takes space in flow. */
-  </style>
-</header>
+</style>
