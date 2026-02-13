@@ -173,14 +173,13 @@ Guidelines:
         }
 
         const stream = await openai.chat.completions.create({
-            model: 'gpt-4o-mini',
+            model: 'gpt-5-mini',
             messages: [
                 { role: 'system', content: systemPrompt },
                 ...recentMessages
             ],
             stream: true,
             max_tokens: mode === 'visualize' ? 2000 : 500, // Increase token limit for complex diagrams
-            temperature: mode === 'visualize' ? 0.2 : 0.7,
             // Mode visualize now returns text (mermaid code block), so no json_object enforcement
             response_format: undefined
         });

@@ -77,14 +77,13 @@ graph TD
     C -->|No| E[Show Error]`;
 
         const stream = await openai.chat.completions.create({
-            model: 'gpt-4o-mini',
+            model: 'gpt-5-mini',
             messages: [
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: prompt }
             ],
             stream: true,
-            max_tokens: 1500,
-            temperature: 0.2, // Low temp for code correctness
+            max_tokens: 3000,
         });
 
         const readable = new ReadableStream({
