@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Maximize2, Minimize2, LayoutTemplate, Monitor, Lock, Unlock, PenTool, Code2 } from 'lucide-react';
 import { fetchWithAuth } from '../utils/api';
 import { showToast } from '../utils/toast';
-import { CodePlayground } from './editor/CodePlayground';
+import { CodeStudio } from './editor/CodeStudio';
 
 interface CodeEditorDrawerProps {
     articleSlug: string;
@@ -20,7 +20,6 @@ const CodeEditorDrawer: React.FC<CodeEditorDrawerProps> = ({ articleSlug, initia
     const [code, setCode] = useState("");
     const [language, setLanguage] = useState("javascript");
     const [title, setTitle] = useState("Untitled Snippet");
-    const titleRef = useRef("Untitled Snippet");
 
     // Split View State
     const [splitRatio, setSplitRatio] = useState(50); // Percentage
@@ -239,15 +238,6 @@ const CodeEditorDrawer: React.FC<CodeEditorDrawerProps> = ({ articleSlug, initia
                             <Code2 className="w-5 h-5 text-purple-600" />
                             <span>Code Studio</span>
                         </div>
-                        {/* Commenting it for future version */}
-                        {/* <input
-                            type="text"
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            className="text-sm font-medium text-gray-600 dark:text-gray-300 bg-transparent border-none focus:outline-none w-32 sm:w-48 transition-colors truncate focus:text-purple-600"
-                            placeholder="Untitled Snippet"
-                        />
-                        */}
                     </div>
 
                     <div className="flex items-center gap-1.5">
@@ -280,17 +270,12 @@ const CodeEditorDrawer: React.FC<CodeEditorDrawerProps> = ({ articleSlug, initia
 
                 {/* EDITOR CONTENT */}
                 <div className="flex-1 overflow-auto bg-gray-50 dark:bg-[#0d1117] relative">
-                    <div className="h-full p-4">
-                        <CodePlayground
-                            initialHtml={language === 'html' ? code : ''}
-                            initialCss={language === 'css' ? code : ''}
-                            initialJs={language === 'javascript' ? code : ''}
-                            initialCode={code}
-                            initialLanguage={language}
-                            isEditable={true}
-                            title={title}
-                        />
-                    </div>
+                    <CodeStudio
+                        code={code}
+                        language={language}
+                        title={title}
+                        hideHeader={true}
+                    />
                 </div>
             </div>
         </>

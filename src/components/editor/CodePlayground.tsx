@@ -8,7 +8,7 @@ import { rust as langRust } from '@codemirror/lang-rust';
 import { go as langGo } from '@codemirror/lang-go';
 import { autocompletion } from '@codemirror/autocomplete';
 import { githubLight, githubDark } from '@uiw/codemirror-theme-github';
-import { Play, RotateCcw, Box, Check, Loader2, GripVertical, Terminal, Eye, Trash2, Zap, ZapOff, Save, Keyboard, Sparkles, X, ChevronRight, CheckCircle2, AlertCircle, Diff as DiffIcon, ChevronDown, Monitor, BugPlay } from 'lucide-react';
+import { Play, RotateCcw, Box, Check, Loader2, GripVertical, Terminal, Eye, Trash2, Zap, ZapOff, Save, Keyboard, Sparkles, X, ChevronRight, CheckCircle2, AlertCircle, Diff as DiffIcon, ChevronDown, Monitor, BugPlay, Activity, Cpu } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
@@ -196,9 +196,28 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
     const [isDark, setIsDark] = useState(false);
     const [logs, setLogs] = useState<LogEntry[]>([]);
     const [isRunning, setIsRunning] = useState(false);
+    const [showLanguageMenu, setShowLanguageMenu] = useState(false);
     const [vimMode, setVimMode] = useState(false);
     const [showShortcuts, setShowShortcuts] = useState(false);
-    const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+    const [autoComplete, setAutoComplete] = useState(false);
+
+    // Initial load for persistence
+    useEffect(() => {
+        const savedVim = localStorage.getItem('editor_vim_mode');
+        if (savedVim !== null) setVimMode(savedVim === 'true');
+
+        const savedAuto = localStorage.getItem('editor_autocomplete');
+        if (savedAuto !== null) setAutoComplete(savedAuto === 'true');
+    }, []);
+
+    // Save persistence
+    useEffect(() => {
+        localStorage.setItem('editor_vim_mode', vimMode.toString());
+    }, [vimMode]);
+
+    useEffect(() => {
+        localStorage.setItem('editor_autocomplete', autoComplete.toString());
+    }, [autoComplete]);
 
     // Inline AI Fix State
     const [fixingErrorIndex, setFixingErrorIndex] = useState<number | null>(null); // Index of error being fixed
@@ -513,7 +532,11 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
     };
 
     const extensions = useMemo(() => {
-        const exts = [autocompletion()];
+        const exts = [];
+
+        if (autoComplete) {
+            exts.push(autocompletion());
+        }
 
         if (vimMode) {
             exts.push(vim());
@@ -533,7 +556,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
         if (activeTab === 'html') return [...exts, langHtml()];
         if (activeTab === 'css') return [...exts, langCss()];
         return [...exts, langJs()];
-    }, [mode, backendLanguage, activeTab, vimMode]);
+    }, [mode, backendLanguage, activeTab, vimMode, autoComplete]);
 
     // Effect: Highlight Active Debug Line
     useEffect(() => {
@@ -837,7 +860,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                             className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${autoRun ? 'text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20' : 'text-gray-500 hover:bg-gray-200'}`}
                             title={autoRun ? 'Auto-run enabled' : 'Auto-run disabled'}
                         >
-                            {autoRun ? <Zap size={14} fill="currentColor" /> : <ZapOff size={14} />}
+                            {autoRun ? <Activity size={14} className="animate-pulse" /> : <ZapOff size={14} />}
                             <span className="hidden sm:inline">{autoRun ? 'Auto' : 'Manual'}</span>
                         </button>
                     )}
@@ -857,6 +880,15 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                     >
                         <span className="font-bold font-mono text-xs">VIM</span>
                         <span className="hidden sm:inline">Vim</span>
+                    </button>
+
+                    <button
+                        onClick={() => setAutoComplete(!autoComplete)}
+                        className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${autoComplete ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20' : 'text-gray-500 hover:bg-gray-200'}`}
+                        title={autoComplete ? 'Auto-complete enabled' : 'Auto-complete disabled'}
+                    >
+                        <Cpu size={14} className={autoComplete ? 'text-purple-500' : ''} />
+                        <span className="hidden sm:inline">IDE Tips</span>
                     </button>
 
                     {/* Run Button Group */}
@@ -921,7 +953,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                                 lineNumbers: true,
                                 foldGutter: true,
                                 highlightActiveLine: true,
-                                autocompletion: true,
+                                autocompletion: autoComplete,
                                 bracketMatching: true,
                                 closeBrackets: true,
                             }}

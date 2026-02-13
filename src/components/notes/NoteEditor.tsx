@@ -7,6 +7,16 @@ import { fetchWithAuth } from '../../utils/api';
 import { showToast } from '../../utils/toast';
 import drwnioLib from '../../data/libraries/drwnio.json';
 import systemDesignLib from '../../data/libraries/system-design.json';
+import { NoteEditorSidebar } from './NoteEditorSidebar';
+
+const GlobalStyles = () => (
+    <style>{`
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) skewX(-15deg); }
+            100% { transform: translateX(200%) skewX(-15deg); }
+        }
+    `}</style>
+);
 
 const initialLibraryItems = [
     ...(drwnioLib.library || []),
@@ -18,6 +28,15 @@ interface NoteEditorProps {
 }
 
 export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId }) => {
+    return (
+        <>
+            <GlobalStyles />
+            <NoteEditorInner noteId={noteId} />
+        </>
+    );
+};
+
+const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
     const [title, setTitle] = useState("Untitled Note");
     const [isLoading, setIsLoading] = useState(!!noteId);
     const [isSaving, setIsSaving] = useState(false);
@@ -35,6 +54,20 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId }) => {
     const [isGeneratingAI, setIsGeneratingAI] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isDeletingNote, setIsDeletingNote] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+        return localStorage.getItem('is_sidebar_open') === 'true';
+    });
+
+    useEffect(() => {
+        localStorage.setItem('is_sidebar_open', isSidebarOpen.toString());
+    }, [isSidebarOpen]);
+
+    const [sidebarWidth, setSidebarWidth] = useState(450);
+    const [isResizing, setIsResizing] = useState(false);
+    const [selectionMessage, setSelectionMessage] = useState<string | null>(null);
+    const [selectionCoords, setSelectionCoords] = useState<{ x: number, y: number } | null>(null);
+    const [pendingKumiMessage, setPendingKumiMessage] = useState<string | null>(null);
+    const lastMousePos = useRef({ x: 0, y: 0 });
 
     // Auth State
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -44,6 +77,36 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId }) => {
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const lastSavedVersionRef = useRef(0);
     const drawingIdRef = useRef(noteId);
+
+    // Resize Logic
+    const startResizing = useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
+        setIsResizing(true);
+    }, []);
+
+    const stopResizing = useCallback(() => {
+        setIsResizing(false);
+    }, []);
+
+    const resize = useCallback((e: MouseEvent) => {
+        if (isResizing) {
+            const newWidth = window.innerWidth - e.clientX;
+            if (newWidth > 300 && newWidth < 800) {
+                setSidebarWidth(newWidth);
+            }
+        }
+    }, [isResizing]);
+
+    useEffect(() => {
+        if (isResizing) {
+            window.addEventListener('mousemove', resize);
+            window.addEventListener('mouseup', stopResizing);
+        }
+        return () => {
+            window.removeEventListener('mousemove', resize);
+            window.removeEventListener('mouseup', stopResizing);
+        };
+    }, [isResizing, resize, stopResizing]);
 
     useEffect(() => { if (drawingData?.id) drawingIdRef.current = drawingData.id; }, [drawingData?.id]);
 
@@ -196,6 +259,30 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId }) => {
     };
 
     const handleChange = useCallback((elements: any, appState: any) => {
+        // Handle selection for "Ask Kumi" - only update if actually changed
+        const selectedIds = Object.keys(appState.selectedElementIds || {});
+        if (selectedIds.length > 0) {
+            const selectedElements = elements.filter((el: any) => appState.selectedElementIds[el.id]);
+            const textElements = selectedElements.filter((el: any) => el.type === 'text' || (el.text && el.text.trim() !== ''));
+
+            if (textElements.length > 0) {
+                const combinedText = textElements.map((el: any) => el.text).join(' ');
+
+                // Stick with the last known mouse position for better reliability
+                const x = lastMousePos.current.x;
+                const y = lastMousePos.current.y - 40; // Float slightly above cursor
+
+                setSelectionMessage(prev => prev !== combinedText ? combinedText : prev);
+                setSelectionCoords(prev => (prev?.x !== x || prev?.y !== y) ? { x, y } : prev);
+            } else {
+                setSelectionMessage(prev => prev !== null ? null : prev);
+                setSelectionCoords(prev => prev !== null ? null : prev);
+            }
+        } else {
+            setSelectionMessage(prev => prev !== null ? null : prev);
+            setSelectionCoords(prev => prev !== null ? null : prev);
+        }
+
         if (isReadOnly || isAutoSavePaused) return;
         const version = getSceneVersion(elements);
         if (version === lastSavedVersionRef.current) return;
@@ -507,6 +594,28 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId }) => {
                         <span className="hidden sm:inline">AI Diagram</span>
                     </button>
                     {!isReadOnly && (
+                        <button
+                            onClick={() => {
+                                const becomingOpen = !isSidebarOpen;
+                                if (becomingOpen) {
+                                    setSidebarWidth(window.innerWidth / 2);
+                                }
+                                setIsSidebarOpen(becomingOpen);
+                            }}
+                            className={`p-1.5 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium ${isSidebarOpen ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20' : 'text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-800'}`}
+                            title="Toggle Learning Tools"
+                        >
+                            <Code className="w-4 h-4" />
+                            <span className="hidden sm:inline flex items-center gap-2">
+                                Learning Tools
+                                <span className="relative text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-full bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-purple-600 dark:text-purple-400 border border-purple-200/50 dark:border-purple-500/30 backdrop-blur-sm overflow-hidden group/beta">
+                                    <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12 animate-[shimmer_2s_infinite]" />
+                                    <span className="relative z-10">BETA</span>
+                                </span>
+                            </span>
+                        </button>
+                    )}
+                    {!isReadOnly && (
                         <>
                             <button
                                 onClick={() => setIsDeleteModalOpen(true)}
@@ -552,52 +661,107 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId }) => {
             </div>
 
             {/* Editor */}
-            <div className="flex-1 w-full h-full relative overflow-hidden">
-                {isLoading ? (
-                    <div className="flex items-center justify-center h-full">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-                    </div>
-                ) : (
-                    <Excalidraw
-                        initialData={drawingData ? {
-                            elements: drawingData.elements,
-                            appState: { ...drawingData.appState, viewBackgroundColor: "#ffffff" },
-                            scrollToContent: true,
-                            libraryItems: initialLibraryItems as any
-                        } : {
-                            libraryItems: initialLibraryItems as any
-                        }}
-                        onChange={(elements, appState) => handleChange(elements, appState)}
-                        excalidrawAPI={(api) => setExcalidrawAPI(api)}
-                        theme={document.documentElement.classList.contains('dark') ? 'dark' : 'light'}
-                        viewModeEnabled={isReadOnly}
-                        UIOptions={{
-                            tools: { image: false },
-                            canvasActions: {
-                                loadScene: false,
-                                saveToActiveFile: false,
-                                toggleTheme: true,
-                                saveAsImage: true,
-                                export: { saveFileToDisk: true }
-                            }
-                        }}
-                    >
-                        {!noteId && !isReadOnly && (
-                            <WelcomeScreen>
-                                <WelcomeScreen.Hints.MenuHint />
-                                <WelcomeScreen.Hints.ToolbarHint />
-                                <WelcomeScreen.Center>
-                                    <WelcomeScreen.Center.Heading>Sketch Your Ideas</WelcomeScreen.Center.Heading>
-                                </WelcomeScreen.Center>
-                            </WelcomeScreen>
-                        )}
-                        <MainMenu>
-                            <MainMenu.DefaultItems.ClearCanvas />
-                            <MainMenu.DefaultItems.SaveAsImage />
-                            <MainMenu.DefaultItems.Export />
-                            <MainMenu.DefaultItems.ChangeCanvasBackground />
-                        </MainMenu>
-                    </Excalidraw>
+            <div className="flex-1 w-full h-full relative overflow-hidden flex">
+                <div
+                    className="flex-1 h-full relative"
+                    onMouseMove={(e) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        lastMousePos.current = {
+                            x: e.clientX - rect.left,
+                            y: e.clientY - rect.top
+                        };
+                    }}
+                >
+                    {isLoading ? (
+                        <div className="flex items-center justify-center h-full">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+                        </div>
+                    ) : (
+                        <Excalidraw
+                            initialData={drawingData ? {
+                                elements: drawingData.elements,
+                                appState: { ...drawingData.appState, viewBackgroundColor: "#ffffff" },
+                                scrollToContent: true,
+                                libraryItems: initialLibraryItems as any
+                            } : {
+                                libraryItems: initialLibraryItems as any
+                            }}
+                            onChange={(elements, appState) => handleChange(elements, appState)}
+                            excalidrawAPI={(api) => setExcalidrawAPI(api)}
+                            theme={document.documentElement.classList.contains('dark') ? 'dark' : 'light'}
+                            viewModeEnabled={isReadOnly}
+                            UIOptions={{
+                                tools: { image: false },
+                                canvasActions: {
+                                    loadScene: false,
+                                    saveToActiveFile: false,
+                                    toggleTheme: true,
+                                    saveAsImage: true,
+                                    export: { saveFileToDisk: true }
+                                }
+                            }}
+                        >
+                            {!noteId && !isReadOnly && (
+                                <WelcomeScreen>
+                                    <WelcomeScreen.Hints.MenuHint />
+                                    <WelcomeScreen.Hints.ToolbarHint />
+                                    <WelcomeScreen.Center>
+                                        <WelcomeScreen.Center.Heading>Sketch Your Ideas</WelcomeScreen.Center.Heading>
+                                    </WelcomeScreen.Center>
+                                </WelcomeScreen>
+                            )}
+                            <MainMenu>
+                                <MainMenu.DefaultItems.ClearCanvas />
+                                <MainMenu.DefaultItems.SaveAsImage />
+                                <MainMenu.DefaultItems.Export />
+                                <MainMenu.DefaultItems.ChangeCanvasBackground />
+                            </MainMenu>
+                        </Excalidraw>
+                    )}
+
+                    {/* Ask Kumi Floating Button */}
+                    {selectionMessage && selectionCoords && (
+                        <button
+                            onClick={() => {
+                                const message = `Explain this: "${selectionMessage}"`;
+                                setPendingKumiMessage(message);
+                                setSidebarWidth(window.innerWidth / 2);
+                                setIsSidebarOpen(true);
+                                // Fallback event for when it's already open
+                                window.dispatchEvent(new CustomEvent('ask-kumi', {
+                                    detail: { message }
+                                }));
+                                setSelectionMessage(null);
+                            }}
+                            style={{
+                                left: `${selectionCoords.x}px`,
+                                top: `${selectionCoords.y}px`
+                            }}
+                            className="fixed z-[999] px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full shadow-2xl font-bold text-sm flex items-center gap-2 hover:scale-105 active:scale-95 transition-all animate-in zoom-in-50 duration-200 whitespace-nowrap"
+                        >
+                            <Sparkles className="w-4 h-4" />
+                            Analyze with AI
+                        </button>
+                    )}
+                </div>
+                {isSidebarOpen && (
+                    <>
+                        <div
+                            onMouseDown={startResizing}
+                            className={`w-0.5 hover:w-1 transition-all cursor-col-resize bg-gray-200 dark:bg-gray-800 hover:bg-purple-500/50 z-50 ${isResizing ? 'bg-purple-500/70 w-1' : ''}`}
+                        />
+                        <div
+                            style={{ width: sidebarWidth }}
+                            className="transition-[width] duration-300 ease-out"
+                        >
+                            <NoteEditorSidebar
+                                onClose={() => setIsSidebarOpen(false)}
+                                initialChatMessage={pendingKumiMessage || undefined}
+                                onMessageProcessed={() => setPendingKumiMessage(null)}
+                                isAuthenticated={isAuthenticated}
+                            />
+                        </div>
+                    </>
                 )}
             </div>
 

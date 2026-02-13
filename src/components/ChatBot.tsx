@@ -13,6 +13,9 @@ interface ChatBotProps {
     articleContext?: string;
     articleTitle?: string;
     articleId?: string;
+    isSidebar?: boolean;
+    initialMessage?: string;
+    onMessageProcessed?: () => void;
 }
 
 interface Message {
@@ -21,13 +24,21 @@ interface Message {
     mode?: string;
 }
 
-export default function ChatBot({ articleContext, articleTitle, articleId }: ChatBotProps) {
-    const [isOpen, setIsOpen] = useState(false);
+export default function ChatBot({
+    articleContext,
+    articleTitle,
+    articleId,
+    isSidebar = false,
+    initialMessage,
+    onMessageProcessed
+}: ChatBotProps) {
+    const [isOpen, setIsOpen] = useState(isSidebar);
     const [isMinimized, setIsMinimized] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
     const [messages, setMessages] = useState<Message[]>([
-        { role: 'assistant', content: `Hi! I'm your AI assistant. I can help you understand "${articleTitle || 'this article'}" better. Ask me anything!` }
+        { role: 'assistant', content: "Hi! I'm Kumi. I can help you understand this note better. Ask me anything!" }
     ]);
+
     const [input, setInput] = useState('');
     const [replyContext, setReplyContext] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -37,9 +48,11 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
     const inputRef = useRef<HTMLInputElement>(null);
     const [isPremium, setIsPremium] = useState(false); // Mock/State for Premium Feature
 
-    const scrollToBottom = () => {
+    const scrollToBottom = (instant = false) => {
         if (shouldAutoScrollRef.current) {
-            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            messagesEndRef.current?.scrollIntoView({
+                behavior: instant ? 'auto' : 'smooth'
+            });
         }
     };
 
@@ -65,6 +78,8 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
                 const parsed = JSON.parse(saved);
                 if (Array.isArray(parsed) && parsed.length > 0) {
                     setMessages(parsed);
+                    // Force an instant scroll to bottom after state update
+                    setTimeout(() => scrollToBottom(true), 50);
                 }
             } catch (e) {
                 console.warn('Failed to load chat history', e);
@@ -84,7 +99,7 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
         if (isOpen) {
             shouldAutoScrollRef.current = true;
             setTimeout(() => {
-                messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+                scrollToBottom(true); // Instant on opening sidebar
             }, 100);
         }
 
@@ -95,6 +110,20 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
         window.dispatchEvent(event);
 
     }, [isOpen, isMinimized]);
+
+    useEffect(() => {
+        const handleAskKumi = (e: any) => {
+            if (e.detail && e.detail.message) {
+                const text = e.detail.message;
+                setTimeout(() => {
+                    sendMessage(text);
+                }, 300);
+            }
+        };
+
+        window.addEventListener('ask-kumi', handleAskKumi);
+        return () => window.removeEventListener('ask-kumi', handleAskKumi);
+    }, []);
 
     useEffect(() => {
         if (isOpen && !isMinimized && inputRef.current) {
@@ -152,6 +181,14 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
     const [isOpening, setIsOpening] = useState(false); // Track opening animation (button press)
     const [isScrolling, setIsScrolling] = useState(false);
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const isInitialMount = useRef(true);
+
+    useEffect(() => {
+        if (isInitialMount.current && messages.length > 0) {
+            scrollToBottom(true);
+            isInitialMount.current = false;
+        }
+    }, [messages]);
 
     const handleOpen = () => {
         setIsOpening(true);
@@ -443,6 +480,13 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
         }
     };
 
+    useEffect(() => {
+        if (initialMessage) {
+            sendMessage(initialMessage);
+            onMessageProcessed?.();
+        }
+    }, [initialMessage]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         sendMessage(input);
@@ -501,6 +545,83 @@ export default function ChatBot({ articleContext, articleTitle, articleId }: Cha
         !isMinimized && isExpanded ? 'h-[85vh] md:w-[800px]' : '',
         !isMinimized && !isExpanded ? 'h-[50dvh] md:w-96 md:h-[600px] max-h-[85dvh]' : ''
     ].filter(Boolean).join(' ');
+
+    if (isSidebar) {
+        return (
+            <div className="flex flex-col h-full bg-white dark:bg-gray-900 overflow-hidden">
+                <div className="flex-1 flex flex-col overflow-hidden">
+                    <div
+                        ref={chatContainerRef}
+                        onScroll={handleScroll}
+                        className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-slate-900/50"
+                    >
+                        {messages.map((message, index) => (
+                            <div
+                                key={index}
+                                className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+                            >
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${message.role === 'user'
+                                    ? 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+                                    : 'bg-gradient-to-br from-purple-500 to-blue-500 text-white'
+                                    }`}>
+                                    {message.role === 'user' ? <User className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
+                                </div>
+                                <div
+                                    className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${message.role === 'user'
+                                        ? 'bg-purple-600 text-white rounded-tr-sm shadow-sm'
+                                        : 'bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 border border-gray-100 dark:border-gray-800 shadow-sm rounded-tl-sm'
+                                        }`}
+                                >
+                                    <div className={`prose prose-sm max-w-none ${message.role === 'user'
+                                        ? 'prose-invert'
+                                        : 'prose-slate dark:prose-invert prose-p:text-gray-800 dark:prose-p:text-gray-200 prose-strong:text-black dark:prose-strong:text-white'
+                                        }`}>
+                                        <ReactMarkdown
+                                            remarkPlugins={[remarkGfm]}
+                                            rehypePlugins={[rehypeHighlight]}
+                                        >
+                                            {message.content}
+                                        </ReactMarkdown>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                        {isLoading && messages[messages.length - 1]?.content === '' && (
+                            <div className="flex gap-3 animate-pulse">
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shrink-0 text-white">
+                                    <Sparkles className="w-4 h-4" />
+                                </div>
+                                <div className="bg-white dark:bg-slate-800 px-4 py-3 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                                    <span className="text-sm font-medium text-gray-500">Kumi is thinking...</span>
+                                </div>
+                            </div>
+                        )}
+                        <div ref={messagesEndRef} />
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="p-4 bg-white dark:bg-slate-900 border-t border-gray-50 dark:border-gray-800/50">
+                        <div className="relative flex items-center gap-2">
+                            <input
+                                ref={inputRef}
+                                type="text"
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                placeholder="Ask Kumi a question..."
+                                className="flex-1 pl-4 pr-12 py-3 bg-gray-50 dark:bg-slate-800/50 text-gray-900 dark:text-white rounded-xl border border-gray-100 dark:border-gray-700 focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500/50 transition-all text-sm"
+                            />
+                            <button
+                                type="submit"
+                                disabled={!input.trim() || isLoading}
+                                className="absolute right-2 p-1.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:shadow-lg hover:scale-105 active:scale-95 transition-all"
+                            >
+                                <Send className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <>
