@@ -179,7 +179,7 @@ Guidelines:
                 ...recentMessages
             ],
             stream: true,
-            max_tokens: mode === 'visualize' ? 2000 : 500, // Increase token limit for complex diagrams
+            // max_tokens: mode === 'visualize' ? 2000 : 500, // Increase token limit for complex diagrams
             // Mode visualize now returns text (mermaid code block), so no json_object enforcement
             response_format: undefined
         });

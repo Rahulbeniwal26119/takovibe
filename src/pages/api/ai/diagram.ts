@@ -83,7 +83,7 @@ graph TD
                 { role: 'user', content: prompt }
             ],
             stream: true,
-            max_tokens: 3000,
+            // max_tokens: 3000,
         });
 
         const readable = new ReadableStream({
