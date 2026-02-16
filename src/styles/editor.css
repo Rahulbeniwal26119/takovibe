@@ -301,3 +301,41 @@ code.hljs {
   border-color: #e2e8f0 !important;
   color: #334155 !important;
 }
+
+/* Responsive Tables for Editor */
+.ProseMirror table {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 1.5rem 0;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(229, 231, 235, 0.2);
+  font-size: 0.875rem;
+}
+
+.ProseMirror table th,
+.ProseMirror table td {
+  min-width: 160px;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(229, 231, 235, 1);
+  text-align: left;
+}
+
+.dark .ProseMirror table th,
+.dark .ProseMirror table td {
+  border-bottom-color: rgba(75, 85, 99, 0.2);
+}
+
+.ProseMirror table th {
+  background-color: rgba(249, 250, 251, 1);
+  font-weight: 700;
+  text-align: left;
+}
+
+.dark .ProseMirror table th {
+  background-color: rgba(31, 41, 55, 0.5);
+}

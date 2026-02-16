@@ -681,21 +681,19 @@ const breadcrumbStructuredData = {
                                     sidebarContainers.forEach(container => {
                                         if (container) {
                                             container.innerHTML = `
-                                            <div class="p-4 rounded-xl bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/10 dark:to-orange-900/10 border border-yellow-100 dark:border-yellow-800/30 text-left">
-                                                    <div class="flex items-center gap-2 mb-2">
-                                                        <span class="text-lg">☕</span>
-                                                        <h5 class="text-xs font-bold text-yellow-800 dark:text-yellow-500 uppercase tracking-widest">
-                                                            Support
-                                                        </h5>
+                                                <div class="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800/20 group/support transition-all hover:shadow-md">
+                                                    <div class="flex items-center gap-3 mb-2.5">
+                                                        <div class="text-xl">☕</div>
+                                                        <h5 class="text-[10px] font-black text-amber-800 dark:text-amber-200 uppercase tracking-widest">Support</h5>
                                                     </div>
-                                                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-3 leading-relaxed">
-                                                        Enjoying the read? Support helps keep the tutorials coming!
+                                                    <p class="text-[10px] text-amber-900/70 dark:text-amber-200/50 leading-tight mb-4">
+                                                        Enjoying the read? Help keep the tutorials coming!
                                                     </p>
                                                     <a
                                                         href="${supportUrl}"
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        class="block w-full py-2 px-3 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold text-xs text-center rounded-lg shadow-sm hover:shadow-md transition-all transform hover:-translate-y-0.5"
+                                                        class="block w-full py-2 bg-amber-400 hover:bg-amber-500 text-amber-950 text-[11px] font-bold rounded-lg text-center shadow-sm transition-all active:scale-95"
                                                     >
                                                         Buy Author a Coffee
                                                     </a>
@@ -752,80 +750,63 @@ const breadcrumbStructuredData = {
                     <!-- Footer (Moved outside for full width) -->
 
 
-                <aside class="hidden xl:block w-72 flex-shrink-0 sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto custom-scrollbar text-left">
+                <aside class="hidden xl:block w-80 flex-shrink-0 sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto custom-scrollbar text-left px-1">
                     {
                         post.data.series ? (
-                            <!-- Series Navigation -->
-                            <div
-                                id="series-sidebar"
-                                class="pl-6 border-l border-gray-100 dark:border-gray-800"
-                            >
-                                <!-- Series Header -->
-                                <div class="mb-10">
-                                    <div class="flex items-center gap-2 mb-3">
-                                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white shadow-md shrink-0">
-                                            <span class="text-lg">📚</span>
-                                        </div>
-                                        <h5 class="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">
-                                            Series
-                                        </h5>
-                                    </div>
-                                    <h3 class="text-lg font-bold text-gray-900 dark:text-white leading-tight mb-2 overflow-hidden">
-                                        {post.data.series}
-                                    </h3>
-                                    <a
-                                        href={`/series/${post.data.series.toLowerCase().replace(/\s+/g, "-")}`}
-                                        class="text-xs text-purple-600 dark:text-purple-400 hover:underline flex items-center gap-1 font-medium"
-                                    >
-                                        View Series Page
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                                        </svg>
-                                    </a>
-                                </div>
+                            <div id="series-sidebar" class="space-y-6">
+                                <!-- Support Card (Revenue Focus - TOP LEVEL) -->
+                                <div id="support-sidebar-container" class="hidden"></div>
 
-                                <!-- Articles List -->
-                                <div class="mb-10">
-                                    <h5 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 border-b border-gray-50 dark:border-gray-800/50 pb-2">
-                                        Series Path
-                                    </h5>
-                                    <div id="series-articles-list" class="flex flex-col">
-                                        <!-- Loading state -->
-                                        <div class="flex items-center justify-center py-10">
-                                            <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
+                                <!-- Series Identity & Tools Hub -->
+                                <div class="relative group rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-900 dark:to-slate-900 border border-gray-200 dark:border-white/5 overflow-hidden shadow-sm">
+                                     <div class="p-4 pb-3">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <span class="text-[9px] font-black uppercase tracking-[0.2em] text-purple-600 dark:text-purple-400">Series Context</span>
+                                            <div class="flex h-1.5 w-1.5 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span><span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-purple-500"></span></div>
                                         </div>
-                                    </div>
-                                </div>
+                                        <h3 class="text-sm font-bold text-gray-900 dark:text-white leading-tight mb-4">
+                                            {post.data.series}
+                                        </h3>
+                                        <a
+                                            href={`/series/${post.data.series.toLowerCase().replace(/\s+/g, "-")}`}
+                                            class="inline-flex items-center gap-1.5 text-[10px] font-bold text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 transition-colors uppercase tracking-wider"
+                                        >
+                                            Full Series Overview
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                            </svg>
+                                        </a>
+                                     </div>
 
-                                <!-- Quick Tools -->
-                                <div class="pt-10 border-t border-gray-100 dark:border-gray-800">
-                                    <h5 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-5">
-                                        Quick Tools
-                                    </h5>
-                                    <div class="grid grid-cols-2 gap-3">
+                                     <!-- Integrated Smart Toolbar -->
+                                     <div class="grid grid-cols-2 border-t border-gray-200 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02]">
                                         <button
                                             id="kumi-promo-card-series"
-                                            class="kumi-promo-trigger flex flex-col items-center gap-2 p-3 rounded-xl bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800/30 hover:shadow-md transition-all cursor-pointer text-center group active:scale-95"
+                                            class="kumi-promo-trigger group flex items-center justify-center gap-2 py-2.5 px-3 border-r border-gray-200 dark:border-white/5 hover:bg-purple-500/[0.05] transition-all active:scale-95"
                                         >
-                                            <div class="w-8 h-8 rounded-lg bg-purple-500 text-white flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                                                <span class="text-sm">🤖</span>
-                                            </div>
-                                            <span class="text-[11px] font-bold text-gray-900 dark:text-white leading-tight">Ask Kumi</span>
+                                            <span class="text-xs group-hover:scale-110 transition-transform">🤖</span>
+                                            <span class="text-[10px] font-black text-gray-600 dark:text-gray-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 uppercase tracking-widest">Ask Kumi</span>
                                         </button>
 
                                         <button
                                             id="notes-promo-card-series"
-                                            class="notes-promo-trigger flex flex-col items-center gap-2 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/30 hover:shadow-md transition-all cursor-pointer text-center group active:scale-95"
+                                            class="notes-promo-trigger group flex items-center justify-center gap-2 py-2.5 px-3 hover:bg-blue-500/[0.05] transition-all active:scale-95"
                                         >
-                                            <div class="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                                                <span class="text-sm">✏️</span>
-                                            </div>
-                                            <span class="text-[11px] font-bold text-gray-900 dark:text-white leading-tight">LLD Notes</span>
+                                            <span class="text-xs group-hover:scale-110 transition-transform">✏️</span>
+                                            <span class="text-[10px] font-black text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 uppercase tracking-widest">LLD Notes</span>
                                         </button>
-                                    </div>
+                                     </div>
+                                </div>
 
-                                    <!-- Support Card -->
-                                    <div id="support-sidebar-container" class="hidden mt-8"></div>
+                                <!-- Series Timeline (Clean & Vertical) -->
+                                <div class="pt-2">
+                                    <h5 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                        <span class="w-1 h-1 rounded-full bg-purple-500"></span>
+                                        Learning Path
+                                    </h5>
+                                    <div id="series-articles-list" class="flex flex-col">
+                                        <!-- Dynamic Content -->
+                                    </div>
                                 </div>
                             </div>
                         ) : (
@@ -1022,21 +1003,138 @@ const breadcrumbStructuredData = {
         margin-bottom: 0.75em;
     }
 
-    /* Custom Scrollbar for Sidebar */
+    /* Responsive Tables */
+    .mdx-content table,
+    .prose table {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin: 2.5rem 0;
+        border-radius: 0.75rem;
+        border: 1px solid rgba(229, 231, 235, 0.1);
+        font-size: 0.9375rem;
+    }
+
+    /* Prevent table from stretching the whole page */
+    .mdx-content, .prose {
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+    }
+
+    .mdx-content table th,
+    .prose table th {
+        background-color: rgba(249, 250, 251, 1);
+        color: #374151;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        padding: 1rem 1.25rem;
+        border-bottom: 2px solid rgba(229, 231, 235, 1);
+        text-align: left;
+        white-space: nowrap;
+    }
+
+    /* Table Scrollbar Styling */
+    .mdx-content table::-webkit-scrollbar,
+    .prose table::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .mdx-content table::-webkit-scrollbar-track,
+    .prose table::-webkit-scrollbar-track {
+        background: rgba(229, 231, 235, 0.1);
+        border-radius: 3px;
+    }
+
+    .mdx-content table::-webkit-scrollbar-thumb,
+    .prose table::-webkit-scrollbar-thumb {
+        background: rgba(156, 163, 175, 0.5);
+        border-radius: 3px;
+        transition: background 0.2s;
+    }
+
+    .mdx-content table::-webkit-scrollbar-thumb:hover,
+    .prose table::-webkit-scrollbar-thumb:hover {
+        background: rgba(139, 92, 246, 0.5);
+    }
+
+    .dark .mdx-content table th,
+    .dark .prose table th {
+        background-color: rgba(31, 41, 55, 0.5);
+        color: #e5e7eb;
+        border-bottom-color: rgba(75, 85, 99, 0.5);
+    }
+
+    .mdx-content table td,
+    .prose table td {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid rgba(229, 231, 235, 1);
+        color: #4b5563;
+        line-height: 1.5;
+        min-width: 160px;
+    }
+
+    .dark .mdx-content table td,
+    .dark .prose table td {
+        color: #9ca3af;
+        border-bottom-color: rgba(75, 85, 99, 0.2);
+    }
+
+    .mdx-content table tr:last-child td,
+    .prose table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .mdx-content table tr:hover td,
+    .prose table tr:hover td {
+        background-color: rgba(243, 244, 246, 0.5);
+    }
+
+    .dark .mdx-content table tr:hover td,
+    .dark .prose table tr:hover td {
+        background-color: rgba(255, 255, 255, 0.02);
+    }
+
     .custom-scrollbar::-webkit-scrollbar,
-    aside .sticky::-webkit-scrollbar {
-        width: 4px;
+    aside::-webkit-scrollbar,
+    #series-articles-list::-webkit-scrollbar {
+        width: 3px;
     }
 
     .custom-scrollbar::-webkit-scrollbar-track,
-    aside .sticky::-webkit-scrollbar-track {
+    aside::-webkit-scrollbar-track,
+    #series-articles-list::-webkit-scrollbar-track {
         background: transparent;
     }
 
     .custom-scrollbar::-webkit-scrollbar-thumb,
-    aside .sticky::-webkit-scrollbar-thumb {
-        background-color: rgba(156, 163, 175, 0.5);
-        border-radius: 2px;
+    aside::-webkit-scrollbar-thumb,
+    #series-articles-list::-webkit-scrollbar-thumb {
+        background-color: transparent; /* Invisible by default */
+        border-radius: 10px;
+    }
+
+    aside:hover::-webkit-scrollbar-thumb,
+    #series-articles-list:hover::-webkit-scrollbar-thumb {
+        background-color: rgba(139, 92, 246, 0.3); /* Subtle purple on hover */
+    }
+
+    #series-articles-list {
+        max-height: 380px;
+        overflow-y: auto;
+        overflow-x: hidden; /* Fix horizontal scroll bloat */
+        padding-right: 12px;
+        scrollbar-width: none; /* Firefox: Hide by default */
+        -ms-overflow-style: none; /* IE/Edge */
+    }
+
+    #series-articles-list:hover {
+        scrollbar-width: thin; /* Show on hover in Firefox */
     }
 
     /* Ensure sticky works properly */

@@ -18,7 +18,7 @@ if (!slug) {
     no_header={true}
 >
     <div id="editor-container" class="min-h-screen w-full">
-        <EditPostLoader client:load slug={slug} />
+        <EditPostLoader client:only="react" slug={slug} />
     </div>
 </Layout>
 

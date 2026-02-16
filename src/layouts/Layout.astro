@@ -11,7 +11,6 @@ interface Props {
     title: string;
     description?: string;
     image?: string;
-    image?: string;
     type?: "website" | "article" | "profile";
     tags?: string[];
     author?: string;
@@ -400,15 +399,15 @@ const structuredData = {
         );
     }
 
-    /* Invisible Scrollbar (User Preference) */
-    html {
-        scrollbar-width: none; /* Firefox */
-        -ms-overflow-style: none; /* IE and Edge */
+    /* Invisible Scrollbar (User Preference) - Removed to show scrollability */
+    /* html {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
     }
 
     ::-webkit-scrollbar {
-        display: none; /* Chrome, Safari and Opera */
-    }
+        display: none;
+    } */
 
     /* Smooth transitions */
     * {
