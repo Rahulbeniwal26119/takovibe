@@ -3,6 +3,7 @@ export const prerender = true;
 import Layout from "../layouts/Layout.astro";
 import ParticlesBackground from "../components/ParticlesBackground.astro";
 import VisualExecutionShowcase from "../components/home/VisualExecutionShowcase.astro";
+import ResumeVibeShowcase from "../components/home/ResumeVibeShowcase.astro";
 import SketchNotesShowcase from "../components/home/SketchNotesShowcase.astro";
 
 // API configuration
@@ -145,7 +146,7 @@ try {
             </h1>
 
             <p class="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed animate-fade-in-up animation-delay-400">
-              Transform how you learn. Chat with AI tutors, draw mental models, run code snippets, and view diffs—all while you read.
+              Transform how you learn. Chat with AI tutors, draw mental models, run code snippets, and view diffs, all while you read.
             </p>
 
             <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center animate-fade-in-up animation-delay-600">
@@ -319,6 +320,9 @@ try {
 
     <!-- 1. Visual Execution (Debugger) Showcase -->
     <VisualExecutionShowcase />
+
+    <!-- 1.5 ResumeVibe Showcase -->
+    <ResumeVibeShowcase />
 
     <!-- 2. AI Code Fix Showcase -->
     <section class="py-20 sm:py-24 relative overflow-hidden bg-[#0B1120] text-white">
@@ -535,7 +539,7 @@ try {
                       <span class="bg-gradient-to-r from-purple-600 via-pink-500 to-red-500 bg-clip-text text-transparent">Interact with it.</span>
                    </h2>
                    <p class="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
-                      Don't just scan words. <span class="text-gray-900 dark:text-white font-semibold">Select text</span> to unlock a powerful toolkit. Annotate thoughts, visualize complex logic, or ask AI to simplify hard concepts—without breaking your flow.
+                      Don't just scan words. <span class="text-gray-900 dark:text-white font-semibold">Select text</span> to unlock a powerful toolkit. Annotate thoughts, visualize complex logic, or ask AI to simplify hard concepts, without breaking your flow.
                    </p>
                 </div>
 
