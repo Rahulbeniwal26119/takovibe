@@ -126,6 +126,7 @@ interface CodePlaygroundProps {
     isEditable?: boolean;
     title?: string;
     saveStatus?: 'saved' | 'saving';
+    onDelete?: () => void;
 }
 
 const SUPPORTED_LANGUAGES = [
@@ -159,7 +160,8 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
     onSave,
     isEditable = true,
     title = 'Code Playground',
-    saveStatus = 'saved'
+    saveStatus = 'saved',
+    onDelete
 }) => {
     // Default code templates
     const DEFAULT_CODE: Record<string, string> = {

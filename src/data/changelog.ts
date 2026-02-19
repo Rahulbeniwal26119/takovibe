@@ -27,6 +27,26 @@ export interface ChangeLogEntry {
 
 export const changelogData: ChangeLogEntry[] = [
     {
+        "date": "2026-02-19",
+        "version": "Improvement",
+        "title": "Editor Polish & Image Uploads",
+        "description": "Significant improvements to the image upload and editor interaction flow.",
+        "changes": [
+            {
+                "type": "new",
+                "text": "Direct Image Upload: Added support for direct file uploads within the editor body."
+            },
+            {
+                "type": "fix",
+                "text": "Cursor Trapping Resolved: Fixed issues where inserting images, videos, code blocks, or playgrounds would trap the cursor. A new line is now automatically added."
+            },
+            {
+                "type": "fix",
+                "text": "Code Block Shortcuts: Typing ```lang now correctly converts the block and adds a trailing newline for a smoother coding experience."
+            }
+        ]
+    },
+    {
         "date": "2026-02-11",
         "version": "Feature Release",
         "title": "Interactive Sketch Notes Promotion",

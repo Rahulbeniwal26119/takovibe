@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef, useLayoutEffect } from 'react';
 import { useEditor, EditorContent, BubbleMenu, FloatingMenu, ReactNodeViewRenderer } from '@tiptap/react';
+import { InputRule } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Table from '@tiptap/extension-table';
 import TableRow from '@tiptap/extension-table-row';
@@ -118,7 +119,94 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
 
     const [showSettings, setShowSettings] = useState(false);
     const [showShortcuts, setShowShortcuts] = useState(false);
-    const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+    const [uploadError, setUploadError] = useState<string | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        // Prevent default behavior to avoid refresh
+        e.preventDefault();
+
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        setUploadError(null);
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const uploadResponse = await fetch("/api/upload-image", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (!uploadResponse.ok) {
+                const errorData = await uploadResponse.json().catch(() => ({}));
+                throw new Error(errorData.error || "Failed to upload image");
+            }
+
+            const data = await uploadResponse.json();
+            // Force URL update
+            setFrontmatter(prev => ({ ...prev, image: data.url }));
+        } catch (error: any) {
+            console.error("Error uploading image:", error);
+            setUploadError(error.message || "Failed to upload image");
+            setSaveError("Failed to upload image");
+        } finally {
+            setIsUploading(false);
+            // Reset the input value so the same file can be selected again if needed
+            e.target.value = '';
+        }
+    };
+
+    const [isBodyUploading, setIsBodyUploading] = useState(false);
+    const editorBodyImageInputRef = useRef<HTMLInputElement>(null);
+
+    const handleEditorBodyImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        // Prevent default behavior
+        e.preventDefault();
+
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsBodyUploading(true);
+        // Optional: could show a toast or loading state here
+
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const uploadResponse = await fetch("/api/upload-image", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (!uploadResponse.ok) {
+                const errorData = await uploadResponse.json().catch(() => ({}));
+                throw new Error(errorData.error || "Failed to upload image");
+            }
+
+            const data = await uploadResponse.json();
+
+            // Insert image into editor with a new line
+            if (editor) {
+                editor.chain().focus().insertContent([
+                    { type: 'image', attrs: { src: data.url } },
+                    { type: 'paragraph' }
+                ]).run();
+            }
+
+        } catch (error: any) {
+            console.error("Error uploading image:", error);
+            // reused uploadError state or alert? better to just alert for now or use a transient error state
+            alert(error.message || "Failed to upload image");
+        } finally {
+            setIsBodyUploading(false);
+            e.target.value = '';
+        }
+    };
+
     const titleRef = useRef<HTMLTextAreaElement>(null);
     const descriptionRef = useRef<HTMLTextAreaElement>(null);
 
@@ -253,6 +341,36 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                 return false;
                             }
                         }
+                    },
+                    addInputRules() {
+                        return [
+                            new InputRule({
+                                find: /^```([a-z]*)?\s$/,
+                                handler: ({ state, range, match }) => {
+                                    const { tr, schema } = state;
+                                    const language = match[1];
+
+                                    // 1. Delete the entered text (the shortcut)
+                                    tr.delete(range.from, range.to);
+
+                                    // 2. Convert the current block (now empty) to a CodeBlock
+                                    tr.setBlockType(range.from, range.from, schema.nodes.codeBlock, { language });
+
+                                    // 3. Insert a new Paragraph AFTER the CodeBlock
+                                    // We resolve the position in the transformed document
+                                    const $pos = tr.doc.resolve(range.from);
+                                    const insertPos = $pos.after();
+
+                                    const paragraph = schema.nodes.paragraph.create();
+                                    tr.insert(insertPos, paragraph);
+
+                                    // 4. Move cursor to the new paragraph
+                                    const resolvePos = tr.doc.resolve(insertPos + 1);
+                                    const TextSelection = state.selection.constructor as any;
+                                    tr.setSelection(new TextSelection(resolvePos));
+                                }
+                            })
+                        ];
                     },
                 })
                 .configure({ lowlight }),
@@ -585,10 +703,8 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
     };
 
     const addCodePlayground = () => {
-        editor.chain().focus().insertContent([
-            { type: 'codePlayground' },
-            { type: 'paragraph' }
-        ]).run();
+        editor.chain().focus().insertContent({ type: 'codePlayground' }).run();
+        editor.chain().focus().insertContent({ type: 'paragraph' }).run();
         setIsMenuOpen(false);
     };
 
@@ -628,10 +744,8 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
     };
 
     const addCodeBlock = () => {
-        editor.chain().focus().insertContent([
-            { type: 'codeBlock' },
-            { type: 'paragraph' }
-        ]).run();
+        editor.chain().focus().insertContent({ type: 'codeBlock' }).run();
+        editor.chain().focus().insertContent({ type: 'paragraph' }).run();
         setIsMenuOpen(false);
     };
 
@@ -652,7 +766,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                 { type: 'paragraph' }
             ]).run();
         } else if (mediaInput.type === 'video') {
-            editor.chain().focus().setYoutubeVideo({ src: mediaInput.url }).run();
+            editor.chain().focus().setYoutubeVideo({ src: mediaInput.url }).insertContent({ type: 'paragraph' }).run();
         } else if (mediaInput.type === 'link') {
             // If text is selected, link it. If not, insert url.
             if (editor.state.selection.empty) {
@@ -667,13 +781,19 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
     };
 
     const openMediaInput = (type: 'image' | 'video' | 'link') => {
+        if (type === 'image') {
+            setIsMenuOpen(false);
+            editorBodyImageInputRef.current?.click();
+            return;
+        }
+
         // Pre-fill link if editing existing link
         let initialUrl = '';
         if (type === 'link' && editor.isActive('link')) {
             initialUrl = editor.getAttributes('link').href;
         }
         setMediaInput({ type, url: initialUrl });
-        setIsMenuOpen(type === 'image' || type === 'video'); // Keep menu open for floating items, but maybe close for bubbles?
+        setIsMenuOpen(type === 'video'); // Image is handled above, Link uses bubble menu
     };
 
     const MenuButton = ({ onClick, icon: Icon, label }: any) => (
@@ -855,7 +975,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                 }}
                                 className="flex items-center"
                             >
-                                <div className="relative flex items-center">
+                                <div className={`relative flex items-center ${isBodyUploading ? 'hidden' : ''}`}>
                                     <button
                                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                                         className={`p-1 rounded-full border transition-all duration-200 ${isMenuOpen
@@ -1262,19 +1382,90 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
 
                         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Cover Image */}
-                            <div className="md:col-span-2 space-y-2">
+                            {/* Cover Image Section */}
+                            <div className="md:col-span-2 space-y-3">
                                 <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Cover Image</label>
-                                <div className="flex gap-4">
-                                    <input
-                                        type="text"
-                                        value={frontmatter.image}
-                                        onChange={(e) => setFrontmatter({ ...frontmatter, image: e.target.value })}
-                                        className="flex-1 bg-transparent border-b border-gray-200 dark:border-gray-700 py-1 text-sm focus:border-purple-500 outline-none transition-colors dark:text-white"
-                                        placeholder="https://..."
-                                    />
-                                    {frontmatter.image && (
-                                        <div className="w-16 h-10 rounded overflow-hidden bg-gray-100">
-                                            <img src={frontmatter.image} alt="Preview" className="w-full h-full object-cover" />
+
+                                <div className="w-full">
+                                    {isUploading ? (
+                                        <div className="w-full h-48 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-800 animate-pulse">
+                                            <Loader2 className="w-8 h-8 text-purple-500 animate-spin mb-2" />
+                                            <span className="text-sm font-medium text-gray-500">Uploading image...</span>
+                                        </div>
+                                    ) : frontmatter.image ? (
+                                        <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2">
+                                            {/* Preview Banner */}
+                                            <div className="relative w-full h-48 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm group bg-gray-100 dark:bg-gray-800">
+                                                <img
+                                                    src={frontmatter.image}
+                                                    alt="Cover Preview"
+                                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                                />
+
+                                                {/* Actions Overlay */}
+                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-[2px]">
+                                                    <label className="cursor-pointer px-4 py-2 bg-white/90 hover:bg-white text-gray-900 rounded-lg text-sm font-medium transition-all shadow-lg flex items-center gap-2 transform hover:scale-105 active:scale-95">
+                                                        <ImageIcon className="w-4 h-4" />
+                                                        Change
+                                                        <input
+                                                            type="file"
+                                                            className="hidden"
+                                                            accept="image/*"
+                                                            onChange={handleImageUpload}
+                                                        />
+                                                    </label>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            setFrontmatter({ ...frontmatter, image: '' });
+                                                        }}
+                                                        className="px-4 py-2 bg-red-500/90 hover:bg-red-500 text-white rounded-lg text-sm font-medium transition-all shadow-lg flex items-center gap-2 transform hover:scale-105 active:scale-95"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                        Remove
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* URL Display */}
+                                            <div className="relative group">
+                                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <LinkIcon className="h-4 w-4 text-gray-400" />
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    value={frontmatter.image}
+                                                    readOnly
+                                                    onClick={(e) => e.currentTarget.select()}
+                                                    className="w-full pl-10 pr-3 py-2 text-xs font-mono text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none transition-all cursor-text text-ellipsis"
+                                                />
+                                                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <span className="text-[10px] text-gray-400">Click to copy</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-purple-500 dark:hover:border-purple-500 transition-all group">
+                                            <div className="flex flex-col items-center justify-center pt-5 pb-6 text-gray-400 group-hover:text-purple-600 transition-colors">
+                                                <div className="p-4 rounded-full bg-white dark:bg-gray-700 shadow-sm mb-3 group-hover:shadow-md group-hover:scale-110 transition-all">
+                                                    <Cloud className="w-8 h-8" />
+                                                </div>
+                                                <p className="mb-2 text-sm font-medium"><span className="font-bold">Click to upload</span> or drag and drop</p>
+                                                <p className="text-xs opacity-70">SVG, PNG, JPG or GIF (max. 5MB)</p>
+                                            </div>
+                                            <input
+                                                type="file"
+                                                className="hidden"
+                                                accept="image/*"
+                                                onChange={handleImageUpload}
+                                            />
+                                        </label>
+                                    )}
+
+                                    {uploadError && (
+                                        <div className="mt-3 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 text-xs text-red-600 dark:text-red-400 font-medium flex items-center gap-2 animate-in fade-in slide-in-from-top-1">
+                                            <AlertCircle className="w-4 h-4 shrink-0" />
+                                            <span>{uploadError}</span>
                                         </div>
                                     )}
                                 </div>
@@ -1366,6 +1557,25 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                     </div>
                 </div>
             )}
+            {/* Hidden Input for Editor Body Image Upload */}
+            <input
+                type="file"
+                ref={editorBodyImageInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleEditorBodyImageUpload}
+            />
+
+            {/* Body Image Upload Loading State */}
+            {isBodyUploading && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-slate-800 px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 border border-gray-100 dark:border-gray-700">
+                        <Loader2 className="w-5 h-5 text-purple-600 animate-spin" />
+                        <span className="font-medium text-gray-700 dark:text-gray-200">Uploading image...</span>
+                    </div>
+                </div>
+            )}
+
             {/* Shortcuts Modal */}
             {showShortcuts && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">

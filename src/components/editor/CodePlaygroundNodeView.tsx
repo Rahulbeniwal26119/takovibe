@@ -5,7 +5,7 @@ import { Loader2 } from 'lucide-react';
 // Lazy load the heavy CodePlayground component
 const CodePlayground = React.lazy(() => import('./CodePlayground').then(module => ({ default: module.CodePlayground })));
 
-const CodePlaygroundNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, extension, editor }) => {
+const CodePlaygroundNodeView: React.FC<NodeViewProps> = ({ node, updateAttributes, extension, editor, deleteNode }) => {
     const isEditable = editor.isEditable;
 
     const handleSave = (html: string, css: string, js: string) => {
@@ -34,6 +34,7 @@ const CodePlaygroundNodeView: React.FC<NodeViewProps> = ({ node, updateAttribute
                     onSave={handleSave}
                     isEditable={isEditable}
                     title="Code Playground"
+                    onDelete={deleteNode}
                 />
             </Suspense>
         </NodeViewWrapper>
