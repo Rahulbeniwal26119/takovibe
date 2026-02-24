@@ -142,6 +142,8 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                     const appState = typeof data.app_state === 'string' ? JSON.parse(data.app_state) : data.app_state || {};
                     if (appState.collaborators) delete appState.collaborators;
 
+                    const filesObj = typeof data.files === 'string' ? JSON.parse(data.files) : data.files || {};
+
                     const loadedTitle = data.title || appState.name || "Untitled Note";
 
                     setTitle(loadedTitle);
@@ -149,6 +151,7 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                     setDrawingData({
                         elements,
                         appState,
+                        files: filesObj,
                         is_public: data.is_public,
                         id: data.id,
                         owner: data.owner
@@ -181,6 +184,35 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
         fetchNote();
     }, [noteId]);
 
+    // When Excalidraw API becomes available and we have saved files (stored as IK URLs),
+    // re-hydrate them as base64 so Excalidraw can actually render the images.
+    useEffect(() => {
+        if (!excalidrawAPI || !drawingData?.files) return;
+        const savedFiles: Record<string, any> = drawingData.files;
+        const httpFiles = Object.entries(savedFiles).filter(
+            ([, f]) => f.dataURL && f.dataURL.startsWith('http')
+        );
+        if (httpFiles.length === 0) return;
+
+        httpFiles.forEach(async ([fileId, fileData]) => {
+            try {
+                const res = await fetch(fileData.dataURL);
+                const blob = await res.blob();
+                const base64 = await new Promise<string>((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result as string);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+                excalidrawAPI.addFiles([{ ...fileData, id: fileId, dataURL: base64 as any }]);
+                // Also keep the IK URL in ref so future saves don't re-store base64
+                ikUrlsRef.current[fileId] = fileData.dataURL;
+            } catch (err) {
+                console.error(`Failed to hydrate file ${fileId}:`, err);
+            }
+        });
+    }, [excalidrawAPI, drawingData?.id]);
+
     const getErrorMessage = (err: any) => {
         if (typeof err === 'string') return err;
         if (err.non_field_errors) return err.non_field_errors.join(', ');
@@ -190,9 +222,18 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
 
     const isSavingRef = useRef(false);
     const pendingSaveRef = useRef(false);
+    // Maps excalidrawFileId -> ImageKit URL so we persist the CDN URL (not base64) in the DB
+    const ikUrlsRef = useRef<Record<string, string>>({});
 
-    const executeSave = async (elements: any, appState: any) => {
+    const executeSave = async (elements: any, appState: any, files: any) => {
         if (isReadOnly || isSavingRef.current) return;
+
+        // Skip if the scene hasn't changed since the last save
+        const currentVersion = getSceneVersion(elements);
+        if (currentVersion === lastSavedVersionRef.current) {
+            setHasUnsavedChanges(false);
+            return;
+        }
 
         isSavingRef.current = true;
         setIsSaving(true);
@@ -200,10 +241,31 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
 
         try {
             const updatedAppState = { ...appState, name: titleRef.current };
+
+            // Build the backend files payload:
+            // 1. Always include everything from ikUrlsRef (files we uploaded this session)
+            // 2. Supplement with any http URL files Excalidraw still has (loaded from DB)
+            // This way Excalidraw clearing 'saved' files from memory doesn't lose URLs.
+            const excFiles: Record<string, any> = files || {};
+            const sanitizedFiles: Record<string, any> = {};
+
+            // Primary source: known IK URLs
+            for (const [id, ikUrl] of Object.entries(ikUrlsRef.current)) {
+                sanitizedFiles[id] = { ...(excFiles[id] || {}), dataURL: ikUrl };
+            }
+
+            // Secondary: any http file Excalidraw still has that we missed
+            for (const [id, fileData] of Object.entries<any>(excFiles)) {
+                if (!sanitizedFiles[id] && fileData.dataURL && fileData.dataURL.startsWith('http')) {
+                    sanitizedFiles[id] = fileData;
+                }
+            }
+
             const payload = {
                 title: titleRef.current,
                 elements: [...elements],
                 app_state: updatedAppState,
+                files: sanitizedFiles,
                 is_public: isPublic
             };
 
@@ -253,12 +315,59 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
             isSavingRef.current = false;
             setIsSaving(false);
             if (pendingSaveRef.current && !isReadOnly && excalidrawAPI) {
-                executeSave(excalidrawAPI.getSceneElements(), excalidrawAPI.getAppState());
+                executeSave(excalidrawAPI.getSceneElements(), excalidrawAPI.getAppState(), excalidrawAPI.getFiles());
             }
         }
     };
 
-    const handleChange = useCallback((elements: any, appState: any) => {
+    const uploadingFilesRef = useRef(new Set<string>());
+
+    const uploadImageToImageKit = async (fileData: any, fileId: string) => {
+        try {
+            const formData = new FormData();
+            const res = await fetch(fileData.dataURL);
+            const blob = await res.blob();
+            formData.append("file", blob, `${fileId}.png`);
+            const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+            if (storedUser.email) formData.append("email", storedUser.email);
+
+            const token = localStorage.getItem('access_token');
+            const authPrefix = token ? 'Token' : 'JWT';
+
+            const uploadRes = await fetch('/api/upload-image', {
+                method: 'POST',
+                headers: { 'Authorization': token ? `${authPrefix} ${token}` : '' },
+                body: formData
+            });
+
+            if (uploadRes.ok) {
+                const data = await uploadRes.json();
+                return data.url;
+            }
+        } catch (err) {
+            console.error("ImageKit Upload Error:", err);
+        }
+        return null;
+    };
+
+    const handleChange = useCallback((elements: any, appState: any, files: any) => {
+        // Background ImageKit Uploader (for images inserted via Excalidraw's native path)
+        if (files) {
+            for (const [fileId, fileData] of Object.entries<any>(files)) {
+                // Only process base64 images not yet queued for upload
+                if (fileData.dataURL && fileData.dataURL.startsWith('data:image/') && fileData.dataURL.length > 1000) {
+                    if (!uploadingFilesRef.current.has(fileId) && !ikUrlsRef.current[fileId]) {
+                        uploadingFilesRef.current.add(fileId);
+                        uploadImageToImageKit(fileData, fileId).then(url => {
+                            if (url) {
+                                // Store the IK URL so sanitizeFiles includes it in the next save
+                                ikUrlsRef.current[fileId] = url;
+                            }
+                        });
+                    }
+                }
+            }
+        }
         // Handle selection for "Ask Kumi" - only update if actually changed
         const selectedIds = Object.keys(appState.selectedElementIds || {});
         if (selectedIds.length > 0) {
@@ -290,13 +399,21 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
         setHasUnsavedChanges(true);
         if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
         saveTimeoutRef.current = setTimeout(() => {
-            executeSave(elements, appState);
-        }, 2000);
-    }, [isAutoSavePaused, isReadOnly, isPublic]);
+            // Use live getFiles() so any images added via addFiles() after onChange
+            // are included — never use the stale snapshot from the closure.
+            if (excalidrawAPI) {
+                executeSave(
+                    excalidrawAPI.getSceneElements(),
+                    excalidrawAPI.getAppState(),
+                    excalidrawAPI.getFiles()
+                );
+            }
+        }, 3000);
+    }, [isAutoSavePaused, isReadOnly, isPublic, excalidrawAPI]);
 
     const handleManualSave = () => {
         if (!isReadOnly && excalidrawAPI) {
-            executeSave(excalidrawAPI.getSceneElements(), excalidrawAPI.getAppState());
+            executeSave(excalidrawAPI.getSceneElements(), excalidrawAPI.getAppState(), excalidrawAPI.getFiles());
         }
     };
 
@@ -548,12 +665,101 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
         }
     };
 
+    const handleImageUpload = async (file: File) => {
+        if (!file || !excalidrawAPI) return;
+
+        try {
+            // 1. Read file as base64 so Excalidraw can render it immediately
+            const base64DataURL = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result as string);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+
+            const fileId = Math.random().toString(36).substr(2, 9);
+
+            // 2. Upload to ImageKit in parallel (we have the base64 already, so Excalidraw won't freeze)
+            const formData = new FormData();
+            formData.append("file", file);
+            const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+            if (storedUser.email) formData.append("email", storedUser.email);
+
+            const token = localStorage.getItem('access_token');
+            const uploadRes = await fetch('/api/upload-image', {
+                method: 'POST',
+                headers: { 'Authorization': token ? `Token ${token}` : '' },
+                body: formData
+            });
+
+            if (uploadRes.ok) {
+                const data = await uploadRes.json();
+
+                // 3. Register the IK URL for this fileId so sanitizeFiles picks it up
+                ikUrlsRef.current[fileId] = data.url;
+
+                // 4. addFiles with BASE64 — Excalidraw requires this to actually render the image
+                excalidrawAPI.addFiles([{
+                    id: fileId,
+                    dataURL: base64DataURL as any,
+                    mimeType: file.type,
+                    created: Date.now(),
+                    lastRetrieved: Date.now()
+                }]);
+
+                const appState = excalidrawAPI.getAppState();
+                const cx = -appState.scrollX + (appState.width / 2) / appState.zoom.value;
+                const cy = -appState.scrollY + (appState.height / 2) / appState.zoom.value;
+
+                const imgElement = {
+                    type: "image",
+                    version: 1,
+                    versionNonce: Math.floor(Math.random() * 1000000000),
+                    isDeleted: false,
+                    id: "img_" + fileId,
+                    fillStyle: "hachure",
+                    strokeWidth: 1,
+                    strokeStyle: "solid",
+                    roughness: 1,
+                    opacity: 100,
+                    angle: 0,
+                    x: cx - 150,
+                    y: cy - 150,
+                    strokeColor: "transparent",
+                    backgroundColor: "transparent",
+                    width: 300,
+                    height: 300,
+                    seed: Math.floor(Math.random() * 1000000000),
+                    groupIds: [],
+                    strokeSharpness: "round",
+                    boundElements: [],
+                    updated: Date.now(),
+                    link: null,
+                    locked: false,
+                    fileId: fileId,
+                    status: "saved"
+                };
+
+                excalidrawAPI.updateScene({
+                    elements: [...excalidrawAPI.getSceneElements(), imgElement],
+                    commitToHistory: true
+                });
+                setHasUnsavedChanges(true);
+            } else {
+                showToast("Failed to upload image to server", "error");
+            }
+        } catch (err) {
+            console.error("Custom Image Insert Failed:", err);
+            showToast("Failed to upload image", "error");
+        }
+    };
+
     return (
         <div className="h-screen flex flex-col bg-white dark:bg-gray-900">
             {/* Header */}
-            <div className="h-14 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-4 bg-gray-50 dark:bg-gray-900 z-10 transition-colors">
-                <div className="flex items-center gap-4">
-                    <a href={isAuthenticated ? "/notes#private" : "/notes#public"} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors">
+            <div className="h-14 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-2 sm:px-4 bg-gray-50 dark:bg-gray-900 z-10 transition-colors">
+                <div className="flex items-center gap-1 sm:gap-4 min-w-0">
+                    <a href={isAuthenticated ? "/notes#private" : "/notes#public"} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors flex-shrink-0">
                         <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                     </a>
                     <input
@@ -566,15 +772,15 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                             if (!isReadOnly) setHasUnsavedChanges(true);
                         }}
                         onBlur={() => handleManualSave()}
-                        className={`bg-transparent text-gray-900 dark:text-white font-semibold text-lg focus:outline-none border-b border-transparent transition-colors ${isReadOnly ? 'opacity-80 cursor-default' : 'hover:border-gray-300 focus:border-purple-500'}`}
+                        className={`bg-transparent text-gray-900 dark:text-white font-semibold text-base sm:text-lg focus:outline-none border-b border-transparent transition-colors min-w-0 w-28 sm:w-auto ${isReadOnly ? 'opacity-80 cursor-default' : 'hover:border-gray-300 focus:border-purple-500'}`}
                     />
                     {isReadOnly && (
-                        <span className="px-2 py-0.5 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs rounded font-medium flex items-center gap-1">
-                            <Lock className="w-3 h-3" /> Read Only
+                        <span className="px-2 py-0.5 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs rounded font-medium flex items-center gap-1 flex-shrink-0">
+                            <Lock className="w-3 h-3" /> <span className="hidden sm:inline">Read Only</span>
                         </span>
                     )}
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1 sm:gap-4 flex-shrink-0">
                     <button
                         onClick={() => {
                             if (!isAuthenticated) {
@@ -587,50 +793,68 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                             }
                             setIsMermaidModalOpen(true);
                         }}
-                        className="p-1.5 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-800"
+                        className="p-1 min-[925px]:p-1.5 rounded-lg transition-colors flex items-center gap-1 min-[925px]:gap-2 text-sm font-medium text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-800"
                         title="Text to Diagram"
                     >
-                        <Wand2 className="w-4 h-4" />
-                        <span className="hidden sm:inline">AI Diagram</span>
+                        <Wand2 className="w-3.5 h-3.5 min-[925px]:w-4 min-[925px]:h-4" />
+                        <span className="hidden min-[925px]:inline">AI Diagram</span>
                     </button>
-                    {!isReadOnly && (
-                        <button
-                            onClick={() => {
-                                const becomingOpen = !isSidebarOpen;
-                                if (becomingOpen) {
-                                    setSidebarWidth(window.innerWidth / 2);
-                                }
-                                setIsSidebarOpen(becomingOpen);
-                            }}
-                            className={`p-1.5 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium ${isSidebarOpen ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20' : 'text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-800'}`}
-                            title="Toggle Learning Tools"
-                        >
-                            <Code className="w-4 h-4" />
-                            <span className="hidden sm:inline flex items-center gap-2">
-                                Learning Tools
-                                <span className="relative text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-full bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-purple-600 dark:text-purple-400 border border-purple-200/50 dark:border-purple-500/30 backdrop-blur-sm overflow-hidden group/beta">
-                                    <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12 animate-[shimmer_2s_infinite]" />
-                                    <span className="relative z-10">BETA</span>
-                                </span>
-                            </span>
-                        </button>
-                    )}
+
                     {!isReadOnly && (
                         <>
+                            {/* Custom File Input for bypassing Excalidraw Image Tool */}
+                            <input
+                                type="file"
+                                id="custom-image-upload-standalone"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                        await handleImageUpload(file);
+                                    }
+                                    e.target.value = '';
+                                }}
+                            />
+
+                            {/* VISIBLE UPLOAD IMAGE BUTTON */}
                             <button
-                                onClick={() => setIsDeleteModalOpen(true)}
-                                className="p-1.5 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 dark:text-gray-400 dark:hover:bg-red-900/20 dark:hover:text-red-400"
-                                title="Delete Note"
+                                onClick={() => document.getElementById('custom-image-upload-standalone')?.click()}
+                                className="p-1 min-[925px]:p-1.5 min-[925px]:px-3 min-[925px]:mr-2 text-xs font-semibold rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-900/40 dark:text-indigo-300 dark:hover:bg-indigo-900/60 transition-colors flex items-center gap-1 min-[925px]:gap-2 border border-indigo-200 dark:border-indigo-700/50 shadow-sm"
+                                title="Insert Custom Image"
                             >
-                                <Trash2 className="w-4 h-4" />
+                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                                <span className="hidden min-[925px]:inline">Upload Image</span>
                             </button>
+
+                            <button
+                                onClick={() => {
+                                    const becomingOpen = !isSidebarOpen;
+                                    if (becomingOpen) {
+                                        setSidebarWidth(window.innerWidth / 2);
+                                    }
+                                    setIsSidebarOpen(becomingOpen);
+                                }}
+                                className={`p-1 min-[925px]:p-1.5 rounded-lg transition-colors flex items-center gap-1 min-[925px]:gap-2 text-sm font-medium ${isSidebarOpen ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20' : 'text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-800'}`}
+                                title="Toggle Learning Tools"
+                            >
+                                <Code className="w-3.5 h-3.5 min-[925px]:w-4 min-[925px]:h-4" />
+                                <span className="hidden min-[925px]:inline flex items-center gap-2">
+                                    Learning Tools
+                                    <span className="relative text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-full bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-purple-600 dark:text-purple-400 border border-purple-200/50 dark:border-purple-500/30 backdrop-blur-sm">
+                                        BETA
+                                    </span>
+                                </span>
+                            </button>
+
+
                             <button
                                 onClick={togglePublic}
-                                className={`p-1.5 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium ${isPublic ? 'text-green-600 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40' : 'text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-800'}`}
+                                className={`p-1 min-[925px]:p-1.5 rounded-lg transition-colors flex items-center gap-1 min-[925px]:gap-2 text-sm font-medium ${isPublic ? 'text-green-600 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40' : 'text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-800'}`}
                                 title={isPublic ? "Make Private" : "Make Public"}
                             >
-                                {isPublic ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-                                <span className="hidden sm:inline">{isPublic ? "Public" : "Private"}</span>
+                                {isPublic ? <Unlock className="w-3.5 h-3.5 min-[925px]:w-4 min-[925px]:h-4" /> : <Lock className="w-3.5 h-3.5 min-[925px]:w-4 min-[925px]:h-4" />}
+                                <span className="hidden min-[925px]:inline">{isPublic ? "Public" : "Private"}</span>
                             </button>
                         </>
                     )}
@@ -681,17 +905,18 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                             initialData={drawingData ? {
                                 elements: drawingData.elements,
                                 appState: { ...drawingData.appState, viewBackgroundColor: "#ffffff" },
+                                files: drawingData.files,
                                 scrollToContent: true,
                                 libraryItems: initialLibraryItems as any
                             } : {
                                 libraryItems: initialLibraryItems as any
                             }}
-                            onChange={(elements, appState) => handleChange(elements, appState)}
+                            onChange={(elements, appState, files) => handleChange(elements, appState, files)}
                             excalidrawAPI={(api) => setExcalidrawAPI(api)}
                             theme={document.documentElement.classList.contains('dark') ? 'dark' : 'light'}
                             viewModeEnabled={isReadOnly}
                             UIOptions={{
-                                tools: { image: false },
+                                tools: { image: true },
                                 canvasActions: {
                                     loadScene: false,
                                     saveToActiveFile: false,
@@ -699,6 +924,25 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                                     saveAsImage: true,
                                     export: { saveFileToDisk: true }
                                 }
+                            }}
+                            onPaste={(data, event) => {
+                                // Intercept pasted image files
+                                const items = event?.clipboardData?.items;
+                                if (items && excalidrawAPI && !isReadOnly) {
+                                    for (let i = 0; i < items.length; i++) {
+                                        if (items[i].type.indexOf('image/') !== -1) {
+                                            const file = items[i].getAsFile();
+                                            if (file) {
+                                                handleImageUpload(file);
+                                                return false;
+                                            }
+                                        }
+                                    }
+                                }
+                                return true;
+                            }}
+                            generateIdForFile={async (file) => {
+                                return Math.random().toString(36).substring(2) + Date.now().toString(36);
                             }}
                         >
                             {!noteId && !isReadOnly && (
@@ -766,135 +1010,139 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
             </div>
 
             {/* Mermaid Input Modal */}
-            {isMermaidModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="w-full max-w-2xl bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden flex flex-col max-h-[90vh]">
+            {
+                isMermaidModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+                        <div className="w-full max-w-2xl bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden flex flex-col max-h-[90vh]">
 
-                        {/* Modal Header */}
-                        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
-                            <div>
-                                <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                                    <Wand2 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                                    Text to Diagram
-                                </h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                    Turn Mermaid syntax into editable diagrams instantly.
-                                </p>
-                            </div>
-                            <button
-                                onClick={() => setIsMermaidModalOpen(false)}
-                                className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-full transition-colors"
-                            >
-                                <X className="w-5 h-5 text-gray-500" />
-                            </button>
-                        </div>
-
-                        {/* Modal Body */}
-                        <div className="p-6 flex-1 overflow-y-auto flex flex-col gap-6">
-
-                            {/* AI Section */}
-                            <div className="bg-purple-50 dark:bg-purple-900/10 p-4 rounded-xl border border-purple-100 dark:border-purple-900/30">
-                                <label className="block text-sm font-bold text-purple-900 dark:text-purple-100 mb-2 flex items-center gap-2">
-                                    <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                                    Describe your diagram
-                                </label>
-                                <div className="flex gap-2">
-                                    <input
-                                        type="text"
-                                        value={aiPrompt}
-                                        onChange={(e) => setAiPrompt(e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && handleAIGenerate()}
-                                        placeholder="e.g. 'Login flow with 2FA' or 'Sequence diagram for payment processing'"
-                                        className="flex-1 px-4 py-2.5 rounded-lg border border-purple-200 dark:border-purple-800 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-purple-500 outline-none transition-all"
-                                    />
-                                    <button
-                                        onClick={handleAIGenerate}
-                                        disabled={isGeneratingAI || !aiPrompt.trim()}
-                                        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors flex items-center gap-2"
-                                    >
-                                        {isGeneratingAI ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
-                                        <span className="hidden sm:inline">Magic</span>
-                                    </button>
+                            {/* Modal Header */}
+                            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+                                <div>
+                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                        <Wand2 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                                        Text to Diagram
+                                    </h3>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                        Turn Mermaid syntax into editable diagrams instantly.
+                                    </p>
                                 </div>
-                            </div>
-
-                            {/* Manual Code Section */}
-                            <div className="flex-1 flex flex-col gap-2">
-                                <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 flex items-center gap-2">
-                                    <Code className="w-3 h-3" /> Mermaid Code
-                                </label>
-                                <textarea
-                                    value={mermaidCode}
-                                    onChange={(e) => setMermaidCode(e.target.value)}
-                                    placeholder="Enter Mermaid syntax here..."
-                                    className="flex-1 min-h-[200px] p-4 font-mono text-sm bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none resize-none text-gray-900 dark:text-gray-100"
-                                />
-
-                                <div className="flex items-center justify-between text-xs text-gray-400">
-                                    <p>Supports Flowcharts, Sequence Diagrams, Class Diagrams, etc.</p>
-                                    <a href="https://mermaid.js.org/intro/" target="_blank" rel="noreferrer" className="hover:text-purple-500 underline">
-                                        Mermaid Syntax Guide
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Modal Footer */}
-                        <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 flex justify-end gap-3">
-                            <button
-                                onClick={() => setIsMermaidModalOpen(false)}
-                                className="px-5 py-2.5 rounded-xl font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleMermaidInsert}
-                                className="px-5 py-2.5 rounded-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 hover:-translate-y-0.5 transition-all flex items-center gap-2"
-                            >
-                                <Play className="w-4 h-4 fill-current" />
-                                Generate Diagram
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-            {/* Delete Confirmation Modal */}
-            {isDeleteModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in text-left">
-                    <div className="bg-white dark:bg-[#1e1e1e] rounded-2xl shadow-2xl max-w-sm w-full border border-red-200 dark:border-red-900/30 overflow-hidden animate-in zoom-in-95 duration-200">
-                        <div className="p-6">
-                            <div className="flex flex-col items-center text-center mb-6">
-                                <div className="w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4">
-                                    <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-500" />
-                                </div>
-                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                                    Delete Note?
-                                </h3>
-                                <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-                                    This action cannot be undone. This note will be permanently removed.
-                                </p>
-                            </div>
-
-                            <div className="flex gap-3">
                                 <button
-                                    onClick={() => setIsDeleteModalOpen(false)}
-                                    className="flex-1 py-2.5 px-4 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 rounded-xl font-semibold transition-colors"
+                                    onClick={() => setIsMermaidModalOpen(false)}
+                                    className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-full transition-colors"
+                                >
+                                    <X className="w-5 h-5 text-gray-500" />
+                                </button>
+                            </div>
+
+                            {/* Modal Body */}
+                            <div className="p-6 flex-1 overflow-y-auto flex flex-col gap-6">
+
+                                {/* AI Section */}
+                                <div className="bg-purple-50 dark:bg-purple-900/10 p-4 rounded-xl border border-purple-100 dark:border-purple-900/30">
+                                    <label className="block text-sm font-bold text-purple-900 dark:text-purple-100 mb-2 flex items-center gap-2">
+                                        <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                                        Describe your diagram
+                                    </label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={aiPrompt}
+                                            onChange={(e) => setAiPrompt(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleAIGenerate()}
+                                            placeholder="e.g. 'Login flow with 2FA' or 'Sequence diagram for payment processing'"
+                                            className="flex-1 px-4 py-2.5 rounded-lg border border-purple-200 dark:border-purple-800 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-purple-500 outline-none transition-all"
+                                        />
+                                        <button
+                                            onClick={handleAIGenerate}
+                                            disabled={isGeneratingAI || !aiPrompt.trim()}
+                                            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                                        >
+                                            {isGeneratingAI ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+                                            <span className="hidden sm:inline">Magic</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Manual Code Section */}
+                                <div className="flex-1 flex flex-col gap-2">
+                                    <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 flex items-center gap-2">
+                                        <Code className="w-3 h-3" /> Mermaid Code
+                                    </label>
+                                    <textarea
+                                        value={mermaidCode}
+                                        onChange={(e) => setMermaidCode(e.target.value)}
+                                        placeholder="Enter Mermaid syntax here..."
+                                        className="flex-1 min-h-[200px] p-4 font-mono text-sm bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none resize-none text-gray-900 dark:text-gray-100"
+                                    />
+
+                                    <div className="flex items-center justify-between text-xs text-gray-400">
+                                        <p>Supports Flowcharts, Sequence Diagrams, Class Diagrams, etc.</p>
+                                        <a href="https://mermaid.js.org/intro/" target="_blank" rel="noreferrer" className="hover:text-purple-500 underline">
+                                            Mermaid Syntax Guide
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Modal Footer */}
+                            <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 flex justify-end gap-3">
+                                <button
+                                    onClick={() => setIsMermaidModalOpen(false)}
+                                    className="px-5 py-2.5 rounded-xl font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
-                                    onClick={handleDeleteNote}
-                                    disabled={isDeletingNote}
-                                    className="flex-1 py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-lg shadow-red-500/20"
+                                    onClick={handleMermaidInsert}
+                                    className="px-5 py-2.5 rounded-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 hover:-translate-y-0.5 transition-all flex items-center gap-2"
                                 >
-                                    {isDeletingNote ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                                    Delete
+                                    <Play className="w-4 h-4 fill-current" />
+                                    Generate Diagram
                                 </button>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
+            {/* Delete Confirmation Modal */}
+            {
+                isDeleteModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in text-left">
+                        <div className="bg-white dark:bg-[#1e1e1e] rounded-2xl shadow-2xl max-w-sm w-full border border-red-200 dark:border-red-900/30 overflow-hidden animate-in zoom-in-95 duration-200">
+                            <div className="p-6">
+                                <div className="flex flex-col items-center text-center mb-6">
+                                    <div className="w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4">
+                                        <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-500" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                                        Delete Note?
+                                    </h3>
+                                    <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                                        This action cannot be undone. This note will be permanently removed.
+                                    </p>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => setIsDeleteModalOpen(false)}
+                                        className="flex-1 py-2.5 px-4 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 rounded-xl font-semibold transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleDeleteNote}
+                                        disabled={isDeletingNote}
+                                        className="flex-1 py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-lg shadow-red-500/20"
+                                    >
+                                        {isDeletingNote ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
         </div>
     );
 };

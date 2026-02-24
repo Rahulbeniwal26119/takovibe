@@ -27,6 +27,23 @@ export interface ChangeLogEntry {
 
 export const changelogData: ChangeLogEntry[] = [
     {
+        "date": "2026-02-23",
+        "version": "Feature Release",
+        "title": "Image Upload in Sketch Notes",
+        "description": "You can now insert images directly into your Sketch Notes and Standalone Notes. Images are automatically uploaded to a CDN and persisted across sessions.",
+        "changes": [
+            {
+                "type": "new",
+                "text": "Image Upload Button: A dedicated 'Upload Image' button in the Sketch Notes header lets you insert any image file directly onto the canvas."
+            },
+            {
+                "type": "new",
+                "text": "Paste to Canvas: Paste images directly from your clipboard — they're uploaded to ImageKit and rendered on the canvas automatically."
+            },
+        ]
+    },
+
+    {
         "date": "2026-02-19",
         "version": "Improvement",
         "title": "Editor Polish & Image Uploads",

@@ -14,7 +14,19 @@ export const POST: APIRoute = async ({ request }) => {
             });
         }
 
-        const result = await uploadImage(file);
+        const authHeader = request.headers.get('Authorization');
+        if (!authHeader) {
+            return new Response(JSON.stringify({ error: "Unauthorized: Please log in to upload images." }), { status: 401 });
+        }
+
+        // Use the username passed directly from the frontend (from localStorage user object)
+        // This avoids an extra round-trip to the backend just for the folder name.
+        const rawEmail = formData.get("email") as string | null;
+        const emailPrefix = rawEmail?.split('@')[0]?.trim() || 'shared';
+
+        const result = await uploadImage(file, {
+            folder: `/users/${emailPrefix}/`,
+        });
 
         return new Response(JSON.stringify(result), {
             status: 200,

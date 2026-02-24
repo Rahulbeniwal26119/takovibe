@@ -22,6 +22,7 @@ interface ExcalidrawDrawerProps {
 interface DrawingData {
     elements: any[];
     appState: any;
+    files?: any;
     is_public: boolean;
     id?: string;
 }
@@ -102,6 +103,7 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                                 const fullDrawing = await detailRes.json();
                                 const elements = typeof fullDrawing.elements === 'string' ? JSON.parse(fullDrawing.elements) : fullDrawing.elements || [];
                                 const appState = typeof fullDrawing.app_state === 'string' ? JSON.parse(fullDrawing.app_state) : fullDrawing.app_state || {};
+                                const files = typeof fullDrawing.files === 'string' ? JSON.parse(fullDrawing.files) : fullDrawing.files || {};
 
                                 const loadedTitle = fullDrawing.title || appState.name || "Untitled";
                                 setTitle(loadedTitle);
@@ -110,6 +112,7 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                                 setDrawingData({
                                     elements: elements,
                                     appState: appState,
+                                    files: files,
                                     is_public: fullDrawing.is_public,
                                     id: fullDrawing.id
                                 });
@@ -128,6 +131,33 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
         };
         checkDrawing();
     }, [articleSlug]);
+
+    // Re-hydrate saved ImageKit URLs as base64 so Excalidraw can render them on reload
+    useEffect(() => {
+        if (!excalidrawAPI || !drawingData?.files) return;
+        const savedFiles: Record<string, any> = drawingData.files;
+        const httpFiles = Object.entries(savedFiles).filter(
+            ([, f]) => f.dataURL && f.dataURL.startsWith('http')
+        );
+        if (httpFiles.length === 0) return;
+
+        httpFiles.forEach(async ([fileId, fileData]) => {
+            try {
+                const res = await fetch(fileData.dataURL);
+                const blob = await res.blob();
+                const base64 = await new Promise<string>((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result as string);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+                excalidrawAPI.addFiles([{ ...fileData, id: fileId, dataURL: base64 as any }]);
+                ikUrlsRef.current[fileId] = fileData.dataURL;
+            } catch (err) {
+                console.error(`Failed to hydrate file ${fileId}:`, err);
+            }
+        });
+    }, [excalidrawAPI, drawingData?.id]);
 
     // Handle Events (Open, Close, Add to Sketch)
     useEffect(() => {
@@ -305,7 +335,7 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
     }, [excalidrawAPI, initialRequest]);
 
     // Save Data Logic
-    const saveData = useCallback(async (elements: any, appState: any, isPublicState: boolean) => {
+    const saveData = useCallback(async (elements: any, appState: any, files: any, isPublicState: boolean) => {
         const currentVersion = getSceneVersion(elements);
         if (currentVersion === lastSavedVersionRef.current) {
             setHasUnsavedChanges(false);
@@ -318,10 +348,29 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
 
         setIsSaving(true);
         try {
+            // Build the backend files payload:
+            // 1. Always include everything from ikUrlsRef (files uploaded this session)
+            // 2. Supplement with any http URL files Excalidraw still has (loaded from DB)
+            const excFiles: Record<string, any> = files || {};
+            const sanitizedFiles: Record<string, any> = {};
+
+            // Primary source: known IK URLs
+            for (const [id, ikUrl] of Object.entries(ikUrlsRef.current)) {
+                sanitizedFiles[id] = { ...(excFiles[id] || {}), dataURL: ikUrl };
+            }
+
+            // Secondary: any http file Excalidraw still has that we missed
+            for (const [id, fileData] of Object.entries<any>(excFiles)) {
+                if (!sanitizedFiles[id] && fileData.dataURL && fileData.dataURL.startsWith('http')) {
+                    sanitizedFiles[id] = fileData;
+                }
+            }
+
             const payload = {
                 blog_slug: articleSlug,
                 elements: [...elements],
                 app_state: updatedAppState,
+                files: sanitizedFiles,
                 is_public: isPublicState,
                 title: titleRef.current
             };
@@ -350,23 +399,81 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
         }
     }, [articleSlug, drawingData?.id, title]);
 
-    const handleChange = useCallback((elements: any, appState: any) => {
+    const uploadingFilesRef = useRef(new Set<string>());
+    // Maps excalidrawFileId -> ImageKit URL so we persist the CDN URL (not base64) in DB
+    const ikUrlsRef = useRef<Record<string, string>>({});
+
+    const uploadImageToImageKit = async (fileData: any, fileId: string) => {
+        try {
+            const formData = new FormData();
+            const res = await fetch(fileData.dataURL);
+            const blob = await res.blob();
+            formData.append("file", blob, `${fileId}.png`);
+            const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+            if (storedUser.email) formData.append("email", storedUser.email);
+
+            const token = localStorage.getItem('access_token');
+            const authPrefix = token ? 'Token' : 'JWT';
+
+            const uploadRes = await fetch('/api/upload-image', {
+                method: 'POST',
+                headers: { 'Authorization': token ? `${authPrefix} ${token}` : '' },
+                body: formData
+            });
+
+            if (uploadRes.ok) {
+                const data = await uploadRes.json();
+                return data.url;
+            }
+        } catch (err) {
+            console.error("ImageKit Upload Error:", err);
+        }
+        return null;
+    };
+
+    const handleChange = useCallback((elements: any, appState: any, files: any) => {
         const currentVersion = getSceneVersion(elements);
+
+        // Background ImageKit Uploader (for images inserted via Excalidraw's native path)
+        if (files) {
+            for (const [fileId, fileData] of Object.entries<any>(files)) {
+                // Only process base64 images not yet queued for upload
+                if (fileData.dataURL && fileData.dataURL.startsWith('data:image/') && fileData.dataURL.length > 1000) {
+                    if (!uploadingFilesRef.current.has(fileId) && !ikUrlsRef.current[fileId]) {
+                        uploadingFilesRef.current.add(fileId);
+                        uploadImageToImageKit(fileData, fileId).then(url => {
+                            if (url) {
+                                // Store the IK URL so sanitizeFiles includes it in the next save
+                                ikUrlsRef.current[fileId] = url;
+                            }
+                        });
+                    }
+                }
+            }
+        }
+
         if (currentVersion === lastSavedVersionRef.current) return;
 
         setHasUnsavedChanges(true);
         if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
         saveTimeoutRef.current = setTimeout(() => {
-            saveData(elements, appState, isPublic);
-        }, 2000);
-    }, [isPublic, saveData]);
+            if (excalidrawAPI) {
+                saveData(
+                    excalidrawAPI.getSceneElements(),
+                    excalidrawAPI.getAppState(),
+                    excalidrawAPI.getFiles(),
+                    isPublic
+                );
+            }
+        }, 3000);
+    }, [isPublic, saveData, excalidrawAPI]);
 
     const togglePublic = async () => {
         if (!drawingData?.id) {
             const newState = !isPublic;
             setIsPublic(newState);
             if (excalidrawAPI) {
-                saveData(excalidrawAPI.getSceneElements(), excalidrawAPI.getAppState(), newState);
+                saveData(excalidrawAPI.getSceneElements(), excalidrawAPI.getAppState(), excalidrawAPI.getFiles(), newState);
             }
             return;
         }
@@ -489,6 +596,92 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
             // In split mode, Excalidraw is on the right, taking up the remaining space
             case 'split': return `${baseStyles} fixed top-0 bottom-0 right-0 z-[10000] shadow-2xl border-l border-gray-200 dark:border-gray-800`;
             default: return `${baseStyles} fixed top-[64px] bottom-0 right-0 w-0 z-[40] pointer-events-none opacity-0`;
+        }
+    };
+
+    const handleImageUpload = async (file: File) => {
+        if (!file || !excalidrawAPI) return;
+
+        try {
+            // 1. Read file as base64 first – Excalidraw needs base64 to render
+            const base64DataURL = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result as string);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+
+            const fileId = Math.random().toString(36).substr(2, 9);
+
+            // 2. Upload to ImageKit
+            const formData = new FormData();
+            formData.append("file", file);
+            const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+            if (storedUser.email) formData.append("email", storedUser.email);
+
+            const token = localStorage.getItem('access_token');
+            const uploadRes = await fetch('/api/upload-image', {
+                method: 'POST',
+                headers: { 'Authorization': token ? `Token ${token}` : '' },
+                body: formData
+            });
+
+            if (uploadRes.ok) {
+                const data = await uploadRes.json();
+
+                // 3. Store IK URL so sanitizeFiles can write the http URL to the backend
+                ikUrlsRef.current[fileId] = data.url;
+
+                // 4. addFiles with BASE64 — Excalidraw requires this to render (not http URL)
+                excalidrawAPI.addFiles([{
+                    id: fileId,
+                    dataURL: base64DataURL as any,
+                    mimeType: file.type,
+                    created: Date.now(),
+                    lastRetrieved: Date.now()
+                }]);
+
+                const appState = excalidrawAPI.getAppState();
+                const cx = -appState.scrollX + (appState.width / 2) / appState.zoom.value;
+                const cy = -appState.scrollY + (appState.height / 2) / appState.zoom.value;
+
+                const imgElement = {
+                    type: "image",
+                    version: 1,
+                    versionNonce: Math.floor(Math.random() * 1000000000),
+                    isDeleted: false,
+                    id: "img_" + fileId,
+                    fillStyle: "hachure",
+                    strokeWidth: 1,
+                    strokeStyle: "solid",
+                    roughness: 1,
+                    opacity: 100,
+                    angle: 0,
+                    x: cx - 150,
+                    y: cy - 150,
+                    strokeColor: "transparent",
+                    backgroundColor: "transparent",
+                    width: 300,
+                    height: 300,
+                    seed: Math.floor(Math.random() * 1000000000),
+                    groupIds: [],
+                    strokeSharpness: "round",
+                    boundElements: [],
+                    updated: Date.now(),
+                    link: null,
+                    locked: false,
+                    fileId: fileId,
+                    status: "saved"
+                };
+
+                excalidrawAPI.updateScene({
+                    elements: [...excalidrawAPI.getSceneElements(), imgElement]
+                });
+            } else {
+                console.error("Failed to upload image to ImageKit:", uploadRes.statusText);
+            }
+        } catch (err) {
+            console.error("Custom Image Insert Failed:", err);
         }
     };
 
@@ -626,7 +819,7 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                                 type="text"
                                 value={title}
                                 onChange={(e) => { setTitle(e.target.value); titleRef.current = e.target.value; setHasUnsavedChanges(true); }}
-                                onBlur={() => excalidrawAPI && saveData(excalidrawAPI.getSceneElements(), excalidrawAPI.getAppState(), isPublic)}
+                                onBlur={() => excalidrawAPI && saveData(excalidrawAPI.getSceneElements(), excalidrawAPI.getAppState(), excalidrawAPI.getFiles(), isPublic)}
                                 className="text-sm font-semibold text-gray-700 dark:text-gray-200 bg-transparent border-none focus:outline-none w-32 sm:w-48 transition-colors truncate"
                                 placeholder="Untitled Note"
                             />
@@ -634,6 +827,230 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                     </div>
 
                     <div className="flex items-center gap-1.5">
+                        {/* Custom File Input for bypassing Excalidraw Image Tool */}
+                        <input
+                            type="file"
+                            id="custom-image-upload"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file || !excalidrawAPI) return;
+
+                                try {
+                                    // 1. Create temporary local url to show instantly
+                                    const tempUrl = URL.createObjectURL(file);
+                                    const fileId = Math.random().toString(36).substr(2, 9);
+
+                                    // 2. Upload to ImageKit
+                                    const formData = new FormData();
+                                    formData.append("file", file);
+
+                                    const token = localStorage.getItem('access_token');
+                                    const uploadRes = await fetch('/api/upload-image', {
+                                        method: 'POST',
+                                        headers: { 'Authorization': token ? `Token ${token}` : '' },
+                                        body: formData
+                                    });
+
+                                    if (uploadRes.ok) {
+                                        const data = await uploadRes.json();
+                                        // 3. Inject into Excalidraw canvas programmatically
+                                        excalidrawAPI.addFiles([{
+                                            id: fileId,
+                                            dataURL: data.url,
+                                            mimeType: file.type,
+                                            created: Date.now(),
+                                            lastRetrieved: Date.now()
+                                        }]);
+
+                                        // Force element insertion
+                                        const appState = excalidrawAPI.getAppState();
+                                        const cx = -appState.scrollX + (appState.width / 2) / appState.zoom.value;
+                                        const cy = -appState.scrollY + (appState.height / 2) / appState.zoom.value;
+
+                                        const imgElement = {
+                                            type: "image",
+                                            version: 1,
+                                            versionNonce: Math.floor(Math.random() * 1000000000),
+                                            isDeleted: false,
+                                            id: "img_" + fileId,
+                                            fillStyle: "hachure",
+                                            strokeWidth: 1,
+                                            strokeStyle: "solid",
+                                            roughness: 1,
+                                            opacity: 100,
+                                            angle: 0,
+                                            x: cx - 150, // center approx
+                                            y: cy - 150,
+                                            strokeColor: "transparent",
+                                            backgroundColor: "transparent",
+                                            width: 300,
+                                            height: 300,
+                                            seed: Math.floor(Math.random() * 1000000000),
+                                            groupIds: [],
+                                            strokeSharpness: "round",
+                                            boundElements: [],
+                                            updated: Date.now(),
+                                            link: null,
+                                            locked: false,
+                                            fileId: fileId,
+                                            status: "saved"
+                                        };
+
+                                        // Use internal update to force inject image skipping the tool check
+                                        excalidrawAPI.updateScene({
+                                            elements: [...excalidrawAPI.getSceneElements(), imgElement]
+                                        });
+                                    }
+                                } catch (err) {
+                                    console.error("Custom Image Insert Failed:", err);
+                                }
+                                e.target.value = ''; // Reset input
+                            }}
+                        />
+
+                        {/* VISIBLE UPLOAD IMAGE BUTTON */}
+                        <button
+                            onClick={() => document.getElementById('custom-image-upload')?.click()}
+                            className="p-1.5 px-3 mr-2 text-xs font-semibold rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-900/40 dark:text-indigo-300 dark:hover:bg-indigo-900/60 transition-colors flex items-center gap-2 border border-indigo-200 dark:border-indigo-700/50 shadow-sm"
+                            title="Insert Custom Image"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                            Upload Image
+                        </button>
+
+                        <button onClick={togglePublic} className={`p-1.5 rounded-lg transition-colors ${isPublic ? 'text-green-600 bg-green-50 dark:bg-green-900/20' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}`}>
+                            {isPublic ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                        </button>
+                        <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1" />
+
+                        {!isMobile && (
+                            <button
+                                onClick={() => setViewMode('split')}
+                                className={`p-1.5 rounded-lg transition-colors ${viewMode === 'split' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                                title="Split View"
+                            >
+                                <LayoutTemplate className="w-4 h-4" />
+                            </button>
+                        )}
+                        <button
+                            onClick={() => setViewMode('maximize')}
+                            className={`p-1.5 rounded-lg transition-colors ${viewMode === 'maximize' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                            title="Full Screen"
+                        >
+                            <Monitor className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => setViewMode('hidden')}
+                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors ml-1"
+                            title="Close"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+
+                {showMobileWarning && isMobile && (
+                    <div className="bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800 p-2 flex items-center justify-between text-xs sm:text-sm text-blue-800 dark:text-blue-200 px-4">
+                        <span>For the best experience, please use a laptop or larger screen.</span>
+                        <button onClick={() => setShowMobileWarning(false)} className="p-1 hover:bg-blue-100 dark:hover:bg-blue-800 rounded-full ml-2">
+                            <X className="X w-3 h-3" />
+                        </button>
+                    </div>
+                )}
+
+                <div className="flex-1 relative w-full bg-gray-50 dark:bg-gray-900 overflow-visible">
+                    <div style={{ width: "100%", height: "100%" }}>
+                        <style>{`
+                        .excalidraw, .excalidraw-container { overflow: visible !important; }
+                        .excalidraw .dropdown-menu { z-index: 9999 !important; position: absolute !important; }
+                        .excalidraw .Island { z-index: 50 !important; overflow: visible !important; }
+                        .excalidraw .layer-ui__library { border-radius: 0; }
+                    `}</style>
+                        {/* Custom File Input for bypassing Excalidraw Image Tool */}
+                        <input
+                            type="file"
+                            id="custom-image-upload"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file || !excalidrawAPI) return;
+
+                                try {
+                                    // 1. Create temporary local url to show instantly
+                                    const tempUrl = URL.createObjectURL(file);
+                                    const fileId = Math.random().toString(36).substr(2, 9);
+
+                                    // 2. Upload to ImageKit
+                                    const formData = new FormData();
+                                    formData.append("file", file);
+
+                                    const token = localStorage.getItem('access_token');
+                                    const uploadRes = await fetch('/api/upload-image', {
+                                        method: 'POST',
+                                        headers: { 'Authorization': token ? `Token ${token}` : '' },
+                                        body: formData
+                                    });
+
+                                    if (uploadRes.ok) {
+                                        const data = await uploadRes.json();
+                                        // 3. Inject into Excalidraw canvas programmatically
+                                        excalidrawAPI.addFiles([{
+                                            id: fileId,
+                                            dataURL: data.url,
+                                            mimeType: file.type,
+                                            created: Date.now(),
+                                            lastRetrieved: Date.now()
+                                        }]);
+
+                                        // Force element insertion
+                                        const appState = excalidrawAPI.getAppState();
+                                        const cx = -appState.scrollX + (appState.width / 2) / appState.zoom.value;
+                                        const cy = -appState.scrollY + (appState.height / 2) / appState.zoom.value;
+
+                                        const imgElement = {
+                                            type: "image",
+                                            version: 1,
+                                            versionNonce: Math.floor(Math.random() * 1000000000),
+                                            isDeleted: false,
+                                            id: "img_" + fileId,
+                                            fillStyle: "hachure",
+                                            strokeWidth: 1,
+                                            strokeStyle: "solid",
+                                            roughness: 1,
+                                            opacity: 100,
+                                            angle: 0,
+                                            x: cx - 150, // center approx
+                                            y: cy - 150,
+                                            strokeColor: "transparent",
+                                            backgroundColor: "transparent",
+                                            width: 300,
+                                            height: 300,
+                                            seed: Math.floor(Math.random() * 1000000000),
+                                            groupIds: [],
+                                            strokeSharpness: "round",
+                                            boundElements: [],
+                                            updated: Date.now(),
+                                            link: null,
+                                            locked: false,
+                                            fileId: fileId,
+                                            status: "saved"
+                                        };
+
+                                        // Use internal update to force inject image skipping the tool check
+                                        excalidrawAPI.updateScene({
+                                            elements: [...excalidrawAPI.getSceneElements(), imgElement]
+                                        });
+                                    }
+                                } catch (err) {
+                                    console.error("Custom Image Insert Failed:", err);
+                                }
+                                e.target.value = ''; // Reset input
+                            }}
+                        />
+
                         <button onClick={togglePublic} className={`p-1.5 rounded-lg transition-colors ${isPublic ? 'text-green-600 bg-green-50 dark:bg-green-900/20' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}`}>
                             {isPublic ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
                         </button>
@@ -691,25 +1108,51 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                                 initialData={
                                     drawingData ? {
                                         elements: drawingData.elements,
-                                        appState: { ...drawingData.appState, collaborators: new Map(), viewBackgroundColor: "#ffffff" },
+                                        appState: {
+                                            ...drawingData.appState,
+                                            collaborators: new Map(),
+                                            viewBackgroundColor: "#ffffff",
+                                            theme: typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+                                        },
+                                        files: drawingData.files,
                                         libraryItems: initialLibraryItems as any,
                                         scrollToContent: true
                                     } : { libraryItems: initialLibraryItems as any }
                                 }
-                                onChange={(elements, appState) => handleChange(elements, appState)}
+                                onChange={(elements, appState, files) => handleChange(elements, appState, files)}
                                 excalidrawAPI={(api) => setExcalidrawAPI(api)}
-                                theme={document.documentElement.classList.contains('dark') ? 'dark' : 'light'}
                                 UIOptions={{
-                                    tools: { image: false },
+                                    tools: { image: true },
                                     canvasActions: {
                                         changeViewBackgroundColor: true,
                                         clearCanvas: true,
-                                        export: { saveFileToDisk: true },
-                                        loadScene: false,
+                                        export: false,
+                                        loadScene: true,
                                         saveToActiveFile: false,
                                         toggleTheme: true,
                                         saveAsImage: true
                                     }
+                                }}
+                                onPaste={(data, event) => {
+                                    // 1. Manually intercept pasted image files before Excalidraw throws "Images Disabled"
+                                    const items = event?.clipboardData?.items;
+                                    if (items && excalidrawAPI) {
+                                        for (let i = 0; i < items.length; i++) {
+                                            if (items[i].type.indexOf('image/') !== -1) {
+                                                const file = items[i].getAsFile();
+                                                if (file) {
+                                                    // Immediately trigger our custom imagekit upload flow
+                                                    handleImageUpload(file);
+                                                    // Halt Excalidraw completely
+                                                    return false;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    return true; // allow other text to paste normally
+                                }}
+                                generateIdForFile={async (file) => {
+                                    return Math.random().toString(36).substring(2) + Date.now().toString(36);
                                 }}
                             >
                                 <WelcomeScreen>
@@ -718,10 +1161,11 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                                     </WelcomeScreen.Center>
                                 </WelcomeScreen>
                                 <MainMenu>
-                                    <MainMenu.DefaultItems.Export />
+                                    <MainMenu.DefaultItems.LoadScene />
                                     <MainMenu.DefaultItems.SaveAsImage />
                                     <MainMenu.DefaultItems.ClearCanvas />
                                     <MainMenu.DefaultItems.ChangeCanvasBackground />
+                                    <MainMenu.DefaultItems.ToggleTheme />
                                 </MainMenu>
                             </Excalidraw>
                         )}

@@ -7,7 +7,10 @@ const imagekit = new ImageKit({
     urlEndpoint: import.meta.env.IMAGEKIT_URL_ENDPOINT,
 });
 
-export const uploadImage = async (file: File) => {
+export const uploadImage = async (
+    file: File,
+    options?: { folder?: string; isPrivateFile?: boolean }
+) => {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
@@ -16,6 +19,8 @@ export const uploadImage = async (file: File) => {
             file: buffer,
             fileName: file.name,
             useUniqueFileName: true,
+            ...(options?.folder && { folder: options.folder }),
+            ...(options?.isPrivateFile !== undefined && { isPrivateFile: options.isPrivateFile }),
         }, (error, result) => {
             if (error) reject(error);
             else resolve(result);
