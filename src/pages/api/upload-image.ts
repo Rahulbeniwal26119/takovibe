@@ -5,6 +5,11 @@ export const prerender = false;
 
 export const POST: APIRoute = async ({ request }) => {
     try {
+        const authHeader = request.headers.get('Authorization');
+        if (!authHeader) {
+            return new Response(JSON.stringify({ error: "Unauthorized: Please log in to upload images." }), { status: 401 });
+        }
+
         const formData = await request.formData();
         const file = formData.get("file") as File;
 
@@ -12,11 +17,6 @@ export const POST: APIRoute = async ({ request }) => {
             return new Response(JSON.stringify({ error: "No file provided" }), {
                 status: 400,
             });
-        }
-
-        const authHeader = request.headers.get('Authorization');
-        if (!authHeader) {
-            return new Response(JSON.stringify({ error: "Unauthorized: Please log in to upload images." }), { status: 401 });
         }
 
         // Use the username passed directly from the frontend (from localStorage user object)

@@ -136,7 +136,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
             const formData = new FormData();
             formData.append("file", file);
 
-            const uploadResponse = await fetch("/api/upload-image", {
+            const uploadResponse = await fetchWithAuth("/api/upload-image", {
                 method: "POST",
                 body: formData,
             });
@@ -177,7 +177,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
             const formData = new FormData();
             formData.append("file", file);
 
-            const uploadResponse = await fetch("/api/upload-image", {
+            const uploadResponse = await fetchWithAuth("/api/upload-image", {
                 method: "POST",
                 body: formData,
             });
