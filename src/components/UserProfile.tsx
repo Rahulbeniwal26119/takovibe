@@ -9,9 +9,10 @@ import {
     User,
     Search,
     Loader2,
-    Globe
+    Globe,
+    Send
 } from 'lucide-react';
-
+import { toast } from 'react-hot-toast';
 
 const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -49,6 +50,7 @@ interface BlogPost {
     image_url: string;
     reading_time?: string;
     tags: string[];
+    is_newsletter_sent?: boolean;
 }
 
 interface PaginatedDocs {
@@ -108,6 +110,31 @@ const UserProfile: React.FC<UserProfileProps> = ({ username }) => {
     const [isSearching, setIsSearching] = useState(false);
     const [activeTab, setActiveTab] = useState<'articles' | 'about'>('articles');
     const [totalPosts, setTotalPosts] = useState(0);
+    const [sendingNewsletterSlug, setSendingNewsletterSlug] = useState<string | null>(null);
+    const [currentUserRank, setCurrentUserRank] = useState<number>(0);
+
+    useEffect(() => {
+        // Try to fetch current user's profile to determine rank.
+        // If not logged in or fetch fails, rank remains 0.
+        const token = localStorage.getItem('token');
+        if (token) {
+            fetch(`${API_URL}/api/users/me/`, {
+                headers: {
+                    'Authorization': `Token ${token}`
+                }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.rank !== undefined) {
+                        setCurrentUserRank(data.rank);
+                    } else if (data && data.data && data.data.rank !== undefined) {
+                        // Handle nested response format if applicable
+                        setCurrentUserRank(data.data.rank);
+                    }
+                })
+                .catch(err => console.error("Could not fetch current user details", err));
+        }
+    }, []);
 
     const formatPost = (post: any): BlogPost => ({
         id: post.id,
@@ -117,7 +144,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ username }) => {
         created_at: post.created_at,
         image_url: post.image_url,
         reading_time: post.reading_time || '5 min read',
-        tags: post.tags || []
+        tags: post.tags || [],
+        is_newsletter_sent: post.is_newsletter_sent || false
     });
 
     const fetchData = async (url: string = `${API_URL}/api/users/profile/${username}/`) => {
@@ -196,6 +224,46 @@ const UserProfile: React.FC<UserProfileProps> = ({ username }) => {
         setIsSearching(true);
         const searchUrl = `${API_URL}/api/users/profile/${username}/?search=${encodeURIComponent(searchQuery)}`;
         fetchData(searchUrl);
+    };
+
+    const handleSendNewsletter = async (slug: string) => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            toast.error("You must be logged in to perform this action.");
+            return;
+        }
+
+        setSendingNewsletterSlug(slug);
+        try {
+            const response = await fetch(`${API_URL}/api/blogs/author-blogs/send_newsletter/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${token}`
+                },
+                body: JSON.stringify({ slug }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to send newsletter');
+            }
+
+            toast.success("Newsletter sent successfully!");
+
+            // Update local state to hide button
+            setPosts(prevPosts =>
+                prevPosts.map(post =>
+                    post.slug === slug ? { ...post, is_newsletter_sent: true } : post
+                )
+            );
+        } catch (error: any) {
+            toast.error(error.message || 'An error occurred while sending the newsletter.');
+            console.error(error);
+        } finally {
+            setSendingNewsletterSlug(null);
+        }
     };
 
     if (loading) {
@@ -423,10 +491,30 @@ const UserProfile: React.FC<UserProfileProps> = ({ username }) => {
                                                                     year: 'numeric'
                                                                 })}
                                                             </span>
-                                                            <span className="text-xs text-gray-500 flex items-center gap-1 font-medium">
-                                                                <FileText className="w-3 h-3 text-cyan-500" />
-                                                                {post.reading_time}
-                                                            </span>
+                                                            <div className="flex items-center gap-3">
+                                                                {currentUserRank >= 4 && !post.is_newsletter_sent && (
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.preventDefault(); // Prevent navigating to the article
+                                                                            handleSendNewsletter(post.slug);
+                                                                        }}
+                                                                        disabled={sendingNewsletterSlug === post.slug}
+                                                                        className="text-xs text-violet-600 dark:text-violet-400 hover:text-violet-800 dark:hover:text-violet-300 font-medium flex items-center gap-1 bg-violet-50 dark:bg-violet-900/20 px-2 py-1 rounded-md transition-colors disabled:opacity-50"
+                                                                        title="Send Newsletter"
+                                                                    >
+                                                                        {sendingNewsletterSlug === post.slug ? (
+                                                                            <Loader2 className="w-3 h-3 animate-spin" />
+                                                                        ) : (
+                                                                            <Send className="w-3 h-3" />
+                                                                        )}
+                                                                        Send
+                                                                    </button>
+                                                                )}
+                                                                <span className="text-xs text-gray-500 flex items-center gap-1 font-medium">
+                                                                    <FileText className="w-3 h-3 text-cyan-500" />
+                                                                    {post.reading_time}
+                                                                </span>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </article>

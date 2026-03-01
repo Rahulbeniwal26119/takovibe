@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, User as UserIcon, Plus, Edit3, Eye, Trash2, Save, Github, Linkedin, Globe, Link as LinkIcon, Camera, AlertCircle, Inbox, Layers, X } from 'lucide-react';
+import { FileText, User as UserIcon, Plus, Edit3, Eye, Trash2, Save, Github, Linkedin, Globe, Link as LinkIcon, Camera, AlertCircle, Inbox, Layers, X, Send, CheckCircle2, Loader2 } from 'lucide-react';
+import { toast, Toaster } from 'react-hot-toast';
 import { Loader } from './ui/Loader';
 import { Select } from './ui/Select';
 import { ContactManager } from './admin/ContactManager';
@@ -37,6 +38,7 @@ interface BlogPost {
     updated_at: string;
     image_url: string;
     description: string;
+    is_newsletter_sent?: boolean;
     author: {
         id: number;
         name: string;
@@ -60,6 +62,7 @@ const AuthorDashboard: React.FC = () => {
     const [posts, setPosts] = useState<BlogPost[]>([]);
     const [stats, setStats] = useState<DashboardStats>({ total: 0, published: 0, drafts: 0 });
     const [error, setError] = useState<string | null>(null);
+    const [sendingNewsletterSlug, setSendingNewsletterSlug] = useState<string | null>(null);
 
     // Filter & Pagination State
     const [searchQuery, setSearchQuery] = useState('');
@@ -256,6 +259,46 @@ const AuthorDashboard: React.FC = () => {
         }
     };
 
+    const handleSendNewsletter = async (slug: string) => {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            toast.error("You must be logged in to perform this action.");
+            return;
+        }
+
+        setSendingNewsletterSlug(slug);
+        try {
+            const response = await fetch(`${API_URL}/api/blogs/author-blogs/send_newsletter/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${token}`
+                },
+                body: JSON.stringify({ slug }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to send newsletter');
+            }
+
+            toast.success("Newsletter sent successfully!");
+
+            // Update local state to show checkbox
+            setPosts(prevPosts =>
+                prevPosts.map(post =>
+                    post.slug === slug ? { ...post, is_newsletter_sent: true } : post
+                )
+            );
+        } catch (error: any) {
+            toast.error(error.message || 'An error occurred while sending the newsletter.');
+            console.error(error);
+        } finally {
+            setSendingNewsletterSlug(null);
+        }
+    };
+
     const handleProfileUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSaving(true);
@@ -311,7 +354,7 @@ const AuthorDashboard: React.FC = () => {
 
     return (
         <div className="flex flex-col lg:flex-row min-h-screen max-w-7xl mx-auto pt-6 lg:pt-24 px-4 sm:px-6 gap-8 relative">
-
+            <Toaster position="bottom-right" />
             {/* Mobile Menu Toggle Bar */}
             <div className="lg:hidden flex items-center justify-between mb-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-4 rounded-2xl border border-gray-200/50 dark:border-gray-800/50 shadow-sm sticky top-20 z-30">
                 <div className="flex items-center gap-3">
@@ -621,6 +664,28 @@ const AuthorDashboard: React.FC = () => {
                                                         </div>
 
                                                         <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 transform sm:translate-x-4 sm:group-hover:translate-x-0">
+                                                            {(user?.is_superuser || user?.client_type === 'Admin') && (
+                                                                <>
+                                                                    {post.is_newsletter_sent ? (
+                                                                        <div className="p-2 text-green-500 rounded-lg transition-colors cursor-default" title="Newsletter Sent">
+                                                                            <CheckCircle2 className="w-4.5 h-4.5" />
+                                                                        </div>
+                                                                    ) : (
+                                                                        <button
+                                                                            onClick={() => handleSendNewsletter(post.slug)}
+                                                                            disabled={sendingNewsletterSlug === post.slug}
+                                                                            className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/10 rounded-lg transition-colors disabled:opacity-50"
+                                                                            title="Send Newsletter"
+                                                                        >
+                                                                            {sendingNewsletterSlug === post.slug ? (
+                                                                                <Loader2 className="w-4.5 h-4.5 animate-spin text-green-600" />
+                                                                            ) : (
+                                                                                <Send className="w-4.5 h-4.5" />
+                                                                            )}
+                                                                        </button>
+                                                                    )}
+                                                                </>
+                                                            )}
                                                             <a href={`/blog/${post.slug}`} target="_blank" className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/10 rounded-lg transition-colors" title="View">
                                                                 <Eye className="w-4.5 h-4.5" />
                                                             </a>
