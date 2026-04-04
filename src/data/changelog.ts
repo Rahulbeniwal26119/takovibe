@@ -27,6 +27,46 @@ export interface ChangeLogEntry {
 
 export const changelogData: ChangeLogEntry[] = [
     {
+        "date": "2026-04-04",
+        "version": "Feature Release",
+        "title": "Share Your Code Playground",
+        "description": "You can now share any playground session with a single link — anyone who opens it sees your exact code, ready to run, no account needed.",
+        "changes": [
+            {
+                "type": "new",
+                "text": "Share Link: Hit the Share button inside any playground to get a link you can paste anywhere — a chat, an email, a tweet. The recipient lands straight in the playground with your code loaded and ready."
+            },
+            {
+                "type": "new",
+                "text": "Playground Page: A new standalone /playground page lets you write and run code in Python, JavaScript, Go, Rust, or HTML/CSS/JS without opening an article first."
+            },
+            {
+                "type": "new",
+                "text": "Playground in Navigation: 'Playground' is now a top-level link in the site header so you can jump straight there from any page."
+            }
+        ]
+    },
+    {
+        "date": "2026-04-04",
+        "version": "Feature Release",
+        "title": "Embed Playground on Your Own Site",
+        "description": "Running your own blog or documentation site? You can now drop a live, runnable code playground into any page using a single iframe snippet.",
+        "changes": [
+            {
+                "type": "new",
+                "text": "iFrame Embed Code: Open the Share panel in any playground and copy the ready-made iframe snippet. Paste it into your own website or blog and readers get a fully interactive, sandboxed playground without leaving your page."
+            },
+            {
+                "type": "new",
+                "text": "Appearance Options: Customise the embed before copying — choose light, dark or system theme, toggle rounded corners, and turn IDE hints on or off."
+            },
+            {
+                "type": "new",
+                "text": "Runs Safely in a Sandbox: Embedded playgrounds are fully isolated — code runs in a secure environment and never affects your site."
+            }
+        ]
+    },
+    {
         "date": "2026-02-23",
         "version": "Feature Release",
         "title": "Image Upload in Sketch Notes",

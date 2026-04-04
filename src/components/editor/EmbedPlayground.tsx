@@ -330,6 +330,7 @@ export const EmbedPlayground: React.FC<EmbedPlaygroundProps> = ({
     const [topPanelHeight, setTopPanelHeight] = useState(50);
     const [isDragging, setIsDragging] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
+    const consoleEndRef = useRef<HTMLDivElement>(null);
 
     // Initial Setup from props
     useEffect(() => {
@@ -407,7 +408,12 @@ export const EmbedPlayground: React.FC<EmbedPlaygroundProps> = ({
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [html, css, js, backendCode, mode, backendLanguage]);
 
-    // Resizing Logic
+    // Auto-scroll console to bottom on new logs
+    useEffect(() => {
+        if (consoleEndRef.current) {
+            consoleEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [logs]);
     const startResize = (e: React.MouseEvent) => {
         e.preventDefault();
         setIsDragging(true);
@@ -600,7 +606,7 @@ export const EmbedPlayground: React.FC<EmbedPlaygroundProps> = ({
     })();
 
     return (
-        <div className={`flex flex-col h-full overflow-hidden border border-gray-200 dark:border-gray-700 shadow-lg bg-white dark:bg-gray-900 not-prose relative ${rounded ? 'rounded-xl' : 'rounded-none'}`}>
+        <div className={`flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700 shadow-lg bg-white dark:bg-gray-900 not-prose relative ${rounded ? 'rounded-xl' : 'rounded-none'}`} style={{ height: '100%', minHeight: '400px' }}>
             {/* Diff View Overlay */}
             {reviewingFixIndex !== null && aiFixData[reviewingFixIndex]?.extractedCode && (
                 <DiffView
@@ -879,17 +885,20 @@ export const EmbedPlayground: React.FC<EmbedPlaygroundProps> = ({
                                             {isRunning ? 'Running...' : (mode === 'backend' ? 'Run code to see output' : 'No logs yet...')}
                                         </div>
                                     ) : (
-                                        logs.map((log, i) => (
-                                            <div key={i} className={`group flex flex-col gap-1 border-b border-gray-200 dark:border-gray-800 pb-1 last:border-0 ${log.type === 'error' ? 'text-red-600 dark:text-red-400' :
-                                                log.type === 'warn' ? 'text-yellow-600 dark:text-yellow-400' :
-                                                    'text-gray-700 dark:text-gray-300'
-                                                }`}>
-                                                <div className="flex gap-2">
-                                                    <span className="opacity-40 select-none">[{new Date(log.timestamp).toLocaleTimeString().split(' ')[0]}]</span>
-                                                    <span className="flex-1 whitespace-pre-wrap break-all">{'> '}{log.message}</span>
+                                        <>
+                                            {logs.map((log, i) => (
+                                                <div key={i} className={`group flex flex-col gap-1 border-b border-gray-200 dark:border-gray-800 pb-1 last:border-0 ${log.type === 'error' ? 'text-red-600 dark:text-red-400' :
+                                                    log.type === 'warn' ? 'text-yellow-600 dark:text-yellow-400' :
+                                                        'text-gray-700 dark:text-gray-300'
+                                                    }`}>
+                                                    <div className="flex gap-2">
+                                                        <span className="opacity-40 select-none">[{new Date(log.timestamp).toLocaleTimeString().split(' ')[0]}]</span>
+                                                        <span className="flex-1 whitespace-pre-wrap break-words font-mono text-xs">{log.type === 'error' ? '✗ ' : '> '}{log.message}</span>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))
+                                            ))}
+                                            <div ref={consoleEndRef} />
+                                        </>
                                     )}
                                 </div>
                             </div>

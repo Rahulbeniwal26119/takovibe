@@ -318,13 +318,7 @@ try {
       </div>
     </section>
 
-    <!-- 1. Visual Execution (Debugger) Showcase -->
-    <VisualExecutionShowcase />
-
-    <!-- 1.5 ResumeVibe Showcase -->
-    <ResumeVibeShowcase />
-
-    <!-- 2. AI Code Fix Showcase -->
+    <!-- 1. AI Code Fix Showcase -->
     <section class="py-20 sm:py-24 relative overflow-hidden bg-[#0B1120] text-white">
       <!-- Background Effects -->
       <div class="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>
@@ -448,6 +442,9 @@ try {
         </div>
       </div>
     </section>
+
+    <!-- 2. Visual Execution (Debugger) Showcase -->
+    <VisualExecutionShowcase />
 
     <!-- 3. Smart Actions Toolbar Showcase -->
     <section class="py-20 sm:py-32 relative overflow-hidden">
@@ -585,6 +582,192 @@ try {
 
     <!-- 4. Sketch Notes Showcase -->
     <SketchNotesShowcase />
+
+    <!-- 5. Code Playground Share & Embed Showcase -->
+    <section class="py-24 sm:py-32 relative overflow-hidden bg-[#0B1120] text-white">
+      <!-- Background Effects -->
+      <div class="absolute inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none"></div>
+      <div class="absolute top-0 left-0 w-[700px] h-[700px] bg-green-900/15 blur-[140px] rounded-full pointer-events-none"></div>
+      <div class="absolute bottom-0 right-0 w-[600px] h-[600px] bg-teal-900/10 blur-[140px] rounded-full pointer-events-none"></div>
+
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+        <!-- Section Header -->
+        <div class="text-center mb-20">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 text-green-400 text-sm font-bold mb-6 border border-green-500/20">
+            <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+            <span>Playground</span>
+          </div>
+          <h2 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+            Code. Run.
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-teal-400 to-cyan-400">Share & Embed.</span>
+          </h2>
+          <p class="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
+            Write code in any language, then share it with a link or embed a live, interactive playground directly in your blog or documentation.
+          </p>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-12 items-start">
+
+          <!-- Left: Share Link Feature -->
+          <div class="group">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="p-2.5 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold text-white">Share via Link</h3>
+                <p class="text-sm text-slate-400">Instant shareable URL for any snippet</p>
+              </div>
+            </div>
+
+            <!-- Share Link Mock UI -->
+            <div class="bg-[#0D1117] rounded-2xl border border-gray-800 overflow-hidden shadow-2xl group-hover:border-green-900/50 transition-colors duration-500">
+              <!-- Window Bar -->
+              <div class="flex items-center gap-2 px-4 py-3 bg-[#161B22] border-b border-gray-800">
+                <div class="flex gap-1.5">
+                  <div class="w-3 h-3 rounded-full bg-[#FF5F56]"></div>
+                  <div class="w-3 h-3 rounded-full bg-[#FFBD2E]"></div>
+                  <div class="w-3 h-3 rounded-full bg-[#27C93F]"></div>
+                </div>
+                <span class="ml-2 text-[11px] font-mono text-gray-500 uppercase tracking-widest">Share Playground</span>
+              </div>
+
+              <div class="p-5">
+                <!-- Tabs -->
+                <div class="flex gap-1 border-b border-gray-800 pb-3 mb-4">
+                  <div class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-t-lg border-b-2 border-transparent text-gray-500">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                    Embed iFrame
+                  </div>
+                  <div class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-t-lg border-b-2 border-green-500 text-green-400 bg-green-500/5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+                    Share Link
+                  </div>
+                </div>
+
+                <p class="text-xs text-gray-500 mb-3">Share a link so anyone can open and run your code instantly — no login required.</p>
+
+                <!-- URL Box -->
+                <div class="relative bg-gray-950 border border-gray-800 rounded-lg p-3 font-mono text-xs text-green-400 overflow-hidden">
+                  <span class="text-gray-600">takovibe.com/playground?</span><span class="text-teal-400">code=</span><span class="text-green-400">cHJpbnQoIkhlbGxvIFdvcmxkIikK</span><span class="text-gray-600">&amp;</span><span class="text-teal-400">lang=</span><span class="text-yellow-400">python</span>
+                  <!-- Copy Badge -->
+                  <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5 px-2 py-1 bg-green-500/10 border border-green-500/20 rounded-md text-[10px] font-bold text-green-400 cursor-pointer hover:bg-green-500/20 transition-colors">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                    Copy
+                  </div>
+                </div>
+
+                <!-- CTA -->
+                <div class="mt-4">
+                  <a href="/playground" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-lg shadow-lg shadow-green-900/30 transition-all active:scale-95">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                    Open Playground
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Embed Feature -->
+          <div class="group">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="p-2.5 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold text-white">Embed as iFrame</h3>
+                <p class="text-sm text-slate-400">Drop a live playground anywhere on the web</p>
+              </div>
+            </div>
+
+            <!-- Embed Mock UI -->
+            <div class="bg-[#0D1117] rounded-2xl border border-gray-800 overflow-hidden shadow-2xl group-hover:border-teal-900/50 transition-colors duration-500">
+              <!-- Window Bar -->
+              <div class="flex items-center gap-2 px-4 py-3 bg-[#161B22] border-b border-gray-800">
+                <div class="flex gap-1.5">
+                  <div class="w-3 h-3 rounded-full bg-[#FF5F56]"></div>
+                  <div class="w-3 h-3 rounded-full bg-[#FFBD2E]"></div>
+                  <div class="w-3 h-3 rounded-full bg-[#27C93F]"></div>
+                </div>
+                <span class="ml-2 text-[11px] font-mono text-gray-500 uppercase tracking-widest">Embed Playground</span>
+              </div>
+
+              <div class="p-5">
+                <!-- Tabs -->
+                <div class="flex gap-1 border-b border-gray-800 pb-3 mb-4">
+                  <div class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-t-lg border-b-2 border-teal-500 text-teal-400 bg-teal-500/5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                    Embed iFrame
+                  </div>
+                  <div class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-t-lg border-b-2 border-transparent text-gray-500">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+                    Share Link
+                  </div>
+                </div>
+
+                <p class="text-xs text-gray-500 mb-3">Add a live playground to your own website or documentation — anywhere that supports iframes. Includes a <span class="text-teal-400 font-semibold">"Powered by TakoVibe"</span> watermark.</p>
+
+                <!-- Options Row -->
+                <div class="flex flex-wrap gap-2 mb-3">
+                  <div class="flex items-center gap-1.5 px-2.5 py-1 bg-gray-800/60 border border-gray-700 rounded-lg text-[10px] text-gray-400">
+                    <div class="w-2 h-2 rounded-full bg-teal-500"></div> Theme: System
+                  </div>
+                  <div class="flex items-center gap-1.5 px-2.5 py-1 bg-gray-800/60 border border-gray-700 rounded-lg text-[10px] text-gray-400">
+                    <div class="w-2 h-2 rounded-full bg-green-500"></div> Rounded
+                  </div>
+                  <div class="flex items-center gap-1.5 px-2.5 py-1 bg-gray-800/60 border border-gray-700 rounded-lg text-[10px] text-gray-400">
+                    <div class="w-2 h-2 rounded-full bg-blue-500"></div> IDE Tips
+                  </div>
+                </div>
+
+                <!-- iFrame Snippet -->
+                <div class="relative bg-gray-950 border border-gray-800 rounded-lg p-3 font-mono text-[10px] text-gray-300 leading-relaxed overflow-hidden">
+                  <div><span class="text-blue-400">&lt;iframe</span></div>
+                  <div class="pl-4"><span class="text-yellow-400">src</span>=<span class="text-green-400">"takovibe.com/embed/playground?code=..."</span></div>
+                  <div class="pl-4"><span class="text-yellow-400">width</span>=<span class="text-green-400">"100%"</span> <span class="text-yellow-400">height</span>=<span class="text-green-400">"400"</span></div>
+                  <div class="pl-4"><span class="text-yellow-400">frameborder</span>=<span class="text-green-400">"0"</span></div>
+                  <div class="pl-4"><span class="text-yellow-400">sandbox</span>=<span class="text-green-400">"allow-scripts allow-same-origin"</span></div>
+                  <div><span class="text-blue-400">&gt;&lt;/iframe&gt;</span></div>
+                  <!-- Copy Badge -->
+                  <div class="absolute right-2 top-2 flex items-center gap-1.5 px-2 py-1 bg-teal-500/10 border border-teal-500/20 rounded-md text-[10px] font-bold text-teal-400 cursor-pointer hover:bg-teal-500/20 transition-colors">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                    Copy
+                  </div>
+                </div>
+
+                <!-- CTA -->
+                <div class="mt-4">
+                  <a href="/playground" class="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-lg shadow-lg shadow-teal-900/30 transition-all active:scale-95">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                    Try Embedding
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Bottom Feature Pills -->
+        <div class="mt-16 flex flex-wrap justify-center gap-3">
+          {[
+            { icon: "🐍", label: "Python" },
+            { icon: "⚡", label: "JavaScript" },
+            { icon: "🦀", label: "Rust" },
+            { icon: "🐹", label: "Go" },
+            { icon: "🌐", label: "HTML/CSS/JS" },
+          ].map(lang => (
+            <div class="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full text-sm text-gray-300 font-medium">
+              <span>{lang.icon}</span>
+              <span>{lang.label}</span>
+            </div>
+          ))}
+          <a href="/playground" class="flex items-center gap-2 px-4 py-2 bg-green-600/20 border border-green-500/30 rounded-full text-sm text-green-400 font-bold hover:bg-green-600/30 transition-colors">
+            Open Playground →
+          </a>
+        </div>
+      </div>
+    </section>
 
     <section class="py-28 px-4 sm:px-6 relative overflow-hidden" id="articles">
       <div class="max-w-7xl mx-auto relative z-10">
@@ -786,6 +969,10 @@ try {
         </div>
       </div>
     </section>
+
+    <!-- ResumeVibe Showcase -->
+    <ResumeVibeShowcase />
+
     <section class="py-20 sm:py-24 px-4 sm:px-6 relative overflow-hidden" id="topics">
       <!-- Background elements removed for global immersive bg -->
 
