@@ -1,0 +1,35 @@
+---
+import EmbedPlaygroundHydrator from '../../components/EmbedPlaygroundHydrator';
+---
+
+<!DOCTYPE html>
+<html lang="en" class="h-full w-full m-0 p-0 overflow-hidden bg-white dark:bg-gray-900">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>TakoVibe Code Playground Embed</title>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+	</head>
+	<body class="h-full w-full m-0 p-0 overflow-hidden font-sans bg-transparent antialiased">
+        <div id="embed-root" class="h-full w-full" data-site-url={import.meta.env.SITE_URL || 'https://takovibe.com'}>
+            <EmbedPlaygroundHydrator client:only="react" />
+        </div>
+        
+        <script>
+            // Theme setup based on parent window preference or system preference
+            if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.classList.add('dark');
+            }
+            
+            // Listen for changes
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+                if (event.matches) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            });
+        </script>
+	</body>
+</html>

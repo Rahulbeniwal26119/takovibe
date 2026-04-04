@@ -33,13 +33,11 @@ export const CodeStudio: React.FC<CodeStudioProps> = ({
             <div className="flex-1 overflow-auto bg-gray-50 dark:bg-[#0d1117] relative">
                 <div className="h-full p-4">
                     <CodePlayground
-                        initialHtml={language === 'html' ? code : ''}
-                        initialCss={language === 'css' ? code : ''}
-                        initialJs={language === 'javascript' ? code : ''}
-                        initialCode={code}
+                        key={Date.now()}
                         initialLanguage={language}
+                        initialCode={code}
+                        initialHtml={code}
                         isEditable={isEditable}
-                        title={title}
                     />
                 </div>
             </div>

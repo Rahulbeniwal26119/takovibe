@@ -56,9 +56,7 @@ export default function CodePlaygroundHydrator() {
                         initialHtml={html}
                         initialCss={css}
                         initialJs={js}
-                        isEditable={false} // Viewers can edit locally but state isn't saved to DB
-                        title="Code Playground"
-                    // We don't pass onSave because this is the read-only view
+                        isEditable={true}
                     />
                 );
             }
