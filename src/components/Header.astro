@@ -5,301 +5,149 @@ import UserAuth from "./UserAuth.tsx";
 // Get current path for active navigation
 const currentPath = Astro.url.pathname;
 
-const navItems = [
+const mainNav = [
   { href: "/", label: "Home" },
   { href: "/blog", label: "Blog" },
   { href: "/series", label: "Series" },
   { href: "/notes", label: "Notes" },
   { href: "/playground", label: "Playground" },
   { href: "https://resumevibe.takovibe.com/", label: "Resume" },
-  { href: "/why-takovibe", label: "Why TakoVibe?" },
-  { href: "/changelog", label: "Changelog" },
-  { href: "/about", label: "About" },
-  { href: "/saved", label: "Saved" },
-  { href: "/contact", label: "Contact" },
 ];
 
-const mainNav = navItems.slice(0, 6);
-const moreNav = navItems.slice(6);
+const mobileNav = [
+  { href: "/", label: "Home" },
+  { href: "/blog", label: "Blog" },
+  { href: "/series", label: "Series" },
+  { href: "/notes", label: "Notes" },
+  { href: "/playground", label: "Playground" },
+  { href: "https://resumevibe.takovibe.com/", label: "Resume" },
+  { href: "/about", label: "About" },
+  { href: "/saved", label: "Saved" },
+  { href: "/why-takovibe", label: "Why TakoVibe?" },
+  { href: "/changelog", label: "Changelog" },
+  { href: "/contact", label: "Contact" },
+];
 ---
 
 <header
   id="site-header"
-  class="sticky top-0 z-[70] w-full transition-all duration-300"
+  class="sticky top-0 z-[70] w-full transition-all duration-300 backdrop-blur-lg bg-neutral-50/80 dark:bg-neutral-950/80 border-b border-neutral-200/50 dark:border-neutral-800/50"
 >
-  <div
-    class="backdrop-blur-2xl border-b border-gray-200/30 dark:border-gray-800/30 bg-white/80 dark:bg-slate-900/80 supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-slate-900/60"
-  >
-    <div
-      class="max-w-[1400px] mx-auto h-14 lg:h-16 px-4 sm:px-6 lg:px-8 relative"
-    >
-      <!-- Main Header Content -->
-      <div
-        id="main-header-content"
-        class="flex items-center justify-between gap-4 h-full w-full transition-all duration-300 origin-center"
-      >
-        <!-- Left: Logo & Mobile Toggle -->
-        <div class="flex items-center gap-4 shrink-0">
-          <!-- Mobile drawer button -->
-          <button
-            id="openDrawerBtn"
-            aria-label="Open menu"
-            class="lg:hidden w-10 h-10 grid place-items-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <line x1="3" y1="12" x2="21" y2="12"></line>
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>
-          </button>
-
-          <a
-            href="/"
-            class="flex items-center gap-3 group"
-            aria-label="TakoVibe home"
-          >
-            <!-- Logo Icon with simplified container -->
-            <img
-              src="/images/logo.svg"
-              alt="TakoVibe logo"
-              class="w-8 h-8 lg:w-9 lg:h-9 hover:rotate-12 transition-transform duration-500 ease-out rounded-full"
-            />
-            <span
-              class="hidden sm:block font-bold text-xl tracking-tight text-gray-900 dark:text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-blue-500 transition-all duration-300"
-            >
-              TakoVibe
-            </span>
-          </a>
-        </div>
-
-        <!-- Center: Navigation (Desktop) -->
-        <nav
-          class="hidden lg:flex flex-1 items-center justify-center gap-2 xl:gap-4 px-4"
+  <div class="max-w-[1400px] mx-auto h-14 lg:h-16 px-4 sm:px-6 lg:px-8 relative">
+    <div class="flex items-center justify-between h-full gap-4">
+      <!-- Left: Logo & Mobile Toggle -->
+      <div class="flex items-center gap-3">
+        <button
+          id="openDrawerBtn"
+          aria-label="Open menu"
+          class="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-300"
         >
-          {
-            mainNav.map((item) => (
-              <a
-                href={item.href}
-                class={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 whitespace-nowrap ${
-                  (
-                    item.href === "/"
-                      ? currentPath === "/"
-                      : currentPath.startsWith(item.href)
-                  )
-                    ? "text-purple-600 dark:text-purple-400 bg-white/50 dark:bg-white/5 shadow-[0_0_15px_-3px_rgba(147,51,234,0.1)] ring-1 ring-purple-500/10"
-                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-white/[0.03]"
-                }`}
-              >
-                {item.label}
-              </a>
-            ))
-          }
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
 
-          <!-- More Dropdown -->
-          <div class="relative group">
-            <button
-              class="flex items-center gap-1 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 whitespace-nowrap text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-white/[0.03]"
-            >
-              More
-              <svg
-                class="w-4 h-4 transition-transform group-hover:rotate-180"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                ><path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 9l-7 7-7-7"></path></svg
-              >
-            </button>
+        <a href="/" class="flex items-center gap-3 group">
+          <img src="/images/logo.svg" alt="TakoVibe" class="w-8 h-8 lg:w-9 lg:h-9 rounded-full hover:rotate-12 transition-transform duration-500" />
+          <span class="font-bold text-xl tracking-tight text-neutral-900 dark:text-neutral-50 hidden sm:block">
+            TakoVibe
+          </span>
+        </a>
+      </div>
 
-            <!-- Dropdown Menu -->
-            <div
-              class="absolute top-full left-1/2 -translate-x-1/2 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 w-48"
-            >
-              <div
-                class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden p-1"
-              >
-                {
-                  moreNav.map((item, idx) => (
-                    <>
-                      {idx === 3 && (
-                        <div class="h-px bg-gray-100 dark:bg-gray-800 my-1" />
-                      )}
-                      <a
-                        href={item.href}
-                        class="block px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-                      >
-                        {item.label}
-                      </a>
-                    </>
-                  ))
-                }
-              </div>
-            </div>
-          </div>
-        </nav>
-
-        <!-- Right: Search & Auth -->
-        <div class="flex items-center gap-2 sm:gap-3 shrink-0">
-          <button
-            id="searchTriggerBtn"
-            class="hidden xl:flex items-center gap-3 w-48 px-4 py-2 bg-gray-50/50 dark:bg-white/[0.03] hover:bg-gray-100 dark:hover:bg-white/[0.05] text-gray-500 dark:text-gray-400 rounded-xl transition-all border border-transparent hover:border-purple-500/20 group"
-            aria-label="Search"
-          >
-            <svg
-              class="w-4 h-4 group-hover:text-purple-500 transition-colors"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-            </svg>
-            <span class="text-sm font-medium">Search...</span>
-            <div
-              class="ml-auto text-xs text-gray-400 dark:text-gray-600 font-mono"
-            >
-              ⌘K
-            </div>
-          </button>
-
+      <!-- Center: Desktop Navigation -->
+      <nav class="hidden lg:flex flex-1 items-center justify-center gap-2">
+        {mainNav.map((item) => (
           <a
-            href="/post/new"
-            class="hidden xl:flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold transition-all duration-300 text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:shadow-[0_0_20px_-5px_rgba(147,51,234,0.5)] hover:-translate-y-0.5 active:scale-95"
+            href={item.href}
+            class={`px-4 py-2 text-sm font-semibold rounded-full transition-all duration-300 whitespace-nowrap ${
+              (item.href === "/" ? currentPath === "/" : currentPath.startsWith(item.href))
+                ? "text-orange-600 dark:text-orange-400 bg-neutral-50 dark:bg-neutral-800/20"
+                : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-50 hover:bg-neutral-100/50 dark:hover:bg-neutral-800/[0.03]"
+            }`}
           >
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 4v16m8-8H4"></path>
-            </svg>
-            Write
+            {item.label}
           </a>
+        ))}
+      </nav>
 
-          <div
-            class="h-6 w-px bg-gray-200/50 dark:bg-gray-800/50 hidden sm:block mx-1"
-          >
-          </div>
+      <!-- Right: Actions -->
+      <div class="flex items-center gap-3">
+        <button
+          id="searchTriggerBtn"
+          class="hidden xl:flex items-center gap-2 w-44 px-4 py-2 bg-neutral-100/50 dark:bg-neutral-800/50 hover:bg-neutral-200 dark:hover:bg-neutral-700/50 text-neutral-500 dark:text-neutral-400 rounded-xl transition-all text-sm"
+          aria-label="Search"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <span>Search...</span>
+          <kbd class="ml-auto text-xs bg-neutral-200 dark:bg-neutral-700 px-1.5 py-0.5 rounded font-mono">⌘K</kbd>
+        </button>
 
-          <!-- Mobile Search Toggle -->
-          <button
-            id="mobileSearchBtn"
-            class="block xl:hidden w-10 h-10 grid place-items-center rounded-xl hover:bg-gray-100/50 dark:hover:bg-white/[0.03] text-gray-600 dark:text-gray-300 transition-colors"
-            aria-label="Open search"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-          </button>
+        <button
+          id="mobileSearchBtn"
+          class="xl:hidden w-10 h-10 flex items-center justify-center rounded-xl hover:bg-neutral-100/50 dark:hover:bg-neutral-800/50 text-neutral-600 dark:text-neutral-400 transition-colors"
+          aria-label="Search"
+        >
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </button>
 
-          <!-- Theme Toggle -->
-          <button
-            id="global-theme-toggle"
-            class="w-10 h-10 grid place-items-center rounded-xl hover:bg-gray-100/50 dark:hover:bg-white/[0.03] text-gray-600 dark:text-gray-300 transition-colors"
-            aria-label="Toggle theme"
-          >
-            <svg
-              class="w-5 h-5 hidden dark:block"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-              ></path>
-            </svg>
-            <svg
-              class="w-5 h-5 block dark:hidden"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-              ></path>
-            </svg>
-          </button>
+        <div class="h-6 w-px bg-neutral-300/50 dark:bg-neutral-600/50 hidden sm:block"></div>
 
-          <UserAuth client:only="react">
-            <div
-              slot="fallback"
-              class="w-9 h-9 rounded-full bg-gray-200/50 dark:bg-gray-800/50 animate-pulse"
-            >
-            </div>
-          </UserAuth>
-        </div>
+        <a
+          href="/post/new"
+          class="hidden xl:flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold text-white bg-orange-500 hover:bg-orange-600 transition-all duration-300 shadow-sm"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          Write
+        </a>
+
+        <button
+          id="global-theme-toggle"
+          class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-neutral-100/50 dark:hover:bg-neutral-800/50 text-neutral-600 dark:text-neutral-400 transition-colors"
+          aria-label="Toggle theme"
+        >
+          <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+          </svg>
+          <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+          </svg>
+        </button>
+
+        <UserAuth client:only="react">
+          <div slot="fallback" class="w-9 h-9 rounded-full bg-neutral-200 dark:bg-neutral-700 animate-pulse"></div>
+        </UserAuth>
       </div>
     </div>
 
-    <!-- FULL HEADER SEARCH BAR (Hidden by default) -->
+    <!-- Full Header Search Bar -->
     <div
       id="full-header-search"
-      class="absolute inset-0 flex items-center px-4 sm:px-6 lg:px-8 bg-white dark:bg-slate-900 opacity-0 pointer-events-none transition-all duration-300 scale-95"
+      class="absolute inset-0 flex items-center px-4 sm:px-6 lg:px-8 bg-neutral-50 dark:bg-neutral-950 opacity-0 pointer-events-none transition-all duration-300 scale-95"
     >
       <div class="w-full max-w-4xl mx-auto flex items-center gap-4">
         <div class="flex-1">
           <Search variant="full-header" />
         </div>
-
-        <div class="flex items-center gap-2">
-          <kbd
-            class="hidden md:inline-flex items-center gap-1 px-2 py-0.5 text-xs text-gray-400 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 font-mono"
-            >ESC</kbd
-          >
-          <button
-            id="closeFullSearchBtn"
-            class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-colors"
-            aria-label="Close search"
-          >
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              ><path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"></path></svg
-            >
-          </button>
-        </div>
+        <button
+          id="closeFullSearchBtn"
+          class="p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 transition-colors"
+          aria-label="Close search"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
       </div>
     </div>
   </div>
@@ -315,21 +163,21 @@ const moreNav = navItems.slice(6);
 <aside
   id="drawer"
   class="fixed left-0 top-0 z-[66] w-[85vw] max-w-[320px] h-full -translate-x-full transition-transform duration-300 cubic-bezier(0.4, 0, 0.2, 1)
-           bg-white dark:bg-[#0f1117] border-r border-gray-200 dark:border-gray-800 flex flex-col shadow-2xl"
+           bg-neutral-50 dark:bg-neutral-950 border-r border-neutral-200 dark:border-neutral-800 flex flex-col shadow-2xl"
   aria-label="Mobile menu"
 >
   <!-- Drawer Header -->
   <div
-    class="h-20 px-6 flex items-center justify-between border-b border-gray-100 dark:border-gray-800/50"
+    class="h-20 px-6 flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800/50"
   >
     <div class="flex items-center gap-3">
       <img src="/images/logo.svg" alt="Logo" class="w-8 h-8 rounded-full" />
-      <span class="font-bold text-lg text-gray-900 dark:text-white">Menu</span>
+      <span class="font-bold text-lg text-neutral-900 dark:text-neutral-50">Menu</span>
     </div>
     <button
       id="closeDrawerBtn"
       aria-label="Close menu"
-      class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 transition-colors"
+      class="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 dark:text-neutral-400 transition-colors"
     >
       <svg
         width="20"
@@ -353,43 +201,35 @@ const moreNav = navItems.slice(6);
     </a>
     -->
 
-  <!-- Drawer Nav -->
-  <nav class="flex-1 overflow-y-auto px-4 py-2 space-y-1">
-    {
-      navItems.map((item) => {
-        const isActive =
-          item.href === "/"
-            ? currentPath === "/"
-            : currentPath.startsWith(item.href);
-        return (
-          <a
-            href={item.href}
-            class={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
-              isActive
-                ? "bg-purple-50 dark:bg-purple-900/10 text-purple-600 dark:text-purple-400"
-                : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-white"
-            }`}
-          >
-            {item.label}
-          </a>
-        );
-      })
-    }
+<!-- Drawer Nav -->
+<nav class="flex-1 overflow-y-auto px-4 py-2 space-y-1">
+  {mobileNav.map((item) => (
+    <a
+      href={item.href}
+      class={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+        (item.href === "/" ? currentPath === "/" : currentPath.startsWith(item.href))
+          ? "bg-orange-50 dark:bg-orange-900/10 text-orange-600 dark:text-orange-400"
+          : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800/50 hover:text-neutral-900 dark:hover:text-neutral-50"
+      }`}
+    >
+      {item.label}
+    </a>
+  ))}
 
     <!-- Mobile Auth Links -->
     <div
       id="mobile-auth-links"
-      class="pt-4 mt-4 border-t border-gray-100 dark:border-gray-800/50 space-y-2 hidden"
+      class="pt-4 mt-4 border-t border-neutral-100 dark:border-neutral-800/50 space-y-2 hidden"
     >
       <a
         href="/login"
-        class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-white transition-colors"
+        class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800/50 hover:text-neutral-900 dark:hover:text-neutral-50 transition-colors"
       >
         Log in
       </a>
       <a
         href="/signup"
-        class="flex items-center justify-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 transition-colors shadow-sm shadow-purple-500/20"
+        class="flex items-center justify-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-neutral-50 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 transition-colors shadow-sm shadow-orange-500/20"
       >
         Sign up
       </a>
@@ -398,24 +238,24 @@ const moreNav = navItems.slice(6);
     <!-- Mobile User Profile (Hidden by default) -->
     <div
       id="mobile-user-profile"
-      class="pt-4 mt-4 border-t border-gray-100 dark:border-gray-800/50 hidden"
+      class="pt-4 mt-4 border-t border-neutral-100 dark:border-neutral-800/50 hidden"
     >
       <div class="flex items-center gap-3 px-4 mb-4">
         <img
           id="mobile-user-avatar"
           src=""
           alt="User"
-          class="w-10 h-10 rounded-full border border-gray-200 dark:border-gray-700"
+          class="w-10 h-10 rounded-full border border-neutral-200 dark:border-neutral-700"
         />
         <div>
           <div
             id="mobile-user-name"
-            class="font-medium text-gray-900 dark:text-white"
+            class="font-medium text-neutral-900 dark:text-neutral-50"
           >
           </div>
           <div
             id="mobile-user-email"
-            class="text-xs text-gray-500 dark:text-gray-400"
+            class="text-xs text-neutral-500 dark:text-neutral-400"
           >
           </div>
         </div>
@@ -560,53 +400,42 @@ const moreNav = navItems.slice(6);
     }
 
     function openSearch() {
-      const mainContent = document.getElementById("main-header-content");
-      const fullSearch = document.getElementById("full-header-search");
-      const fullSearchInput = document.getElementById(
-        "full-header-search-input",
-      );
+      const searchInput = document.getElementById("full-header-search-input");
+      const searchTriggerBtn = document.getElementById("searchTriggerBtn");
+      const header = document.getElementById("site-header");
 
-      if (!mainContent || !fullSearch) {
-        return;
+      if (!header) return;
+
+      searchTriggerBtn.style.visibility = "hidden";
+      header.querySelector("nav")?.classList.add("hidden");
+      header.querySelector(".flex.items-center.gap-3:last-child")?.classList.add("hidden");
+
+      const fullSearch = document.getElementById("full-header-search");
+      if (fullSearch) {
+        fullSearch.classList.remove("opacity-0", "pointer-events-none", "scale-95");
+        fullSearch.classList.add("opacity-100", "scale-100");
       }
 
-      // Hide main content
-      mainContent.classList.add("opacity-0", "pointer-events-none", "scale-95");
-
-      // Show search bar
-      fullSearch.classList.remove(
-        "opacity-0",
-        "pointer-events-none",
-        "scale-95",
-      );
-      fullSearch.classList.add("opacity-100", "scale-100");
-
-      // Close drawer if open
       closeDrawer();
 
       setTimeout(() => {
-        if (fullSearchInput) {
-          fullSearchInput.focus();
-        }
+        if (searchInput) searchInput.focus();
       }, 100);
     }
 
     function closeSearch() {
-      const mainContent = document.getElementById("main-header-content");
+      const searchTriggerBtn = document.getElementById("searchTriggerBtn");
+      const header = document.getElementById("site-header");
+
+      if (searchTriggerBtn) searchTriggerBtn.style.visibility = "";
+      header?.querySelector("nav")?.classList.remove("hidden");
+      header?.querySelector(".flex.items-center.gap-3:last-child")?.classList.remove("hidden");
+
       const fullSearch = document.getElementById("full-header-search");
-
-      if (!mainContent || !fullSearch) return;
-
-      // Hide search bar
-      fullSearch.classList.remove("opacity-100", "scale-100");
-      fullSearch.classList.add("opacity-0", "pointer-events-none", "scale-95");
-
-      // Show main content
-      mainContent.classList.remove(
-        "opacity-0",
-        "pointer-events-none",
-        "scale-95",
-      );
+      if (fullSearch) {
+        fullSearch.classList.remove("opacity-100", "scale-100");
+        fullSearch.classList.add("opacity-0", "pointer-events-none", "scale-95");
+      }
     }
 
     // Event Listeners (remove old ones to prevent duplicates if any)
@@ -675,77 +504,77 @@ const moreNav = navItems.slice(6);
     // Actually, relying on cleaner cleanup is better.
     window.addEventListener("keydown", handleKeydown);
 
-    // Scroll Behavior for Floating Header
-    let ticking = false;
-    const onScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const header = document.getElementById("site-header");
-          const headerContent = header?.querySelector("div"); // The inner background div
-          if (!header || !headerContent) {
-            ticking = false;
-            return;
-          }
+     // Scroll Behavior for Floating Header
+     let ticking = false;
+     const onScroll = () => {
+       if (!ticking) {
+         window.requestAnimationFrame(() => {
+           const header = document.getElementById("site-header");
+           const headerContent = header?.querySelector("div"); // The inner background div
+           if (!header || !headerContent) {
+             ticking = false;
+             return;
+           }
 
-          const currentScrollY = window.scrollY;
+           const currentScrollY = window.scrollY;
 
-          if (currentScrollY > 20) {
-            // Scrolled State: Floating Island
-            // Only add classes if not already present to minimize DOM touches
-            if (!header.classList.contains("py-2")) {
-              header.classList.add("py-2");
-              headerContent.classList.remove("w-full");
-              headerContent.classList.add(
-                "max-w-[1400px]",
-                "mx-auto",
-                "rounded-2xl",
-                "shadow-lg",
-                "border",
-                "border-white/20",
-                "dark:border-white/10",
-                "bg-white/90",
-                "dark:bg-slate-900/90",
-                "backdrop-blur-xl",
-              );
-              headerContent.classList.remove(
-                "bg-white/80",
-                "dark:bg-slate-900/80",
-                "border-b",
-                "border-gray-200/30",
-                "dark:border-gray-800/30",
-              );
-            }
-          } else {
-            // Top State: Full Width
-            if (header.classList.contains("py-2")) {
-              header.classList.remove("py-2");
-              headerContent.classList.add("w-full");
-              headerContent.classList.remove(
-                "max-w-[1400px]",
-                "mx-auto",
-                "rounded-2xl",
-                "shadow-lg",
-                "border",
-                "border-white/20",
-                "dark:border-white/10",
-                "bg-white/90",
-                "dark:bg-slate-900/90",
-                "backdrop-blur-xl",
-              );
-              headerContent.classList.add(
-                "bg-white/80",
-                "dark:bg-slate-900/80",
-                "border-b",
-                "border-gray-200/30",
-                "dark:border-gray-800/30",
-              );
-            }
-          }
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
+           if (currentScrollY > 20) {
+             // Scrolled State: Floating Island
+             // Only add classes if not already present to minimize DOM touches
+             if (!header.classList.contains("py-2")) {
+               header.classList.add("py-2");
+               headerContent.classList.remove("w-full");
+               headerContent.classList.add(
+                 "max-w-[1400px]",
+                 "mx-auto",
+                 "rounded-2xl",
+                 "shadow-lg",
+                 "border",
+                 "border-neutral-200",
+                 "dark:border-neutral-800",
+                 "bg-neutral-50/90",
+                 "dark:bg-neutral-950/90",
+                 "backdrop-blur-xl"
+               );
+               headerContent.classList.remove(
+                 "bg-neutral-50/80",
+                 "dark:bg-neutral-950/80",
+                 "border-b",
+                 "border-neutral-200/10",
+                 "dark:border-neutral-800/10"
+               );
+             }
+           } else {
+             // Top State: Full Width
+             if (header.classList.contains("py-2")) {
+               header.classList.remove("py-2");
+               headerContent.classList.add("w-full");
+               headerContent.classList.remove(
+                 "max-w-[1400px]",
+                 "mx-auto",
+                 "rounded-2xl",
+                 "shadow-lg",
+                 "border",
+                 "border-neutral-200",
+                 "dark:border-neutral-800",
+                 "bg-neutral-50/90",
+                 "dark:bg-neutral-950/90",
+                 "backdrop-blur-xl"
+               );
+               headerContent.classList.add(
+                 "bg-neutral-50/80",
+                 "dark:bg-neutral-950/80",
+                 "border-b",
+                 "border-neutral-200/10",
+                 "dark:border-neutral-800/10"
+               );
+             }
+           }
+           ticking = false;
+         });
+         ticking = true;
+       }
+     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
     // Trigger once on load
@@ -777,12 +606,16 @@ const moreNav = navItems.slice(6);
               const initial = safeName.charAt(0).toUpperCase();
               // Simple random color generator based on name
               const colors = [
-                "#EF5350",
-                "#EC407A",
-                "#AB47BC",
-                "#7E57C2",
-                "#5C6BC0",
-                "#42A5F5",
+                "#f97316",
+                "#f59e0b",
+                "#eab308",
+                "#84cc16",
+                "#22c55e",
+                "#14b8a6",
+                "#06b6d4",
+                "#0ea5e9",
+                "#6366f1",
+                "#8b5cf6",
               ];
               const color = colors[safeName.charCodeAt(0) % colors.length];
               const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="${color}"/><text x="50" y="50" dy=".35em" fill="white" font-family="Arial" font-size="40" text-anchor="middle">${initial}</text></svg>`;

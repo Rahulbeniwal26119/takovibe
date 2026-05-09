@@ -264,7 +264,7 @@ const UserAuthContent: React.FC = () => {
                     </a>
                     <a
                         href="/signup"
-                        className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-full transition-colors shadow-sm shadow-purple-500/20"
+                        className="px-4 py-2 text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 rounded-full transition-colors shadow-sm shadow-orange-500/20"
                     >
                         Sign up
                     </a>

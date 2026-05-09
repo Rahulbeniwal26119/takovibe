@@ -27,6 +27,34 @@ export interface ChangeLogEntry {
 
 export const changelogData: ChangeLogEntry[] = [
     {
+        "date": "2026-05-09",
+        "version": "Redesign In Progress",
+        "title": "Frontend Redesign & Visual Refresh",
+        "description": "We're revamping TakoVibe with a warm orange/amber palette, refined typography, and minimalist design. Some features may be temporarily broken during this transition.",
+        "changes": [
+            {
+                "type": "improvement",
+                "text": "Warm Orange Palette: Replaced generic purple/blue with warm orange/amber accents for a more distinctive editorial look."
+            },
+            {
+                "type": "improvement",
+                "text": "Refined Typography: Switched to Syne (display), DM Sans (body), and JetBrains Mono (code) for better visual hierarchy."
+            },
+            {
+                "type": "improvement",
+                "text": "Minimalist Layout: Simplified layouts - replaced bento grids with clean list designs, removed gradient-heavy cards."
+            },
+            {
+                "type": "improvement",
+                "text": "Header Redesign: Clean navigation with proper search expansion, mobile-optimized drawer."
+            },
+            {
+                "type": "improvement",
+                "text": "Series Section: Simplified to clean list cards with focus on content."
+            }
+        ]
+    },
+    {
         "date": "2026-04-04",
         "version": "Feature Release",
         "title": "Share Your Code Playground",

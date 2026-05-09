@@ -158,14 +158,14 @@ const structuredData = {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link
-            href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap"
             rel="stylesheet"
             media="print"
             onload="this.media='all'"
         />
         <noscript>
             <link
-                href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+                href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap"
                 rel="stylesheet"
             />
         </noscript>
@@ -327,26 +327,47 @@ const structuredData = {
 
 <style is:global>
     :root {
-        --cherry-light: #ffffff;
-        --cherry-medium: #f8fafc;
-        --cherry-accent: #9f7aea;
-        --cherry-dark: #6b46c1;
-        --zen-text: #1a1a1a;
-        --zen-light: #ffffff;
-        --zen-shadow: rgba(111, 63, 231, 0.08);
+        --cherry-light: #fafaf9;
+        --cherry-medium: #f5f5f4;
+        --cherry-accent: #f97316;
+        --cherry-dark: #ea580c;
+        --zen-text: #1c1917;
+        --zen-light: #fafaf9;
+        --zen-shadow: rgba(249, 115, 22, 0.08);
+        --brand-primary: #f97316;
+        --brand-primary-light: #fb923c;
+        --brand-secondary: #0ea5e9;
+        --surface-light: #ffffff;
+        --surface-dark: #0c0a09;
+        --card-light: #ffffff;
+        --card-dark: #1c1917;
+        --border-light: #e7e5e4;
+        --border-dark: #292524;
+        --text-muted-light: #78716c;
+        --text-muted-dark: #a8a29e;
+        --font-display: 'Syne', sans-serif;
+        --font-body: 'DM Sans', sans-serif;
+        --font-mono: 'JetBrains Mono', monospace;
     }
 
     :root.dark {
-        --cherry-light: #171923;
-        --cherry-medium: #1a202c;
-        --cherry-accent: #9f7aea;
-        --cherry-dark: #b794f4;
-        --zen-text: #f8fafc;
-        --zen-light: #171923;
-        --zen-shadow: rgba(159, 122, 234, 0.15);
+        --cherry-light: #0c0a09;
+        --cherry-medium: #1c1917;
+        --cherry-accent: #f97316;
+        --cherry-dark: #fb923c;
+        --zen-text: #fafaf9;
+        --zen-light: #0c0a09;
+        --zen-shadow: rgba(249, 115, 22, 0.15);
+        --surface-light: #0c0a09;
+        --surface-dark: #0c0a09;
+        --card-light: #1c1917;
+        --card-dark: #1c1917;
+        --border-light: #292524;
+        --border-dark: #292524;
+        --text-muted-light: #a8a29e;
+        --text-muted-dark: #a8a29e;
     }
 
-    /* Fix PageSpeed font-display issue for Assistant font (Excalidraw) */
     @font-face {
         font-family: "Assistant";
         font-style: normal;
@@ -364,88 +385,62 @@ const structuredData = {
     }
 
     html {
-        background: linear-gradient(
-            135deg,
-            var(--cherry-light) 0%,
-            var(--cherry-medium) 100%
-        );
+        background: var(--cherry-light);
         color: var(--zen-text);
-        font-family: "Space Grotesk", sans-serif;
+        font-family: var(--font-body);
         scroll-behavior: smooth;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
     }
 
     body {
         margin: 0;
         padding: 0;
-        transition:
-            background-color 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-            color 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         background: transparent;
     }
 
-    .zen-body {
-        background: linear-gradient(
-            135deg,
-            rgba(255, 255, 255, 1) 0%,
-            rgba(248, 250, 252, 0.95) 100%
-        );
-    }
-
-    .dark .zen-body {
-        background: linear-gradient(
-            135deg,
-            rgba(17, 17, 17, 1) 0%,
-            rgba(26, 26, 26, 0.98) 100%
-        );
-    }
-
-    /* Invisible Scrollbar (User Preference) - Removed to show scrollability */
-    /* html {
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-    }
-
-    ::-webkit-scrollbar {
-        display: none;
-    } */
-
-    /* Smooth transitions */
-    * {
-        transition-property:
-            background-color, border-color, color, fill, stroke, opacity,
-            box-shadow, transform;
-        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-        transition-duration: 200ms;
-    }
-
-    /* Purple glow effect on hover */
-    .hover-glow:hover {
-        box-shadow: 0 0 20px rgba(159, 122, 234, 0.2);
-    }
-
-    .dark .hover-glow:hover {
-        box-shadow: 0 0 20px rgba(183, 148, 244, 0.2);
-    }
-
-    /* Zen text selection */
     ::selection {
         background: var(--cherry-accent);
         color: white;
     }
 
-    html,
-    body {
-        width: 100%;
-        position: relative;
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
     }
 
-    /* Additional zen elements */
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: var(--border-light);
+        border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--text-muted-light);
+    }
+
+    .dark ::-webkit-scrollbar-thumb {
+        background: var(--border-dark);
+    }
+
+    .dark ::-webkit-scrollbar-thumb:hover {
+        background: var(--text-muted-dark);
+    }
+
+    .hover-glow:hover {
+        box-shadow: 0 0 20px rgba(249, 115, 22, 0.15);
+    }
+
+    .dark .hover-glow:hover {
+        box-shadow: 0 0 20px rgba(251, 146, 60, 0.2);
+    }
+
     .zen-gradient {
-        background: linear-gradient(
-            135deg,
-            var(--cherry-light),
-            var(--cherry-medium)
-        );
+        background: linear-gradient(135deg, var(--cherry-light), var(--cherry-medium));
     }
 
     .zen-shadow {
@@ -455,16 +450,10 @@ const structuredData = {
     /* Shiki Code Block Theme Handling */
     :root {
         --shiki-light-bg: #ffffff;
-        --shiki-dark-bg: #0d1117;
-        --shiki-light: #24292e;
-        --shiki-dark: #e1e4e8;
+        --shiki-dark-bg: #1c1917;
+        --shiki-light: #292524;
+        --shiki-dark: #e7e5e4;
     }
-
-    /* 
-     * Shiki generates code like:
-     * <pre class="shiki" style="--shiki-light: #...; --shiki-dark: #...; color: var(--shiki-light); ...">
-     * Reference: https://shiki.style/guide/dual-themes#variable-based-approach
-     */
 
     html.dark .shiki {
         background-color: var(--shiki-dark-bg) !important;
@@ -478,45 +467,29 @@ const structuredData = {
         text-decoration: var(--shiki-dark-text-decoration) !important;
     }
 
-    /* Remove manual prose overrides that might conflict */
     .prose pre {
-        background-color: transparent !important; /* Let shiki vars handle it */
-    }
-
-    .zen-border {
-        border: 1px solid rgba(59, 130, 246, 0.2);
+        background-color: transparent !important;
     }
 
     /* Global Image placeholder styles */
     .image-placeholder {
-        background: linear-gradient(135deg, #1e1b4b, #3730a3, #1e40af);
+        background: linear-gradient(135deg, #1c1917, #292524);
         background-size: 400% 400%;
         animation: gradientShift 4s ease infinite;
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 1px solid rgba(79, 70, 229, 0.3);
-        border-radius: 0.75rem;
+        border: 1px solid rgba(249, 115, 22, 0.2);
+        border-radius: 1rem;
         position: relative;
         overflow: hidden;
         min-height: 200px;
     }
 
-    .dark .image-placeholder {
-        background: linear-gradient(135deg, #0f0f23, #1e1b4b, #312e81);
-        border-color: rgba(99, 102, 241, 0.4);
-    }
-
     @keyframes gradientShift {
-        0% {
-            background-position: 0% 50%;
-        }
-        50% {
-            background-position: 100% 50%;
-        }
-        100% {
-            background-position: 0% 50%;
-        }
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
     }
 
     .image-placeholder::before {
@@ -526,151 +499,87 @@ const structuredData = {
         left: -100%;
         width: 100%;
         height: 100%;
-        background: linear-gradient(
-            90deg,
-            transparent,
-            rgba(255, 255, 255, 0.1),
-            transparent
-        );
+        background: linear-gradient(90deg, transparent, rgba(249, 115, 22, 0.1), transparent);
         animation: shimmer 3s infinite;
     }
 
     @keyframes shimmer {
-        0% {
-            left: -100%;
-        }
-        100% {
-            left: 100%;
-        }
+        0% { left: -100%; }
+        100% { left: 100%; }
     }
 
     .image-placeholder-content {
-        color: #e0e7ff;
+        color: #a8a29e;
         text-align: center;
         padding: 2rem;
         z-index: 2;
         position: relative;
     }
 
-    .dark .image-placeholder-content {
-        color: #c7d2fe;
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
-    .tech-icon-container {
-        width: 4rem;
-        height: 4rem;
-        margin: 0 auto 1rem;
-        position: relative;
-        animation: float 3s ease-in-out infinite;
+    .animate-fade-in-up {
+        animation: fadeInUp 0.6s ease-out forwards;
+        opacity: 0;
     }
 
-    @keyframes float {
-        0%,
-        100% {
-            transform: translateY(0px);
+    .animation-delay-200 {
+        animation-delay: 0.2s;
+    }
+
+    .animation-delay-400 {
+        animation-delay: 0.4s;
+    }
+
+    .animation-delay-600 {
+        animation-delay: 0.6s;
+    }
+
+    @keyframes blob {
+        0%, 100% {
+            transform: translate(0, 0) scale(1);
+        }
+        25% {
+            transform: translate(20px, -30px) scale(1.1);
         }
         50% {
-            transform: translateY(-10px);
+            transform: translate(-20px, 20px) scale(0.9);
+        }
+        75% {
+            transform: translate(30px, 30px) scale(1.05);
         }
     }
 
-    .tech-icon {
-        width: 100%;
-        height: 100%;
-        opacity: 0.9;
-        filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.5));
+    .animate-blob {
+        animation: blob 7s infinite;
     }
 
-    .placeholder-title {
-        font-size: 1.125rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        background: linear-gradient(45deg, #a78bfa, #c084fc, #f472b6);
-        background-clip: text;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        animation: titleGlow 2s ease-in-out infinite alternate;
+    .animation-delay-2000 {
+        animation-delay: 2s;
     }
 
-    @keyframes titleGlow {
-        from {
-            filter: brightness(1);
-        }
-        to {
-            filter: brightness(1.2);
-        }
+    .animation-delay-4000 {
+        animation-delay: 4s;
     }
 
-    .placeholder-subtitle {
-        font-size: 0.875rem;
-        opacity: 0.8;
-        font-weight: 400;
-    }
-
-    .tech-particles {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        pointer-events: none;
-    }
-
-    .particle {
-        position: absolute;
-        width: 4px;
-        height: 4px;
-        background: rgba(139, 92, 246, 0.6);
-        border-radius: 50%;
-        animation: particleFloat 4s linear infinite;
-    }
-
-    @keyframes particleFloat {
-        0% {
-            transform: translateY(100vh) rotate(0deg);
-            opacity: 0;
-        }
-        10% {
-            opacity: 1;
-        }
-        90% {
-            opacity: 1;
-        }
-        100% {
-            transform: translateY(-10px) rotate(360deg);
-            opacity: 0;
-        }
-    }
-
-    /* Enhanced image loading states */
-    img[data-loading="true"] {
-        opacity: 0;
-        transition: opacity 0.4s ease;
-    }
-
-    img[data-loaded="true"] {
-        opacity: 1;
-    }
-
-    img[data-error="true"] {
-        display: none;
-    }
     /* Orbit Animations */
     @keyframes orbit {
-        from {
-            transform: rotate(0deg);
-        }
-        to {
-            transform: rotate(360deg);
-        }
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
     }
 
     @keyframes orbit-reverse {
-        from {
-            transform: rotate(0deg);
-        }
-        to {
-            transform: rotate(-360deg);
-        }
+        from { transform: rotate(0deg); }
+        to { transform: rotate(-360deg); }
     }
 
     .animate-orbit-slow {
@@ -681,9 +590,40 @@ const structuredData = {
         animation: orbit-reverse 40s linear infinite;
     }
 
-    /* Pause orbit on hover for better interaction */
     .hover-pause:hover .animate-orbit-slow,
     .hover-pause:hover .animate-orbit-reverse-slow {
         animation-play-state: paused;
+    }
+
+    /* Gradient text animation */
+    @keyframes gradient {
+        0% { background-position: 0% center; }
+        50% { background-position: 100% center; }
+        100% { background-position: 0% center; }
+    }
+
+    .animate-gradient {
+        animation: gradient 3s ease infinite;
+    }
+
+    /* Staggered delay utilities */
+    .stagger-1 { animation-delay: 100ms; }
+    .stagger-2 { animation-delay: 200ms; }
+    .stagger-3 { animation-delay: 300ms; }
+    .stagger-4 { animation-delay: 400ms; }
+    .stagger-5 { animation-delay: 500ms; }
+
+    /* Card hover lift */
+    .card-lift {
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card-lift:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
+    }
+
+    .dark .card-lift:hover {
+        box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.4);
     }
 </style>
