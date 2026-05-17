@@ -230,10 +230,6 @@ export const NoteEditorSidebar: React.FC<NoteEditorSidebarProps> = ({
                             <Sparkles className="w-5 h-5 text-blue-500" />
                             <div className="flex items-center gap-2">
                                 <span>Learning Tools</span>
-                                <span className="relative text-[8px] uppercase tracking-widest font-black px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 border border-blue-200/50 overflow-hidden group/beta">
-                                    <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12 animate-[shimmer_2s_infinite]" />
-                                    <span className="relative z-10">BETA</span>
-                                </span>
                             </div>
                         </div>
                         <div className="flex items-center gap-2">

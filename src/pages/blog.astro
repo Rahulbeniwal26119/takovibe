@@ -88,166 +88,93 @@ const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
     "programming",
   ]}
 >
-  <div
-    class="relative w-full overflow-x-hidden min-h-screen bg-gray-50 dark:bg-[#0B1120]"
-  >
-    <!-- Immersive Background -->
-    <div class="fixed inset-0 z-0">
-      <div
-        class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-purple-100 via-gray-50 to-white dark:from-[#1a103c] dark:via-[#0B1120] dark:to-[#0B1120]"
-      >
-      </div>
-      <!-- Floating Orbs -->
-      <div
-        class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-purple-400/20 dark:bg-purple-600/10 blur-[100px] animate-blob mix-blend-multiply dark:mix-blend-screen"
-      >
-      </div>
-      <div
-        class="absolute top-[20%] right-[-10%] w-[400px] h-[400px] rounded-full bg-blue-400/20 dark:bg-blue-600/10 blur-[100px] animate-blob animation-delay-2000 mix-blend-multiply dark:mix-blend-screen"
-      >
-      </div>
-      <div
-        class="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] rounded-full bg-indigo-400/20 dark:bg-indigo-600/10 blur-[100px] animate-blob animation-delay-4000 mix-blend-multiply dark:mix-blend-screen"
-      >
-      </div>
-      <!-- Grid Pattern Overlay -->
-      <div
-        class="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-20 dark:opacity-10 pointer-events-none"
-      >
-      </div>
+  <div class="relative w-full overflow-x-hidden min-h-screen bg-stone-50 dark:bg-neutral-950">
+    <!-- Subtle warm tint — no orbs, no blobs -->
+    <div class="fixed inset-0 z-0 pointer-events-none">
+      <div class="absolute top-0 left-0 right-0 h-[600px] bg-gradient-to-b from-orange-50/80 via-stone-50/40 to-transparent dark:from-orange-950/20 dark:via-neutral-950/40 dark:to-transparent"></div>
     </div>
 
-    <!-- Main Content Wrapper -->
     <div class="relative z-10 w-full">
-      <!-- Hero Section -->
-      <section class="relative py-24 lg:py-32 overflow-hidden">
-        <!-- Old background removed -->
-
-        <div class="relative z-10 max-w-7xl mx-auto px-6 text-center">
-          <div
-            class="inline-flex items-center gap-2 px-4 py-2 bg-white/50 dark:bg-white/5 backdrop-blur-md text-purple-700 dark:text-purple-300 rounded-full text-sm font-medium mb-8 border border-purple-200/50 dark:border-white/10 shadow-sm animate-fade-in-up"
-          >
-            <span class="text-base">📚</span>
-            <span>Knowledge Base</span>
-          </div>
-
-          <h1
-            class="text-5xl md:text-6xl lg:text-7xl font-bold mb-8 animate-fade-in-up animation-delay-200 tracking-tight"
-          >
-            <span class="block text-gray-900 dark:text-white mb-2"
-              >Explore Our</span
-            >
-            <span
-              class="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent animate-gradient"
-              >Latest Insights</span
-            >
+      <!-- Masthead -->
+      <div class="border-b border-neutral-200 dark:border-neutral-800">
+        <div class="max-w-5xl mx-auto px-6 pt-16 pb-10">
+          <h1 class="text-4xl md:text-5xl font-bold font-display text-neutral-900 dark:text-neutral-50 mb-3">
+            Articles
           </h1>
-
-          <p
-            class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-12 leading-relaxed animate-fade-in-up animation-delay-400"
-          >
-            Discover in-depth tutorials, technical deep dives, and the latest
-            trends in software engineering.
+          <p class="text-neutral-500 dark:text-neutral-400 text-lg max-w-xl">
+            Deep dives, tutorials, and insights on software engineering.
           </p>
 
-          <!-- Search Bar -->
-          <div
-            class="max-w-2xl mx-auto relative group animate-fade-in-up animation-delay-600"
-          >
-            <div
-              class="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"
+          <!-- Search -->
+          <div class="mt-8 relative max-w-md">
+            <input
+              type="text"
+              id="search-input"
+              placeholder="Search articles..."
+              class="w-full pl-10 pr-4 py-3 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg text-sm text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:border-orange-400 dark:focus:border-orange-600 transition-colors"
+            />
+            <svg
+              class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-            </div>
-            <div class="relative">
-              <input
-                type="text"
-                id="search-input"
-                placeholder="Search articles, topics, or keywords..."
-                class="w-full pl-14 pr-6 py-5 bg-white/10 dark:bg-[#131B2E]/60 border border-gray-200 dark:border-gray-700/50 rounded-2xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all shadow-xl shadow-purple-500/5 text-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 backdrop-blur-xl"
-              />
-              <svg
-                class="absolute left-5 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400 dark:text-gray-500 group-focus-within:text-purple-500 transition-colors"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-              </svg>
-            </div>
-          </div>
-
-          <!-- Tags Filter -->
-          <div class="mt-12 animate-fade-in-up animation-delay-800">
-            <div class="flex flex-wrap justify-center gap-2">
-              <button class="tag-filter active group" data-tag="all">
-                <span class="relative z-10">All Posts</span>
-              </button>
-              {
-                popularTags.map(({ tag, count }) => (
-                  <button class="tag-filter group" data-tag={tag}>
-                    <span class="relative z-10">{tag}</span>
-                  </button>
-                ))
-              }
-            </div>
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
           </div>
         </div>
-      </section>
+      </div>
+
+      <!-- Tag Bar -->
+      <div class="border-b border-neutral-200 dark:border-neutral-800 sticky top-[64px] z-30 bg-stone-50/90 dark:bg-neutral-950/90 backdrop-blur-md">
+        <div class="max-w-5xl mx-auto px-6">
+          <div class="flex items-center gap-1 overflow-x-auto scrollbar-hide py-0 -mb-px">
+            <button class="tag-filter active" data-tag="all">All</button>
+            {
+              popularTags.map(({ tag, count }) => (
+                <button class="tag-filter" data-tag={tag}>
+                  {tag}
+                </button>
+              ))
+            }
+          </div>
+        </div>
+      </div>
 
       <!-- Main Content -->
-      <div class="max-w-7xl mx-auto px-6 pb-32">
-        <!-- Results Info -->
-        <div class="flex items-center justify-between mb-10">
+      <div class="max-w-5xl mx-auto px-6 py-10">
+        <!-- Results Count -->
+        <div class="mb-6">
           <span
             id="results-count"
-            class="text-sm font-medium text-gray-500 dark:text-gray-400"
+            class="text-xs font-medium text-neutral-400 dark:text-neutral-500 uppercase tracking-wider"
           >
-            Showing latest articles
+            Latest
           </span>
         </div>
 
-        <!-- Articles Grid -->
-        <div
-          id="articles-container"
-          class="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
-        >
+        <!-- Articles Container -->
+        <div id="articles-container">
           <!-- Articles will be loaded dynamically via JavaScript -->
         </div>
 
         <!-- No Results -->
-        <div id="no-results" class="hidden text-center py-32">
-          <div class="max-w-md mx-auto">
-            <div
-              class="w-24 h-24 mx-auto mb-6 bg-gray-100 dark:bg-gray-800/50 rounded-full flex items-center justify-center"
-            >
-              <svg
-                class="w-12 h-12 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="1.5"
-                  d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.034 0-3.935.785-5.365 2.077l-.673-.673a.75.75 0 01.673-1.404H8z"
-                ></path>
-              </svg>
-            </div>
-            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+        <div id="no-results" class="hidden text-center py-24">
+          <div class="max-w-sm mx-auto">
+            <p class="text-5xl mb-4">🔍</p>
+            <h3 class="text-lg font-semibold text-neutral-900 dark:text-neutral-50 mb-2">
               No articles found
             </h3>
-            <p class="text-gray-500 dark:text-gray-400 mb-8">
-              We couldn't find any articles matching your search. Try adjusting
-              your keywords or filters.
+            <p class="text-neutral-500 dark:text-neutral-400 text-sm mb-6">
+              Try adjusting your search or filters.
             </p>
             <button
               id="clear-filters-btn"
-              class="px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl transition-all shadow-lg shadow-purple-600/20 hover:shadow-purple-600/40 hover:-translate-y-0.5"
+              class="px-5 py-2 bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 text-sm font-medium rounded-lg hover:opacity-90 transition-opacity"
             >
               Clear Filters
             </button>
@@ -257,7 +184,7 @@ const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
         <!-- Pagination -->
         <div
           id="pagination"
-          class="flex items-center justify-center gap-3 mt-24"
+          class="flex items-center justify-center gap-3 mt-16"
         >
           <!-- Pagination will be generated by JavaScript -->
         </div>
@@ -266,83 +193,37 @@ const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
   </div>
 </Layout>
 <style>
-  /* Animations */
-  @keyframes blob {
-    0% {
-      transform: translate(0px, 0px) scale(1);
-    }
-    33% {
-      transform: translate(30px, -50px) scale(1.1);
-    }
-    66% {
-      transform: translate(-20px, 20px) scale(0.9);
-    }
-    100% {
-      transform: translate(0px, 0px) scale(1);
-    }
-  }
-  .animate-blob {
-    animation: blob 7s infinite;
-  }
-  .animation-delay-2000 {
-    animation-delay: 2s;
-  }
-  .animation-delay-4000 {
-    animation-delay: 4s;
-  }
-
   @keyframes fadeInUp {
     from {
       opacity: 0;
-      transform: translateY(20px);
+      transform: translateY(12px);
     }
     to {
       opacity: 1;
       transform: translateY(0);
     }
   }
-  .animate-fade-in-up {
-    animation: fadeInUp 0.8s ease-out forwards;
-    opacity: 0;
-  }
-  .animation-delay-200 {
-    animation-delay: 0.2s;
-  }
-  .animation-delay-400 {
-    animation-delay: 0.4s;
-  }
-  .animation-delay-600 {
-    animation-delay: 0.6s;
-  }
-  .animation-delay-800 {
-    animation-delay: 0.8s;
-  }
 
-  @keyframes gradient {
-    0% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
-    100% {
-      background-position: 0% 50%;
-    }
-  }
-  .animate-gradient {
-    background-size: 200% auto;
-    animation: gradient 4s linear infinite;
-  }
-
-  /* Tag Filters */
+  /* Tag Bar — tab underline style */
   .tag-filter {
-    @apply relative px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300;
-    @apply bg-white/10 dark:bg-[#131B2E]/60 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700/50 backdrop-blur-md;
-    @apply hover:border-purple-400 dark:hover:border-purple-500/50 hover:text-purple-600 dark:hover:text-purple-400 hover:shadow-md;
+    @apply relative px-3 py-3 text-sm font-medium transition-colors duration-200 whitespace-nowrap;
+    @apply text-neutral-500 dark:text-neutral-400;
+    @apply hover:text-neutral-900 dark:hover:text-neutral-100;
+    border-bottom: 2px solid transparent;
   }
 
   .tag-filter.active {
-    @apply bg-purple-600 dark:bg-purple-600 text-white border-purple-600 dark:border-purple-600 shadow-lg shadow-purple-600/20;
+    @apply text-neutral-900 dark:text-neutral-50;
+    border-bottom-color: theme('colors.orange.500');
+  }
+
+  /* Hide scrollbar for tag bar */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 
   /* Custom Scrollbar */
@@ -353,11 +234,11 @@ const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
+    background: #d6d3d1;
     border-radius: 3px;
   }
   .dark ::-webkit-scrollbar-thumb {
-    background: #475569;
+    background: #57534e;
   }
 </style>
 
@@ -505,12 +386,11 @@ const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
       // Show loading state
       if (articlesContainer) {
         articlesContainer.innerHTML = `
-          <div class="col-span-full flex flex-col justify-center items-center py-32">
-            <div class="relative w-16 h-16">
-              <div class="absolute inset-0 border-4 border-purple-100 dark:border-purple-900/30 rounded-full"></div>
-              <div class="absolute inset-0 border-4 border-purple-600 rounded-full border-t-transparent animate-spin"></div>
+          <div class="flex justify-center items-center py-24">
+            <div class="flex items-center gap-3 text-neutral-400 dark:text-neutral-500">
+              <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+              <span class="text-sm">Loading...</span>
             </div>
-            <p class="mt-4 text-gray-500 dark:text-gray-400 font-medium animate-pulse">Loading articles...</p>
           </div>
         `;
       }
@@ -543,7 +423,7 @@ const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
     }
   }
 
-  // Display articles
+  // Display articles — magazine layout
   function displayArticles() {
     if (articlesContainer) articlesContainer.innerHTML = "";
 
@@ -556,10 +436,27 @@ const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
     noResults?.classList.add("hidden");
     pagination?.classList.remove("hidden");
 
-    allArticles.forEach((post, index) => {
-      const article = createArticleElement(post, index);
-      articlesContainer?.appendChild(article);
-    });
+    // First article gets featured treatment (only on page 1 with no search)
+    const showFeatured = currentPage === 1 && !currentSearchTerm;
+
+    if (showFeatured && allArticles.length > 0) {
+      const featured = createArticleElement(allArticles[0], 0, true);
+      articlesContainer?.appendChild(featured);
+    }
+
+    // Rest go in a list
+    const startIndex = showFeatured ? 1 : 0;
+    if (startIndex < allArticles.length) {
+      const listContainer = document.createElement("div");
+      listContainer.className = "divide-y divide-neutral-200 dark:divide-neutral-800";
+      if (showFeatured) listContainer.classList.add("mt-10", "border-t", "border-neutral-200", "dark:border-neutral-800");
+
+      for (let i = startIndex; i < allArticles.length; i++) {
+        const article = createArticleElement(allArticles[i], i, false);
+        listContainer.appendChild(article);
+      }
+      articlesContainer?.appendChild(listContainer);
+    }
 
     // Setup save buttons after rendering
     setupSaveButtons();
@@ -591,7 +488,7 @@ const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
           return;
         }
 
-        const currentIsBookmarked = btn.classList.contains("text-purple-600");
+        const currentIsBookmarked = btn.classList.contains("text-orange-600");
         const currentBookmarkId = btn.getAttribute("data-bookmark-id");
 
         // Optimistic UI update
@@ -625,7 +522,7 @@ const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
 
   function updateSaveButtonState(btn: Element, isSaved: boolean) {
     if (isSaved) {
-      btn.classList.add("text-purple-600", "dark:text-purple-400");
+      btn.classList.add("text-orange-600", "dark:text-orange-400");
       btn.classList.remove("text-gray-400");
       btn.innerHTML = `
         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -633,7 +530,7 @@ const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
         </svg>
       `;
     } else {
-      btn.classList.remove("text-purple-600", "dark:text-purple-400");
+      btn.classList.remove("text-orange-600", "dark:text-orange-400");
       btn.classList.add("text-gray-400");
       btn.innerHTML = `
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -643,11 +540,11 @@ const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
     }
   }
 
-  // Create article element
-  function createArticleElement(post: any, index: number) {
+  // Create article element — featured or list item
+  function createArticleElement(post: any, index: number, isFeatured: boolean = false) {
     const article = document.createElement("article");
-    article.className = "group relative flex flex-col h-full";
-    article.style.animation = `fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards ${index * 0.1}s`;
+    article.className = "group relative";
+    article.style.animation = `fadeInUp 0.4s ease-out forwards ${Math.min(index, 6) * 0.05}s`;
     article.style.opacity = "0";
 
     const postTags = post.tags || [];
@@ -657,96 +554,76 @@ const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
       year: "numeric",
     });
 
-    article.innerHTML = `
-      <a href="/blog/${post.slug}/" class="relative flex flex-col h-full bg-white/10 dark:bg-[#131B2E]/60 border border-gray-100/10 dark:border-gray-800/50 rounded-2xl overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-2 group-hover:border-purple-500/20 dark:group-hover:border-purple-500/20 backdrop-blur-md">
-        <!-- Image Container -->
-        <div class="relative aspect-[16/9] overflow-hidden bg-gray-100 dark:bg-gray-800">
-          ${
-            post.image_url
-              ? `
-            <img 
-              src="${post.image_url}" 
-              alt="${post.title}"
-              class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              loading="lazy"
-            />
-            <div class="absolute inset-0 bg-gradient-to-t from-[#131B2E]/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          `
-              : `
-            <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-500/5 to-blue-500/5">
-              <span class="text-4xl filter grayscale group-hover:grayscale-0 transition-all duration-500">📝</span>
-            </div>
-          `
-          }
-          
-          <!-- Category Badge -->
-          ${
-            postTags[0]
-              ? `
-            <div class="absolute top-4 left-4 z-10">
-              <span class="px-3 py-1.5 bg-white/90 dark:bg-[#0B1120]/90 backdrop-blur-md text-xs font-bold text-purple-600 dark:text-purple-400 rounded-lg shadow-lg border border-white/20 dark:border-white/10 tracking-wide uppercase">
-                ${postTags[0]}
-              </span>
-            </div>
-          `
-              : ""
-          }
-        </div>
-
-        <!-- Content -->
-        <div class="flex-1 p-6 flex flex-col">
-          <div class="flex items-center gap-3 text-xs font-medium text-gray-500 dark:text-gray-400 mb-4">
-            <span class="flex items-center gap-1.5 bg-gray-50 dark:bg-white/5 px-2.5 py-1 rounded-md">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              ${date}
-            </span>
-            <span class="flex items-center gap-1.5 bg-gray-50 dark:bg-white/5 px-2.5 py-1 rounded-md">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              ${post.readingTime || "5 min read"}
-            </span>
+    if (isFeatured) {
+      // Featured: large horizontal card
+      article.innerHTML = `
+        <a href="/blog/${post.slug}/" class="block md:flex gap-8 items-start">
+          <div class="md:w-1/2 aspect-[16/10] rounded-xl overflow-hidden bg-neutral-100 dark:bg-neutral-800 shrink-0">
+            ${post.image_url
+              ? `<img src="${post.image_url}" alt="${post.title}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" loading="lazy" />`
+              : `<div class="w-full h-full flex items-center justify-center"><span class="text-4xl">📝</span></div>`
+            }
           </div>
-
-          <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 leading-tight group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-            ${post.title}
-          </h3>
-
-          <p class="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 mb-6 flex-1 leading-relaxed">
-            ${post.description}
-          </p>
-
-          <div class="flex items-center justify-between pt-5 border-t border-gray-100 dark:border-gray-800 mt-auto">
-            <div class="flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-xs text-white font-bold shadow-md">
+          <div class="md:w-1/2 py-4 md:py-2">
+            <div class="flex items-center gap-2 text-xs text-neutral-400 dark:text-neutral-500 mb-3">
+              ${postTags[0] ? `<span class="text-orange-600 dark:text-orange-400 font-medium">${postTags[0]}</span><span>·</span>` : ""}
+              <span>${date}</span>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-bold font-display text-neutral-900 dark:text-neutral-50 mb-3 leading-tight group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+              ${post.title}
+            </h2>
+            <p class="text-neutral-500 dark:text-neutral-400 text-sm leading-relaxed mb-4 line-clamp-3">
+              ${post.description}
+            </p>
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 rounded-full bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center text-[10px] font-bold text-neutral-600 dark:text-neutral-300">
                 ${post.author?.name?.charAt(0) || "T"}
               </div>
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                ${post.author?.name || "TakoVibe Team"}
-              </span>
+              <span class="text-xs text-neutral-500">${post.author?.name || "TakoVibe Team"}</span>
+              <span class="text-neutral-300 dark:text-neutral-600">·</span>
+              <span class="text-xs text-neutral-400">${post.readingTime || "5 min read"}</span>
             </div>
-            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 group-hover:bg-purple-600 group-hover:text-white dark:group-hover:bg-purple-500 dark:group-hover:text-white transition-all duration-300">
-              <svg class="w-4 h-4 transform group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </span>
           </div>
-        </div>
-      </a>
-
-      <!-- Save Button -->
-      <button
-        class="save-btn absolute top-4 right-4 z-20 p-2 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-sm border border-gray-200 dark:border-gray-700 text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-all duration-300 hover:scale-110"
-        data-blog-id="${post.slug}"
-        aria-label="Save for later"
-      >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
-        </svg>
-      </button>
-    `;
+        </a>
+        <button class="save-btn absolute top-3 right-3 md:top-3 md:left-[calc(50%-2rem)] md:right-auto z-20 p-1.5 rounded-lg bg-white/80 dark:bg-neutral-800/80 text-neutral-400 hover:text-orange-600 dark:hover:text-orange-400 transition-all opacity-0 group-hover:opacity-100" data-blog-id="${post.slug}" aria-label="Save">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+        </button>
+      `;
+    } else {
+      // List item: horizontal row with thumbnail
+      article.innerHTML = `
+        <a href="/blog/${post.slug}/" class="flex items-start gap-4 py-5 group">
+          ${post.image_url
+            ? `<div class="w-24 h-24 sm:w-32 sm:h-20 shrink-0 rounded-lg overflow-hidden bg-neutral-100 dark:bg-neutral-800">
+                <img src="${post.image_url}" alt="${post.title}" class="w-full h-full object-cover" loading="lazy" />
+              </div>`
+            : `<div class="w-24 h-24 sm:w-32 sm:h-20 shrink-0 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
+                <span class="text-xl">📝</span>
+              </div>`
+          }
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 text-[11px] text-neutral-400 dark:text-neutral-500 mb-1.5">
+              ${postTags[0] ? `<span class="text-orange-600 dark:text-orange-400 font-medium">${postTags[0]}</span><span>·</span>` : ""}
+              <span>${date}</span>
+              <span>·</span>
+              <span>${post.readingTime || "5 min read"}</span>
+            </div>
+            <h3 class="text-base font-semibold text-neutral-900 dark:text-neutral-50 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors line-clamp-2 leading-snug mb-1">
+              ${post.title}
+            </h3>
+            <p class="text-neutral-500 dark:text-neutral-400 text-sm line-clamp-1 hidden sm:block">
+              ${post.description}
+            </p>
+            <div class="flex items-center gap-2 mt-2">
+              <div class="w-5 h-5 rounded-full bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center text-[9px] font-bold text-neutral-600 dark:text-neutral-300">
+                ${post.author?.name?.charAt(0) || "T"}
+              </div>
+              <span class="text-xs text-neutral-500">${post.author?.name || "TakoVibe Team"}</span>
+            </div>
+          </div>
+        </a>
+      `;
+    }
 
     return article;
   }
@@ -754,11 +631,11 @@ const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
   // Update results count text
   function updateResultsCount() {
     if (resultsCount) {
-      resultsCount.textContent = `Showing ${allArticles.length} of ${totalCount} articles`;
+      resultsCount.textContent = `${totalCount} articles`;
     }
   }
 
-  // Update pagination
+  // Update pagination — clean prev/next
   function updatePagination() {
     if (!pagination) return;
 
@@ -767,71 +644,45 @@ const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
 
     if (totalPages <= 1) return;
 
-    // Container for pagination
     const nav = document.createElement("nav");
-    nav.className =
-      "inline-flex items-center p-1.5 bg-white dark:bg-[#131B2E] border border-gray-200 dark:border-gray-700/50 rounded-2xl shadow-lg shadow-gray-200/50 dark:shadow-black/20";
+    nav.className = "flex items-center gap-6";
 
-    // Previous button
-    const prevBtn = createPaginationButton(
-      `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>`,
-      currentPage > 1,
-      () => {
-        if (currentPage > 1) {
-          currentPage--;
-          fetchAndDisplayArticles();
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }
-      },
-    );
+    // Previous
+    const prevBtn = document.createElement("button");
+    prevBtn.className = currentPage > 1
+      ? "flex items-center gap-1.5 text-sm font-medium text-neutral-600 dark:text-neutral-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+      : "flex items-center gap-1.5 text-sm font-medium text-neutral-300 dark:text-neutral-700 cursor-not-allowed";
+    prevBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg> Prev`;
+    if (currentPage > 1) {
+      prevBtn.addEventListener("click", () => {
+        currentPage--;
+        updateURL();
+        fetchAndDisplayArticles();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    }
     nav.appendChild(prevBtn);
 
-    // Page numbers
-    for (let i = 1; i <= totalPages; i++) {
-      if (
-        i === 1 ||
-        i === totalPages ||
-        (i >= currentPage - 1 && i <= currentPage + 1)
-      ) {
-        const pageBtn = createPaginationButton(i.toString(), true, () => {
-          currentPage = i;
-          updateURL();
-          fetchAndDisplayArticles();
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        });
+    // Page indicator
+    const indicator = document.createElement("span");
+    indicator.className = "text-xs text-neutral-400 dark:text-neutral-500 tabular-nums";
+    indicator.textContent = `${currentPage} / ${totalPages}`;
+    nav.appendChild(indicator);
 
-        if (i === currentPage) {
-          pageBtn.className =
-            "w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold bg-purple-600 text-white shadow-md shadow-purple-600/20 transition-all scale-105";
-        } else {
-          pageBtn.className =
-            "w-10 h-10 flex items-center justify-center rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-all";
-        }
-        nav.appendChild(pageBtn);
-      } else if (
-        (i === currentPage - 2 && currentPage > 3) ||
-        (i === currentPage + 2 && currentPage < totalPages - 2)
-      ) {
-        const dots = document.createElement("span");
-        dots.className =
-          "w-10 h-10 flex items-center justify-center text-gray-400";
-        dots.textContent = "...";
-        nav.appendChild(dots);
-      }
+    // Next
+    const nextBtn = document.createElement("button");
+    nextBtn.className = currentPage < totalPages
+      ? "flex items-center gap-1.5 text-sm font-medium text-neutral-600 dark:text-neutral-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+      : "flex items-center gap-1.5 text-sm font-medium text-neutral-300 dark:text-neutral-700 cursor-not-allowed";
+    nextBtn.innerHTML = `Next <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>`;
+    if (currentPage < totalPages) {
+      nextBtn.addEventListener("click", () => {
+        currentPage++;
+        updateURL();
+        fetchAndDisplayArticles();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
     }
-
-    // Next button
-    const nextBtn = createPaginationButton(
-      `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>`,
-      currentPage < totalPages,
-      () => {
-        if (currentPage < totalPages) {
-          currentPage++;
-          fetchAndDisplayArticles();
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }
-      },
-    );
     nav.appendChild(nextBtn);
 
     pagination.appendChild(nav);
@@ -843,11 +694,11 @@ const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
 
     if (enabled) {
       btn.className =
-        "w-10 h-10 flex items-center justify-center rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-purple-600 dark:hover:text-purple-400 transition-all";
+        "text-sm text-neutral-500 dark:text-neutral-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors";
       btn.addEventListener("click", onClick);
     } else {
       btn.className =
-        "w-10 h-10 flex items-center justify-center rounded-xl text-gray-300 dark:text-gray-700 cursor-not-allowed";
+        "text-sm text-neutral-300 dark:text-neutral-700 cursor-not-allowed";
     }
     return btn;
   }
