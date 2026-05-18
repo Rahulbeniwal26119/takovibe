@@ -10,7 +10,8 @@ import {
     Search,
     Loader2,
     Globe,
-    Send
+    Send,
+    ArrowRight
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -60,44 +61,36 @@ interface PaginatedDocs {
     results: BlogPost[];
 }
 
-const ProfileSkeleton = () => (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 relative overflow-hidden">
-        {/* Background elements to match main layout */}
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-purple-900/10 dark:to-slate-900 pointer-events-none"></div>
+// ── Skeleton ──────────────────────────────────────────────────────────────────
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative z-10 animate-pulse">
-            <div className="flex flex-col md:flex-row gap-8 items-start">
-                {/* Left Col Skeleton */}
-                <div className="w-full md:w-1/3 flex flex-col gap-6">
-                    <div className="w-32 h-32 rounded-2xl bg-gray-200 dark:bg-slate-800 mx-auto md:mx-0"></div>
-                    <div className="h-8 bg-gray-200 dark:bg-slate-800 rounded w-3/4 mx-auto md:mx-0"></div>
-                    <div className="h-4 bg-gray-200 dark:bg-slate-800 rounded w-1/2 mx-auto md:mx-0"></div>
-                    <div className="space-y-2 mt-4">
-                        <div className="h-4 bg-gray-200 dark:bg-slate-800 rounded w-full"></div>
-                        <div className="h-4 bg-gray-200 dark:bg-slate-800 rounded w-5/6"></div>
-                    </div>
-                    <div className="flex gap-4 mt-4 justify-center md:justify-start">
-                        <div className="w-8 h-8 rounded bg-gray-200 dark:bg-slate-800"></div>
-                        <div className="w-8 h-8 rounded bg-gray-200 dark:bg-slate-800"></div>
-                        <div className="w-8 h-8 rounded bg-gray-200 dark:bg-slate-800"></div>
-                    </div>
+const ProfileSkeleton = () => (
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 animate-pulse">
+        <div className="border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-6 py-16">
+            <div className="max-w-7xl mx-auto flex gap-8 items-end">
+                <div className="w-24 h-24 rounded-full bg-neutral-200 dark:bg-neutral-800 shrink-0" />
+                <div className="space-y-3 flex-1">
+                    <div className="h-8 bg-neutral-200 dark:bg-neutral-800 rounded w-48" />
+                    <div className="h-4 bg-neutral-200 dark:bg-neutral-800 rounded w-32" />
+                    <div className="h-4 bg-neutral-200 dark:bg-neutral-800 rounded w-80" />
                 </div>
-                {/* Right Col Skeleton */}
-                <div className="w-full md:w-2/3 grid gap-6">
-                    <div className="flex gap-4 mb-4">
-                        <div className="h-10 w-24 bg-gray-200 dark:bg-slate-800 rounded-full"></div>
-                        <div className="h-10 w-24 bg-gray-200 dark:bg-slate-800 rounded-full"></div>
-                    </div>
-                    <div className="grid md:grid-cols-2 gap-6">
-                        {[1, 2, 3, 4].map((i) => (
-                            <div key={i} className="h-72 bg-gray-200 dark:bg-slate-800 rounded-2xl"></div>
-                        ))}
-                    </div>
-                </div>
+            </div>
+        </div>
+        <div className="max-w-7xl mx-auto px-6 py-16 grid lg:grid-cols-3 gap-12">
+            <div className="space-y-4">
+                {[...Array(4)].map((_, i) => (
+                    <div key={i} className="h-4 bg-neutral-200 dark:bg-neutral-800 rounded" />
+                ))}
+            </div>
+            <div className="lg:col-span-2 grid sm:grid-cols-2 gap-6">
+                {[...Array(4)].map((_, i) => (
+                    <div key={i} className="h-64 bg-neutral-200 dark:bg-neutral-800 rounded" />
+                ))}
             </div>
         </div>
     </div>
 );
+
+// ── Main Component ────────────────────────────────────────────────────────────
 
 const UserProfile: React.FC<UserProfileProps> = ({ username }) => {
     const [author, setAuthor] = useState<Author | null>(null);
@@ -114,23 +107,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ username }) => {
     const [currentUserRank, setCurrentUserRank] = useState<number>(0);
 
     useEffect(() => {
-        // Try to fetch current user's profile to determine rank.
-        // If not logged in or fetch fails, rank remains 0.
         const token = localStorage.getItem('token');
         if (token) {
-            fetch(`${API_URL}/api/users/me/`, {
-                headers: {
-                    'Authorization': `Token ${token}`
-                }
-            })
+            fetch(`${API_URL}/api/users/me/`, { headers: { 'Authorization': `Token ${token}` } })
                 .then(res => res.json())
                 .then(data => {
-                    if (data && data.rank !== undefined) {
-                        setCurrentUserRank(data.rank);
-                    } else if (data && data.data && data.data.rank !== undefined) {
-                        // Handle nested response format if applicable
-                        setCurrentUserRank(data.data.rank);
-                    }
+                    if (data?.rank !== undefined) setCurrentUserRank(data.rank);
+                    else if (data?.data?.rank !== undefined) setCurrentUserRank(data.data.rank);
                 })
                 .catch(err => console.error("Could not fetch current user details", err));
         }
@@ -151,21 +134,18 @@ const UserProfile: React.FC<UserProfileProps> = ({ username }) => {
     const fetchData = async (url: string = `${API_URL}/api/users/profile/${username}/`) => {
         try {
             const response = await fetch(url);
-
             if (!response.ok) {
                 if (response.status === 404) throw new Error('Author not found');
                 throw new Error('Failed to fetch profile');
             }
-
             const data = await response.json();
-
             const profileData = data.profile || data.data || data;
             const articlesData = data.articles;
 
             if (!author) {
                 setAuthor({
                     id: profileData.id,
-                    name: profileData.name || profileData.username, // Fallback to username if name is empty
+                    name: profileData.name || profileData.username,
                     username: profileData.username,
                     image: profileData.profile_image || profileData.image || profileData.avatar || `https://ui-avatars.com/api/?name=${profileData.name || profileData.username}&background=random`,
                     bio: profileData.bio,
@@ -193,9 +173,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ username }) => {
                 setNextPage(null);
                 setTotalPosts(0);
             }
-
         } catch (err: any) {
-            console.error("Profile fetch error:", err);
             setError(err.message || 'Could not load profile');
         } finally {
             setLoading(false);
@@ -204,414 +182,343 @@ const UserProfile: React.FC<UserProfileProps> = ({ username }) => {
         }
     };
 
-    useEffect(() => {
-        if (username) {
-            // Keep existing data if just refreshing or use skeleton if entirely new load logic needed
-            // For now, allow skeleton on initial mount
-            fetchData();
-        }
-    }, [username]);
+    useEffect(() => { if (username) fetchData(); }, [username]);
 
-    const handleLoadMore = () => {
-        if (nextPage) {
-            setLoadingMore(true);
-            fetchData(nextPage);
-        }
-    };
+    const handleLoadMore = () => { if (nextPage) { setLoadingMore(true); fetchData(nextPage); } };
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         setIsSearching(true);
-        const searchUrl = `${API_URL}/api/users/profile/${username}/?search=${encodeURIComponent(searchQuery)}`;
-        fetchData(searchUrl);
+        fetchData(`${API_URL}/api/users/profile/${username}/?search=${encodeURIComponent(searchQuery)}`);
     };
 
     const handleSendNewsletter = async (slug: string) => {
         const token = localStorage.getItem('token');
-        if (!token) {
-            toast.error("You must be logged in to perform this action.");
-            return;
-        }
-
+        if (!token) { toast.error("You must be logged in to perform this action."); return; }
         setSendingNewsletterSlug(slug);
         try {
             const response = await fetch(`${API_URL}/api/blogs/author-blogs/send_newsletter/`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Token ${token}`
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Token ${token}` },
                 body: JSON.stringify({ slug }),
             });
-
             const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to send newsletter');
-            }
-
+            if (!response.ok) throw new Error(data.error || 'Failed to send newsletter');
             toast.success("Newsletter sent successfully!");
-
-            // Update local state to hide button
-            setPosts(prevPosts =>
-                prevPosts.map(post =>
-                    post.slug === slug ? { ...post, is_newsletter_sent: true } : post
-                )
-            );
+            setPosts(prev => prev.map(p => p.slug === slug ? { ...p, is_newsletter_sent: true } : p));
         } catch (error: any) {
-            toast.error(error.message || 'An error occurred while sending the newsletter.');
-            console.error(error);
+            toast.error(error.message || 'An error occurred.');
         } finally {
             setSendingNewsletterSlug(null);
         }
     };
 
-    if (loading) {
-        return <ProfileSkeleton />;
-    }
+    // ── States ────────────────────────────────────────────────────────────────
+
+    if (loading) return <ProfileSkeleton />;
 
     if (error || !author) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 px-4">
-                <div className="text-center">
-                    <div className="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
-                        <User className="w-10 h-10 text-gray-400" />
+            <div className="min-h-screen flex flex-col items-center justify-center bg-neutral-50 dark:bg-neutral-950 px-6">
+                <div className="text-center max-w-md">
+                    <div className="w-20 h-20 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 flex items-center justify-center mx-auto mb-8">
+                        <User className="w-8 h-8 text-neutral-400" />
                     </div>
-                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">Profile Not Found</h2>
-                    <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto">{error || "The author you are looking for does not exist."}</p>
-                    <a href="/" className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl hover:scale-105">
-                        Return Home
+                    <h2 className="text-3xl font-bold text-neutral-900 dark:text-neutral-50 mb-3 font-display">Profile Not Found</h2>
+                    <p className="text-neutral-500 dark:text-neutral-400 mb-8 leading-relaxed">{error || "The author you are looking for does not exist."}</p>
+                    <a href="/" className="inline-flex items-center gap-2 px-6 py-3 bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 font-bold text-sm hover:bg-orange-600 dark:hover:bg-orange-500 dark:hover:text-white transition-colors">
+                        Return Home <ArrowRight className="w-4 h-4" />
                     </a>
                 </div>
             </div>
         );
     }
 
+    // ── Render ────────────────────────────────────────────────────────────────
+
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 relative overflow-hidden">
-            {/* Background Animations - Refined Palette */}
-            <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute top-0 left-1/4 w-96 h-96 bg-violet-400/20 dark:bg-violet-500/10 rounded-full blur-3xl opacity-50"></div>
-                <div className="absolute top-0 right-1/4 w-96 h-96 bg-fuchsia-400/20 dark:bg-fuchsia-500/10 rounded-full blur-3xl opacity-50 animation-delay-2000"></div>
-                <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-cyan-400/20 dark:bg-cyan-500/10 rounded-full blur-3xl opacity-50 animation-delay-4000"></div>
-            </div>
+        <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16 relative z-10">
-                <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
+            {/* Editorial Masthead */}
+            <section className="border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950">
+                <div className="max-w-7xl mx-auto px-6 py-12 md:py-16">
+                    <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 items-start sm:items-end">
+                        {/* Avatar */}
+                        <div className="relative shrink-0">
+                            <img
+                                src={author.image}
+                                alt={author.name}
+                                className="w-24 h-24 md:w-32 md:h-32 object-cover rounded-full border-4 border-white dark:border-neutral-900 ring-1 ring-neutral-200 dark:ring-neutral-700"
+                            />
+                        </div>
 
-                    {/* Left Column: Author Info */}
-                    <div className="w-full lg:w-1/4 flex-shrink-0 space-y-6 lg:space-y-8 lg:sticky lg:top-24 animate-in fade-in slide-in-from-left-4 duration-500">
-                        <div className="flex flex-col items-center lg:items-start text-center lg:text-left bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-6 rounded-2xl border border-gray-200/50 dark:border-gray-800/50 shadow-sm transition-all duration-300 hover:shadow-md hover:border-purple-500/10 dark:hover:border-purple-500/10">
-                            <div className="relative group mb-6">
-                                {/* Decorative Glow */}
-                                <div className="absolute -inset-4 bg-gradient-to-r from-purple-600/30 to-blue-600/30 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                                {/* Avatar Container with Animated Ring */}
-                                <div className="relative w-32 h-32 lg:w-48 lg:h-48 mx-auto lg:mx-0 rounded-full p-1">
-                                    <div className="absolute inset-0 bg-gradient-to-tr from-purple-500 via-blue-500 to-purple-500 rounded-full animate-spin-slow opacity-75 group-hover:opacity-100 transition-opacity" />
-                                    <div className="absolute inset-[3px] bg-white dark:bg-slate-900 rounded-full z-10" />
-                                    <div className="absolute inset-[6px] rounded-full overflow-hidden z-20">
-                                        <img
-                                            src={author.image}
-                                            alt={author.name}
-                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                        />
-                                    </div>
-                                </div>
+                        {/* Identity */}
+                        <div className="flex-1 min-w-0 pb-1">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="h-px w-6 bg-orange-500" />
+                                <span className="text-xs font-bold uppercase tracking-[0.2em] text-orange-500">Author</span>
                             </div>
-
-                            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                            <h1 className="font-display text-4xl md:text-5xl font-bold text-neutral-900 dark:text-neutral-50 leading-tight mb-2">
                                 {author.name}
                             </h1>
-                            <p className="inline-block bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 px-3 py-1 rounded-full text-sm font-medium mb-4 lg:mb-6">
-                                @{author.username}
-                            </p>
+                            <p className="text-neutral-500 dark:text-neutral-400 text-sm font-mono mb-3">@{author.username}</p>
 
                             {author.bio && (
-                                <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-sm lg:text-base mb-6 max-w-md lg:max-w-none">
+                                <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed max-w-xl text-sm md:text-base">
                                     {author.bio}
                                 </p>
                             )}
 
-                            <div className="w-full space-y-3 text-sm text-gray-500 dark:text-gray-400 flex flex-col items-center lg:items-start">
+                            {/* Meta row */}
+                            <div className="flex flex-wrap items-center gap-4 mt-4 text-xs text-neutral-500 dark:text-neutral-400">
                                 {author.location && (
-                                    <div className="flex items-center gap-2">
-                                        <div className="p-1.5 bg-white dark:bg-slate-800 rounded-lg shadow-sm">
-                                            <MapPin className="w-4 h-4 text-violet-500" />
-                                        </div>
+                                    <span className="flex items-center gap-1.5">
+                                        <MapPin className="w-3.5 h-3.5" />
                                         {author.location}
-                                    </div>
+                                    </span>
                                 )}
-
                                 {author.date_joined_as_author && (
-                                    <div className="flex items-center gap-2">
-                                        <div className="p-1.5 bg-white dark:bg-slate-800 rounded-lg shadow-sm">
-                                            <Calendar className="w-4 h-4 text-purple-500" />
-                                        </div>
-                                        Author Since {new Date(author.date_joined_as_author).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
-                                    </div>
+                                    <span className="flex items-center gap-1.5">
+                                        <Calendar className="w-3.5 h-3.5" />
+                                        Author since {new Date(author.date_joined_as_author).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
+                                    </span>
                                 )}
                                 {author.website && (
-                                    <a href={author.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-violet-600 transition-colors group">
-                                        <div className="p-1.5 bg-white dark:bg-slate-800 rounded-lg shadow-sm group-hover:bg-violet-50 dark:group-hover:bg-slate-700 transition-colors">
-                                            <Globe className="w-4 h-4 text-fuchsia-500" />
-                                        </div>
+                                    <a href={author.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-orange-500 transition-colors">
+                                        <Globe className="w-3.5 h-3.5" />
                                         Website
                                     </a>
                                 )}
                             </div>
+                        </div>
 
-                            <div className="flex items-center gap-3 mt-6 lg:mt-8 pt-6 lg:pt-8 w-full border-t border-gray-200 dark:border-gray-800/50 justify-center lg:justify-start">
+                        {/* Social + Stats column */}
+                        <div className="shrink-0 flex flex-col items-start sm:items-end gap-4">
+                            {/* Stats */}
+                            <div className="flex gap-6 text-right">
+                                <div>
+                                    <div className="text-2xl font-bold font-display text-neutral-900 dark:text-neutral-50">{totalPosts}</div>
+                                    <div className="text-xs uppercase tracking-[0.1em] text-neutral-400 font-bold">Articles</div>
+                                </div>
+                            </div>
+                            {/* Social links */}
+                            <div className="flex items-center gap-2">
                                 {author.github && (
-                                    <a href={author.github} target="_blank" rel="noopener noreferrer" className="p-2.5 bg-white dark:bg-slate-800 text-gray-500 hover:text-gray-900 dark:hover:text-white hover:shadow-md rounded-xl transition-all hover:-translate-y-1" title="GitHub">
-                                        <Github className="w-5 h-5" />
+                                    <a href={author.github} target="_blank" rel="noopener noreferrer"
+                                        className="p-2 text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                                        title="GitHub">
+                                        <Github className="w-4 h-4" />
                                     </a>
                                 )}
                                 {author.twitter && (
-                                    <a href={author.twitter} target="_blank" rel="noopener noreferrer" className="p-2.5 bg-white dark:bg-slate-800 text-gray-500 hover:text-sky-400 hover:shadow-md rounded-xl transition-all hover:-translate-y-1" title="Twitter">
-                                        <Twitter className="w-5 h-5" />
+                                    <a href={author.twitter} target="_blank" rel="noopener noreferrer"
+                                        className="p-2 text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                                        title="Twitter">
+                                        <Twitter className="w-4 h-4" />
                                     </a>
                                 )}
                                 {author.linkedin && (
-                                    <a href={author.linkedin} target="_blank" rel="noopener noreferrer" className="p-2.5 bg-white dark:bg-slate-800 text-gray-500 hover:text-blue-700 hover:shadow-md rounded-xl transition-all hover:-translate-y-1" title="LinkedIn">
-                                        <Linkedin className="w-5 h-5" />
+                                    <a href={author.linkedin} target="_blank" rel="noopener noreferrer"
+                                        className="p-2 text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                                        title="LinkedIn">
+                                        <Linkedin className="w-4 h-4" />
                                     </a>
                                 )}
                             </div>
                         </div>
                     </div>
+                </div>
+            </section>
 
-                    {/* Right Column: Content */}
-                    <div className="flex-1 w-full min-w-0">
-                        {/* Stats Overview */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                            <div className="p-6 border-violet-100 dark:border-slate-700 relative overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border shadow-sm">
-                                <div className="relative z-10">
-                                    <span className="block text-4xl font-bold text-gray-900 dark:text-white mb-1">{totalPosts}</span>
-                                    <span className="text-sm font-medium text-violet-600 dark:text-violet-400 uppercase tracking-wider">Articles Published</span>
-                                </div>
-                            </div>
-                            {author.date_joined_as_author && (
-                                <div className="p-6 border-cyan-100 dark:border-slate-700 relative overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border shadow-sm">
-                                    <div className="relative z-10">
-                                        <span className="block text-4xl font-bold text-gray-900 dark:text-white mb-1">{new Date(author.date_joined_as_author).getFullYear()}</span>
-                                        <span className="text-sm font-medium text-cyan-600 dark:text-cyan-400 uppercase tracking-wider">Author Since</span>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+            {/* Content */}
+            <div className="max-w-7xl mx-auto px-6 py-12 md:py-16">
 
-                        {/* Tabs / Filters */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-                            <div className="flex p-1 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm rounded-xl border border-gray-200/50 dark:border-gray-700/50">
-                                <button
-                                    onClick={() => setActiveTab('articles')}
-                                    className={`px-6 py-2.5 text-sm font-medium rounded-lg transition-all ${activeTab === 'articles'
-                                        ? 'bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm'
-                                        : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-                                        }`}
-                                >
-                                    Articles
-                                    <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${activeTab === 'articles'
-                                        ? 'bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-300'
-                                        : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-400'
-                                        }`}>
+                {/* Tabs + Search */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10 border-b border-neutral-200 dark:border-neutral-800 pb-0">
+                    <div className="flex gap-0">
+                        {(['articles', 'about'] as const).map(tab => (
+                            <button
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                className={`px-5 py-3 text-sm font-semibold uppercase tracking-[0.1em] border-b-2 transition-all capitalize ${
+                                    activeTab === tab
+                                        ? 'border-orange-500 text-orange-600 dark:text-orange-400'
+                                        : 'border-transparent text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'
+                                }`}
+                            >
+                                {tab}
+                                {tab === 'articles' && (
+                                    <span className={`ml-2 text-xs font-mono ${activeTab === tab ? 'text-orange-500' : 'text-neutral-400'}`}>
                                         {totalPosts}
                                     </span>
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('about')}
-                                    className={`px-6 py-2.5 text-sm font-medium rounded-lg transition-all ${activeTab === 'about'
-                                        ? 'bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm'
-                                        : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-                                        }`}
-                                >
-                                    About
-                                </button>
+                                )}
+                            </button>
+                        ))}
+                    </div>
+
+                    {activeTab === 'articles' && (
+                        <form onSubmit={handleSearch} className="relative w-full sm:w-56 mb-1">
+                            <input
+                                type="text"
+                                placeholder="Search articles..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-8 pr-3 py-2 text-sm bg-transparent border-b border-neutral-200 dark:border-neutral-700 focus:border-orange-500 dark:focus:border-orange-500 outline-none transition-colors text-neutral-900 dark:text-neutral-100 placeholder-neutral-400"
+                            />
+                            <Search className="absolute left-0 top-2 w-4 h-4 text-neutral-400" />
+                        </form>
+                    )}
+                </div>
+
+                {/* Articles tab */}
+                {activeTab === 'articles' ? (
+                    <div className="space-y-8">
+                        {isSearching ? (
+                            <div className="flex items-center justify-center py-20">
+                                <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
                             </div>
-
-                            {activeTab === 'articles' && (
-                                <form onSubmit={handleSearch} className="relative w-full sm:w-64 group">
-                                    <input
-                                        type="text"
-                                        placeholder="Search articles..."
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all Group-hover:bg-white dark:group-hover:bg-slate-800"
-                                    />
-                                    <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400 group-hover:text-violet-500 transition-colors" />
-                                </form>
-                            )}
-                        </div>
-
-                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            {activeTab === 'articles' ? (
-                                <div className="space-y-6">
-                                    {posts.length > 0 ? (
-                                        <div className="grid md:grid-cols-2 gap-6">
-                                            {posts.map((post) => (
-                                                <article
-                                                    key={post.id}
-                                                    className="group bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-800 hover:border-violet-200 dark:hover:border-violet-800/30 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 flex flex-col h-full ring-1 ring-gray-900/5 dark:ring-white/10"
-                                                >
-                                                    <a href={`/blog/${post.slug}`} className="block relative h-48 overflow-hidden bg-gray-100 dark:bg-gray-800">
+                        ) : posts.length > 0 ? (
+                            <>
+                                {/* 3-col grid, max 9 */}
+                                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                                    {posts.slice(0, 9).map((post) => {
+                                        const date = new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                                        return (
+                                            <article key={post.id} className="group flex flex-col">
+                                                {/* Image */}
+                                                <a href={`/blog/${post.slug}/`} className="block aspect-[16/10] overflow-hidden bg-neutral-100 dark:bg-neutral-800 mb-4">
+                                                    {post.image_url ? (
                                                         <img
                                                             src={post.image_url}
                                                             alt={post.title}
-                                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                                                             loading="lazy"
                                                         />
-                                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                                    </a>
-
-                                                    <div className="p-5 flex-1 flex flex-col">
-                                                        <div className="flex flex-wrap gap-2 mb-3">
-                                                            {post.tags.slice(0, 2).map(tag => (
-                                                                <span key={tag} className="text-xs font-semibold text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/10 px-2.5 py-1 rounded-lg">
-                                                                    #{tag}
-                                                                </span>
-                                                            ))}
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center">
+                                                            <FileText className="w-8 h-8 text-neutral-300 dark:text-neutral-600" />
                                                         </div>
+                                                    )}
+                                                </a>
 
-                                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-violet-600 transition-colors leading-tight">
-                                                            <a href={`/blog/${post.slug}`}>
-                                                                {post.title}
-                                                            </a>
-                                                        </h3>
+                                                {/* Meta */}
+                                                <div className="flex items-center gap-2 text-[11px] text-neutral-400 dark:text-neutral-500 mb-2">
+                                                    {post.tags[0] && (
+                                                        <span className="text-orange-600 dark:text-orange-400 font-medium">{post.tags[0]}</span>
+                                                    )}
+                                                    {post.tags[0] && <span>·</span>}
+                                                    <span>{date}</span>
+                                                    <span>·</span>
+                                                    <span>{post.reading_time}</span>
+                                                </div>
 
-                                                        <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 mb-4 flex-1">
-                                                            {post.description}
-                                                        </p>
+                                                {/* Title */}
+                                                <h3 className="font-display text-lg font-bold text-neutral-900 dark:text-neutral-50 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors line-clamp-2 leading-snug mb-2">
+                                                    <a href={`/blog/${post.slug}/`}>{post.title}</a>
+                                                </h3>
 
-                                                        <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-800/50 mt-auto">
-                                                            <span className="text-xs text-gray-500 font-medium bg-gray-50 dark:bg-slate-800 px-2 py-1 rounded-md">
-                                                                {new Date(post.created_at).toLocaleDateString(undefined, {
-                                                                    day: 'numeric',
-                                                                    month: 'short',
-                                                                    year: 'numeric'
-                                                                })}
-                                                            </span>
-                                                            <div className="flex items-center gap-3">
-                                                                {currentUserRank >= 4 && !post.is_newsletter_sent && (
-                                                                    <button
-                                                                        onClick={(e) => {
-                                                                            e.preventDefault(); // Prevent navigating to the article
-                                                                            handleSendNewsletter(post.slug);
-                                                                        }}
-                                                                        disabled={sendingNewsletterSlug === post.slug}
-                                                                        className="text-xs text-violet-600 dark:text-violet-400 hover:text-violet-800 dark:hover:text-violet-300 font-medium flex items-center gap-1 bg-violet-50 dark:bg-violet-900/20 px-2 py-1 rounded-md transition-colors disabled:opacity-50"
-                                                                        title="Send Newsletter"
-                                                                    >
-                                                                        {sendingNewsletterSlug === post.slug ? (
-                                                                            <Loader2 className="w-3 h-3 animate-spin" />
-                                                                        ) : (
-                                                                            <Send className="w-3 h-3" />
-                                                                        )}
-                                                                        Send
-                                                                    </button>
-                                                                )}
-                                                                <span className="text-xs text-gray-500 flex items-center gap-1 font-medium">
-                                                                    <FileText className="w-3 h-3 text-cyan-500" />
-                                                                    {post.reading_time}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </article>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="text-center py-20 bg-white/50 dark:bg-slate-900/50 rounded-3xl border border-dashed border-gray-200 dark:border-gray-800 backdrop-blur-sm">
-                                            <div className="w-16 h-16 bg-violet-50 dark:bg-violet-900/10 rounded-2xl flex items-center justify-center mx-auto mb-4 rotate-3">
-                                                <FileText className="w-8 h-8 text-violet-500" />
-                                            </div>
-                                            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No articles found</h3>
-                                            <p className="text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
-                                                {searchQuery ? `We couldn't find any matches for "${searchQuery}".` : "This author hasn't published anything yet. Check back soon!"}
-                                            </p>
-                                        </div>
-                                    )}
+                                                {/* Description */}
+                                                <p className="text-neutral-500 dark:text-neutral-400 text-sm line-clamp-2 leading-relaxed flex-1">
+                                                    {post.description}
+                                                </p>
 
-                                    {nextPage && (
-                                        <div className="pt-8 text-center">
-                                            <button
-                                                onClick={handleLoadMore}
-                                                disabled={loadingMore}
-                                                className="inline-flex items-center gap-2 px-8 py-3 bg-white dark:bg-slate-800 border-2 border-transparent hover:border-violet-500 dark:hover:border-violet-500 text-gray-900 dark:text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-violet-500/20 disabled:opacity-50 disabled:cursor-not-allowed group"
-                                            >
-                                                {loadingMore ? (
-                                                    <>
-                                                        <Loader2 className="w-5 h-5 animate-spin text-violet-600" />
-                                                        Loading articles...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        Load More Articles
-                                                        <span className="group-hover:translate-y-0.5 transition-transform">↓</span>
-                                                    </>
+                                                {/* Admin action */}
+                                                {currentUserRank >= 4 && !post.is_newsletter_sent && (
+                                                    <button
+                                                        onClick={(e) => { e.preventDefault(); handleSendNewsletter(post.slug); }}
+                                                        disabled={sendingNewsletterSlug === post.slug}
+                                                        className="mt-3 text-xs text-orange-600 dark:text-orange-400 hover:text-orange-700 font-medium flex items-center gap-1 transition-colors disabled:opacity-50"
+                                                    >
+                                                        {sendingNewsletterSlug === post.slug
+                                                            ? <Loader2 className="w-3 h-3 animate-spin" />
+                                                            : <Send className="w-3 h-3" />}
+                                                        Send newsletter
+                                                    </button>
                                                 )}
-                                            </button>
-                                        </div>
-                                    )}
+                                            </article>
+                                        );
+                                    })}
                                 </div>
-                            ) : (
-                                <div className="prose dark:prose-invert max-w-none animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                    <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 border border-gray-100 dark:border-gray-800 shadow-xl">
-                                        <h3 className="text-2xl font-bold mb-6 bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">About {author.name}</h3>
 
-                                        {author.bio ? (
-                                            <p className="whitespace-pre-wrap text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
-                                                {author.bio}
-                                            </p>
-                                        ) : (
-                                            <p className="text-gray-500 dark:text-gray-400 italic mb-8 bg-gray-50 dark:bg-slate-800/50 p-4 rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
-                                                No biography available.
-                                            </p>
-                                        )}
-
-                                        <div className="mb-8">
-                                            <h4 className="text-lg font-bold mb-4 flex items-center gap-2">
-                                                <span className="w-1 h-6 bg-violet-500 rounded-full"></span>
-                                                Connect
-                                            </h4>
-                                            <div className="flex flex-wrap gap-3">
-                                                {author.website && (
-                                                    <a href={author.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-5 py-3 bg-gray-50 dark:bg-slate-800/50 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-slate-700 hover:text-violet-600 dark:hover:text-violet-400 transition-all border border-gray-100 dark:border-gray-700 hover:shadow-md hover:-translate-y-0.5">
-                                                        <Globe className="w-4 h-4" />
-                                                        Website
-                                                    </a>
-                                                )}
-                                                {author.github && (
-                                                    <a href={author.github} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-5 py-3 bg-gray-50 dark:bg-slate-800/50 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-slate-700 hover:text-gray-900 dark:hover:text-white transition-all border border-gray-100 dark:border-gray-700 hover:shadow-md hover:-translate-y-0.5">
-                                                        <Github className="w-4 h-4" />
-                                                        GitHub
-                                                    </a>
-                                                )}
-                                                {author.linkedin && (
-                                                    <a href={author.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-5 py-3 bg-gray-50 dark:bg-slate-800/50 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-blue-400 transition-all border border-gray-100 dark:border-gray-700 hover:shadow-md hover:-translate-y-0.5">
-                                                        <Linkedin className="w-4 h-4" />
-                                                        LinkedIn
-                                                    </a>
-                                                )}
-                                                {author.twitter && (
-                                                    <a href={author.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-5 py-3 bg-gray-50 dark:bg-slate-800/50 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-slate-700 hover:text-sky-400 dark:hover:text-sky-400 transition-all border border-gray-100 dark:border-gray-700 hover:shadow-md hover:-translate-y-0.5">
-                                                        <Twitter className="w-4 h-4" />
-                                                        Twitter
-                                                    </a>
-                                                )}
-                                                {!author.website && !author.github && !author.linkedin && !author.twitter && (
-                                                    <span className="text-gray-500 text-sm italic px-4 py-2">No social links provided.</span>
-                                                )}
-                                            </div>
-                                        </div>
-
-
+                                {/* Load More */}
+                                {(nextPage || posts.length > 9) && (
+                                    <div className="text-center">
+                                        <button
+                                            onClick={handleLoadMore}
+                                            disabled={loadingMore}
+                                            className="inline-flex items-center gap-2 px-8 py-3 border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 font-semibold text-sm hover:border-orange-400 hover:text-orange-600 dark:hover:text-orange-400 transition-all disabled:opacity-50"
+                                        >
+                                            {loadingMore ? <><Loader2 className="w-4 h-4 animate-spin" /> Loading...</> : <>Load More <ArrowRight className="w-4 h-4" /></>}
+                                        </button>
                                     </div>
-                                </div>
+                                )}
+                            </>
+                        ) : (
+                            <div className="text-center py-24 border border-dashed border-neutral-200 dark:border-neutral-800">
+                                <FileText className="w-8 h-8 text-neutral-300 dark:text-neutral-600 mx-auto mb-4" />
+                                <h3 className="font-bold text-neutral-700 dark:text-neutral-300 mb-1">No articles found</h3>
+                                <p className="text-neutral-400 text-sm max-w-xs mx-auto">
+                                    {searchQuery ? `No matches for "${searchQuery}".` : "This author hasn't published anything yet."}
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    /* About tab */
+                    <div className="max-w-2xl space-y-10">
+                        <div>
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="h-px w-6 bg-neutral-300 dark:bg-neutral-600" />
+                                <span className="text-xs font-bold uppercase tracking-[0.15em] text-neutral-400">Biography</span>
+                            </div>
+                            {author.bio ? (
+                                <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed whitespace-pre-wrap">{author.bio}</p>
+                            ) : (
+                                <p className="text-neutral-400 italic">No biography provided.</p>
                             )}
                         </div>
+
+                        <div>
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="h-px w-6 bg-neutral-300 dark:bg-neutral-600" />
+                                <span className="text-xs font-bold uppercase tracking-[0.15em] text-neutral-400">Connect</span>
+                            </div>
+                            <div className="space-y-0 divide-y divide-neutral-100 dark:divide-neutral-800">
+                                {author.website && (
+                                    <a href={author.website} target="_blank" rel="noopener noreferrer"
+                                        className="group flex items-center gap-4 py-4 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
+                                        <Globe className="w-4 h-4 text-neutral-400" />
+                                        <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">Website</span>
+                                    </a>
+                                )}
+                                {author.github && (
+                                    <a href={author.github} target="_blank" rel="noopener noreferrer"
+                                        className="group flex items-center gap-4 py-4 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
+                                        <Github className="w-4 h-4 text-neutral-400" />
+                                        <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">GitHub</span>
+                                    </a>
+                                )}
+                                {author.linkedin && (
+                                    <a href={author.linkedin} target="_blank" rel="noopener noreferrer"
+                                        className="group flex items-center gap-4 py-4 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
+                                        <Linkedin className="w-4 h-4 text-neutral-400" />
+                                        <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">LinkedIn</span>
+                                    </a>
+                                )}
+                                {author.twitter && (
+                                    <a href={author.twitter} target="_blank" rel="noopener noreferrer"
+                                        className="group flex items-center gap-4 py-4 hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
+                                        <Twitter className="w-4 h-4 text-neutral-400" />
+                                        <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">Twitter</span>
+                                    </a>
+                                )}
+                                {!author.website && !author.github && !author.linkedin && !author.twitter && (
+                                    <p className="text-neutral-400 italic text-sm py-4">No social links provided.</p>
+                                )}
+                            </div>
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
         </div>
     );
