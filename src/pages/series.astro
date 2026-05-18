@@ -2,24 +2,19 @@
 import Layout from "../layouts/Layout.astro";
 import SeriesCard from "../components/SeriesCard.astro";
 
-// Enable Server-Side Rendering
-// export const prerender = false;
-
-// Get API URL from environment
 const API_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
 
-// Fetch series data from API using new endpoints
 let liveSeries = [];
 let completedSeries = [];
 let plannedSeries = [];
-let deactivatedSeries = [];
 let error = null;
 
 try {
-    // Fetch live series
-    const liveResponse = await fetch(
-        `${API_URL}/api/blogs/series/live-series/`,
-    );
+    const [liveResponse, completedResponse] = await Promise.all([
+        fetch(`${API_URL}/api/blogs/series/live-series/`),
+        fetch(`${API_URL}/api/blogs/series/completed-series/`),
+    ]);
+
     if (liveResponse.ok) {
         const liveData = await liveResponse.json();
         liveSeries = liveData.data || [];
@@ -27,437 +22,188 @@ try {
         console.warn(`Live series API returned ${liveResponse.status}`);
     }
 
-    // Fetch completed series
-    const completedResponse = await fetch(
-        `${API_URL}/api/blogs/series/completed-series/`,
-    );
     if (completedResponse.ok) {
         const completedData = await completedResponse.json();
         completedSeries = completedData.data || [];
     } else {
-        console.warn(
-            `Completed series API returned ${completedResponse.status}`,
-        );
+        console.warn(`Completed series API returned ${completedResponse.status}`);
     }
-
-    // Optionally fetch all series to get planned/deactivated (if needed)
-    // For now, we'll just use live and completed
 } catch (e) {
     console.error("Failed to fetch series data:", e);
-    error = e.message;
+    error = e instanceof Error ? e.message : String(e);
 }
 
-// Combine all series for stats
-const seriesData = [
-    ...liveSeries,
-    ...completedSeries,
-    ...plannedSeries,
-    ...deactivatedSeries,
-];
+const seriesData = [...liveSeries, ...completedSeries, ...plannedSeries];
 ---
 
 <Layout
-    title="Series Collection | TakoVibe"
+    title="Series | TakoVibe"
     author="TakoVibe Team"
-    description="Explore our comprehensive content series covering AI, system design, problem-solving, and more. Structured learning paths for developers."
+    description="Explore structured TakoVibe learning paths for developers, from foundations to practical engineering depth."
     tags={["series", "tutorials", "learning paths", "programming"]}
 >
-    <div class="min-h-screen bg-gray-50 dark:bg-[#0B1120]">
-        <!-- Hero Section -->
-        <section class="relative py-24 lg:py-32 overflow-hidden">
-            <!-- Animated Background -->
-            <div
-                class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-100 via-gray-50 to-gray-50 dark:from-purple-900/20 dark:via-[#0B1120] dark:to-[#0B1120]"
-            >
-            </div>
+    <div class="relative min-h-screen w-full overflow-x-hidden bg-stone-50 dark:bg-neutral-950">
+        <div class="fixed inset-0 z-0 pointer-events-none">
+            <div class="absolute left-0 right-0 top-0 h-[520px] bg-gradient-to-b from-orange-50/80 via-stone-50/40 to-transparent dark:from-orange-950/20 dark:via-neutral-950/40 dark:to-transparent"></div>
+        </div>
 
-            <!-- Blobs -->
-            <div
-                class="absolute top-0 left-1/4 w-96 h-96 bg-purple-400/20 dark:bg-purple-500/10 rounded-full blur-3xl animate-blob"
-            >
-            </div>
-            <div
-                class="absolute top-0 right-1/4 w-96 h-96 bg-blue-400/20 dark:bg-blue-500/10 rounded-full blur-3xl animate-blob animation-delay-2000"
-            >
-            </div>
-
-            <div class="relative z-10 max-w-6xl mx-auto px-6 text-center">
-                <div
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-white/50 dark:bg-white/5 backdrop-blur-md text-purple-700 dark:text-purple-300 rounded-full text-sm font-medium mb-8 border border-purple-200/50 dark:border-white/10 shadow-sm animate-fade-in-up"
-                >
-                    <span class="text-base">📚</span>
-                    <span>Learning Journeys</span>
-                </div>
-
-                <h1
-                    class="text-5xl md:text-6xl lg:text-7xl font-bold mb-8 animate-fade-in-up animation-delay-200 tracking-tight"
-                >
-                    <span class="block text-gray-900 dark:text-white mb-2"
-                        >Series Collection</span
-                    >
-                    <span
-                        class="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent animate-gradient"
-                        >Structured Learning</span
-                    >
-                </h1>
-
-                <p
-                    class="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed animate-fade-in-up animation-delay-400 mb-8"
-                >
-                    Follow comprehensive series that build knowledge
-                    progressively through curated content and real-world
-                    examples.
-                </p>
-
-                <!-- Stats -->
-                <div
-                    class="flex flex-wrap items-center justify-center gap-6 text-gray-500 dark:text-gray-400 animate-fade-in-up animation-delay-600"
-                >
-                    <div class="flex items-center gap-2">
-                        <div
-                            class="w-2 h-2 bg-green-500 rounded-full animate-pulse"
-                        >
-                        </div>
-                        <span class="font-medium">{liveSeries.length}</span>
-                        <span>live</span>
+        <div class="relative z-10 w-full">
+            <header class="border-b border-neutral-200 dark:border-neutral-800">
+                <div class="mx-auto max-w-5xl px-6 pb-10 pt-16">
+                    <div class="mb-4 inline-flex items-center rounded-md bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-700 dark:bg-orange-950/30 dark:text-orange-300">
+                        Learning paths
                     </div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        <span class="font-medium">{completedSeries.length}</span
-                        >
-                        <span>completed</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-2 h-2 bg-amber-500 rounded-full"></div>
-                        <span class="font-medium">{plannedSeries.length}</span>
-                        <span>planned</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Error Message -->
-        {
-            error && (
-                <section class="px-6 mb-8">
-                    <div class="max-w-4xl mx-auto p-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl">
-                        <div class="flex items-center gap-3 text-red-700 dark:text-red-400">
-                            <svg
-                                class="w-6 h-6"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-                                />
-                            </svg>
-                            <span class="font-bold">
-                                Unable to load series data
-                            </span>
-                        </div>
-                    </div>
-                </section>
-            )
-        }
-
-        <!-- Live Series Section -->
-        {
-            liveSeries.length > 0 && (
-                <section class="py-16 px-6">
-                    <div class="max-w-7xl mx-auto">
-                        <div class="text-center mb-12">
-                            <h2 class="inline-flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-900/20 rounded-full mb-4">
-                                <span class="text-xl">🔥</span>
-                                <span class="font-bold text-green-700 dark:text-green-300">
-                                    Live Series
-                                </span>
-                            </h2>
-                            <p class="text-gray-600 dark:text-gray-400">
-                                Ongoing series with regular updates
-                            </p>
-                        </div>
-
-                        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {liveSeries.map((series) => (
-                                <SeriesCard
-                                    series={series}
-                                    status="live"
-                                    badgeColor="bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300"
-                                    badgeText="Live"
-                                />
-                            ))}
-                        </div>
-                    </div>
-                </section>
-            )
-        }
-
-        <!-- Completed Series Section -->
-        {
-            completedSeries.length > 0 && (
-                <section class="py-16 px-6 bg-white/50 dark:bg-white/5">
-                    <div class="max-w-7xl mx-auto">
-                        <div class="text-center mb-12">
-                            <h2 class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-full mb-4">
-                                <span class="text-xl">✅</span>
-                                <span class="font-bold text-blue-700 dark:text-blue-300">
-                                    Completed Series
-                                </span>
-                            </h2>
-                            <p class="text-gray-600 dark:text-gray-400">
-                                Fully released series ready for binge-reading
-                            </p>
-                        </div>
-
-                        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {completedSeries.map((series) => (
-                                <SeriesCard
-                                    series={series}
-                                    status="completed"
-                                    badgeColor="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-                                    badgeText="Completed"
-                                />
-                            ))}
-                        </div>
-                    </div>
-                </section>
-            )
-        }
-
-        <!-- Planned Series Section -->
-        {
-            plannedSeries.length > 0 && (
-                <section class="py-16 px-6">
-                    <div class="max-w-7xl mx-auto">
-                        <div class="text-center mb-12">
-                            <h2 class="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-900/20 rounded-full mb-4">
-                                <span class="text-xl">🚀</span>
-                                <span class="font-bold text-amber-700 dark:text-amber-300">
-                                    Coming Soon
-                                </span>
-                            </h2>
-                            <p class="text-gray-600 dark:text-gray-400">
-                                Preview upcoming series and get notified when
-                                they launch
-                            </p>
-                        </div>
-
-                        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {plannedSeries.map((series) => (
-                                <SeriesCard
-                                    series={series}
-                                    status="planned"
-                                    badgeColor="bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300"
-                                    badgeText="Planned"
-                                />
-                            ))}
-                        </div>
-                    </div>
-                </section>
-            )
-        }
-
-        <!-- Deactivated Series Section (Optional/Admin view) -->
-        {
-            deactivatedSeries.length > 0 && (
-                <section class="py-16 px-6 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
-                    <div class="max-w-7xl mx-auto">
-                        <div class="text-center mb-12">
-                            <h2 class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-full mb-4">
-                                <span class="text-xl">📦</span>
-                                <span class="font-bold text-gray-700 dark:text-gray-300">
-                                    Archived
-                                </span>
-                            </h2>
-                        </div>
-
-                        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {deactivatedSeries.map((series) => (
-                                <SeriesCard
-                                    series={series}
-                                    status="deactivated"
-                                    badgeColor="bg-gray-100 dark:bg-gray-800 text-gray-500"
-                                    badgeText="Archived"
-                                />
-                            ))}
-                        </div>
-                    </div>
-                </section>
-            )
-        }
-
-        <!-- Empty State -->
-        {
-            seriesData.length === 0 && !error && (
-                <section class="py-20 px-6">
-                    <div class="max-w-4xl mx-auto text-center">
-                        <div class="text-8xl mb-6">📚</div>
-                        <h3 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-                            No Series Available Yet
-                        </h3>
-                        <p class="text-xl text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-8">
-                            We're working on creating amazing learning series
-                            for you. Check back soon!
-                        </p>
-                        <a
-                            href="/blog"
-                            class="inline-flex items-center gap-2 px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl shadow-lg transition-all hover:-translate-y-0.5"
-                        >
-                            <span>Browse All Articles</span>
-                            <svg
-                                class="w-5 h-5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M17 8l4 4m0 0l-4 4m4-4H3"
-                                />
-                            </svg>
-                        </a>
-                    </div>
-                </section>
-            )
-        }
-
-        <!-- CTA Section -->
-        <section class="py-20 px-6">
-            <div class="max-w-4xl mx-auto">
-                <div
-                    class="bg-white/50 dark:bg-[#131B2E]/50 backdrop-blur-xl rounded-3xl p-12 border border-gray-200 dark:border-gray-700/50 text-center shadow-2xl"
-                >
-                    <div class="flex items-center justify-center gap-3 mb-6">
-                        <span class="text-4xl">💡</span>
-                        <span class="text-4xl">🎯</span>
-                        <span class="text-4xl">🚀</span>
-                    </div>
-
-                    <h3
-                        class="text-3xl font-bold text-gray-900 dark:text-white mb-4"
-                    >
-                        Want to suggest a series topic?
-                    </h3>
-                    <p
-                        class="text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto text-lg"
-                    >
-                        Have an idea for a comprehensive series you'd like to
-                        see? We're always looking for topics that would benefit
-                        the developer community.
+                    <h1 class="mb-3 font-display text-4xl font-bold text-neutral-900 dark:text-neutral-50 md:text-5xl">
+                        Series
+                    </h1>
+                    <p class="max-w-xl text-lg leading-relaxed text-neutral-500 dark:text-neutral-400">
+                        Structured article collections for learning a topic in order, without the noise.
                     </p>
 
-                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                        <a
-                            href="/contact"
-                            class="px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl shadow-lg shadow-purple-600/20 hover:shadow-purple-600/40 transition-all duration-300 hover:-translate-y-1 flex items-center justify-center gap-2"
-                        >
-                            <span>Contact Us</span>
-                            <svg
-                                class="w-5 h-5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-                            </svg>
-                        </a>
-                        <a
-                            href="/blog"
-                            class="px-8 py-4 bg-white dark:bg-[#0B1120] border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:border-purple-500 transition-all duration-300 hover:-translate-y-1"
-                        >
-                            Browse All Articles
-                        </a>
+                    <div class="mt-8 grid max-w-md grid-cols-2 gap-4">
+                        <div>
+                            <div class="text-2xl font-bold text-neutral-900 dark:text-neutral-50">
+                                {liveSeries.length}
+                            </div>
+                            <div class="text-xs font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
+                                Live
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold text-neutral-900 dark:text-neutral-50">
+                                {completedSeries.length}
+                            </div>
+                            <div class="text-xs font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
+                                Completed
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </section>
+            </header>
+
+            {
+                error && (
+                    <section class="mx-auto max-w-5xl px-6 pt-8">
+                        <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
+                            Unable to load live series data right now.
+                        </div>
+                    </section>
+                )
+            }
+
+            <main class="mx-auto max-w-5xl px-6 py-10">
+                {
+                    liveSeries.length > 0 && (
+                        <section class="mb-14">
+                            <div class="mb-6 flex items-end justify-between gap-4">
+                                <div>
+                                    <h2 class="text-xl font-bold text-neutral-900 dark:text-neutral-50">
+                                        Live Series
+                                    </h2>
+                                    <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                                        Ongoing paths with new parts added over time.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="grid gap-5 md:grid-cols-2">
+                                {liveSeries.map((series) => (
+                                    <SeriesCard series={series} status="live" badgeText="Live" />
+                                ))}
+                            </div>
+                        </section>
+                    )
+                }
+
+                {
+                    completedSeries.length > 0 && (
+                        <section class="mb-14 border-t border-neutral-200 pt-10 dark:border-neutral-800">
+                            <div class="mb-6">
+                                <h2 class="text-xl font-bold text-neutral-900 dark:text-neutral-50">
+                                    Completed Series
+                                </h2>
+                                <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                                    Finished learning paths ready to read end to end.
+                                </p>
+                            </div>
+                            <div class="grid gap-5 md:grid-cols-2">
+                                {completedSeries.map((series) => (
+                                    <SeriesCard
+                                        series={series}
+                                        status="completed"
+                                        badgeText="Completed"
+                                    />
+                                ))}
+                            </div>
+                        </section>
+                    )
+                }
+
+                {
+                    plannedSeries.length > 0 && (
+                        <section class="mb-14 border-t border-neutral-200 pt-10 dark:border-neutral-800">
+                            <div class="mb-6">
+                                <h2 class="text-xl font-bold text-neutral-900 dark:text-neutral-50">
+                                    Coming Soon
+                                </h2>
+                                <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                                    Upcoming paths currently being shaped.
+                                </p>
+                            </div>
+                            <div class="grid gap-5 md:grid-cols-2">
+                                {plannedSeries.map((series) => (
+                                    <SeriesCard series={series} status="planned" badgeText="Planned" />
+                                ))}
+                            </div>
+                        </section>
+                    )
+                }
+
+                {
+                    seriesData.length === 0 && !error && (
+                        <section class="py-20 text-center">
+                            <h2 class="mb-2 text-2xl font-bold text-neutral-900 dark:text-neutral-50">
+                                No series available yet
+                            </h2>
+                            <p class="mx-auto mb-6 max-w-md text-neutral-500 dark:text-neutral-400">
+                                The structured paths are being prepared. Browse the latest articles while they land.
+                            </p>
+                            <a
+                                href="/blog"
+                                class="inline-flex rounded-lg bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-orange-600 dark:bg-neutral-100 dark:text-neutral-950 dark:hover:bg-orange-400"
+                            >
+                                Browse Articles
+                            </a>
+                        </section>
+                    )
+                }
+
+                <section class="border-t border-neutral-200 py-10 dark:border-neutral-800">
+                    <div class="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                        <div>
+                            <h2 class="text-xl font-bold text-neutral-900 dark:text-neutral-50">
+                                Suggest a topic
+                            </h2>
+                            <p class="mt-1 max-w-xl text-sm leading-relaxed text-neutral-500 dark:text-neutral-400">
+                                Have a learning path you want TakoVibe to cover next? Send the idea over.
+                            </p>
+                        </div>
+                        <div class="flex gap-3">
+                            <a
+                                href="/contact"
+                                class="rounded-lg bg-orange-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-orange-700"
+                            >
+                                Contact Us
+                            </a>
+                            <a
+                                href="/blog"
+                                class="rounded-lg border border-neutral-200 px-5 py-2.5 text-sm font-semibold text-neutral-700 transition-colors hover:border-orange-300 hover:text-orange-600 dark:border-neutral-800 dark:text-neutral-300 dark:hover:border-orange-800 dark:hover:text-orange-400"
+                            >
+                                Browse Articles
+                            </a>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
     </div>
 </Layout>
-
-<style>
-    /* Animations */
-    @keyframes blob {
-        0% {
-            transform: translate(0px, 0px) scale(1);
-        }
-        33% {
-            transform: translate(30px, -50px) scale(1.1);
-        }
-        66% {
-            transform: translate(-20px, 20px) scale(0.9);
-        }
-        100% {
-            transform: translate(0px, 0px) scale(1);
-        }
-    }
-    .animate-blob {
-        animation: blob 7s infinite;
-    }
-    .animation-delay-2000 {
-        animation-delay: 2s;
-    }
-
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    .animate-fade-in-up {
-        animation: fadeInUp 0.8s ease-out forwards;
-        opacity: 0;
-    }
-    .animation-delay-200 {
-        animation-delay: 0.2s;
-    }
-    .animation-delay-400 {
-        animation-delay: 0.4s;
-    }
-    .animation-delay-600 {
-        animation-delay: 0.6s;
-    }
-
-    @keyframes gradient {
-        0% {
-            background-position: 0% 50%;
-        }
-        50% {
-            background-position: 100% 50%;
-        }
-        100% {
-            background-position: 0% 50%;
-        }
-    }
-    .animate-gradient {
-        background-size: 200% auto;
-        animation: gradient 4s linear infinite;
-    }
-
-    .line-clamp-1 {
-        display: -webkit-box;
-        -webkit-line-clamp: 1;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
-    .line-clamp-2 {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-</style>

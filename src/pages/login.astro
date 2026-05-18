@@ -3,307 +3,183 @@ import Layout from "../layouts/Layout.astro";
 import TurnstileWidget from "../components/TurnstileWidget.astro";
 ---
 
-<Layout title="Welcome to TakoVibe" description="Sign in or create an account">
-    <div class="min-h-screen flex bg-white dark:bg-slate-950">
-        <!-- Left Side - Auth Forms -->
-        <div
-            class="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 lg:p-16 relative overflow-hidden"
-        >
-            <!-- Background Decoration for Mobile/Tablet -->
-            <div
-                class="absolute inset-0 pointer-events-none opacity-30 dark:opacity-20 lg:hidden"
-            >
-                <div
-                    class="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(159,122,234,0.15),transparent_70%)]"
-                >
-                </div>
-            </div>
+<Layout title="Welcome to TakoVibe" description="Sign in or create an account" no_footer={true}>
+    <div class="relative min-h-screen overflow-x-hidden bg-stone-50 dark:bg-neutral-950">
+        <div class="fixed inset-0 z-0 pointer-events-none">
+            <div class="absolute left-0 right-0 top-0 h-[520px] bg-gradient-to-b from-orange-50/80 via-stone-50/40 to-transparent dark:from-orange-950/20 dark:via-neutral-950/40 dark:to-transparent"></div>
+        </div>
 
-            <div class="w-full max-w-md space-y-8 relative z-10">
-                <!-- Logo & Header -->
-                <div class="text-center mb-8">
-                    <a href="/" class="inline-block mb-4 group">
-                        <div class="relative">
-                            <div
-                                class="absolute inset-0 bg-purple-500/20 rounded-full blur-md group-hover:bg-purple-500/30 transition-colors"
-                            >
-                            </div>
+        <main class="relative z-10 mx-auto grid min-h-[calc(100svh-3.5rem)] max-w-6xl items-center gap-8 px-4 py-6 sm:px-6 sm:py-10 lg:grid-cols-[minmax(0,1fr)_420px] lg:gap-12 lg:py-12">
+            <section class="hidden lg:flex min-h-[620px]">
+                <div class="relative flex min-h-[620px] w-full overflow-hidden rounded-lg border border-neutral-200 bg-neutral-950 dark:border-neutral-800">
+                    <img
+                        src="https://ik.imagekit.io/takovibe/auth%20image"
+                        alt="TakoVibe learning workspace"
+                        class="absolute inset-0 h-full w-full object-cover object-center opacity-90"
+                        loading="lazy"
+                    />
+                    <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/45 to-black/10"></div>
+                    <div class="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 to-transparent"></div>
+
+                    <div class="relative z-10 flex max-w-xl flex-col justify-end p-10 xl:p-12">
+                        <div class="mb-4 inline-flex w-fit items-center rounded-md bg-white/10 px-2.5 py-1 text-xs font-semibold text-orange-200 backdrop-blur">
+                            TakoVibe account
+                        </div>
+                        <h1 class="font-display text-5xl font-bold leading-tight text-white xl:text-6xl">
+                            Pick up where your learning left off.
+                        </h1>
+                        <p class="mt-4 max-w-lg text-lg leading-relaxed text-neutral-200">
+                            Sign in to continue with your articles, notes, saved posts, and writing workspace.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="w-full max-w-md justify-self-center lg:max-w-none">
+                <div class="relative overflow-hidden rounded-lg border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 sm:p-8">
+                    <img
+                        src="https://ik.imagekit.io/takovibe/auth%20image"
+                        alt=""
+                        aria-hidden="true"
+                        class="pointer-events-none absolute -right-12 top-2 h-32 w-40 object-contain opacity-[0.07] dark:opacity-[0.09] lg:hidden"
+                        loading="lazy"
+                    />
+                    <div class="relative mb-6 sm:mb-8">
+                        <a href="/" class="mb-5 inline-flex items-center gap-3">
                             <img
                                 src="/images/logo.svg"
                                 alt="TakoVibe"
-                                class="relative w-12 h-12 rounded-full shadow-sm transform group-hover:scale-105 transition-transform duration-300"
+                                class="h-10 w-10 rounded-full"
                             />
+                            <span class="font-display text-xl font-bold text-neutral-900 dark:text-neutral-50">TakoVibe</span>
+                        </a>
+                        <h2 id="auth-title" class="font-display text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50">
+                            Welcome back
+                        </h2>
+                        <p id="auth-subtitle" class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+                            Please enter your details to sign in.
+                        </p>
+                    </div>
+
+                    <div class="relative mb-5 grid grid-cols-2 gap-1 rounded-lg bg-neutral-100 p-1 dark:bg-neutral-800 sm:mb-6">
+                        <button id="tab-login" class="auth-tab-active rounded-md px-4 py-2.5 text-sm font-semibold transition-colors">
+                            Sign In
+                        </button>
+                        <button id="tab-signup" class="auth-tab-inactive rounded-md px-4 py-2.5 text-sm font-semibold transition-colors">
+                            Sign Up
+                        </button>
+                    </div>
+
+                    <div id="google-btn-container" class="relative flex w-full justify-center"></div>
+
+                    <div class="relative my-5 sm:my-6">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t border-neutral-200 dark:border-neutral-800"></div>
                         </div>
-                    </a>
-                    <h2
-                        id="auth-title"
-                        class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white"
-                    >
-                        Welcome back
-                    </h2>
-                    <p
-                        id="auth-subtitle"
-                        class="mt-2 text-sm text-gray-600 dark:text-gray-400"
-                    >
-                        Please enter your details to sign in.
-                    </p>
-                </div>
-
-                <!-- Auth Toggle -->
-                <div
-                    class="flex p-1 bg-gray-100 dark:bg-gray-800 rounded-xl mb-8"
-                >
-                    <button
-                        id="tab-login"
-                        class="flex-1 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
-                    >
-                        Sign In
-                    </button>
-                    <button
-                        id="tab-signup"
-                        class="flex-1 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                    >
-                        Sign Up
-                    </button>
-                </div>
-
-                <!-- Google Button Container -->
-                <div
-                    id="google-btn-container"
-                    class="w-full flex justify-center"
-                >
-                </div>
-
-                <div class="relative my-6">
-                    <div class="absolute inset-0 flex items-center">
-                        <div
-                            class="w-full border-t border-gray-200 dark:border-gray-700"
-                        >
+                        <div class="relative flex justify-center text-sm">
+                            <span class="bg-white px-4 text-neutral-400 dark:bg-neutral-900 dark:text-neutral-500">
+                                Or continue with email
+                            </span>
                         </div>
                     </div>
-                    <div class="relative flex justify-center text-sm">
-                        <span
-                            class="px-4 bg-white dark:bg-slate-950 text-gray-500 dark:text-gray-400"
-                        >
-                            Or continue with email
-                        </span>
-                    </div>
-                </div>
 
-                <div
-                    id="auth-error"
-                    class="hidden rounded-xl bg-red-50 dark:bg-red-900/20 p-4 border border-red-100 dark:border-red-800 mb-6"
-                >
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <svg
-                                class="h-5 w-5 text-red-400"
-                                viewBox="0 0 20 20"
-                                fill="currentColor"
-                            >
-                                <path
-                                    fill-rule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                    clip-rule="evenodd"></path>
+                    <div id="auth-error" class="mb-6 hidden rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900/60 dark:bg-red-950/30">
+                        <div class="flex gap-3">
+                            <svg class="h-5 w-5 shrink-0 text-red-500 dark:text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
                             </svg>
-                        </div>
-                        <div class="ml-3">
-                            <h3
-                                class="text-sm font-medium text-red-800 dark:text-red-200"
-                                id="error-message"
-                            >
+                            <h3 id="error-message" class="text-sm font-medium text-red-800 dark:text-red-200">
                                 Authentication failed
                             </h3>
                         </div>
                     </div>
-                </div>
 
-                <!-- Login Form -->
-                <form id="login-form" class="space-y-5">
-                    <div>
-                        <label
-                            for="login-email"
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                        >
-                            Email address
-                        </label>
-                        <input
-                            id="login-email"
-                            name="email"
-                            type="email"
-                            autocomplete="email"
-                            required
-                            class="appearance-none block w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-800 dark:text-white transition-all duration-200"
-                            placeholder="you@example.com"
-                        />
-                    </div>
+                    <form id="login-form" class="space-y-4 sm:space-y-5">
+                        <div>
+                            <label for="login-email" class="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                                Email address
+                            </label>
+                            <input
+                                id="login-email"
+                                name="email"
+                                type="email"
+                                autocomplete="email"
+                                required
+                                class="block w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-neutral-900 shadow-sm outline-none transition-colors placeholder:text-neutral-400 focus:border-orange-400 dark:border-neutral-800 dark:bg-neutral-950 dark:text-white dark:placeholder:text-neutral-500 dark:focus:border-orange-700 sm:py-3"
+                                placeholder="you@example.com"
+                            />
+                        </div>
 
-                    <div>
-                        <div class="flex items-center justify-between mb-1">
-                            <label
-                                for="login-password"
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                            >
+                        <div>
+                            <div class="mb-1 flex items-center justify-between">
+                                <label for="login-password" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                                    Password
+                                </label>
+                                <a href="/forgot-password" class="text-sm font-medium text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300">
+                                    Forgot password?
+                                </a>
+                            </div>
+                            <input
+                                id="login-password"
+                                name="password"
+                                type="password"
+                                autocomplete="current-password"
+                                required
+                                class="block w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-neutral-900 shadow-sm outline-none transition-colors placeholder:text-neutral-400 focus:border-orange-400 dark:border-neutral-800 dark:bg-neutral-950 dark:text-white dark:placeholder:text-neutral-500 dark:focus:border-orange-700 sm:py-3"
+                                placeholder="••••••••"
+                            />
+                        </div>
+
+                        <div class="flex justify-center">
+                            <TurnstileWidget />
+                        </div>
+
+                        <button type="submit" class="flex w-full justify-center rounded-lg bg-orange-600 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-900 sm:py-3">
+                            Sign In
+                        </button>
+                    </form>
+
+                    <form id="signup-form" class="hidden space-y-4 sm:space-y-5">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="signup-firstname" class="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                                    First Name
+                                </label>
+                                <input id="signup-firstname" name="first_name" type="text" required class="block w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-neutral-900 shadow-sm outline-none transition-colors focus:border-orange-400 dark:border-neutral-800 dark:bg-neutral-950 dark:text-white dark:focus:border-orange-700 sm:py-3" />
+                            </div>
+                            <div>
+                                <label for="signup-lastname" class="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                                    Last Name
+                                </label>
+                                <input id="signup-lastname" name="last_name" type="text" required class="block w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-neutral-900 shadow-sm outline-none transition-colors focus:border-orange-400 dark:border-neutral-800 dark:bg-neutral-950 dark:text-white dark:focus:border-orange-700 sm:py-3" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="signup-email" class="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                                Email address
+                            </label>
+                            <input id="signup-email" name="email" type="email" autocomplete="email" required class="block w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-neutral-900 shadow-sm outline-none transition-colors focus:border-orange-400 dark:border-neutral-800 dark:bg-neutral-950 dark:text-white dark:focus:border-orange-700 sm:py-3" />
+                        </div>
+
+                        <div>
+                            <label for="signup-password" class="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
                                 Password
                             </label>
-                            <a
-                                href="/forgot-password"
-                                class="text-sm font-medium text-purple-600 hover:text-purple-500 dark:text-purple-400"
-                            >
-                                Forgot password?
-                            </a>
+                            <input id="signup-password" name="password" type="password" autocomplete="new-password" required class="block w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-neutral-900 shadow-sm outline-none transition-colors focus:border-orange-400 dark:border-neutral-800 dark:bg-neutral-950 dark:text-white dark:focus:border-orange-700 sm:py-3" />
                         </div>
-                        <input
-                            id="login-password"
-                            name="password"
-                            type="password"
-                            autocomplete="current-password"
-                            required
-                            class="appearance-none block w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-800 dark:text-white transition-all duration-200"
-                            placeholder="••••••••"
-                        />
-                    </div>
 
-                    <div class="flex justify-center">
-                        <TurnstileWidget />
-                    </div>
-
-                    <button
-                        type="submit"
-                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200 transform hover:scale-[1.02]"
-                    >
-                        Sign In
-                    </button>
-                </form>
-
-                <!-- Signup Form (Hidden by default) -->
-                <form id="signup-form" class="space-y-5 hidden">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label
-                                for="signup-firstname"
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                            >
-                                First Name
-                            </label>
-                            <input
-                                id="signup-firstname"
-                                name="first_name"
-                                type="text"
-                                required
-                                class="appearance-none block w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-800 dark:text-white transition-all duration-200"
-                            />
+                        <div class="flex justify-center">
+                            <TurnstileWidget />
                         </div>
-                        <div>
-                            <label
-                                for="signup-lastname"
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                            >
-                                Last Name
-                            </label>
-                            <input
-                                id="signup-lastname"
-                                name="last_name"
-                                type="text"
-                                required
-                                class="appearance-none block w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-800 dark:text-white transition-all duration-200"
-                            />
-                        </div>
-                    </div>
 
-                    <div>
-                        <label
-                            for="signup-email"
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                        >
-                            Email address
-                        </label>
-                        <input
-                            id="signup-email"
-                            name="email"
-                            type="email"
-                            autocomplete="email"
-                            required
-                            class="appearance-none block w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-800 dark:text-white transition-all duration-200"
-                        />
-                    </div>
-
-                    <div>
-                        <label
-                            for="signup-password"
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                        >
-                            Password
-                        </label>
-                        <input
-                            id="signup-password"
-                            name="password"
-                            type="password"
-                            autocomplete="new-password"
-                            required
-                            class="appearance-none block w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-800 dark:text-white transition-all duration-200"
-                        />
-                    </div>
-
-                    <div class="flex justify-center">
-                        <TurnstileWidget />
-                    </div>
-
-                    <button
-                        type="submit"
-                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200 transform hover:scale-[1.02]"
-                    >
-                        Create Account
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <!-- Right Side - Illustration -->
-        <div
-            class="hidden lg:block lg:w-1/2 relative bg-gray-50 dark:bg-slate-950 transition-colors duration-300"
-        >
-            <div
-                class="absolute inset-0 flex items-center justify-center p-12 overflow-hidden"
-            >
-                <div class="relative w-full max-w-2xl">
-                    <!-- Decorative blobs -->
-                    <div
-                        class="absolute top-0 -left-4 w-72 h-72 bg-purple-500/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-30 animate-blob"
-                    >
-                    </div>
-                    <div
-                        class="absolute top-0 -right-4 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-30 animate-blob animation-delay-2000"
-                    >
-                    </div>
-                    <div
-                        class="absolute -bottom-8 left-20 w-72 h-72 bg-pink-500/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-30 animate-blob animation-delay-4000"
-                    >
-                    </div>
-
-                    <img
-                        src="https://ik.imagekit.io/takovibe/auth%20image"
-                        alt="Collaboration"
-                        class="relative z-10 w-full h-auto object-contain drop-shadow-2xl transform hover:scale-[1.02] transition-transform duration-500"
-                    />
+                        <button type="submit" class="flex w-full justify-center rounded-lg bg-orange-600 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-900 sm:py-3">
+                            Create Account
+                        </button>
+                    </form>
                 </div>
-            </div>
-            <div
-                class="absolute bottom-0 left-0 right-0 p-12 text-center z-20 bg-gradient-to-t from-gray-50 via-gray-50/80 dark:from-slate-950 dark:via-slate-950/80 to-transparent"
-            >
-                <h3
-                    class="text-3xl font-bold text-gray-900 dark:text-white mb-4 tracking-tight"
-                >
-                    Join our community
-                </h3>
-                <p
-                    class="text-gray-600 dark:text-gray-400 max-w-md mx-auto text-lg leading-relaxed"
-                >
-                    Connect with thousands of developers and creators building
-                    the future of tech.
-                </p>
-            </div>
-        </div>
+            </section>
+        </main>
     </div>
 </Layout>
 
@@ -345,32 +221,10 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
             if (newMode === "signup") {
                 loginForm.classList.add("hidden");
                 signupForm.classList.remove("hidden");
-                tabLogin?.classList.remove(
-                    "bg-white",
-                    "dark:bg-gray-700",
-                    "text-gray-900",
-                    "dark:text-white",
-                    "shadow-sm",
-                );
-                tabLogin?.classList.add(
-                    "text-gray-500",
-                    "dark:text-gray-400",
-                    "hover:text-gray-900",
-                    "dark:hover:text-white",
-                );
-                tabSignup?.classList.add(
-                    "bg-white",
-                    "dark:bg-gray-700",
-                    "text-gray-900",
-                    "dark:text-white",
-                    "shadow-sm",
-                );
-                tabSignup?.classList.remove(
-                    "text-gray-500",
-                    "dark:text-gray-400",
-                    "hover:text-gray-900",
-                    "dark:hover:text-white",
-                );
+                tabLogin?.classList.remove("auth-tab-active");
+                tabLogin?.classList.add("auth-tab-inactive");
+                tabSignup?.classList.add("auth-tab-active");
+                tabSignup?.classList.remove("auth-tab-inactive");
                 if (authTitle) authTitle.textContent = "Create an account";
                 if (authSubtitle)
                     authSubtitle.textContent =
@@ -383,32 +237,10 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
             } else {
                 signupForm.classList.add("hidden");
                 loginForm.classList.remove("hidden");
-                tabSignup?.classList.remove(
-                    "bg-white",
-                    "dark:bg-gray-700",
-                    "text-gray-900",
-                    "dark:text-white",
-                    "shadow-sm",
-                );
-                tabSignup?.classList.add(
-                    "text-gray-500",
-                    "dark:text-gray-400",
-                    "hover:text-gray-900",
-                    "dark:hover:text-white",
-                );
-                tabLogin?.classList.add(
-                    "bg-white",
-                    "dark:bg-gray-700",
-                    "text-gray-900",
-                    "dark:text-white",
-                    "shadow-sm",
-                );
-                tabLogin?.classList.remove(
-                    "text-gray-500",
-                    "dark:text-gray-400",
-                    "hover:text-gray-900",
-                    "dark:hover:text-white",
-                );
+                tabSignup?.classList.remove("auth-tab-active");
+                tabSignup?.classList.add("auth-tab-inactive");
+                tabLogin?.classList.add("auth-tab-active");
+                tabLogin?.classList.remove("auth-tab-inactive");
                 if (authTitle) authTitle.textContent = "Welcome back";
                 if (authSubtitle)
                     authSubtitle.textContent =
@@ -815,27 +647,29 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <style>
-    @keyframes blob {
-        0% {
-            transform: translate(0px, 0px) scale(1);
-        }
-        33% {
-            transform: translate(30px, -50px) scale(1.1);
-        }
-        66% {
-            transform: translate(-20px, 20px) scale(0.9);
-        }
-        100% {
-            transform: translate(0px, 0px) scale(1);
-        }
+    .auth-tab-active {
+        background: #171717;
+        color: #ffffff;
     }
-    .animate-blob {
-        animation: blob 7s infinite;
+
+    .auth-tab-inactive {
+        color: #737373;
     }
-    .animation-delay-2000 {
-        animation-delay: 2s;
+
+    .auth-tab-inactive:hover {
+        color: #ea580c;
     }
-    .animation-delay-4000 {
-        animation-delay: 4s;
+
+    .dark .auth-tab-active {
+        background: #f5f5f5;
+        color: #0a0a0a;
+    }
+
+    .dark .auth-tab-inactive {
+        color: #a3a3a3;
+    }
+
+    .dark .auth-tab-inactive:hover {
+        color: #fb923c;
     }
 </style>

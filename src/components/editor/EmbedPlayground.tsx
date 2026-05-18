@@ -41,9 +41,9 @@ const DiffView = ({ original, modified, explanation, onAccept, onReject }: { ori
     return (
         <div className="absolute inset-0 z-50 bg-white dark:bg-[#0d1117] flex flex-col animate-in fade-in duration-200">
             {/* Diff Header */}
-            <div className="flex items-center justify-between px-4 py-3 bg-purple-100/50 dark:bg-purple-900/20 border-b border-purple-200 dark:border-purple-800 shrink-0">
+            <div className="flex items-center justify-between px-4 py-3 bg-orange-100/50 dark:bg-orange-900/20 border-b border-orange-200 dark:border-orange-800 shrink-0">
                 <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-purple-900 dark:text-purple-100 uppercase tracking-wider">Review Fix</span>
+                    <span className="text-sm font-bold text-orange-900 dark:text-orange-100 uppercase tracking-wider">Review Fix</span>
 
                     {/* Confidence Badge */}
                     <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-800 text-[10px] font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wider">
@@ -51,7 +51,7 @@ const DiffView = ({ original, modified, explanation, onAccept, onReject }: { ori
                         High Confidence
                     </div>
 
-                    <div className="h-4 w-px bg-purple-200 dark:bg-purple-800 mx-1" />
+                    <div className="h-4 w-px bg-orange-200 dark:bg-orange-800 mx-1" />
 
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 font-mono">- Original</span>
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 font-mono">+ Modified</span>
@@ -59,7 +59,7 @@ const DiffView = ({ original, modified, explanation, onAccept, onReject }: { ori
                 <div className="flex items-center gap-3">
                     <button
                         onClick={onReject}
-                        className="group flex items-center gap-2 px-4 py-2 text-xs font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all"
+                        className="group flex items-center gap-2 px-4 py-2 text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-all"
                         title="Shift + Esc"
                     >
                         Reject
@@ -79,12 +79,12 @@ const DiffView = ({ original, modified, explanation, onAccept, onReject }: { ori
             <div className="flex-1 flex min-h-0">
                 {/* Explanation Sidebar */}
                 {explanation && (
-                    <div className="w-1/3 border-r border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 overflow-y-auto p-4">
-                        <div className="flex items-center gap-2 mb-3 text-purple-600 dark:text-purple-400">
+                    <div className="w-1/3 border-r border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/50 overflow-y-auto p-4">
+                        <div className="flex items-center gap-2 mb-3 text-orange-600 dark:text-orange-400">
                             <Sparkles size={14} />
                             <span className="text-xs font-bold uppercase tracking-wider">Kumi's Insight</span>
                         </div>
-                        <div className="prose prose-sm dark:prose-invert max-w-none prose-p:text-gray-600 dark:prose-p:text-gray-300 prose-code:text-purple-600 dark:prose-code:text-purple-400 prose-ul:pl-4 prose-li:my-1">
+                        <div className="prose prose-sm dark:prose-invert max-w-none prose-p:text-neutral-600 dark:prose-p:text-neutral-300 prose-code:text-orange-600 dark:prose-code:text-orange-400 prose-ul:pl-4 prose-li:my-1">
                             <ReactMarkdown>{explanation}</ReactMarkdown>
                         </div>
                     </div>
@@ -95,7 +95,7 @@ const DiffView = ({ original, modified, explanation, onAccept, onReject }: { ori
                     {changes.map((part, i) => {
                         const color = part.added ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' :
                             part.removed ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 decoration-line-through opacity-70' :
-                                'text-gray-500 dark:text-gray-400';
+                                'text-neutral-500 dark:text-neutral-400';
                         return (
                             <div key={i} className={`${color} whitespace-pre-wrap break-all px-2 border-l-2 ${part.added ? 'border-green-500' : part.removed ? 'border-red-500' : 'border-transparent'}`}>
                                 {part.value}
@@ -143,8 +143,8 @@ const TabButton = ({ active, onClick, icon: Icon, label }: any) => (
     <button
         onClick={onClick}
         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${active
-            ? 'bg-white dark:bg-gray-700 text-purple-600 dark:text-purple-400 shadow-sm'
-            : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
+            ? 'bg-white dark:bg-neutral-700 text-orange-600 dark:text-orange-400 shadow-sm'
+            : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800'
             }`}
     >
         {Icon && <Icon size={14} />}

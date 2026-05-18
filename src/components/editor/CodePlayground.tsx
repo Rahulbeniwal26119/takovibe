@@ -42,9 +42,9 @@ const DiffView = ({ original, modified, explanation, onAccept, onReject }: { ori
     return (
         <div className="absolute inset-0 z-50 bg-white dark:bg-[#0d1117] flex flex-col animate-in fade-in duration-200">
             {/* Diff Header */}
-            <div className="flex items-center justify-between px-4 py-3 bg-purple-100/50 dark:bg-purple-900/20 border-b border-purple-200 dark:border-purple-800 shrink-0">
+            <div className="flex items-center justify-between px-4 py-3 bg-orange-100/50 dark:bg-orange-900/20 border-b border-orange-200 dark:border-orange-800 shrink-0">
                 <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-purple-900 dark:text-purple-100 uppercase tracking-wider">Review Fix</span>
+                    <span className="text-sm font-bold text-orange-900 dark:text-orange-100 uppercase tracking-wider">Review Fix</span>
 
                     {/* Confidence Badge */}
                     <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-800 text-[10px] font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wider">
@@ -52,7 +52,7 @@ const DiffView = ({ original, modified, explanation, onAccept, onReject }: { ori
                         High Confidence
                     </div>
 
-                    <div className="h-4 w-px bg-purple-200 dark:bg-purple-800 mx-1" />
+                    <div className="h-4 w-px bg-orange-200 dark:bg-orange-800 mx-1" />
 
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 font-mono">- Original</span>
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 font-mono">+ Modified</span>
@@ -60,7 +60,7 @@ const DiffView = ({ original, modified, explanation, onAccept, onReject }: { ori
                 <div className="flex items-center gap-3">
                     <button
                         onClick={onReject}
-                        className="group flex items-center gap-2 px-4 py-2 text-xs font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all"
+                        className="group flex items-center gap-2 px-4 py-2 text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-all"
                         title="Shift + Esc"
                     >
                         Reject
@@ -80,12 +80,12 @@ const DiffView = ({ original, modified, explanation, onAccept, onReject }: { ori
             <div className="flex-1 flex min-h-0">
                 {/* Explanation Sidebar */}
                 {explanation && (
-                    <div className="w-1/3 border-r border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 overflow-y-auto p-4">
-                        <div className="flex items-center gap-2 mb-3 text-purple-600 dark:text-purple-400">
+                    <div className="w-1/3 border-r border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/50 overflow-y-auto p-4">
+                        <div className="flex items-center gap-2 mb-3 text-orange-600 dark:text-orange-400">
                             <Sparkles size={14} />
                             <span className="text-xs font-bold uppercase tracking-wider">Kumi's Insight</span>
                         </div>
-                        <div className="prose prose-sm dark:prose-invert max-w-none prose-p:text-gray-600 dark:prose-p:text-gray-300 prose-code:text-purple-600 dark:prose-code:text-purple-400 prose-ul:pl-4 prose-li:my-1">
+                        <div className="prose prose-sm dark:prose-invert max-w-none prose-p:text-neutral-600 dark:prose-p:text-neutral-300 prose-code:text-orange-600 dark:prose-code:text-orange-400 prose-ul:pl-4 prose-li:my-1">
                             <ReactMarkdown>{explanation}</ReactMarkdown>
                         </div>
                     </div>
@@ -96,7 +96,7 @@ const DiffView = ({ original, modified, explanation, onAccept, onReject }: { ori
                     {changes.map((part, i) => {
                         const color = part.added ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' :
                             part.removed ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 decoration-line-through opacity-70' :
-                                'text-gray-500 dark:text-gray-400';
+                                'text-neutral-500 dark:text-neutral-400';
                         return (
                             <div key={i} className={`${color} whitespace-pre-wrap break-all px-2 border-l-2 ${part.added ? 'border-green-500' : part.removed ? 'border-red-500' : 'border-transparent'}`}>
                                 {part.value}
@@ -142,8 +142,8 @@ const TabButton = ({ active, onClick, icon: Icon, label }: any) => (
     <button
         onClick={onClick}
         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${active
-            ? 'bg-white dark:bg-gray-700 text-purple-600 dark:text-purple-400 shadow-sm'
-            : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800'
+            ? 'bg-white dark:bg-neutral-700 text-orange-600 dark:text-orange-400 shadow-sm'
+            : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800'
             }`}
     >
         {Icon && <Icon size={14} />}
@@ -674,7 +674,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
     })();
 
     return (
-        <div className="flex flex-col h-full rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-lg bg-white dark:bg-gray-900 not-prose relative">
+        <div className="flex flex-col h-full overflow-hidden bg-white dark:bg-neutral-900 not-prose relative">
             {/* Diff View Overlay */}
             {reviewingFixIndex !== null && aiFixData[reviewingFixIndex]?.extractedCode && (
                 <DiffView
@@ -692,60 +692,60 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
             {/* Shortcuts Modal */}
             {showShortcuts && (
                 <div className="absolute inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-                    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-md overflow-hidden relative">
+                    <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-2xl border border-neutral-200 dark:border-neutral-700 w-full max-w-md overflow-hidden relative">
                         <button
                             onClick={() => setShowShortcuts(false)}
-                            className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                            className="absolute top-3 right-3 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
                         >
                             <X size={18} />
                         </button>
 
                         <div className="p-5">
-                            <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-4">
-                                <Keyboard size={20} className="text-purple-600" />
+                            <h3 className="text-lg font-bold text-neutral-900 dark:text-white flex items-center gap-2 mb-4">
+                                <Keyboard size={20} className="text-orange-600" />
                                 Keyboard Shortcuts
                             </h3>
 
                             <div className="space-y-4">
                                 <div>
-                                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">General</h4>
+                                    <h4 className="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2">General</h4>
                                     <div className="grid gap-2">
                                         <div className="flex justify-between text-sm">
-                                            <span className="text-gray-700 dark:text-gray-300">Run Code</span>
-                                            <span className="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded border border-gray-200 dark:border-gray-700">Ctrl + Enter</span>
+                                            <span className="text-neutral-700 dark:text-neutral-300">Run Code</span>
+                                            <span className="font-mono text-xs bg-neutral-100 dark:bg-neutral-800 px-2 py-1 rounded border border-neutral-200 dark:border-neutral-700">Ctrl + Enter</span>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Review Mode</h4>
+                                    <h4 className="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2">Review Mode</h4>
                                     <div className="grid gap-2">
                                         <div className="flex justify-between text-sm">
-                                            <span className="text-gray-700 dark:text-gray-300">Accept Fix</span>
-                                            <span className="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded border border-gray-200 dark:border-gray-700">Ctrl + Enter</span>
+                                            <span className="text-neutral-700 dark:text-neutral-300">Accept Fix</span>
+                                            <span className="font-mono text-xs bg-neutral-100 dark:bg-neutral-800 px-2 py-1 rounded border border-neutral-200 dark:border-neutral-700">Ctrl + Enter</span>
                                         </div>
                                         <div className="flex justify-between text-sm">
-                                            <span className="text-gray-700 dark:text-gray-300">Reject Fix</span>
-                                            <span className="font-mono text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded border border-gray-200 dark:border-gray-700">Shift + Esc</span>
+                                            <span className="text-neutral-700 dark:text-neutral-300">Reject Fix</span>
+                                            <span className="font-mono text-xs bg-neutral-100 dark:bg-neutral-800 px-2 py-1 rounded border border-neutral-200 dark:border-neutral-700">Shift + Esc</span>
                                         </div>
                                     </div>
                                 </div>
 
                                 {vimMode && (
                                     <div>
-                                        <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Vim Mode</h4>
-                                        <div className="grid gap-2 text-sm text-gray-700 dark:text-gray-300">
+                                        <h4 className="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2">Vim Mode</h4>
+                                        <div className="grid gap-2 text-sm text-neutral-700 dark:text-neutral-300">
                                             <div className="flex justify-between">
                                                 <span>Normal Mode</span>
-                                                <code className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">Esc</code>
+                                                <code className="text-xs bg-neutral-100 dark:bg-neutral-800 px-2 py-1 rounded">Esc</code>
                                             </div>
                                             <div className="flex justify-between">
                                                 <span>Insert Mode</span>
-                                                <code className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">i</code>
+                                                <code className="text-xs bg-neutral-100 dark:bg-neutral-800 px-2 py-1 rounded">i</code>
                                             </div>
                                             <div className="flex justify-between">
                                                 <span>Save (Mock)</span>
-                                                <code className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">:w</code>
+                                                <code className="text-xs bg-neutral-100 dark:bg-neutral-800 px-2 py-1 rounded">:w</code>
                                             </div>
                                         </div>
                                     </div>
@@ -753,22 +753,22 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                             </div>
                         </div>
 
-                        <div className="bg-gray-50 dark:bg-gray-800 px-5 py-3 text-xs text-center text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700">
+                        <div className="bg-neutral-50 dark:bg-neutral-800 px-5 py-3 text-xs text-center text-neutral-500 dark:text-neutral-400 border-t border-neutral-100 dark:border-neutral-700">
                             Press <span className="font-bold">Esc</span> to close this guide
                         </div>
                     </div>
                 </div>
             )}
-            <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shrink-0">
+            <div className="flex items-center justify-between px-4 py-2 bg-neutral-50 dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 shrink-0">
                 <div className="flex items-center gap-4">
                     {/* Modern Language Selector */}
                     <div className="relative">
                         <button
                             onClick={() => setShowLanguageMenu(!showLanguageMenu)}
-                            className="flex items-center gap-2 text-gray-700 dark:text-gray-200 hover:text-purple-600 dark:hover:text-purple-400 bg-gray-100 dark:bg-gray-800 hover:bg-white dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 text-xs font-bold rounded-lg px-3 py-1.5 transition-all shadow-sm group"
+                            className="flex items-center gap-2 text-neutral-700 dark:text-neutral-200 hover:text-orange-600 dark:hover:text-orange-400 bg-neutral-100 dark:bg-neutral-800 hover:bg-white dark:hover:bg-neutral-700 border border-neutral-200 dark:border-neutral-700 text-xs font-bold rounded-lg px-3 py-1.5 transition-all shadow-sm group"
                         >
                             <span className="capitalize">{SUPPORTED_LANGUAGES.find(l => l.value === (mode === 'web' ? 'html' : backendLanguage))?.label}</span>
-                            <ChevronDown size={14} className={`text-gray-400 group-hover:text-purple-500 transition-transform duration-200 ${showLanguageMenu ? 'rotate-180' : ''}`} />
+                            <ChevronDown size={14} className={`text-neutral-400 group-hover:text-orange-500 transition-transform duration-200 ${showLanguageMenu ? 'rotate-180' : ''}`} />
                         </button>
 
                         {showLanguageMenu && (
@@ -777,9 +777,9 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                                     className="fixed inset-0 z-30"
                                     onClick={() => setShowLanguageMenu(false)}
                                 />
-                                <div className="absolute top-full left-0 mt-2 min-w-[200px] bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 rounded-xl shadow-2xl z-40 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 ring-1 ring-black/5">
+                                <div className="absolute top-full left-0 mt-2 min-w-[200px] bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl border border-neutral-200/50 dark:border-neutral-700/50 rounded-xl shadow-2xl z-40 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 ring-1 ring-black/5">
                                     <div className="p-1.5">
-                                        <div className="px-3 py-1.5 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-0.5">
+                                        <div className="px-3 py-1.5 text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider mb-0.5">
                                             Platform
                                         </div>
                                         {/* Web / HTML */}
@@ -790,20 +790,20 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                                                 setShowLanguageMenu(false);
                                             }}
                                             className={`w-full flex items-center justify-between px-3 py-2.5 text-xs font-medium rounded-lg transition-all ${mode === 'web'
-                                                ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300'
-                                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                                                ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-300'
+                                                : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800'
                                                 }`}
                                         >
                                             <div className="flex items-center gap-2">
-                                                <div className={`w-1.5 h-1.5 rounded-full ${mode === 'web' ? 'bg-purple-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                                                <div className={`w-1.5 h-1.5 rounded-full ${mode === 'web' ? 'bg-orange-500' : 'bg-neutral-300 dark:bg-neutral-600'}`} />
                                                 <span>HTML / Web</span>
                                             </div>
-                                            {mode === 'web' && <Check size={14} className="text-purple-600 dark:text-purple-400" />}
+                                            {mode === 'web' && <Check size={14} className="text-orange-600 dark:text-orange-400" />}
                                         </button>
 
-                                        <div className="my-1.5 border-t border-gray-100 dark:border-gray-800" />
+                                        <div className="my-1.5 border-t border-neutral-100 dark:border-neutral-800" />
 
-                                        <div className="px-3 py-1.5 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-0.5">
+                                        <div className="px-3 py-1.5 text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider mb-0.5">
                                             Backend
                                         </div>
                                         <div className="grid grid-cols-1 gap-0.5">
@@ -826,15 +826,15 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                                                             setShowLanguageMenu(false);
                                                         }}
                                                         className={`w-full flex items-center justify-between px-3 py-2 text-xs font-medium rounded-lg transition-all ${isActive
-                                                            ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300'
-                                                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                                                            ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-300'
+                                                            : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800'
                                                             }`}
                                                     >
                                                         <div className="flex items-center gap-2">
-                                                            <div className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-purple-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                                                            <div className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-orange-500' : 'bg-neutral-300 dark:bg-neutral-600'}`} />
                                                             <span>{lang.label}</span>
                                                         </div>
-                                                        {isActive && <Check size={14} className="text-purple-600 dark:text-purple-400" />}
+                                                        {isActive && <Check size={14} className="text-orange-600 dark:text-orange-400" />}
                                                     </button>
                                                 );
                                             })}
@@ -847,7 +847,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
 
                     {/* Web Mode Tabs */}
                     {mode === 'web' && (
-                        <div className="flex items-center bg-gray-200 dark:bg-gray-900 p-1 rounded-lg">
+                        <div className="flex items-center bg-neutral-200 dark:bg-neutral-900 p-1 rounded-lg">
                             <TabButton active={activeTab === 'html'} onClick={() => setActiveTab('html')} label="HTML" />
                             <TabButton active={activeTab === 'css'} onClick={() => setActiveTab('css')} label="CSS" />
                             <TabButton active={activeTab === 'js'} onClick={() => setActiveTab('js')} label="JS" />
@@ -860,7 +860,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                     {mode === 'web' && (
                         <button
                             onClick={() => setAutoRun(!autoRun)}
-                            className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${autoRun ? 'text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20' : 'text-gray-500 hover:bg-gray-200'}`}
+                            className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${autoRun ? 'text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20' : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
                             title={autoRun ? 'Auto-run enabled' : 'Auto-run disabled'}
                         >
                             {autoRun ? <Activity size={14} className="animate-pulse" /> : <ZapOff size={14} />}
@@ -870,7 +870,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
 
                     <button
                         onClick={() => setShowShortcuts(true)}
-                        className="p-1.5 rounded-md text-gray-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
+                        className="p-1.5 rounded-md text-neutral-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950/30 transition-colors"
                         title="Keyboard Shortcuts"
                     >
                         <Keyboard size={16} />
@@ -878,7 +878,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
 
                     <button
                         onClick={() => setVimMode(!vimMode)}
-                        className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${vimMode ? 'text-green-600 bg-green-50 dark:bg-green-900/20' : 'text-gray-500 hover:bg-gray-200'}`}
+                        className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${vimMode ? 'text-green-600 bg-green-50 dark:bg-green-900/20' : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
                         title={vimMode ? 'Vim Mode enabled' : 'Vim Mode disabled'}
                     >
                         <span className="font-bold font-mono text-xs">VIM</span>
@@ -887,10 +887,10 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
 
                     <button
                         onClick={() => setAutoComplete(!autoComplete)}
-                        className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${autoComplete ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20' : 'text-gray-500 hover:bg-gray-200'}`}
+                        className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${autoComplete ? 'text-orange-600 bg-orange-50 dark:bg-orange-950/30' : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
                         title={autoComplete ? 'Auto-complete enabled' : 'Auto-complete disabled'}
                     >
-                        <Cpu size={14} className={autoComplete ? 'text-purple-500' : ''} />
+                        <Cpu size={14} className={autoComplete ? 'text-orange-500' : ''} />
                         <span className="hidden sm:inline">IDE Tips</span>
                     </button>
 
@@ -901,7 +901,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                         <button
                             onClick={() => handleRun(false)}
                             disabled={isRunning}
-                            className={`flex items-center gap-2 px-4 py-1.5 bg-green-600 hover:bg-green-500 text-white text-xs font-bold transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${mode === 'backend' && backendLanguage === 'python' ? 'rounded-l-lg' : 'rounded-lg'}`}
+                            className={`flex items-center gap-2 px-4 py-1.5 bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${mode === 'backend' && backendLanguage === 'python' ? 'rounded-l-lg' : 'rounded-lg'}`}
                         >
                             {isRunning ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} fill="currentColor" />}
                             Run
@@ -912,7 +912,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                             <button
                                 onClick={() => handleRun(true)}
                                 disabled={isRunning}
-                                className="px-2 py-1.5 bg-green-700 hover:bg-green-600 text-white/90 border-l border-green-800 rounded-r-lg transition-all active:scale-95 disabled:opacity-50"
+                                className="px-2 py-1.5 bg-orange-700 hover:bg-orange-800 text-white/90 border-l border-orange-800 rounded-r-lg transition-all active:scale-95 disabled:opacity-50"
                                 title="Debug (Visual Execution)"
                             >
                                 <BugPlay size={14} />
@@ -928,7 +928,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                     {/* Future Save Button */}
                     {/*
                     <button
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 dark:text-purple-400 dark:bg-purple-900/20 dark:hover:bg-purple-900/40 transition-colors"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-orange-600 bg-orange-50 hover:bg-orange-100 dark:text-orange-400 dark:bg-orange-900/20 dark:hover:bg-orange-900/40 transition-colors"
                         title="Save Snippet (Coming Soon)"
                         onClick={() => showToast("Saving to snippets... (Demo)", "success")}
                     >
@@ -968,15 +968,15 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
 
                 {/* Resizer Handle (Horizontal) */}
                 <div
-                    className="flex h-2 items-center justify-center bg-gray-100 dark:bg-gray-800 hover:bg-purple-500/20 dark:hover:bg-purple-400/20 cursor-row-resize transition-colors z-20 shrink-0 border-y border-gray-200 dark:border-gray-700"
+                    className="flex h-2 items-center justify-center bg-neutral-100 dark:bg-neutral-800 hover:bg-orange-500/20 dark:hover:bg-orange-400/20 cursor-row-resize transition-colors z-20 shrink-0 border-y border-neutral-200 dark:border-neutral-700"
                     onMouseDown={startResize}
                 >
-                    <div className="w-10 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
+                    <div className="w-10 h-1 rounded-full bg-neutral-300 dark:bg-neutral-600" />
                 </div>
 
                 {/* Output Pane (Bottom) */}
                 <div
-                    className={`flex flex-col relative bg-white dark:bg-gray-900 flex-1 min-h-0 ${isDragging ? 'pointer-events-none' : ''}`}
+                    className={`flex flex-col relative bg-white dark:bg-neutral-900 flex-1 min-h-0 ${isDragging ? 'pointer-events-none' : ''}`}
                 >
                     {debugTrace ? (
                         <div className="flex-1 min-h-0">
@@ -989,13 +989,13 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                     ) : (
                         <>
                             {/* Output Tabs Header */}
-                            <div className="flex items-center border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 shrink-0">
+                            <div className="flex items-center border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50 shrink-0">
                                 {mode === 'web' && (
                                     <button
                                         onClick={() => setActiveOutput('preview')}
-                                        className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold transition-colors border-r border-gray-200 dark:border-gray-700 ${activeOutput === 'preview'
-                                            ? 'bg-white dark:bg-gray-900 text-purple-600 dark:text-purple-400 border-b-2 border-b-purple-500'
-                                            : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'
+                                        className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold transition-colors border-r border-neutral-200 dark:border-neutral-700 ${activeOutput === 'preview'
+                                            ? 'bg-white dark:bg-neutral-900 text-orange-600 dark:text-orange-400 border-b-2 border-b-orange-500'
+                                            : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800'
                                             }`}
                                     >
                                         <Eye size={14} /> Preview
@@ -1003,14 +1003,14 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                                 )}
                                 <button
                                     onClick={() => setActiveOutput('console')}
-                                    className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold transition-colors border-r border-gray-200 dark:border-gray-700 ${activeOutput === 'console'
-                                        ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white' + (mode === 'backend' ? ' border-b-2 border-b-purple-500' : '')
-                                        : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'
+                                    className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold transition-colors border-r border-neutral-200 dark:border-neutral-700 ${activeOutput === 'console'
+                                        ? 'bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white' + (mode === 'backend' ? ' border-b-2 border-b-orange-500' : '')
+                                        : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800'
                                         }`}
                                 >
                                     <Terminal size={14} /> {mode === 'web' ? 'Console' : 'Output'}
                                     {logs.length > 0 && (
-                                        <span className="ml-1 px-1.5 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700 text-[10px] font-mono">
+                                        <span className="ml-1 px-1.5 py-0.5 rounded-full bg-neutral-200 dark:bg-neutral-700 text-[10px] font-mono">
                                             {logs.length}
                                         </span>
                                     )}
@@ -1019,7 +1019,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                                 {(activeOutput === 'console' || mode === 'backend') && (
                                     <button
                                         onClick={() => setLogs([])}
-                                        className="mr-2 p-1.5 text-gray-400 hover:text-red-500 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                                        className="mr-2 p-1.5 text-neutral-400 hover:text-red-500 rounded-md hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
                                         title="Clear Console"
                                     >
                                         <Trash2 size={14} />
@@ -1037,16 +1037,16 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                                     className={`absolute inset-0 w-full h-full bg-white transition-opacity duration-200 ${activeOutput === 'preview' ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
                                     sandbox="allow-scripts allow-modals"
                                 />
-                                <div className={`absolute inset-0 w-full h-full overflow-y-auto bg-gray-50 dark:bg-gray-900 font-mono text-sm p-4 flex flex-col gap-2 transition-opacity duration-200 ${activeOutput === 'console' ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}>
+                                <div className={`absolute inset-0 w-full h-full overflow-y-auto bg-neutral-50 dark:bg-neutral-900 font-mono text-sm p-4 flex flex-col gap-2 transition-opacity duration-200 ${activeOutput === 'console' ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}>
                                     {logs.length === 0 ? (
-                                        <div className="text-gray-400 dark:text-gray-500 italic text-center mt-10 select-none">
+                                        <div className="text-neutral-400 dark:text-neutral-500 italic text-center mt-10 select-none">
                                             {isRunning ? 'Running...' : (mode === 'backend' ? 'Run code to see output' : 'No logs yet...')}
                                         </div>
                                     ) : (
                                         logs.map((log, i) => (
-                                            <div key={i} className={`group flex flex-col gap-1 border-b border-gray-200 dark:border-gray-800 pb-1 last:border-0 ${log.type === 'error' ? 'text-red-600 dark:text-red-400' :
+                                            <div key={i} className={`group flex flex-col gap-1 border-b border-neutral-200 dark:border-neutral-800 pb-1 last:border-0 ${log.type === 'error' ? 'text-red-600 dark:text-red-400' :
                                                 log.type === 'warn' ? 'text-yellow-600 dark:text-yellow-400' :
-                                                    'text-gray-700 dark:text-gray-300'
+                                                    'text-neutral-700 dark:text-neutral-300'
                                                 }`}>
                                                 <div className="flex gap-2">
                                                     <span className="opacity-40 select-none">[{new Date(log.timestamp).toLocaleTimeString().split(' ')[0]}]</span>
@@ -1058,26 +1058,26 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                                                         {!aiFixData[i] ? (
                                                             <button
                                                                 onClick={() => handleAskKumi(log.message, i)}
-                                                                className="flex items-center gap-1.5 px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-[10px] uppercase tracking-wider font-bold rounded-md hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors opacity-0 group-hover:opacity-100"
+                                                                className="flex items-center gap-1.5 px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-[10px] uppercase tracking-wider font-bold rounded-md hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors opacity-0 group-hover:opacity-100"
                                                             >
                                                                 <Sparkles size={10} />
                                                                 Ask Kumi to Fix
                                                             </button>
                                                         ) : (
-                                                            <div className="relative rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-900/10 overflow-hidden shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+                                                            <div className="relative rounded-xl border border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-900/10 overflow-hidden shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
                                                                 {/* Header */}
-                                                                <div className="flex items-center justify-between px-3 py-2 bg-purple-100/50 dark:bg-purple-900/30 border-b border-purple-100 dark:border-purple-800/50">
+                                                                <div className="flex items-center justify-between px-3 py-2 bg-orange-100/50 dark:bg-orange-900/30 border-b border-orange-100 dark:border-orange-800/50">
                                                                     <div className="flex items-center gap-2">
-                                                                        <div className="p-1 bg-purple-500 rounded text-white">
+                                                                        <div className="p-1 bg-orange-500 rounded text-white">
                                                                             <Sparkles size={12} fill="currentColor" />
                                                                         </div>
-                                                                        <span className="text-xs font-bold text-purple-900 dark:text-purple-100 uppercase tracking-wider">As per Kumi</span>
+                                                                        <span className="text-xs font-bold text-orange-900 dark:text-orange-100 uppercase tracking-wider">As per Kumi</span>
                                                                     </div>
                                                                     <div className="flex items-center gap-2">
                                                                         {aiFixData[i].extractedCode && !aiFixData[i].loading && (
                                                                             <button
                                                                                 onClick={() => setReviewingFixIndex(i)}
-                                                                                className="flex items-center gap-1.5 px-2.5 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-[10px] font-bold uppercase tracking-wider rounded-md hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors animate-in fade-in zoom-in duration-300"
+                                                                                className="flex items-center gap-1.5 px-2.5 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-[10px] font-bold uppercase tracking-wider rounded-md hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors animate-in fade-in zoom-in duration-300"
                                                                             >
                                                                                 <DiffIcon size={12} />
                                                                                 Review Fix
@@ -1085,7 +1085,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                                                                         )}
                                                                         <button
                                                                             onClick={() => closeFix(i)}
-                                                                            className="text-purple-400 hover:text-purple-700 dark:hover:text-purple-200 transition-colors"
+                                                                            className="text-orange-400 hover:text-orange-700 dark:hover:text-orange-200 transition-colors"
                                                                         >
                                                                             <X size={14} />
                                                                         </button>
@@ -1093,9 +1093,9 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                                                                 </div>
 
                                                                 {/* Content */}
-                                                                <div className="p-4 prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-pre:bg-gray-800 prose-pre:text-white prose-code:text-purple-600 dark:prose-code:text-purple-300">
+                                                                <div className="p-4 prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-pre:bg-neutral-800 prose-pre:text-white prose-code:text-orange-600 dark:prose-code:text-orange-300">
                                                                     {aiFixData[i].loading && !aiFixData[i].content ? (
-                                                                        <div className="flex items-center gap-2 text-purple-500">
+                                                                        <div className="flex items-center gap-2 text-orange-500">
                                                                             <Loader2 size={16} className="animate-spin" />
                                                                             <span className="text-xs font-medium">Analyzing error...</span>
                                                                         </div>

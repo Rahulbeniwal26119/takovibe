@@ -1,7 +1,6 @@
 ---
 export const prerender = true;
 import Layout from "../layouts/Layout.astro";
-import ParticlesBackground from "../components/ParticlesBackground.astro";
 import VisualExecutionShowcase from "../components/home/VisualExecutionShowcase.astro";
 import ResumeVibeShowcase from "../components/home/ResumeVibeShowcase.astro";
 import SketchNotesShowcase from "../components/home/SketchNotesShowcase.astro";
@@ -92,31 +91,9 @@ try {
   tags={["software engineering", "system design", "technology", "programming", "web development", "tech community"]}
 >
   <div class="relative w-full overflow-x-hidden min-h-screen bg-stone-50 dark:bg-neutral-950">
-    <!-- Immersive Background -->
-    <div class="fixed inset-0 z-0">
-      <div
-        class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-orange-100 via-stone-50 to-white dark:from-[#1c1917] dark:via-[#0c0a09] dark:to-[#0c0a09]"
-      >
-      </div>
-      <!-- Floating Orbs -->
-      <div
-        class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-orange-400/20 dark:bg-orange-600/10 blur-[80px] animate-blob mix-blend-multiply dark:mix-blend-screen will-change-transform transform-gpu"
-      >
-      </div>
-      <div
-        class="absolute top-[20%] right-[-10%] w-[400px] h-[400px] rounded-full bg-amber-400/20 dark:bg-amber-600/10 blur-[80px] animate-blob animation-delay-2000 mix-blend-multiply dark:mix-blend-screen will-change-transform transform-gpu"
-      >
-      </div>
-      <div
-        class="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] rounded-full bg-yellow-400/20 dark:bg-yellow-600/10 blur-[80px] animate-blob animation-delay-4000 mix-blend-multiply dark:mix-blend-screen will-change-transform transform-gpu"
-      >
-      </div>
-      <!-- Grid Pattern Overlay -->
-      <div
-        class="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-20 dark:opacity-10 pointer-events-none"
-      >
-      </div>
-      <ParticlesBackground />
+    <!-- Subtle warm tint -->
+    <div class="fixed inset-0 z-0 pointer-events-none">
+      <div class="absolute top-0 left-0 right-0 h-[600px] bg-gradient-to-b from-orange-50/80 via-stone-50/40 to-transparent dark:from-orange-950/20 dark:via-neutral-950/40 dark:to-transparent"></div>
     </div>
 
     <div class="relative z-10 w-full">
