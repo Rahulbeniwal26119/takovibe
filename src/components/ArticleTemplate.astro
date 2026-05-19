@@ -122,6 +122,16 @@ const breadcrumbStructuredData = {
         },
     ],
 };
+
+const currentPath = Astro.url.pathname;
+const articleMainNav = [
+    { href: "/", label: "Home" },
+    { href: "/blog", label: "Blog" },
+    { href: "/series", label: "Series" },
+    { href: "/notes", label: "Notes" },
+    { href: "/playground", label: "Playground" },
+    { href: "https://resumevibe.takovibe.com/", label: "Resume" },
+];
 ---
 
 <Layout
@@ -138,17 +148,17 @@ const breadcrumbStructuredData = {
     <!-- Smart Zen Navigation (Scroll-aware) -->
     <nav
         id="zen-nav"
-        class="fixed top-6 left-6 z-50 transition-all duration-500 ease-in-out transform translate-y-0 opacity-100"
+        class="fixed left-0 right-0 top-0 z-[9999] pointer-events-auto px-3 pt-3 sm:px-5 sm:pt-5 transition-all duration-300 ease-in-out transform translate-y-0 opacity-100"
     >
-        <div class="relative group">
+        <div class="relative isolate mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 rounded-lg border border-neutral-200/80 bg-stone-50/[0.96] px-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:border-neutral-800/80 dark:bg-neutral-950/[0.96] dark:shadow-black/20 sm:h-16 sm:px-3">
             <!-- Trigger Button -->
             <button
                 id="zen-menu-trigger"
-                class="p-3 rounded-full bg-white/10 dark:bg-black/20 backdrop-blur-md border border-gray-200/20 dark:border-white/10 shadow-lg hover:shadow-xl hover:bg-white/90 dark:hover:bg-gray-800 transition-all duration-300 group-hover:scale-105"
+                class="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-neutral-200 bg-white text-neutral-900 transition-all duration-300 hover:border-orange-300 hover:text-orange-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white dark:hover:border-orange-700 dark:hover:text-orange-300 lg:hidden"
                 aria-label="Menu"
             >
                 <svg
-                    class="w-6 h-6 text-gray-900 dark:text-white"
+                    class="w-5 h-5 text-current"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -161,15 +171,64 @@ const breadcrumbStructuredData = {
                 </svg>
             </button>
 
+            <a
+                href="/"
+                class="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg px-1.5 py-1 transition-colors hover:bg-white/70 dark:hover:bg-neutral-900/70 sm:flex-none"
+                aria-label="TakoVibe home"
+            >
+                <img
+                    src="/images/logo.svg"
+                    alt=""
+                    class="h-8 w-8 shrink-0 rounded-full border border-neutral-200 bg-white object-cover dark:border-neutral-800"
+                />
+                <div class="min-w-0">
+                    <div class="truncate text-sm font-bold leading-none text-neutral-950 dark:text-white sm:text-base">
+                        TakoVibe
+                    </div>
+                    <div class="mt-1 hidden text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-500 sm:block">
+                        Article
+                    </div>
+                </div>
+            </a>
+
+            <div class="hidden min-w-0 flex-1 items-center justify-center gap-1 px-3 lg:flex">
+                {
+                    articleMainNav.map((item) => (
+                        <a
+                            href={item.href}
+                            class={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+                                item.href !== "https://resumevibe.takovibe.com/" &&
+                                (item.href === "/"
+                                    ? currentPath === "/"
+                                    : currentPath.startsWith(item.href))
+                                    ? "bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-300"
+                                    : "text-neutral-600 hover:bg-white hover:text-neutral-950 dark:text-neutral-300 dark:hover:bg-neutral-900 dark:hover:text-white"
+                            }`}
+                        >
+                            {item.label}
+                        </a>
+                    ))
+                }
+            </div>
+
+            <div class="flex shrink-0 items-center gap-2">
+                <a
+                    href="/post/new"
+                    class="hidden rounded-lg bg-orange-600 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-500 md:inline-flex"
+                >
+                    Write
+                </a>
+            </div>
+
             <!-- Dropdown Menu -->
             <div
                 id="zen-menu-dropdown"
-                class="absolute top-full left-0 mt-3 w-48 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 rounded-2xl shadow-2xl overflow-hidden transform origin-top-left transition-all duration-200 opacity-0 scale-95 pointer-events-none"
+                class="absolute left-0 right-0 top-full z-[10000] mt-2 max-h-[calc(100vh-6rem)] overflow-y-auto rounded-lg border border-neutral-200 bg-white/[0.98] shadow-xl backdrop-blur-xl transform origin-top transition-all duration-200 opacity-0 scale-95 pointer-events-none dark:border-neutral-800 dark:bg-neutral-950/[0.98] sm:left-0 sm:right-auto sm:w-56 sm:origin-top-left"
             >
-                <div class="p-1.5 space-y-1">
+                <div class="grid gap-1 p-1.5 sm:block sm:space-y-1">
                     <a
                         href="/"
-                        class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-200 font-medium transition-colors"
+                        class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-500/10 text-neutral-700 dark:text-neutral-200 font-medium transition-colors"
                     >
                         <svg
                             class="w-5 h-5 opacity-70"
@@ -188,7 +247,7 @@ const breadcrumbStructuredData = {
                     </a>
                     <a
                         href="/blog"
-                        class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-200 font-medium transition-colors"
+                        class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-500/10 text-neutral-700 dark:text-neutral-200 font-medium transition-colors"
                     >
                         <svg
                             class="w-5 h-5 opacity-70"
@@ -207,7 +266,7 @@ const breadcrumbStructuredData = {
                     </a>
                     <a
                         href="/notes"
-                        class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-200 font-medium transition-colors"
+                        class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-500/10 text-neutral-700 dark:text-neutral-200 font-medium transition-colors"
                     >
                         <svg
                             class="w-5 h-5 opacity-70"
@@ -226,7 +285,7 @@ const breadcrumbStructuredData = {
                     </a>
                     <a
                         href="/series"
-                        class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-200 font-medium transition-colors"
+                        class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-500/10 text-neutral-700 dark:text-neutral-200 font-medium transition-colors"
                     >
                         <svg
                             class="w-5 h-5 opacity-70"
@@ -245,7 +304,7 @@ const breadcrumbStructuredData = {
                     </a>
                     <a
                         href="/playground"
-                        class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-200 font-medium transition-colors"
+                        class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-500/10 text-neutral-700 dark:text-neutral-200 font-medium transition-colors"
                     >
                         <svg
                             class="w-5 h-5 opacity-70"
@@ -264,7 +323,7 @@ const breadcrumbStructuredData = {
                     </a>
                     <a
                         href="/saved"
-                        class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-200 font-medium transition-colors"
+                        class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-500/10 text-neutral-700 dark:text-neutral-200 font-medium transition-colors"
                     >
                         <svg
                             class="w-5 h-5 opacity-70"
@@ -281,136 +340,199 @@ const breadcrumbStructuredData = {
                         </svg>
                         Saved
                     </a>
+                    <div class="my-1 h-px bg-neutral-200 dark:bg-neutral-800"></div>
+                    <a
+                        href="https://resumevibe.takovibe.com/"
+                        class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-500/10 text-neutral-700 dark:text-neutral-200 font-medium transition-colors"
+                    >
+                        <svg
+                            class="w-5 h-5 opacity-70"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0119 9.414V19a2 2 0 01-2 2z"
+                            ></path>
+                        </svg>
+                        Resume
+                    </a>
+                    <a
+                        href="/about"
+                        class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-500/10 text-neutral-700 dark:text-neutral-200 font-medium transition-colors"
+                    >
+                        <svg
+                            class="w-5 h-5 opacity-70"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z"
+                            ></path>
+                        </svg>
+                        About
+                    </a>
+                    <a
+                        href="/why-takovibe"
+                        class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-500/10 text-neutral-700 dark:text-neutral-200 font-medium transition-colors"
+                    >
+                        <svg
+                            class="w-5 h-5 opacity-70"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.956a1 1 0 00.95.69h4.16c.969 0 1.371 1.24.588 1.81l-3.366 2.445a1 1 0 00-.364 1.118l1.286 3.956c.3.921-.755 1.688-1.539 1.118l-3.366-2.445a1 1 0 00-1.176 0L8.044 18.02c-.783.57-1.838-.197-1.539-1.118l1.286-3.956a1 1 0 00-.364-1.118L4.061 9.383c-.783-.57-.38-1.81.588-1.81h4.16a1 1 0 00.95-.69l1.29-3.956z"
+                            ></path>
+                        </svg>
+                        Why TakoVibe?
+                    </a>
+                    <a
+                        href="/changelog"
+                        class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-500/10 text-neutral-700 dark:text-neutral-200 font-medium transition-colors"
+                    >
+                        <svg
+                            class="w-5 h-5 opacity-70"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M4 6h16M4 10h16M4 14h10M4 18h7"
+                            ></path>
+                        </svg>
+                        Changelog
+                    </a>
+                    <a
+                        href="/contact"
+                        class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-500/10 text-neutral-700 dark:text-neutral-200 font-medium transition-colors"
+                    >
+                        <svg
+                            class="w-5 h-5 opacity-70"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m-18 8h18a2 2 0 002-2V8a2 2 0 00-2-2H3a2 2 0 00-2 2v6a2 2 0 002 2z"
+                            ></path>
+                        </svg>
+                        Contact
+                    </a>
+                    <a
+                        href="/post/new"
+                        class="mt-1 flex items-center justify-center gap-2 rounded-lg bg-orange-600 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-orange-500"
+                    >
+                        <svg
+                            class="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 4v16m8-8H4"
+                            ></path>
+                        </svg>
+                        Write
+                    </a>
                 </div>
             </div>
         </div>
     </nav>
-</Layout>
 
 <script>
-    // Smart Scroll Logic for Zen Nav - DISABLED to keep it always visible
-    // Zen Nav now stays sticky at all times
-    /*
-    let lastScroll = 0;
-    const nav = document.getElementById("zen-nav");
+    function setupArticleNav() {
+        const nav = document.getElementById("zen-nav");
+        const trigger = document.getElementById("zen-menu-trigger");
+        const menu = document.getElementById("zen-menu-dropdown");
 
-    window.addEventListener(
-        "scroll",
-        () => {
-            const currentScroll = window.scrollY;
+        if (!nav || !trigger || !menu || trigger.dataset.bound === "true") return;
 
-            if (!nav) return;
+        let lastScroll = window.scrollY;
+        trigger.dataset.bound = "true";
 
-            // Hide on scroll down (if moved more than 50px)
-            if (currentScroll > 100 && currentScroll > lastScroll) {
-                nav.classList.add("-translate-y-24", "opacity-0");
+        const setMenuOpen = (isOpen: boolean) => {
+            menu.classList.toggle("opacity-100", isOpen);
+            menu.classList.toggle("scale-100", isOpen);
+            menu.classList.toggle("pointer-events-auto", isOpen);
+            menu.classList.toggle("opacity-0", !isOpen);
+            menu.classList.toggle("scale-95", !isOpen);
+            menu.classList.toggle("pointer-events-none", !isOpen);
 
-                // Close menu on scroll away
-                const menu = document.getElementById("zen-menu-dropdown");
-                const trigger = document.getElementById("zen-menu-trigger");
-                if (menu) {
-                    menu.classList.add(
-                        "opacity-0",
-                        "scale-95",
-                        "pointer-events-none",
-                    );
-                    menu.classList.remove(
-                        "opacity-100",
-                        "scale-100",
-                        "pointer-events-auto",
-                    );
-                    trigger?.classList.remove(
-                        "bg-white/90",
-                        "dark:bg-gray-800",
-                        "ring-2",
-                        "ring-purple-500/50",
-                    );
+            trigger.classList.toggle("border-orange-300", isOpen);
+            trigger.classList.toggle("text-orange-600", isOpen);
+            trigger.classList.toggle("dark:border-orange-700", isOpen);
+            trigger.classList.toggle("dark:text-orange-300", isOpen);
+            trigger.classList.toggle("ring-2", isOpen);
+            trigger.classList.toggle("ring-orange-500/40", isOpen);
+            trigger.setAttribute("aria-expanded", String(isOpen));
+        };
+
+        const showNav = () => {
+            nav.classList.remove("-translate-y-24", "opacity-0", "pointer-events-none");
+            nav.classList.add("pointer-events-auto");
+        };
+
+        const hideNav = () => {
+            setMenuOpen(false);
+            nav.classList.add("-translate-y-24", "opacity-0", "pointer-events-none");
+            nav.classList.remove("pointer-events-auto");
+        };
+
+        trigger.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            showNav();
+            setMenuOpen(!menu.classList.contains("opacity-100"));
+        });
+
+        document.addEventListener("click", (event) => {
+            if (!menu.contains(event.target as Node) && !trigger.contains(event.target as Node)) {
+                setMenuOpen(false);
+            }
+        });
+
+        window.addEventListener(
+            "scroll",
+            () => {
+                const currentScroll = window.scrollY;
+                const scrollingDown = currentScroll > lastScroll + 6;
+                const scrollingUp = currentScroll < lastScroll - 6;
+
+                if (currentScroll > 120 && scrollingDown) {
+                    hideNav();
+                } else if (scrollingUp || currentScroll < 80) {
+                    showNav();
                 }
-            } else {
-                // Show on scroll up
-                nav.classList.remove("-translate-y-24", "opacity-0");
-            }
 
-            lastScroll = currentScroll;
-        },
-        { passive: true },
-    );
-    */
-
-    // Zen Menu Toggle Logic
-    const zenTrigger = document.getElementById("zen-menu-trigger");
-    const zenMenu = document.getElementById("zen-menu-dropdown");
-
-    if (zenTrigger && zenMenu) {
-        zenTrigger.addEventListener("click", (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const isOpen = zenMenu.classList.contains("opacity-100");
-
-            if (isOpen) {
-                // Close
-                zenMenu.classList.add(
-                    "opacity-0",
-                    "scale-95",
-                    "pointer-events-none",
-                );
-                zenMenu.classList.remove(
-                    "opacity-100",
-                    "scale-100",
-                    "pointer-events-auto",
-                );
-                zenTrigger.classList.remove(
-                    "bg-white/90",
-                    "dark:bg-gray-800",
-                    "ring-2",
-                    "ring-purple-500/50",
-                );
-            } else {
-                // Open
-                zenMenu.classList.remove(
-                    "opacity-0",
-                    "scale-95",
-                    "pointer-events-none",
-                );
-                zenMenu.classList.add(
-                    "opacity-100",
-                    "scale-100",
-                    "pointer-events-auto",
-                );
-                zenTrigger.classList.add(
-                    "bg-white/90",
-                    "dark:bg-gray-800",
-                    "ring-2",
-                    "ring-purple-500/50",
-                );
-            }
-        });
-
-        // Close when clicking outside
-        document.addEventListener("click", (e) => {
-            if (
-                !zenMenu.contains(e.target as Node) &&
-                !zenTrigger.contains(e.target as Node)
-            ) {
-                zenMenu.classList.add(
-                    "opacity-0",
-                    "scale-95",
-                    "pointer-events-none",
-                );
-                zenMenu.classList.remove(
-                    "opacity-100",
-                    "scale-100",
-                    "pointer-events-auto",
-                );
-                zenTrigger.classList.remove(
-                    "bg-white/90",
-                    "dark:bg-gray-800",
-                    "ring-2",
-                    "ring-purple-500/50",
-                );
-            }
-        });
+                lastScroll = currentScroll;
+            },
+            { passive: true },
+        );
     }
+
+    setupArticleNav();
+    document.addEventListener("astro:page-load", setupArticleNav);
 </script>
 <!-- Structured Data -->
 <script
@@ -435,13 +557,14 @@ const breadcrumbStructuredData = {
 <ReadingProgress />
 <SelectionPopover />
 
-<div class="min-h-screen">
+<div class="relative min-h-screen overflow-x-hidden bg-stone-50 text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50">
+    <div class="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.08),transparent_34rem)] dark:bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.12),transparent_34rem)]"></div>
     <!-- Main Content Layout -->
-    <main class="max-w-[1600px] mx-auto px-4 sm:px-6 pb-0">
+    <main class="relative z-10 max-w-[1500px] mx-auto px-4 sm:px-6 pb-0">
         <!-- Main Content Layout (Flexbox for robust sidebar positioning) -->
         <div
             id="immersive-article-container"
-            class="max-w-[1600px] mx-auto px-4 sm:px-6 pb-12 transition-all duration-300"
+            class="max-w-[1500px] mx-auto px-0 sm:px-4 pb-12 transition-all duration-300"
         >
             <div
                 class="flex flex-col lg:flex-row gap-8 xl:gap-12 relative items-start justify-center"
@@ -449,10 +572,10 @@ const breadcrumbStructuredData = {
                 <!-- Left Sidebar: Moved per user request -->
                 <aside class="hidden lg:block w-64 flex-shrink-0 sticky top-24">
                     <div
-                        class="pr-6 border-r border-gray-100 dark:border-gray-800"
+                        class="pr-6 border-r border-neutral-200 dark:border-neutral-800"
                     >
                         <h5
-                            class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4"
+                            class="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-4"
                         >
                             Contents
                         </h5>
@@ -462,17 +585,16 @@ const breadcrumbStructuredData = {
                             <a 
                                 href="https://resumevibe.takovibe.com/"
                                 target="_blank"
-                                class="block p-5 rounded-2xl bg-indigo-950/60 dark:bg-indigo-900/40 backdrop-blur-md border border-indigo-500/30 text-white shadow-xl hover:shadow-indigo-500/20 hover:-translate-y-1 transition-all group relative overflow-hidden"
+                                class="block p-4 rounded-lg bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm hover:border-orange-300 dark:hover:border-orange-700 transition-all group"
                             >
-                                <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-indigo-500/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
                                 <div class="relative z-10">
                                     <div class="flex items-center gap-2 mb-2">
-                                        <div class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></div>
-                                        <h5 class="text-[9px] font-black uppercase tracking-[0.2em] text-indigo-300">ResumeVibe AI</h5>
+                                        <div class="w-1.5 h-1.5 rounded-full bg-orange-500"></div>
+                                        <h5 class="text-[9px] font-black uppercase tracking-[0.2em] text-orange-600 dark:text-orange-400">ResumeVibe AI</h5>
                                     </div>
-                                    <p class="text-[11px] font-bold leading-tight mb-2">"Tell me why am I not getting in?"</p>
-                                    <p class="text-[10px] text-indigo-200/70 leading-relaxed mb-3">Audit your experience bullets and identify why you're not getting interview calls.</p>
-                                    <div class="flex items-center gap-2 text-[9px] font-bold text-indigo-400 group-hover:text-white transition-colors">
+                                    <p class="text-[11px] font-bold leading-tight mb-2 text-neutral-900 dark:text-white">"Tell me why am I not getting in?"</p>
+                                    <p class="text-[10px] text-neutral-500 dark:text-neutral-400 leading-relaxed mb-3">Audit your experience bullets and identify why you're not getting interview calls.</p>
+                                    <div class="flex items-center gap-2 text-[9px] font-bold text-orange-600 dark:text-orange-400 transition-colors">
                                         <span>Audit Resume &rarr;</span>
                                     </div>
                                 </div>
@@ -488,7 +610,7 @@ const breadcrumbStructuredData = {
                     <!-- <div class="mt-8 pr-6">
                         <a
                             href="/write"
-                            class="text-sm font-medium text-purple-600 hover:text-purple-700 flex items-center gap-1"
+                            class="text-sm font-medium text-orange-600 hover:text-orange-700 flex items-center gap-1"
                         >
                             Write on TakoVibe &rarr;
                         </a>
@@ -496,21 +618,21 @@ const breadcrumbStructuredData = {
                 </aside>
 
                     <!-- Main Article Content -->
-                    <article class="flex-1 min-w-0 max-w-5xl w-full" id="article">
+                    <article class="flex-1 min-w-0 max-w-4xl w-full" id="article">
                     <!-- min-w-0 prevents flex overflow -->
 
                     <!-- Native Clean Header (No gradients) -->
-                    <header class="mb-12 text-center pt-16 px-2 sm:px-0">
+                    <header class="mb-10 pt-24 sm:pt-28 px-1 sm:px-0 border-b border-neutral-200 dark:border-neutral-800 pb-10">
                         <div class="space-y-6">
                             <!-- Series / Tags -->
                             <div
-                                class="flex flex-wrap items-center justify-center gap-3 text-sm"
+                                class="flex flex-wrap items-center gap-3 text-sm"
                             >
                                 {
                                     post.data.series && (
                                         <a
                                             href={`/series/${post.data.series.toLowerCase().replace(/\s+/g, "-")}`}
-                                            class="px-3 py-1 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 font-medium hover:bg-purple-200 dark:hover:bg-purple-900/60 transition-colors"
+                                            class="px-3 py-1 rounded-md bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300 font-medium hover:bg-orange-200 dark:hover:bg-orange-500/20 transition-colors"
                                         >
                                             {post.data.series}
                                         </a>
@@ -518,7 +640,7 @@ const breadcrumbStructuredData = {
                                 }
 
                                 <span
-                                    class="text-gray-500 dark:text-gray-400 font-mono text-xs uppercase tracking-wider"
+                                    class="text-neutral-500 dark:text-neutral-400 font-mono text-xs uppercase tracking-wider"
                                 >
                                     {
                                         new Date(
@@ -530,11 +652,11 @@ const breadcrumbStructuredData = {
                                         })
                                     }
                                 </span>
-                                <span class="text-gray-300 dark:text-gray-600"
+                                <span class="text-neutral-300 dark:text-neutral-700"
                                     >•</span
                                 >
                                 <span
-                                    class="text-gray-500 dark:text-gray-400 font-medium"
+                                    class="text-neutral-500 dark:text-neutral-400 font-medium"
                                 >
                                     {post.data.readingTime || "5 min read"}
                                 </span>
@@ -542,20 +664,28 @@ const breadcrumbStructuredData = {
 
                             <!-- Title (Larger and Bolder for Dominance) -->
                             <h1
-                                class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-gray-900 dark:text-gray-50 leading-[1.1] mb-6 break-words"
+                                class="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-neutral-950 dark:text-neutral-50 leading-[1.05] mb-4 break-words"
                             >
                                 {post.data.title}
                             </h1>
 
+                            {
+                                post.data.description && (
+                                    <p class="max-w-3xl text-base sm:text-lg leading-8 text-neutral-600 dark:text-neutral-400 line-clamp-3">
+                                        {post.data.description}
+                                    </p>
+                                )
+                            }
+
                             <!-- Tags (Reduced Prominence) -->
                             <div
-                                class="flex flex-wrap items-center justify-center gap-2 opacity-70"
+                                class="flex flex-wrap items-center gap-2"
                             >
                                 {
                                     post.data.tags?.map((tag: string) => (
                                         <a
                                             href={`/blog?tag=${encodeURIComponent(tag.toLowerCase())}`}
-                                            class="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100/50 text-gray-600 hover:bg-purple-50 hover:text-purple-700 dark:bg-gray-800/50 dark:text-gray-400 dark:hover:bg-purple-900/20 dark:hover:text-purple-300 transition-all hover:opacity-100 border border-gray-100 dark:border-white/5"
+                                            class="px-2.5 py-1 rounded-md text-xs font-medium bg-white text-neutral-600 hover:bg-orange-50 hover:text-orange-700 dark:bg-neutral-900 dark:text-neutral-400 dark:hover:bg-orange-500/10 dark:hover:text-orange-300 transition-all border border-neutral-200 dark:border-neutral-800"
                                         >
                                             #{tag}
                                         </a>
@@ -565,25 +695,25 @@ const breadcrumbStructuredData = {
 
                             <!-- Author Info (Reduced Prominence) -->
                             <div
-                                class="flex items-center justify-center gap-4 pt-4 opacity-60 hover:opacity-100 transition-opacity"
+                                class="flex items-center gap-4 pt-3"
                             >
                                 <a
                                     href={`/profile/${post.authorUsername || post.data.author.toLowerCase().replace(/\s+/g, "-")}`}
                                     class="flex items-center gap-3 group/author"
                                 >
                                     <div
-                                        class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 font-bold text-sm ring-2 ring-white dark:ring-gray-800"
+                                        class="w-10 h-10 rounded-full bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center text-neutral-600 dark:text-neutral-300 font-bold text-sm ring-2 ring-white dark:ring-neutral-900"
                                     >
                                         {post.data.author.charAt(0)}
                                     </div>
                                     <div class="flex flex-col text-left">
                                         <span
-                                            class="text-xs font-semibold text-gray-900 dark:text-white group-hover/author:text-purple-500 transition-colors"
+                                            class="text-xs font-semibold text-neutral-900 dark:text-white group-hover/author:text-orange-500 transition-colors"
                                         >
                                             {post.data.author}
                                         </span>
                                         <span
-                                            class="text-xs text-gray-500 dark:text-gray-400"
+                                            class="text-xs text-neutral-500 dark:text-neutral-400"
                                         >
                                             @{
                                                 post.authorUsername ||
@@ -597,10 +727,10 @@ const breadcrumbStructuredData = {
 
                                 <!-- Actions -->
                                 <div
-                                    class="ml-4 pl-4 border-l border-gray-200 dark:border-gray-800 flex items-center gap-2"
+                                    class="ml-2 pl-4 border-l border-neutral-200 dark:border-neutral-800 flex items-center gap-2"
                                 >
                                     <button
-                                        class="save-btn p-2 text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all"
+                                        class="save-btn p-2 text-neutral-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-500/10 rounded-lg border border-transparent transition-all"
                                         data-blog-id={post.slug}
                                         aria-label="Save for later"
                                         title="Save for Later"
@@ -627,7 +757,7 @@ const breadcrumbStructuredData = {
                     <!-- Feature Image (Native Clean style) -->
                     {
                         post.data.image && (
-                            <div class="relative mb-12 rounded-xl overflow-hidden shadow-sm ring-1 ring-gray-900/5 dark:ring-white/10">
+                            <div class="relative mb-12 rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900">
                                 <img
                                     src={
                                         post.data.image.startsWith("http")
@@ -647,10 +777,10 @@ const breadcrumbStructuredData = {
 
                         <div
                             class="mdx-content prose prose-lg md:prose-xl dark:prose-invert max-w-none
-            prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-gray-900 dark:prose-headings:text-gray-100
-            prose-p:text-gray-800 dark:prose-p:text-gray-300 prose-p:leading-relaxed
-            prose-code:text-purple-600 dark:prose-code:text-purple-400
-            prose-img:rounded-xl prose-img:shadow-sm"
+            prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-neutral-950 dark:prose-headings:text-neutral-100
+            prose-p:text-neutral-800 dark:prose-p:text-neutral-300 prose-p:leading-relaxed
+            prose-code:text-orange-600 dark:prose-code:text-orange-300
+            prose-img:rounded-lg prose-img:border prose-img:border-neutral-200 dark:prose-img:border-neutral-800 prose-img:shadow-sm"
                         >
                             {
                                 isStatic && Content ? (
@@ -726,24 +856,24 @@ const breadcrumbStructuredData = {
                                     const footerContainer = document.getElementById('support-footer-container');
                                     if (footerContainer) {
                                         footerContainer.innerHTML = `
-                                            <div class="p-8 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-800/50 dark:to-slate-900/50 border border-gray-100 dark:border-gray-800 text-center relative overflow-hidden group">
-                                                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 to-orange-500 opacity-80"></div>
+                                            <div class="p-6 rounded-lg bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-center relative overflow-hidden group">
+                                                <div class="absolute top-0 left-0 w-full h-1 bg-orange-500 opacity-80"></div>
                                                 
                                                 <div class="relative z-10 max-w-lg mx-auto">
-                                                    <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-3xl shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                                    <div class="w-14 h-14 mx-auto mb-4 rounded-lg bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-2xl shadow-sm group-hover:scale-105 transition-transform duration-300">
                                                         ☕
                                                     </div>
-                                                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                                                    <h3 class="text-2xl font-bold text-neutral-900 dark:text-white mb-3">
                                                         Found this helpful?
                                                     </h3>
-                                                    <p class="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
+                                                    <p class="text-neutral-600 dark:text-neutral-400 mb-6 leading-relaxed">
                                                         Creating high-quality tutorials takes time and coffee. If you learned something new today, consider supporting my work!
                                                     </p>
                                                     <a
                                                         href="${supportUrl}"
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        class="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-bold rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                                                        class="inline-flex items-center gap-2 px-7 py-3 bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-lg shadow-sm transition-all duration-300"
                                                     >
                                                         <span>Buy Author a Coffee</span>
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -777,18 +907,18 @@ const breadcrumbStructuredData = {
                                 <div id="support-sidebar-container" class="hidden"></div>
 
                                 <!-- Series Identity & Tools Hub -->
-                                <div class="relative group rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-900 dark:to-slate-900 border border-gray-200 dark:border-white/5 overflow-hidden shadow-sm">
+                                <div class="relative group rounded-lg bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 overflow-hidden shadow-sm">
                                      <div class="p-4 pb-3">
                                         <div class="flex items-center justify-between mb-3">
-                                            <span class="text-[9px] font-black uppercase tracking-[0.2em] text-purple-600 dark:text-purple-400">Series Context</span>
-                                            <div class="flex h-1.5 w-1.5 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span><span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-purple-500"></span></div>
+                                            <span class="text-[9px] font-black uppercase tracking-[0.2em] text-orange-600 dark:text-orange-400">Series Context</span>
+                                            <div class="flex h-1.5 w-1.5 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span><span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-orange-500"></span></div>
                                         </div>
-                                        <h3 class="text-sm font-bold text-gray-900 dark:text-white leading-tight mb-4">
+                                        <h3 class="text-sm font-bold text-neutral-900 dark:text-white leading-tight mb-4">
                                             {post.data.series}
                                         </h3>
                                         <a
                                             href={`/series/${post.data.series.toLowerCase().replace(/\s+/g, "-")}`}
-                                            class="inline-flex items-center gap-1.5 text-[10px] font-bold text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 transition-colors uppercase tracking-wider"
+                                            class="inline-flex items-center gap-1.5 text-[10px] font-bold text-neutral-500 hover:text-orange-600 dark:text-neutral-400 dark:hover:text-orange-400 transition-colors uppercase tracking-wider"
                                         >
                                             Full Series Overview
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -798,29 +928,29 @@ const breadcrumbStructuredData = {
                                      </div>
 
                                      <!-- Integrated Smart Toolbar -->
-                                     <div class="grid grid-cols-2 border-t border-gray-200 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02]">
+                                     <div class="grid grid-cols-2 border-t border-neutral-200 dark:border-neutral-800 bg-stone-50/70 dark:bg-white/[0.02]">
                                         <button
                                             id="kumi-promo-card-series"
-                                            class="kumi-promo-trigger group flex items-center justify-center gap-2 py-2.5 px-3 border-r border-gray-200 dark:border-white/5 hover:bg-purple-500/[0.05] transition-all active:scale-95"
+                                            class="kumi-promo-trigger group flex items-center justify-center gap-2 py-2.5 px-3 border-r border-neutral-200 dark:border-neutral-800 hover:bg-orange-500/[0.06] transition-all active:scale-95"
                                         >
                                             <span class="text-xs group-hover:scale-110 transition-transform">🤖</span>
-                                            <span class="text-[10px] font-black text-gray-600 dark:text-gray-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 uppercase tracking-widest">Ask Kumi</span>
+                                            <span class="text-[10px] font-black text-neutral-600 dark:text-neutral-400 group-hover:text-orange-600 dark:group-hover:text-orange-400 uppercase tracking-widest">Ask Kumi</span>
                                         </button>
 
                                         <button
                                             id="notes-promo-card-series"
-                                            class="notes-promo-trigger group flex items-center justify-center gap-2 py-2.5 px-3 hover:bg-blue-500/[0.05] transition-all active:scale-95"
+                                            class="notes-promo-trigger group flex items-center justify-center gap-2 py-2.5 px-3 hover:bg-orange-500/[0.06] transition-all active:scale-95"
                                         >
                                             <span class="text-xs group-hover:scale-110 transition-transform">✏️</span>
-                                            <span class="text-[10px] font-black text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 uppercase tracking-widest">LLD Notes</span>
+                                            <span class="text-[10px] font-black text-neutral-600 dark:text-neutral-400 group-hover:text-orange-600 dark:group-hover:text-orange-400 uppercase tracking-widest">LLD Notes</span>
                                         </button>
                                      </div>
                                 </div>
 
                                 <!-- Series Timeline (Clean & Vertical) -->
                                 <div class="pt-2">
-                                    <h5 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                                        <span class="w-1 h-1 rounded-full bg-purple-500"></span>
+                                    <h5 class="text-[10px] font-black text-neutral-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                        <span class="w-1 h-1 rounded-full bg-orange-500"></span>
                                         Learning Path
                                     </h5>
                                     <div id="series-articles-list" class="flex flex-col">
@@ -830,30 +960,30 @@ const breadcrumbStructuredData = {
                             </div>
                         ) : (
                             <!-- Interactive Toolkit (Bento Grid) -->
-                            <div class="pl-6 border-l border-gray-100 dark:border-gray-800">
+                            <div class="pl-6 border-l border-neutral-200 dark:border-neutral-800">
                                  <div class="flex items-center justify-between mb-4">
-                                    <h5 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                    <h5 class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
                                         Toolkit
                                     </h5>
-                                    <span class="text-[10px] font-mono text-purple-500 bg-purple-50 dark:bg-purple-900/30 px-1.5 py-0.5 rounded">All-in-One</span>
+                                    <span class="text-[10px] font-mono text-orange-600 bg-orange-50 dark:bg-orange-500/10 px-1.5 py-0.5 rounded">All-in-One</span>
                                 </div>
                                 
                                 <div class="grid grid-cols-2 gap-2">
                                     <!-- Kumi AI (Hero - Full Width) -->
                                     <button
                                         id="kumi-promo-card"
-                                        class="col-span-2 group relative overflow-hidden rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 p-0.5 transition-all hover:scale-[1.02] hover:shadow-lg hover:shadow-violet-500/25"
+                                        class="col-span-2 group relative overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 transition-all hover:border-orange-300 dark:hover:border-orange-700"
                                     >
-                                        <div class="relative h-full w-full bg-white dark:bg-gray-900 rounded-[10px] p-3 flex items-center gap-3">
-                                            <div class="w-10 h-10 rounded-lg bg-violet-100 dark:bg-violet-900/50 text-violet-600 dark:text-violet-300 flex items-center justify-center text-xl shrink-0">
+                                        <div class="relative h-full w-full p-3 flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-lg bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-300 flex items-center justify-center text-xl shrink-0">
                                                 🤖
                                             </div>
                                             <div class="text-left flex-1">
                                                 <div class="flex items-center justify-between">
-                                                    <h3 class="font-bold text-gray-900 dark:text-white text-sm">Ask Kumi</h3>
-                                                    <span class="text-[9px] font-bold bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-1.5 py-0.5 rounded-full">AI</span>
+                                                    <h3 class="font-bold text-neutral-900 dark:text-white text-sm">Ask Kumi</h3>
+                                                    <span class="text-[9px] font-bold bg-orange-600 text-white px-1.5 py-0.5 rounded">AI</span>
                                                 </div>
-                                                <p class="text-[10px] text-gray-500 dark:text-gray-400 leading-tight mt-0.5 line-clamp-1">Chat & Summarize Article</p>
+                                                <p class="text-[10px] text-neutral-500 dark:text-neutral-400 leading-tight mt-0.5 line-clamp-1">Chat & Summarize Article</p>
                                             </div>
                                         </div>
                                     </button>
@@ -861,9 +991,9 @@ const breadcrumbStructuredData = {
                                     <!-- Code Studio (Square) -->
                                     <button
                                         id="code-promo-card"
-                                        class="col-span-1 group relative overflow-hidden rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 p-0.5 transition-all hover:scale-[1.02] hover:shadow-lg hover:shadow-emerald-500/25"
+                                        class="col-span-1 group relative overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 transition-all hover:border-emerald-300 dark:hover:border-emerald-700"
                                     >
-                                        <div class="relative h-full w-full bg-white dark:bg-gray-900 rounded-[10px] p-3 flex flex-col items-center justify-center gap-2 text-center">
+                                        <div class="relative h-full w-full p-3 flex flex-col items-center justify-center gap-2 text-center">
                                             <div class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800">
                                                 <span class="text-[8px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider block leading-none">New</span>
                                             </div>
@@ -871,7 +1001,7 @@ const breadcrumbStructuredData = {
                                                 💻
                                             </div>
                                             <div>
-                                                <h3 class="font-bold text-gray-900 dark:text-white text-xs">Smart Code</h3>
+                                                <h3 class="font-bold text-neutral-900 dark:text-white text-xs">Smart Code</h3>
                                                 <div class="text-[9px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">Run & Compare Fixes</div>
                                             </div>
                                         </div>
@@ -880,15 +1010,15 @@ const breadcrumbStructuredData = {
                                     <!-- Visual Notes (Square) -->
                                     <button
                                         id="notes-promo-card"
-                                        class="col-span-1 group relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-400 to-cyan-600 p-0.5 transition-all hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/25"
+                                        class="col-span-1 group relative overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 transition-all hover:border-orange-300 dark:hover:border-orange-700"
                                     >
-                                        <div class="relative h-full w-full bg-white dark:bg-gray-900 rounded-[10px] p-3 flex flex-col items-center justify-center gap-2 text-center">
-                                            <div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 flex items-center justify-center text-lg">
+                                        <div class="relative h-full w-full p-3 flex flex-col items-center justify-center gap-2 text-center">
+                                            <div class="w-8 h-8 rounded-lg bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-300 flex items-center justify-center text-lg">
                                                 ✏️
                                             </div>
                                             <div>
-                                                <h3 class="font-bold text-gray-900 dark:text-white text-xs">Sketch</h3>
-                                                <div class="text-[9px] text-blue-600 dark:text-blue-400 font-medium mt-0.5">LLD Interview</div>
+                                                <h3 class="font-bold text-neutral-900 dark:text-white text-xs">Sketch</h3>
+                                                <div class="text-[9px] text-orange-600 dark:text-orange-400 font-medium mt-0.5">LLD Interview</div>
                                             </div>
                                         </div>
                                     </button>
@@ -958,6 +1088,12 @@ const breadcrumbStructuredData = {
 <DangerConfirmationModal client:idle />
 
 <style>
+    #zen-nav {
+        position: fixed !important;
+        inset: 0 0 auto 0;
+        z-index: 9999 !important;
+    }
+
     /* Force dark text in light mode for article content */
     :root:not(.dark) .prose p,
     :root:not(.dark) .prose li {
@@ -1140,7 +1276,7 @@ const breadcrumbStructuredData = {
 
     aside:hover::-webkit-scrollbar-thumb,
     #series-articles-list:hover::-webkit-scrollbar-thumb {
-        background-color: rgba(139, 92, 246, 0.3); /* Subtle purple on hover */
+        background-color: rgba(249, 115, 22, 0.25);
     }
 
     #series-articles-list {
@@ -1270,7 +1406,7 @@ const breadcrumbStructuredData = {
             if (!explainBtn) {
                 explainBtn = document.createElement("button");
                 explainBtn.className =
-                    "explain-code-btn p-1.5 sm:p-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg transition-colors shadow-lg flex items-center gap-2 text-xs sm:text-sm font-medium";
+                    "explain-code-btn p-1.5 sm:p-2 bg-orange-600 hover:bg-orange-500 text-white rounded-lg transition-colors shadow-lg flex items-center gap-2 text-xs sm:text-sm font-medium";
                 explainBtn.innerHTML = `
                     <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
@@ -1370,7 +1506,7 @@ const breadcrumbStructuredData = {
                         tabs.forEach((t) => {
                             if (t.getAttribute("data-index") === index) {
                                 t.className =
-                                    "tab-btn flex items-center gap-1.5 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded-md text-xs font-medium transition-all whitespace-nowrap bg-purple-900/30 text-purple-400 border border-purple-700";
+                                    "tab-btn flex items-center gap-1.5 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded-md text-xs font-medium transition-all whitespace-nowrap bg-orange-900/30 text-orange-400 border border-orange-700";
                             } else {
                                 t.className =
                                     "tab-btn flex items-center gap-1.5 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded-md text-xs font-medium transition-all whitespace-nowrap text-gray-400 bg-gray-800/50 border border-gray-700 hover:bg-gray-700";
@@ -1453,7 +1589,7 @@ const breadcrumbStructuredData = {
                 }
 
                 const currentIsBookmarked =
-                    btn.classList.contains("bg-purple-600");
+                    btn.classList.contains("bg-orange-600");
                 const currentBookmarkId = btn.getAttribute("data-bookmark-id");
 
                 // Optimistic UI update
@@ -1495,13 +1631,13 @@ const breadcrumbStructuredData = {
         const text = btn.querySelector("span");
 
         if (isSaved) {
-            btn.classList.add("bg-purple-600", "border-purple-500");
-            btn.classList.remove("bg-white/20", "border-white/30");
+            btn.classList.add("bg-orange-600", "border-orange-500", "text-white");
+            btn.classList.remove("bg-white/20", "border-white/30", "text-neutral-400");
             if (icon) icon.setAttribute("fill", "currentColor");
             if (text) text.textContent = "Saved";
         } else {
-            btn.classList.remove("bg-purple-600", "border-purple-500");
-            btn.classList.add("bg-white/20", "border-white/30");
+            btn.classList.remove("bg-orange-600", "border-orange-500", "text-white");
+            btn.classList.add("bg-white/20", "border-white/30", "text-neutral-400");
             if (icon) icon.setAttribute("fill", "none");
             if (text) text.textContent = "Save";
         }
@@ -1651,7 +1787,7 @@ const breadcrumbStructuredData = {
                             <!-- Timeline Indicator -->
                             <div class="relative z-10 flex-shrink-0 w-[26px] h-[26px] rounded-full flex items-center justify-center transition-all ${
                                 isCurrent 
-                                    ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30' 
+                                    ? 'bg-orange-600 text-white shadow-sm shadow-orange-500/20'
                                     : isCompleted 
                                         ? 'bg-green-100 dark:bg-green-900/30 text-green-600' 
                                         : 'bg-gray-50 dark:bg-gray-800 text-gray-400 group-hover:bg-gray-100 dark:group-hover:bg-gray-700'
@@ -1666,14 +1802,14 @@ const breadcrumbStructuredData = {
                             <div class="flex-1 min-w-0">
                                 <h4 class="text-[11px] font-bold leading-tight transition-colors mb-1 ${
                                     isCurrent 
-                                        ? 'text-purple-600 dark:text-purple-400' 
+                                        ? 'text-orange-600 dark:text-orange-400'
                                         : 'text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white'
                                 }">
                                     ${article.title}
                                 </h4>
                                 <div class="flex items-center gap-1.5 h-3">
                                     <span class="text-[9px] text-gray-400 uppercase tracking-tight">${article.reading_time || '5'} min read</span>
-                                    ${isCurrent ? '<span class="flex h-1.5 w-1.5 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span><span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-purple-500"></span></span>' : ''}
+                                    ${isCurrent ? '<span class="flex h-1.5 w-1.5 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span><span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-orange-500"></span></span>' : ''}
                                 </div>
                             </div>
                         </a>
@@ -1696,7 +1832,7 @@ const breadcrumbStructuredData = {
                         <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">Failed to load series articles</p>
                         <button 
                             onclick="loadSeriesArticles()" 
-                            class="text-xs text-purple-600 dark:text-purple-400 hover:underline"
+                            class="text-xs text-orange-600 dark:text-orange-400 hover:underline"
                         >
                             Try Again
                         </button>
@@ -1710,3 +1846,4 @@ const breadcrumbStructuredData = {
     loadSeriesArticles();
     document.addEventListener("astro:after-swap", loadSeriesArticles);
 </script>
+</Layout>
