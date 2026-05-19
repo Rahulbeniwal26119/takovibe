@@ -157,23 +157,46 @@ const CodeEditorDrawer: React.FC<CodeEditorDrawerProps> = ({ articleSlug, initia
                         opacity: 1 !important;
                         z-index: 9999999 !important; /* Max z-index */
                         position: fixed !important;
-                        top: 1rem !important;
-                        left: 1rem !important;
+                        top: 0.75rem !important;
+                        left: 0.75rem !important;
+                        right: auto !important;
+                        width: calc(${splitRatio}% - 1.5rem) !important;
+                        max-width: calc(${splitRatio}% - 1.5rem) !important;
+                        padding: 0 !important;
                         transform: none !important;
                         pointer-events: auto !important;
                     }
+                    #zen-nav > div {
+                        width: 100% !important;
+                        max-width: none !important;
+                        height: 3.75rem !important;
+                        border-color: rgba(64, 64, 64, 0.9) !important;
+                        background: rgba(23, 23, 23, 0.92) !important;
+                        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22) !important;
+                    }
+                    #article-nav-links {
+                        display: none !important;
+                    }
+                    #article-nav-actions a {
+                        padding: 0.5rem 0.75rem !important;
+                        border-radius: 0.5rem !important;
+                        background: #ea580c !important;
+                        color: #fff !important;
+                    }
                     /* Ensure trigger button is visible and high contrast */
                     #zen-nav #zen-menu-trigger {
+                        display: grid !important;
                         opacity: 1 !important;
                         visibility: visible !important;
-                        background: rgba(0, 0, 0, 0.8) !important; /* Dark background for contrast */
+                        background: rgba(255, 255, 255, 0.08) !important;
                         color: white !important;
-                        box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+                        border-color: rgba(255, 255, 255, 0.12) !important;
+                        box-shadow: none !important;
                         backdrop-filter: blur(12px) !important;
                     }
                     html.dark #zen-nav #zen-menu-trigger {
-                        background: rgba(255, 255, 255, 0.2) !important;
-                        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+                        background: rgba(255, 255, 255, 0.08) !important;
+                        border: 1px solid rgba(255, 255, 255, 0.12) !important;
                     }
 
                     /* Transform Article Container */
@@ -185,16 +208,16 @@ const CodeEditorDrawer: React.FC<CodeEditorDrawerProps> = ({ articleSlug, initia
                         width: ${splitRatio}% !important;
                         max-width: none !important;
                         margin: 0 !important;
-                        padding: 5rem 2rem 8rem !important;
+                        padding: 5.25rem 2rem 8rem !important;
                         overflow-y: auto !important;
                         overflow-x: hidden !important;
                         z-index: 50 !important;
-                        background: var(--zen-bg, #ffffff);
-                        border-right: 1px solid #e5e7eb;
+                        background: var(--zen-bg, #fafaf9);
+                        border-right: 1px solid #262626;
                     }
                     html.dark #immersive-article-container {
-                         background: var(--zen-bg, #0f1117);
-                         border-right: 1px solid #1f2937;
+                         background: var(--zen-bg, #0a0a0a);
+                         border-right: 1px solid #262626;
                     }
 
                     /* Hide Sidebars in Article when in split mode to save space */
@@ -204,6 +227,24 @@ const CodeEditorDrawer: React.FC<CodeEditorDrawerProps> = ({ articleSlug, initia
                          max-width: 800px !important;
                          margin: 0 auto !important;
                          display: block !important;
+                    }
+                    #article {
+                         max-width: 100% !important;
+                    }
+                    #article header {
+                         padding-top: 2rem !important;
+                         padding-bottom: 2rem !important;
+                         margin-bottom: 2rem !important;
+                    }
+                    #article h1 {
+                         font-size: clamp(2rem, 3.2vw, 3.25rem) !important;
+                         line-height: 1.08 !important;
+                         max-width: 100% !important;
+                    }
+                    #article header p {
+                         max-width: 40rem !important;
+                         font-size: 1rem !important;
+                         line-height: 1.7 !important;
                     }
                 `}</style>
             )}

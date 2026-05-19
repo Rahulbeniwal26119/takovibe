@@ -4,47 +4,70 @@
 
 <div
     id="top-banner"
-    class="relative w-full z-[100] -mt-12 transition-[margin] duration-500 ease-out bg-gradient-to-r from-purple-900 via-indigo-900 to-purple-900 text-white border-b border-white/10 shadow-lg"
+    class="relative z-[100] w-full -translate-y-full border-b border-orange-500/20 bg-neutral-950 text-neutral-50 shadow-sm transition-transform duration-500 ease-out"
     style="display: none;"
 >
     <div
-        class="max-w-7xl mx-auto px-4 sm:px-6 py-2 flex items-center justify-between gap-4"
+        class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2 sm:px-6"
     >
         <!-- Message -->
-        <div class="flex items-center gap-3 overflow-hidden">
+        <div class="flex min-w-0 items-center gap-3">
             <span
-                class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/20 text-xs"
+                class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-orange-400/30 bg-orange-400/10 text-orange-300"
+                aria-hidden="true"
             >
-                ✨
-            </span>
-            <p class="text-sm font-medium truncate">
-                <span class="hidden sm:inline"
-                    >Build a resume that skips the waitlist!</span
+                <svg
+                    class="h-3.5 w-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                 >
-                <span class="sm:hidden">ATS-Friendly Resume Builder</span>
-                <span class="opacity-75 mx-2 hidden md:inline">|</span>
-                <span class="opacity-90 hidden md:inline"
-                    >Try ResumeVibe's AI Diagnostics</span
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"
+                    ></path>
+                </svg>
+            </span>
+            <p class="truncate text-sm font-medium">
+                <span class="hidden sm:inline"
+                    >ResumeVibe is open for early builders</span
+                >
+                <span class="sm:hidden">ResumeVibe is live</span>
+                <span class="mx-2 hidden text-neutral-500 md:inline">/</span>
+                <span class="hidden text-neutral-300 md:inline"
+                    >Run AI diagnostics on your resume</span
                 >
             </p>
         </div>
 
         <!-- Actions -->
-        <div class="flex items-center gap-3 shrink-0">
-            <div class="flex items-center gap-2">
-                <a
-                    href="https://resumevibe.takovibe.com/"
-                    class="px-3 py-1 rounded-full bg-white text-purple-900 hover:bg-purple-50 text-xs font-bold transition-colors flex items-center gap-1.5 border border-white/10"
+        <div class="flex shrink-0 items-center gap-2">
+            <a
+                href="https://resumevibe.takovibe.com/"
+                class="inline-flex items-center gap-1.5 rounded-full bg-orange-500 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-orange-600"
+            >
+                <span>Try ResumeVibe</span>
+                <svg
+                    class="h-3.5 w-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                 >
-                    <span>🚀</span>
-                    <span>Try Now</span>
-                </a>
-            </div>
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M17 8l4 4m0 0l-4 4m4-4H3"
+                    ></path>
+                </svg>
+            </a>
 
             <!-- Close -->
             <button
                 id="close-banner"
-                class="p-1 rounded-full hover:bg-white/20 text-white/70 hover:text-white transition-colors"
+                class="rounded-full p-1 text-neutral-400 transition-colors hover:bg-white/10 hover:text-white"
                 aria-label="Dismiss"
             >
                 <svg
@@ -88,12 +111,12 @@
         banner.style.display = "block";
         // Small delay for slide-down animation
         requestAnimationFrame(() => {
-            banner.classList.remove("-mt-12");
+            banner.classList.remove("-translate-y-full");
         });
 
         // Handle Close
         closeBtn?.addEventListener("click", () => {
-            banner.classList.add("-mt-12");
+            banner.classList.add("-translate-y-full");
 
             // Record timestamp
             localStorage.setItem(BANNER_KEY, Date.now().toString());

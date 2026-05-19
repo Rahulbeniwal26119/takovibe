@@ -1,8 +1,7 @@
 ---
 import { getCollection } from "astro:content";
-import PostPreview from "./PostPreview.astro";
 
-const { currentSlug, tags = [], limit = 3 } = Astro.props;
+const { currentSlug, tags = [], limit = 4 } = Astro.props;
 
 // Get all blog posts
 const allPosts = await getCollection("blog");
@@ -36,21 +35,144 @@ if (postsToShow.length < limit) {
 
   postsToShow = [...postsToShow, ...recentPosts];
 }
+
+const [featuredPost, ...secondaryPosts] = postsToShow;
+
+const formatDate = (date: string | Date) =>
+  new Date(date).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+const resolveImage = (image?: string) => {
+  if (!image) return "";
+  if (image.startsWith("http") || image.startsWith("/")) return image;
+  return `/${image}`;
+};
 ---
 
 {
   postsToShow.length > 0 && (
-    <section class="mt-12 mb-16 pt-8 border-t border-gray-100 dark:border-gray-800">
-      <div class="text-center mb-12">
-        <h2 class="text-3xl sm:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 mb-4 inline-block">
-          Related Articles
-        </h2>
-        <div class="h-1 w-24 mx-auto bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full opacity-50" />
+    <section class="mt-16 mb-16 border-t border-neutral-200 pt-10 dark:border-neutral-800">
+      <div class="mb-7 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p class="text-[10px] font-black uppercase tracking-[0.24em] text-orange-600 dark:text-orange-400">
+            Keep Reading
+          </p>
+          <h2 class="mt-2 text-2xl font-black tracking-tight text-neutral-950 dark:text-neutral-50 sm:text-3xl">
+            Related Articles
+          </h2>
+        </div>
+        <a
+          href="/blog"
+          class="inline-flex items-center gap-2 text-sm font-bold text-neutral-600 transition-colors hover:text-orange-600 dark:text-neutral-400 dark:hover:text-orange-400"
+        >
+          View all
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+          </svg>
+        </a>
       </div>
-      <div class="grid md:grid-cols-3 gap-8">
-        {postsToShow.map((post) => (
-          <PostPreview post={post} />
-        ))}
+
+      <div class="grid gap-4 lg:grid-cols-[1.12fr_0.88fr]">
+        {featuredPost && (
+          <a
+            href={`/blog/${featuredPost.slug}/`}
+            class="group overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm transition-all hover:border-orange-300 hover:shadow-lg hover:shadow-orange-950/5 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-orange-500/40"
+          >
+            <div class="grid h-full md:grid-cols-[0.9fr_1.1fr] lg:grid-cols-1 xl:grid-cols-[0.95fr_1.05fr]">
+              <div class="relative min-h-56 overflow-hidden bg-neutral-100 dark:bg-neutral-800">
+                {featuredPost.data.image ? (
+                  <img
+                    src={resolveImage(featuredPost.data.image)}
+                    alt={featuredPost.data.title}
+                    loading="lazy"
+                    class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <div class="flex h-full w-full items-center justify-center bg-stone-100 dark:bg-neutral-950">
+                    <svg class="h-12 w-12 text-neutral-300 dark:text-neutral-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l6 6v8a2 2 0 01-2 2z"></path>
+                    </svg>
+                  </div>
+                )}
+                {featuredPost.data.tags?.[0] && (
+                  <span class="absolute left-3 top-3 rounded-md border border-white/40 bg-white/90 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-orange-700 backdrop-blur dark:border-white/10 dark:bg-neutral-950/80 dark:text-orange-300">
+                    {featuredPost.data.tags[0]}
+                  </span>
+                )}
+              </div>
+
+              <div class="flex min-h-full flex-col p-5 sm:p-6">
+                <div class="mb-4 flex flex-wrap items-center gap-2 text-[11px] font-bold text-neutral-500 dark:text-neutral-400">
+                  <span>{formatDate(featuredPost.data.date)}</span>
+                  <span class="h-1 w-1 rounded-full bg-neutral-300 dark:bg-neutral-700"></span>
+                  <span>{featuredPost.data.readingTime || "5 min read"}</span>
+                </div>
+                <h3 class="text-2xl font-black leading-tight tracking-tight text-neutral-950 transition-colors group-hover:text-orange-700 dark:text-white dark:group-hover:text-orange-300">
+                  {featuredPost.data.title}
+                </h3>
+                {featuredPost.data.description && (
+                  <p class="mt-3 line-clamp-3 text-sm leading-6 text-neutral-600 dark:text-neutral-400">
+                    {featuredPost.data.description}
+                  </p>
+                )}
+                <div class="mt-auto flex items-center justify-between pt-6">
+                  <span class="text-sm font-bold text-neutral-700 dark:text-neutral-300">
+                    {featuredPost.data.author || "TakoVibe Team"}
+                  </span>
+                  <span class="flex h-9 w-9 items-center justify-center rounded-md bg-orange-50 text-orange-700 transition-all group-hover:bg-orange-600 group-hover:text-white dark:bg-orange-500/10 dark:text-orange-300 dark:group-hover:bg-orange-500 dark:group-hover:text-white">
+                    <svg class="h-4 w-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </a>
+        )}
+
+        <div class="grid gap-3">
+          {secondaryPosts.map((post) => (
+            <a
+              href={`/blog/${post.slug}/`}
+              class="group grid grid-cols-[5.75rem_1fr] gap-3 rounded-lg border border-neutral-200 bg-white p-2.5 shadow-sm transition-all hover:border-orange-300 hover:bg-orange-50/40 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-orange-500/40 dark:hover:bg-orange-500/5 sm:grid-cols-[7rem_1fr]"
+            >
+              <div class="relative aspect-[4/3] overflow-hidden rounded-md bg-neutral-100 dark:bg-neutral-800">
+                {post.data.image ? (
+                  <img
+                    src={resolveImage(post.data.image)}
+                    alt={post.data.title}
+                    loading="lazy"
+                    class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <div class="flex h-full w-full items-center justify-center bg-stone-100 dark:bg-neutral-950">
+                    <svg class="h-7 w-7 text-neutral-300 dark:text-neutral-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l6 6v8a2 2 0 01-2 2z"></path>
+                    </svg>
+                  </div>
+                )}
+              </div>
+
+              <div class="min-w-0 py-1">
+                <div class="mb-1.5 flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                  <span>{formatDate(post.data.date)}</span>
+                  <span>{post.data.readingTime || "5 min read"}</span>
+                </div>
+                <h3 class="line-clamp-2 text-sm font-black leading-snug text-neutral-950 transition-colors group-hover:text-orange-700 dark:text-white dark:group-hover:text-orange-300">
+                  {post.data.title}
+                </h3>
+                {post.data.description && (
+                  <p class="mt-1.5 line-clamp-2 text-xs leading-5 text-neutral-500 dark:text-neutral-400">
+                    {post.data.description}
+                  </p>
+                )}
+              </div>
+            </a>
+          ))}
+        </div>
       </div>
     </section>
   )

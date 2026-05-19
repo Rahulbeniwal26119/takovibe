@@ -172,8 +172,8 @@ export const SeriesList: React.FC<SeriesListProps> = ({ onCreate, onEdit }) => {
         switch (status) {
             case 'approved': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800';
             case 'rejected': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800';
-            case 'completed': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800';
-            case 'deactivated': return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400 border-gray-200 dark:border-gray-700';
+            case 'completed': return 'bg-orange-100 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300 border-orange-200 dark:border-orange-500/20';
+            case 'deactivated': return 'bg-gray-100 text-gray-700 dark:bg-neutral-900 dark:text-neutral-400 border-gray-200 dark:border-neutral-800';
             default: return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800';
         }
     };
@@ -194,9 +194,9 @@ export const SeriesList: React.FC<SeriesListProps> = ({ onCreate, onEdit }) => {
                 </div>
                 <button
                     onClick={onCreate}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 font-bold rounded-full shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
+                    className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-orange-500/20 transition-colors hover:bg-orange-600"
                 >
-                    <Plus className="w-5 h-5" />
+                    <Plus className="w-4.5 h-4.5" />
                     New Series
                 </button>
 
@@ -224,27 +224,25 @@ export const SeriesList: React.FC<SeriesListProps> = ({ onCreate, onEdit }) => {
             {/* List */}
             {
                 seriesList.length === 0 ? (
-                    <div className="text-center py-24 bg-white/50 dark:bg-slate-900/50 rounded-3xl border-2 border-dashed border-gray-200 dark:border-gray-800">
-                        <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/20 dark:to-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <Layers className="w-8 h-8 text-purple-600 dark:text-purple-400 opacity-50" />
+                    <div className="text-center py-20 bg-white dark:bg-neutral-950 rounded-lg border border-dashed border-gray-200 dark:border-neutral-800">
+                        <div className="w-16 h-16 bg-orange-100 dark:bg-orange-500/10 rounded-lg flex items-center justify-center mx-auto mb-6">
+                            <Layers className="w-8 h-8 text-orange-600 dark:text-orange-400 opacity-50" />
                         </div>
                         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No series found</h3>
                         <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-sm mx-auto">
                             Group your articles into a collection.
                         </p>
-                        <button onClick={onCreate} className="inline-flex items-center gap-2 px-8 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all">
+                        <button onClick={onCreate} className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-orange-600">
                             <Plus className="w-5 h-5" />
                             Create Series
                         </button>
                     </div>
                 ) : (
-                    <div className="grid gap-5">
+                    <div className="grid gap-3">
                         {seriesList.map(series => (
-                            <div key={series.id} className="group bg-white dark:bg-slate-900/50 backdrop-blur-sm rounded-2xl p-5 border border-gray-100 dark:border-gray-800/60 hover:border-purple-500/30 dark:hover:border-purple-500/30 hover:shadow-xl hover:shadow-purple-500/5 transition-all duration-300 flex flex-col sm:flex-row gap-6 relative overflow-hidden">
-                                <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-purple-500 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-
+                            <div key={series.id} className="group flex flex-col gap-4 rounded-lg border border-gray-200 bg-white p-4 transition-colors hover:border-orange-500/40 dark:border-neutral-800 dark:bg-neutral-950 dark:hover:border-orange-500/40 sm:flex-row">
                                 {/* Thumbnail */}
-                                <div className="w-full sm:w-48 h-32 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800/50 flex-shrink-0 relative">
+                                <div className="relative h-32 w-full flex-shrink-0 overflow-hidden rounded-md bg-gray-100 dark:bg-neutral-900 sm:w-48">
                                     {series.cover_image ? (
                                         <img src={series.cover_image} alt={series.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                                     ) : (
@@ -253,7 +251,7 @@ export const SeriesList: React.FC<SeriesListProps> = ({ onCreate, onEdit }) => {
                                         </div>
                                     )}
                                     <div className="absolute top-2 right-2">
-                                        <span className={`px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md shadow-sm border ${getStatusColor(series.status)}`}>
+                                        <span className={`px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded shadow-sm border ${getStatusColor(series.status)}`}>
                                             {series.status}
                                         </span>
                                     </div>
@@ -262,15 +260,15 @@ export const SeriesList: React.FC<SeriesListProps> = ({ onCreate, onEdit }) => {
                                 {/* Content */}
                                 <div className="flex-1 flex flex-col py-1">
                                     <div className="mb-auto">
-                                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-1 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-blue-600 transition-all duration-300">
+                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-1 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
                                             {series.title}
                                         </h3>
-                                        <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 leading-relaxed mb-4">
+                                        <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 leading-6 mb-4">
                                             {series.description}
                                         </p>
                                     </div>
 
-                                    <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-800/50">
+                                    <div className="flex flex-col gap-3 border-t border-gray-100 pt-3 dark:border-neutral-800/70 sm:flex-row sm:items-center sm:justify-between">
                                         <div className="flex items-center gap-3 text-xs font-medium text-gray-400">
                                             <span>
                                                 Updated {new Date(series.updated_at).toLocaleDateString()}
@@ -283,11 +281,11 @@ export const SeriesList: React.FC<SeriesListProps> = ({ onCreate, onEdit }) => {
 
                                         <div className="flex items-center gap-1">
                                             {series.status === 'approved' && (
-                                                <a href={`/series/${series.slug}`} target="_blank" className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/10 rounded-lg transition-colors" title="View Public Page">
+                                                <a href={`/series/${series.slug}`} target="_blank" className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-500/10 rounded-lg transition-colors" title="View Public Page">
                                                     <ExternalLink className="w-4.5 h-4.5" />
                                                 </a>
                                             )}
-                                            <button onClick={() => onEdit(series)} className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/10 rounded-lg transition-colors" title="Edit">
+                                            <button onClick={() => onEdit(series)} className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-500/10 rounded-lg transition-colors" title="Edit">
                                                 <Edit3 className="w-4.5 h-4.5" />
                                             </button>
                                             <button onClick={() => confirmDelete(series.slug)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-colors" title="Delete">

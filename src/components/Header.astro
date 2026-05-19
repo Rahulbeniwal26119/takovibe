@@ -14,19 +14,20 @@ const mainNav = [
   { href: "https://resumevibe.takovibe.com/", label: "Resume" },
 ];
 
-const mobileNav = [
-  { href: "/", label: "Home" },
-  { href: "/blog", label: "Blog" },
-  { href: "/series", label: "Series" },
-  { href: "/notes", label: "Notes" },
-  { href: "/playground", label: "Playground" },
-  { href: "https://resumevibe.takovibe.com/", label: "Resume" },
+const moreNav = [
   { href: "/about", label: "About" },
   { href: "/saved", label: "Saved" },
   { href: "/why-takovibe", label: "Why TakoVibe?" },
   { href: "/changelog", label: "Changelog" },
   { href: "/contact", label: "Contact" },
 ];
+
+const mobileNav = [...mainNav, ...moreNav];
+
+const isActivePath = (href: string) =>
+  href === "/" ? currentPath === "/" : href.startsWith("/") && currentPath.startsWith(href);
+
+const hasActiveMoreItem = moreNav.some((item) => isActivePath(item.href));
 ---
 
 <header
@@ -63,7 +64,7 @@ const mobileNav = [
           <a
             href={item.href}
             class={`px-4 py-2 text-sm font-semibold rounded-full transition-all duration-300 whitespace-nowrap ${
-              (item.href === "/" ? currentPath === "/" : currentPath.startsWith(item.href))
+              isActivePath(item.href)
                 ? "text-orange-600 dark:text-orange-400 bg-neutral-50 dark:bg-neutral-800/20"
                 : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-50 hover:bg-neutral-100/50 dark:hover:bg-neutral-800/[0.03]"
             }`}
@@ -71,6 +72,45 @@ const mobileNav = [
             {item.label}
           </a>
         ))}
+
+        <div class="relative">
+          <button
+            id="desktop-more-btn"
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded="false"
+            class={`px-4 py-2 text-sm font-semibold rounded-full transition-all duration-300 whitespace-nowrap inline-flex items-center gap-1.5 ${
+              hasActiveMoreItem
+                ? "text-orange-600 dark:text-orange-400 bg-neutral-50 dark:bg-neutral-800/20"
+                : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-50 hover:bg-neutral-100/50 dark:hover:bg-neutral-800/[0.03]"
+            }`}
+          >
+            More
+            <svg class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+
+          <div
+            id="desktop-more-menu"
+            role="menu"
+            class="absolute left-1/2 top-full mt-3 hidden w-56 -translate-x-1/2 overflow-hidden rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 bg-neutral-50/95 dark:bg-neutral-950/95 shadow-xl shadow-neutral-900/10 dark:shadow-black/30 backdrop-blur-xl p-2"
+          >
+            {moreNav.map((item) => (
+              <a
+                href={item.href}
+                role="menuitem"
+                class={`block rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
+                  isActivePath(item.href)
+                    ? "bg-orange-50 dark:bg-orange-900/10 text-orange-600 dark:text-orange-400"
+                    : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800/50 hover:text-neutral-900 dark:hover:text-neutral-50"
+                }`}
+              >
+                {item.label}
+              </a>
+            ))}
+          </div>
+        </div>
       </nav>
 
       <!-- Right: Actions -->
@@ -294,17 +334,34 @@ const mobileNav = [
         const newBtn = themeToggleBtn.cloneNode(true);
         themeToggleBtn.parentNode.replaceChild(newBtn, themeToggleBtn);
 
+        const toggleTheme = () => {
+          document.documentElement.classList.toggle("dark");
+          localStorage.theme = document.documentElement.classList.contains(
+            "dark",
+          )
+            ? "dark"
+            : "light";
+        };
+
         newBtn.addEventListener("click", async (e) => {
-          // Fallback for browsers that don't support View Transitions
-          if (!document.startViewTransition) {
-            document.documentElement.classList.toggle("dark");
-            localStorage.theme = document.documentElement.classList.contains(
-              "dark",
-            )
-              ? "dark"
-              : "light";
+          const prefersReducedMotion = window.matchMedia(
+            "(prefers-reduced-motion: reduce)",
+          ).matches;
+          const isCompactScreen = window.matchMedia("(max-width: 767px)").matches;
+
+          if (newBtn.dataset.transitioning === "true") return;
+
+          // The full-page view transition is expensive on small screens and can flicker.
+          if (
+            !document.startViewTransition ||
+            prefersReducedMotion ||
+            isCompactScreen
+          ) {
+            toggleTheme();
             return;
           }
+
+          newBtn.dataset.transitioning = "true";
 
           // Get click coordinates
           const x = e.clientX;
@@ -317,17 +374,15 @@ const mobileNav = [
           );
 
           // Start the transition
-          const transition = document.startViewTransition(() => {
-            document.documentElement.classList.toggle("dark");
-            localStorage.theme = document.documentElement.classList.contains(
-              "dark",
-            )
-              ? "dark"
-              : "light";
-          });
+          const transition = document.startViewTransition(toggleTheme);
 
           // Wait for the pseudo-elements to be created
-          await transition.ready;
+          try {
+            await transition.ready;
+          } catch (error) {
+            newBtn.dataset.transitioning = "false";
+            return;
+          }
 
           // Animate the clip-path
           const clipPath = [
@@ -342,13 +397,17 @@ const mobileNav = [
                 : clipPath,
             },
             {
-              duration: 500,
-              easing: "ease-in",
+              duration: 280,
+              easing: "ease-out",
               pseudoElement: document.documentElement.classList.contains("dark")
                 ? "::view-transition-old(root)"
                 : "::view-transition-new(root)",
             },
           );
+
+          transition.finished.finally(() => {
+            newBtn.dataset.transitioning = "false";
+          });
         });
       }
     }
@@ -370,6 +429,8 @@ const mobileNav = [
     const backdrop = document.querySelector("#drawerBackdrop");
     const openBtn = document.querySelector("#openDrawerBtn");
     const closeBtn = document.querySelector("#closeDrawerBtn");
+    const desktopMoreBtn = document.getElementById("desktop-more-btn");
+    const desktopMoreMenu = document.getElementById("desktop-more-menu");
 
     // Search elements
     const searchTriggerBtn = document.getElementById("searchTriggerBtn");
@@ -397,6 +458,21 @@ const mobileNav = [
       backdrop?.classList.add("pointer-events-none", "opacity-0");
       backdrop?.classList.remove("opacity-100");
       document.body.style.overflow = "";
+    }
+
+    function closeDesktopMore() {
+      desktopMoreMenu?.classList.add("hidden");
+      desktopMoreBtn?.setAttribute("aria-expanded", "false");
+      desktopMoreBtn?.querySelector("svg")?.classList.remove("rotate-180");
+    }
+
+    function toggleDesktopMore() {
+      if (!desktopMoreMenu || !desktopMoreBtn) return;
+
+      const isOpen = !desktopMoreMenu.classList.contains("hidden");
+      desktopMoreMenu.classList.toggle("hidden", isOpen);
+      desktopMoreBtn.setAttribute("aria-expanded", String(!isOpen));
+      desktopMoreBtn.querySelector("svg")?.classList.toggle("rotate-180", !isOpen);
     }
 
     function openSearch() {
@@ -449,6 +525,11 @@ const mobileNav = [
     closeBtn?.addEventListener("click", closeDrawer);
     backdrop?.addEventListener("click", closeDrawer);
 
+    desktopMoreBtn?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleDesktopMore();
+    });
+
     // Search Triggers
     searchTriggerBtn?.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -472,6 +553,15 @@ const mobileNav = [
         closeSearch();
       }
 
+      if (
+        desktopMoreMenu &&
+        desktopMoreBtn &&
+        !desktopMoreMenu.contains(target) &&
+        !desktopMoreBtn.contains(target)
+      ) {
+        closeDesktopMore();
+      }
+
       // Close if clicking outside header when search is open
       const header = document.getElementById("site-header");
       const fullSearch = document.getElementById("full-header-search");
@@ -489,6 +579,7 @@ const mobileNav = [
       if (e.key === "Escape") {
         closeDrawer();
         closeSearch();
+        closeDesktopMore();
       }
 
       if ((e.metaKey || e.ctrlKey) && e.key === "/") {

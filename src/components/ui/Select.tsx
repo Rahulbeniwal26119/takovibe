@@ -61,8 +61,8 @@ export const Select: React.FC<SelectProps> = ({
             <button
                 type="button"
                 onClick={() => !disabled && setIsOpen(!isOpen)}
-                className={`w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl transition-all duration-200 
-                    ${isOpen ? 'ring-2 ring-purple-500/20 border-purple-500' : 'hover:border-gray-300 dark:hover:border-gray-600'}
+                className={`w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-neutral-900/70 border border-gray-200 dark:border-neutral-800 rounded-lg transition-all duration-200 
+                    ${isOpen ? 'ring-2 ring-orange-500/20 border-orange-500' : 'hover:border-gray-300 dark:hover:border-neutral-700'}
                     ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                 `}
                 disabled={disabled}
@@ -77,7 +77,7 @@ export const Select: React.FC<SelectProps> = ({
 
             {/* Dropdown Menu */}
             {isOpen && (
-                <div className="absolute z-50 w-full mt-2 bg-white dark:bg-slate-900 border border-gray-100 dark:border-gray-800 rounded-xl shadow-xl max-h-60 overflow-auto animate-in fade-in zoom-in-95 duration-100">
+                <div className="absolute z-50 w-full mt-2 bg-white dark:bg-neutral-950 border border-gray-100 dark:border-neutral-800 rounded-lg shadow-lg max-h-60 overflow-auto animate-in fade-in zoom-in-95 duration-100">
                     <div className="p-1 space-y-0.5">
                         {options.map((option) => {
                             const isSelected = option.value === value;
@@ -86,10 +86,10 @@ export const Select: React.FC<SelectProps> = ({
                                     key={option.value}
                                     type="button"
                                     onClick={() => handleSelect(option.value)}
-                                    className={`w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-lg transition-colors
+                                    className={`w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-md transition-colors
                                         ${isSelected
-                                            ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 font-medium'
-                                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                                            ? 'bg-orange-50 dark:bg-orange-500/10 text-orange-700 dark:text-orange-300 font-medium'
+                                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-900'
                                         }
                                     `}
                                 >

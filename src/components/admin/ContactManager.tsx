@@ -99,17 +99,17 @@ export const ContactManager: React.FC = () => {
     if (loading && contacts.length === 0) {
         return (
             <div className="flex justify-center items-center py-20">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+                <div className="h-12 w-12 animate-pulse rounded-lg border border-orange-500/20 bg-orange-500/10"></div>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 text-center">
                 <div className="text-red-600 dark:text-red-400 font-medium mb-2">Access Denied</div>
                 <p className="text-gray-600 dark:text-gray-400 text-sm">{error}</p>
-                <a href="/" className="inline-block mt-4 text-purple-600 hover:underline">Return Home</a>
+                <a href="/" className="inline-block mt-4 text-orange-600 hover:underline">Return Home</a>
             </div>
         );
     }
@@ -125,7 +125,7 @@ export const ContactManager: React.FC = () => {
                 </div>
                 <button
                     onClick={() => fetchContacts(currentPage)}
-                    className="p-2 text-gray-400 hover:text-purple-600 transition-colors"
+                    className="p-2 text-gray-400 hover:text-orange-600 transition-colors"
                 >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -134,7 +134,7 @@ export const ContactManager: React.FC = () => {
             </div>
 
             {contacts.length === 0 ? (
-                <div className="text-center py-20 bg-white/50 dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-gray-700">
+                <div className="text-center py-20 bg-white dark:bg-neutral-950 rounded-lg border border-dashed border-gray-200 dark:border-neutral-800">
                     <div className="text-4xl mb-4">📭</div>
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">No New Messages</h3>
                     <p className="text-gray-500 dark:text-gray-400">You're all caught up!</p>
@@ -144,11 +144,11 @@ export const ContactManager: React.FC = () => {
                     {contacts.map((contact) => (
                         <div
                             key={contact.id}
-                            className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow group"
+                            className="bg-white dark:bg-neutral-950 p-5 rounded-lg border border-gray-200 dark:border-neutral-800 transition-colors hover:border-orange-500/40 group"
                         >
                             <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
                                 <div className="flex items-start gap-4">
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-bold text-sm shrink-0">
+                                    <div className="w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-500/10 text-orange-700 dark:text-orange-300 flex items-center justify-center font-bold text-sm shrink-0">
                                         {contact.name.charAt(0).toUpperCase()}
                                     </div>
                                     <div>
@@ -158,7 +158,7 @@ export const ContactManager: React.FC = () => {
                                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-500 dark:text-gray-400 mt-1">
                                             <span className="font-medium text-gray-900 dark:text-gray-300 break-words">{contact.name}</span>
                                             <span className="hidden sm:inline text-gray-300 dark:text-gray-600">&bull;</span>
-                                            <a href={`mailto:${contact.email}`} className="text-gray-600 dark:text-gray-400 hover:text-purple-500 transition-colors break-all">{contact.email}</a>
+                                            <a href={`mailto:${contact.email}`} className="text-gray-600 dark:text-gray-400 hover:text-orange-500 transition-colors break-all">{contact.email}</a>
                                             <span className="hidden sm:inline text-gray-300 dark:text-gray-600">&bull;</span>
                                             <span className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">{new Date(contact.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                                         </div>
@@ -168,7 +168,7 @@ export const ContactManager: React.FC = () => {
 
                             </div>
 
-                            <div className="bg-gray-50 dark:bg-slate-900/50 rounded-lg p-4 text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+                            <div className="bg-gray-50 dark:bg-neutral-900/70 rounded-lg p-4 text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
                                 {contact.message}
                             </div>
 
@@ -194,7 +194,7 @@ export const ContactManager: React.FC = () => {
                         <button
                             onClick={() => fetchContacts(currentPage - 1)}
                             disabled={!pagination.previous}
-                            className="px-4 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                            className="px-4 py-2 bg-white dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-neutral-900 transition-colors"
                         >
                             Previous
                         </button>
@@ -204,7 +204,7 @@ export const ContactManager: React.FC = () => {
                         <button
                             onClick={() => fetchContacts(currentPage + 1)}
                             disabled={!pagination.next}
-                            className="px-4 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                            className="px-4 py-2 bg-white dark:bg-neutral-950 border border-gray-200 dark:border-neutral-800 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-neutral-900 transition-colors"
                         >
                             Next
                         </button>

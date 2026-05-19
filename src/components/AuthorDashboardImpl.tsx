@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, User as UserIcon, Plus, Edit3, Eye, Trash2, Save, Github, Linkedin, Globe, Link as LinkIcon, Camera, AlertCircle, Inbox, Layers, X, Send, CheckCircle2, Loader2 } from 'lucide-react';
+import { FileText, User as UserIcon, Plus, Edit3, Eye, Github, Linkedin, Globe, AlertCircle, Inbox, Layers, X, Send, CheckCircle2, Loader2 } from 'lucide-react';
 import { toast, Toaster } from 'react-hot-toast';
-import { Loader } from './ui/Loader';
 import { Select } from './ui/Select';
 import { ContactManager } from './admin/ContactManager';
 import { SeriesManager } from './dashboard/SeriesManager';
@@ -343,26 +342,22 @@ const AuthorDashboard: React.FC = () => {
 
 
     if (loading) {
-        return (
-            <div className="flex justify-center items-center h-screen bg-gray-50 dark:bg-slate-950">
-                <Loader text="Loading Dashboard..." size="lg" />
-            </div>
-        );
+        return <DashboardLoading />;
     }
 
     // ... existing ...
 
     return (
-        <div className="flex flex-col lg:flex-row min-h-screen max-w-7xl mx-auto pt-6 lg:pt-24 px-4 sm:px-6 gap-8 relative">
+        <div className="grid min-h-screen max-w-[1480px] mx-auto pt-4 lg:pt-10 px-4 sm:px-6 gap-6 lg:grid-cols-[260px_minmax(0,1fr)] relative">
             <Toaster position="bottom-right" />
             {/* Mobile Menu Toggle Bar */}
-            <div className="lg:hidden flex items-center justify-between mb-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-4 rounded-2xl border border-gray-200/50 dark:border-gray-800/50 shadow-sm sticky top-20 z-30">
+            <div className="lg:hidden flex items-center justify-between mb-4 bg-white dark:bg-neutral-950 p-3 rounded-lg border border-gray-200 dark:border-neutral-800 shadow-sm sticky top-20 z-30">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full p-0.5 bg-gradient-to-tr from-purple-500 to-blue-500 flex-shrink-0">
+                    <div className="w-9 h-9 rounded-lg overflow-hidden bg-orange-500 flex-shrink-0">
                         <img
                             src={user?.image || `https://ui-avatars.com/api/?name=${user?.name}&background=random`}
                             alt={user?.name}
-                            className="w-full h-full rounded-full object-cover border-2 border-white dark:border-slate-900"
+                            className="w-full h-full object-cover"
                         />
                     </div>
                     <div>
@@ -372,7 +367,7 @@ const AuthorDashboard: React.FC = () => {
                 </div>
                 <button
                     onClick={() => setIsMobileMenuOpen(true)}
-                    className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-gray-600 dark:text-gray-300"
+                    className="p-2 bg-gray-100 dark:bg-neutral-900 rounded-lg text-gray-600 dark:text-gray-300"
                 >
                     <Layers className="w-6 h-6" />
                 </button>
@@ -388,109 +383,101 @@ const AuthorDashboard: React.FC = () => {
 
             {/* Responsive Sidebar */}
             <aside className={`
-                fixed top-24 bottom-4 left-4 z-50 w-72 bg-white dark:bg-slate-950 lg:bg-transparent lg:dark:bg-transparent 
-                rounded-3xl lg:rounded-none border border-gray-200/50 dark:border-gray-800/50 lg:border-none shadow-2xl lg:shadow-none
+                fixed top-24 bottom-4 left-4 z-50 w-72 bg-white dark:bg-neutral-950 lg:bg-transparent lg:dark:bg-transparent 
+                rounded-lg lg:rounded-none border border-gray-200 dark:border-neutral-800 lg:border-none shadow-2xl lg:shadow-none
                 transform transition-transform duration-300 ease-in-out lg:transform-none lg:relative lg:block lg:inset-auto
-                ${isMobileMenuOpen ? 'translate-x-0 p-6' : '-translate-x-[110%] lg:translate-x-0 p-0 lg:p-0'}
+                ${isMobileMenuOpen ? 'translate-x-0 p-4' : '-translate-x-[110%] lg:translate-x-0 p-0 lg:p-0'}
             `}>
                 <div className={`
                     h-full lg:h-auto flex flex-col lg:sticky lg:top-28 
-                    bg-transparent lg:bg-white/80 dark:bg-transparent lg:dark:bg-slate-900/80 lg:backdrop-blur-xl lg:rounded-2xl lg:shadow-sm lg:border lg:border-gray-200/50 lg:dark:border-gray-800/50 lg:p-6
+                    bg-transparent lg:bg-transparent lg:border-r lg:border-gray-200 lg:dark:border-neutral-800 lg:pr-5
                 `}>
                     {/* Mobile Close Button */}
-                    <div className="flex items-center justify-between mb-8 lg:hidden">
+                    <div className="flex items-center justify-between mb-5 lg:hidden">
                         <h2 className="text-xl font-bold text-gray-900 dark:text-white">Menu</h2>
-                        <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full">
+                        <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 bg-gray-100 dark:bg-neutral-900 rounded-full">
                             <X className="w-5 h-5" />
                         </button>
                     </div>
 
-                    <div className="flex flex-col items-center mb-8 relative hidden lg:flex">
-                        {/* Decorative background glow behind avatar */}
-                        <div className="absolute top-0 w-32 h-32 bg-purple-500/20 rounded-full blur-2xl pointer-events-none" />
-
-                        <div className="w-24 h-24 rounded-full p-1 mb-4 relative group cursor-pointer">
-                            <div className="absolute inset-0 bg-gradient-to-tr from-purple-500 to-blue-500 rounded-full animate-spin-slow opacity-70"></div>
-                            <div className="absolute inset-0.5 bg-white dark:bg-slate-900 rounded-full"></div>
-                            <div className="absolute inset-1 rounded-full overflow-hidden">
-                                <img
-                                    src={user?.image || `https://ui-avatars.com/api/?name=${user?.name}&background=random`}
-                                    alt={user?.name}
-                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                />
-                            </div>
-                            <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10">
-                                <Camera className="w-8 h-8 text-white drop-shadow-md" />
-                            </div>
-                        </div>
-                        <h2 className="text-xl font-bold text-gray-900 dark:text-white text-center relative z-10">{user?.name}</h2>
-                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400 relative z-10">{user?.email}</p>
+                    <div className="hidden lg:block mb-6">
+                        <p className="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-neutral-500">Workspace</p>
+                        <h2 className="mt-2 text-lg font-bold text-gray-950 dark:text-white">Dashboard</h2>
                     </div>
 
-                    <nav className="space-y-2 flex-1">
+                    <div className="mb-5 flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-950">
+                        <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-orange-500">
+                            <img
+                                src={user?.image || `https://ui-avatars.com/api/?name=${user?.name}&background=random`}
+                                alt={user?.name}
+                                className="h-full w-full object-cover"
+                            />
+                        </div>
+                        <div className="min-w-0">
+                            <p className="truncate text-sm font-bold text-gray-950 dark:text-white">{user?.name}</p>
+                            <p className="truncate text-xs text-gray-500 dark:text-neutral-400">{user?.email}</p>
+                        </div>
+                    </div>
+
+                    <nav className="space-y-1 flex-1">
                         {(user?.is_author || user?.is_superuser || user?.client_type === 'Author' || user?.client_type === 'Admin' || user?.client_type === 'Editor') && (
                             <button
                                 onClick={() => { setActiveTab('my-posts'); setIsMobileMenuOpen(false); }}
-                                className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-xl font-semibold transition-all duration-300 group ${activeTab === 'my-posts'
-                                    ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-lg shadow-purple-500/25'
-                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-purple-600 dark:hover:text-purple-400'
+                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors group border-l-2 ${activeTab === 'my-posts'
+                                    ? 'border-orange-500 bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300'
+                                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-neutral-900 hover:text-gray-950 dark:hover:text-white'
                                     }`}
                             >
-                                <FileText className={`w-5 h-5 ${activeTab === 'my-posts' ? 'text-white' : 'text-gray-400 group-hover:text-purple-500 transition-colors'}`} />
+                                <FileText className={`w-4.5 h-4.5 ${activeTab === 'my-posts' ? 'text-orange-600 dark:text-orange-300' : 'text-gray-400 group-hover:text-gray-700 dark:group-hover:text-neutral-200 transition-colors'}`} />
                                 <span className="tracking-wide">My Posts</span>
-                                {activeTab === 'my-posts' && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
                             </button>
                         )}
                         {(user?.is_author || user?.is_superuser || user?.client_type === 'Author' || user?.client_type === 'Admin' || user?.client_type === 'Editor') && (
                             <button
                                 onClick={() => { setActiveTab('series'); setIsMobileMenuOpen(false); }}
-                                className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-xl font-semibold transition-all duration-300 group ${activeTab === 'series'
-                                    ? 'bg-gradient-to-r from-pink-600 to-pink-500 text-white shadow-lg shadow-pink-500/25'
-                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-pink-600 dark:hover:text-pink-400'
+                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors group border-l-2 ${activeTab === 'series'
+                                    ? 'border-orange-500 bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300'
+                                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-neutral-900 hover:text-gray-950 dark:hover:text-white'
                                     }`}
                             >
-                                <Layers className={`w-5 h-5 ${activeTab === 'series' ? 'text-white' : 'text-gray-400 group-hover:text-pink-500 transition-colors'}`} />
+                                <Layers className={`w-4.5 h-4.5 ${activeTab === 'series' ? 'text-orange-600 dark:text-orange-300' : 'text-gray-400 group-hover:text-gray-700 dark:group-hover:text-neutral-200 transition-colors'}`} />
                                 <span className="tracking-wide">Series</span>
-                                {activeTab === 'series' && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
                             </button>
                         )}
                         <button
                             onClick={() => { setActiveTab('profile'); setIsMobileMenuOpen(false); }}
-                            className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-xl font-semibold transition-all duration-300 group ${activeTab === 'profile'
-                                ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/25'
-                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-blue-600 dark:hover:text-blue-400'
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors group border-l-2 ${activeTab === 'profile'
+                                ? 'border-orange-500 bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300'
+                                : 'border-transparent text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-neutral-900 hover:text-gray-950 dark:hover:text-white'
                                 }`}
                         >
-                            <UserIcon className={`w-5 h-5 ${activeTab === 'profile' ? 'text-white' : 'text-gray-400 group-hover:text-blue-500 transition-colors'}`} />
+                            <UserIcon className={`w-4.5 h-4.5 ${activeTab === 'profile' ? 'text-orange-600 dark:text-orange-300' : 'text-gray-400 group-hover:text-gray-700 dark:group-hover:text-neutral-200 transition-colors'}`} />
                             <span className="tracking-wide">Profile</span>
-                            {activeTab === 'profile' && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
                         </button>
 
                         {(user?.manage_contact_us || user?.is_superuser || user?.client_type === 'Admin') && (
                             <button
                                 onClick={() => { setActiveTab('inbox'); setIsMobileMenuOpen(false); }}
-                                className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-xl font-semibold transition-all duration-300 group ${activeTab === 'inbox'
-                                    ? 'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-lg shadow-indigo-500/25'
-                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-indigo-600 dark:hover:text-indigo-400'
+                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors group border-l-2 ${activeTab === 'inbox'
+                                    ? 'border-orange-500 bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300'
+                                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-neutral-900 hover:text-gray-950 dark:hover:text-white'
                                     }`}
                             >
-                                <Inbox className={`w-5 h-5 ${activeTab === 'inbox' ? 'text-white' : 'text-gray-400 group-hover:text-indigo-500 transition-colors'}`} />
+                                <Inbox className={`w-4.5 h-4.5 ${activeTab === 'inbox' ? 'text-orange-600 dark:text-orange-300' : 'text-gray-400 group-hover:text-gray-700 dark:group-hover:text-neutral-200 transition-colors'}`} />
                                 <span className="tracking-wide">Inbox</span>
-                                {activeTab === 'inbox' && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
                             </button>
                         )}
 
                         {(user?.is_superuser || user?.can_manage_authors || user?.client_type === 'Admin') && (
                             <button
                                 onClick={() => { setActiveTab('users'); setIsMobileMenuOpen(false); }}
-                                className={`w-full flex items-center gap-3 px-5 py-3.5 rounded-xl font-semibold transition-all duration-300 group ${activeTab === 'users'
-                                    ? 'bg-gradient-to-r from-teal-600 to-teal-500 text-white shadow-lg shadow-teal-500/25'
-                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-teal-600 dark:hover:text-teal-400'
+                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors group border-l-2 ${activeTab === 'users'
+                                    ? 'border-orange-500 bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300'
+                                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-neutral-900 hover:text-gray-950 dark:hover:text-white'
                                     }`}
                             >
-                                <UserIcon className={`w-5 h-5 ${activeTab === 'users' ? 'text-white' : 'text-gray-400 group-hover:text-teal-500 transition-colors'}`} />
+                                <UserIcon className={`w-4.5 h-4.5 ${activeTab === 'users' ? 'text-orange-600 dark:text-orange-300' : 'text-gray-400 group-hover:text-gray-700 dark:group-hover:text-neutral-200 transition-colors'}`} />
                                 <span className="tracking-wide">Users</span>
-                                {activeTab === 'users' && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
                             </button>
                         )}
                     </nav>
@@ -498,37 +485,41 @@ const AuthorDashboard: React.FC = () => {
             </aside>
 
             {/* Main Content */}
-            < main className="flex-1 pb-16" >
+            <main className="min-w-0 pb-16">
 
                 {/* My Posts View */}
                 {
                     activeTab === 'my-posts' && (
-                        <div className="space-y-8 animate-fade-in">
+                        <div className="space-y-6 animate-fade-in">
+                            <section className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-950">
                             {/* Header Section */}
-                            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-2">
+                            <div className="flex flex-col gap-5 border-b border-gray-200 p-5 dark:border-neutral-800 sm:flex-row sm:items-start sm:justify-between lg:p-6">
                                 <div>
-                                    <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-2">
+                                    <span className="mb-3 inline-flex rounded-md border border-orange-200 bg-orange-50 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-orange-700 dark:border-orange-500/20 dark:bg-orange-500/10 dark:text-orange-300">
+                                        Writing workspace
+                                    </span>
+                                    <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-1">
                                         Your Stories
                                     </h1>
-                                    <p className="text-gray-500 dark:text-gray-400 text-lg">Manage your drafts and published works</p>
+                                    <p className="max-w-2xl text-sm text-gray-500 dark:text-gray-400">Review, filter, and continue your drafts or published work from one focused place.</p>
                                 </div>
                                 <a
                                     href="/post/new"
-                                    className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 font-bold rounded-full shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
+                                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-orange-500/20 transition-colors hover:bg-orange-600"
                                 >
-                                    <Plus className="w-5 h-5" />
+                                    <Plus className="w-4.5 h-4.5" />
                                     New Story
                                 </a>
                             </div>
 
                             {/* Search and Tabs Container */}
-                            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 w-full">
+                            <div className="flex flex-col items-center justify-between gap-4 border-b border-gray-200 p-5 dark:border-neutral-800 sm:flex-row lg:p-6">
                                 {/* Tabs: Drafts / Published */}
-                                <div className="flex items-center gap-1 p-1 bg-gray-100/50 dark:bg-gray-800/50 rounded-xl w-fit border border-gray-200/50 dark:border-gray-700/50 backdrop-blur-sm">
+                                <div className="flex w-full items-center gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1 dark:border-neutral-800 dark:bg-neutral-900 sm:w-fit">
                                     <button
                                         onClick={() => handleTabChange('published')}
-                                        className={`px-6 py-2 rounded-lg text-sm font-bold transition-all duration-300 ${postTab === 'published'
-                                            ? 'bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm'
+                                        className={`flex-1 rounded-md px-5 py-2 text-sm font-bold transition-colors sm:flex-none ${postTab === 'published'
+                                            ? 'bg-white dark:bg-neutral-800 text-gray-900 dark:text-white shadow-sm'
                                             : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                                             }`}
                                     >
@@ -536,8 +527,8 @@ const AuthorDashboard: React.FC = () => {
                                     </button>
                                     <button
                                         onClick={() => handleTabChange('drafts')}
-                                        className={`px-6 py-2 rounded-lg text-sm font-bold transition-all duration-300 ${postTab === 'drafts'
-                                            ? 'bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm'
+                                        className={`flex-1 rounded-md px-5 py-2 text-sm font-bold transition-colors sm:flex-none ${postTab === 'drafts'
+                                            ? 'bg-white dark:bg-neutral-800 text-gray-900 dark:text-white shadow-sm'
                                             : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                                             }`}
                                     >
@@ -545,7 +536,7 @@ const AuthorDashboard: React.FC = () => {
                                     </button>
                                 </div>
 
-                                <div className="flex-1 flex gap-4 w-full justify-end">
+                                <div className="flex w-full flex-col gap-3 sm:flex-row sm:justify-end">
                                     {/* Author Dropdown (Admin Only) */}
                                     {(user?.can_manage_authors || user?.is_superuser || user?.client_type === 'Admin') && authors.length > 0 && (
                                         <div className="w-full sm:w-64">
@@ -571,7 +562,7 @@ const AuthorDashboard: React.FC = () => {
                                             placeholder="Search stories..."
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                                            className="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-gray-900 transition-all focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 dark:border-neutral-800 dark:bg-neutral-900/70 dark:text-white"
                                         />
                                         <div className="absolute left-3 top-2.5 text-gray-400">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -584,41 +575,38 @@ const AuthorDashboard: React.FC = () => {
                             </div>
 
                             {/* Stats Overview */}
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
-                                <div className="p-6 border-white/10 relative overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border shadow-sm">
+                            <div className="grid grid-cols-1 divide-y divide-gray-200 dark:divide-neutral-800 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+                                <div className="p-5">
                                     <div className="relative z-10">
                                         <p className="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase tracking-wider mb-1">Total Stories</p>
                                         <h3 className="text-3xl font-bold text-gray-900 dark:text-white">{stats.total}</h3>
                                     </div>
                                 </div>
-                                <div className="p-6 border-white/10 relative overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border shadow-sm">
+                                <div className="p-5">
                                     <div className="relative z-10">
                                         <p className="text-green-600 dark:text-green-400 text-sm font-medium uppercase tracking-wider mb-1">Published</p>
                                         <h3 className="text-3xl font-bold text-gray-900 dark:text-white">{stats.published}</h3>
                                     </div>
                                 </div>
-                                <div className="p-6 border-white/10 relative overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border shadow-sm">
+                                <div className="p-5">
                                     <div className="relative z-10">
                                         <p className="text-amber-600 dark:text-amber-400 text-sm font-medium uppercase tracking-wider mb-1">Drafts</p>
                                         <h3 className="text-3xl font-bold text-gray-900 dark:text-white">{stats.drafts}</h3>
                                     </div>
                                 </div>
                             </div>
+                            </section>
 
                             {/* Post List */}
-                            <div className="grid gap-5">
+                            <div className="grid gap-3">
                                 {postsLoading ? (
-                                    <div className="py-20 flex justify-center">
-                                        <Loader text="Loading stories..." />
-                                    </div>
+                                    <PostListSkeleton />
                                 ) : posts.length > 0 ? (
                                     <>
                                         {posts.map(post => (
-                                            <div key={post.id} className="group bg-white dark:bg-slate-900/50 backdrop-blur-sm rounded-2xl p-5 border border-gray-100 dark:border-gray-800/60 hover:border-purple-500/30 dark:hover:border-purple-500/30 hover:shadow-xl hover:shadow-purple-500/5 transition-all duration-300 flex flex-col sm:flex-row gap-6 relative overflow-hidden">
-                                                <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-purple-500 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-
+                                            <div key={post.id} className="group flex flex-col gap-4 rounded-lg border border-gray-200 bg-white p-4 transition-colors hover:border-orange-500/40 dark:border-neutral-800 dark:bg-neutral-950 dark:hover:border-orange-500/40 sm:flex-row">
                                                 {/* Thumbnail */}
-                                                <div className="w-full sm:w-56 h-36 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800/50 flex-shrink-0 relative">
+                                                <div className="relative h-32 w-full flex-shrink-0 overflow-hidden rounded-md bg-gray-100 dark:bg-neutral-900 sm:w-48">
                                                     {post.image_url ? (
                                                         <img src={post.image_url} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                                                     ) : (
@@ -629,11 +617,11 @@ const AuthorDashboard: React.FC = () => {
                                                     {/* Overlay Badge */}
                                                     <div className="absolute top-2 right-2 flex gap-1">
                                                         {post.is_published ? (
-                                                            <span className="px-2 py-1 bg-green-500/90 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-wider rounded-md shadow-sm">
+                                                            <span className="px-2 py-1 bg-green-500/90 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-wider rounded shadow-sm">
                                                                 Published
                                                             </span>
                                                         ) : (
-                                                            <span className="px-2 py-1 bg-amber-500/90 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-wider rounded-md shadow-sm">
+                                                            <span className="px-2 py-1 bg-amber-500/90 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-wider rounded shadow-sm">
                                                                 Draft
                                                             </span>
                                                         )}
@@ -643,15 +631,15 @@ const AuthorDashboard: React.FC = () => {
                                                 {/* Content */}
                                                 <div className="flex-1 flex flex-col py-1">
                                                     <div className="mb-auto">
-                                                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-1 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-blue-600 transition-all duration-300">
+                                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-1 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
                                                             {post.title || 'Untitled Post'}
                                                         </h3>
-                                                        <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 leading-relaxed mb-4">
+                                                        <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 leading-6 mb-4">
                                                             {post.description || 'No description provided. Add a compelling summary to attract readers.'}
                                                         </p>
                                                     </div>
 
-                                                    <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-800/50">
+                                                    <div className="flex flex-col gap-3 border-t border-gray-100 pt-3 dark:border-neutral-800/70 sm:flex-row sm:items-center sm:justify-between">
                                                         <div className="flex items-center gap-3 text-xs font-medium text-gray-400">
                                                             <span>
                                                                 {post.updated_at ? `Updated ${new Date(post.updated_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}` : `Created ${new Date(post.created_at).toLocaleDateString()}`}
@@ -663,7 +651,7 @@ const AuthorDashboard: React.FC = () => {
                                                             </span>
                                                         </div>
 
-                                                        <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 transform sm:translate-x-4 sm:group-hover:translate-x-0">
+                                                        <div className="flex items-center gap-1">
                                                             {(user?.is_superuser || user?.client_type === 'Admin') && (
                                                                 <>
                                                                     {post.is_newsletter_sent ? (
@@ -686,10 +674,10 @@ const AuthorDashboard: React.FC = () => {
                                                                     )}
                                                                 </>
                                                             )}
-                                                            <a href={`/blog/${post.slug}`} target="_blank" className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/10 rounded-lg transition-colors" title="View">
+                                                            <a href={`/blog/${post.slug}`} target="_blank" className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-500/10 rounded-lg transition-colors" title="View">
                                                                 <Eye className="w-4.5 h-4.5" />
                                                             </a>
-                                                            <a href={`/post/edit/${post.slug}`} className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/10 rounded-lg transition-colors" title="Edit">
+                                                            <a href={`/post/edit/${post.slug}`} className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-500/10 rounded-lg transition-colors" title="Edit">
                                                                 <Edit3 className="w-4.5 h-4.5" />
                                                             </a>
                                                             {/* <button className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-colors" title="Delete">
@@ -706,7 +694,7 @@ const AuthorDashboard: React.FC = () => {
                                             <button
                                                 onClick={() => setPage(p => Math.max(1, p - 1))}
                                                 disabled={page === 1}
-                                                className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                                className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 dark:border-neutral-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                             >
                                                 Previous
                                             </button>
@@ -716,22 +704,22 @@ const AuthorDashboard: React.FC = () => {
                                             <button
                                                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                                                 disabled={page === totalPages}
-                                                className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                                className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 dark:border-neutral-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                             >
                                                 Next
                                             </button>
                                         </div>
                                     </>
                                 ) : (
-                                    <div className="text-center py-24 bg-white/50 dark:bg-slate-900/50 rounded-3xl border-2 border-dashed border-gray-200 dark:border-gray-800">
-                                        <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/20 dark:to-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                                            <FileText className="w-8 h-8 text-purple-600 dark:text-purple-400 op-50" />
+                                    <div className="text-center py-20 bg-white dark:bg-neutral-950 rounded-lg border border-dashed border-gray-200 dark:border-neutral-800">
+                                        <div className="w-16 h-16 bg-orange-100 dark:bg-orange-500/10 rounded-lg flex items-center justify-center mx-auto mb-6">
+                                            <FileText className="w-8 h-8 text-orange-600 dark:text-orange-400 op-50" />
                                         </div>
                                         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No {postTab} stories found</h3>
                                         <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-sm mx-auto">
                                             {searchQuery ? `No results for "${searchQuery}"` : (postTab === 'published' ? 'Your published masterpieces will shine here.' : 'Capture your ideas and start drafts.')}
                                         </p>
-                                        <a href="/post/new" className="inline-flex items-center gap-2 px-8 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all">
+                                        <a href="/post/new" className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-orange-600">
                                             <Plus className="w-5 h-5" />
                                             Create Story
                                         </a>
@@ -765,7 +753,7 @@ const AuthorDashboard: React.FC = () => {
                                         href={`/profile/${user.username}/`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 hover:border-purple-500 dark:hover:border-purple-500 text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 font-semibold rounded-xl transition-all shadow-sm group"
+                                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 hover:border-orange-500 dark:hover:border-orange-500 text-gray-700 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 font-semibold rounded-xl transition-all shadow-sm group"
                                     >
                                         <Globe className="w-4.5 h-4.5 group-hover:animate-pulse" />
                                         <span>View Public Profile</span>
@@ -780,9 +768,9 @@ const AuthorDashboard: React.FC = () => {
                                     </div>
                                 )}
 
-                                <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 border border-gray-200 dark:border-gray-800 shadow-sm space-y-10 relative overflow-hidden">
+                                <div className="bg-white dark:bg-neutral-950 rounded-lg p-6 border border-gray-200 dark:border-neutral-800 shadow-sm space-y-8 relative overflow-hidden">
                                     { /* Subtle decorative top border */}
-                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 via-blue-500 to-purple-500 opacity-50" />
+                                    <div className="absolute top-0 left-0 w-full h-1 bg-orange-500 opacity-70" />
 
                                     {/* Basic Info */}
                                     <div className="grid gap-8 md:grid-cols-[200px_1fr]">
@@ -802,7 +790,7 @@ const AuthorDashboard: React.FC = () => {
                                                     type="text"
                                                     value={profileForm.name}
                                                     onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
-                                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all font-medium"
+                                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-950/60 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-medium"
                                                     placeholder="e.g. Jane Doe"
                                                 />
                                             </div>
@@ -811,7 +799,7 @@ const AuthorDashboard: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    <div className="h-px bg-gray-100 dark:bg-gray-800 w-full"></div>
+                                    <div className="h-px bg-gray-100 dark:bg-neutral-800 w-full"></div>
 
                                     {/* Social Links */}
                                     <div className="grid gap-8 md:grid-cols-[200px_1fr]">
@@ -831,33 +819,33 @@ const AuthorDashboard: React.FC = () => {
                                                     type="url"
                                                     value={profileForm.github_url}
                                                     onChange={(e) => setProfileForm({ ...profileForm, github_url: e.target.value })}
-                                                    className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all font-medium"
+                                                    className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-950/60 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-medium"
                                                     placeholder="https://github.com/username"
                                                 />
                                             </div>
 
                                             <div className="relative group">
                                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                                    <Linkedin className="h-5 w-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
+                                                    <Linkedin className="h-5 w-5 text-gray-400 group-focus-within:text-orange-500 transition-colors" />
                                                 </div>
                                                 <input
                                                     type="url"
                                                     value={profileForm.linkedin_url}
                                                     onChange={(e) => setProfileForm({ ...profileForm, linkedin_url: e.target.value })}
-                                                    className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all font-medium"
+                                                    className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-950/60 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-medium"
                                                     placeholder="https://linkedin.com/in/username"
                                                 />
                                             </div>
 
                                             <div className="relative group">
                                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                                    <Globe className="h-5 w-5 text-gray-400 group-focus-within:text-pink-500 transition-colors" />
+                                                    <Globe className="h-5 w-5 text-gray-400 group-focus-within:text-orange-500 transition-colors" />
                                                 </div>
                                                 <input
                                                     type="url"
                                                     value={profileForm.website_url}
                                                     onChange={(e) => setProfileForm({ ...profileForm, website_url: e.target.value })}
-                                                    className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all font-medium"
+                                                    className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-950/60 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-medium"
                                                     placeholder="https://yourwebsite.com"
                                                 />
                                             </div>
@@ -870,7 +858,7 @@ const AuthorDashboard: React.FC = () => {
                                                     type="url"
                                                     value={profileForm.support_url}
                                                     onChange={(e) => setProfileForm({ ...profileForm, support_url: e.target.value })}
-                                                    className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-yellow-500/20 focus:border-yellow-500 transition-all font-medium"
+                                                    className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-950/60 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-medium"
                                                     placeholder="https://buymeacoffee.com/yourname (Support URL)"
                                                 />
                                             </div>
@@ -882,7 +870,7 @@ const AuthorDashboard: React.FC = () => {
                                     <button
                                         type="submit"
                                         disabled={isSaving}
-                                        className={`flex items-center gap-2 px-8 py-3.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-base font-bold rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all ${isSaving ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                        className={`flex items-center gap-2 rounded-lg bg-orange-500 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-orange-600 ${isSaving ? 'opacity-70 cursor-not-allowed' : ''}`}
                                     >
                                         {isSaving ? (
                                             <>
@@ -915,7 +903,7 @@ const AuthorDashboard: React.FC = () => {
                             <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-2">User Management</h1>
                             <p className="text-gray-500 dark:text-gray-400 text-lg">Manage registered users and their roles</p>
                         </div>
-                        <div className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm rounded-3xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm">
+                        <div className="bg-white dark:bg-neutral-950 rounded-lg p-6 border border-gray-200 dark:border-neutral-800 shadow-sm">
                             <UserManagement currentUser={user} />
                         </div>
                     </div>
@@ -925,5 +913,67 @@ const AuthorDashboard: React.FC = () => {
         </div>
     );
 };
+
+const DashboardLoading: React.FC = () => (
+    <div className="min-h-screen bg-gray-50 px-4 py-10 dark:bg-neutral-950 sm:px-6">
+        <div className="mx-auto grid max-w-[1480px] gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
+            <aside className="hidden border-r border-gray-200 pr-5 dark:border-neutral-800 lg:block">
+                <div className="mb-6 h-4 w-24 rounded-md bg-orange-500/15"></div>
+                <div className="mb-5 flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-950">
+                    <div className="h-10 w-10 rounded-lg bg-orange-500/20"></div>
+                    <div className="min-w-0 flex-1">
+                        <div className="mb-2 h-4 w-28 rounded-md bg-gray-200 dark:bg-neutral-800"></div>
+                        <div className="h-3 w-36 rounded-md bg-gray-100 dark:bg-neutral-900"></div>
+                    </div>
+                </div>
+                <div className="space-y-3">
+                    {[0, 1, 2, 3].map((item) => (
+                        <div key={item} className="h-10 rounded-lg bg-gray-100 dark:bg-neutral-900"></div>
+                    ))}
+                </div>
+            </aside>
+
+            <main className="flex-1 space-y-6">
+                <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-950">
+                    <div className="mb-5 h-6 w-36 rounded-md bg-orange-500/15"></div>
+                    <div className="mb-3 h-8 w-64 rounded-md bg-gray-200 dark:bg-neutral-800"></div>
+                    <div className="h-4 max-w-xl rounded-md bg-gray-100 dark:bg-neutral-900"></div>
+                    <div className="mt-8 grid divide-y divide-gray-200 dark:divide-neutral-800 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+                        {[0, 1, 2].map((item) => (
+                            <div key={item} className="h-24 bg-gray-50 dark:bg-neutral-900"></div>
+                        ))}
+                    </div>
+                </section>
+
+                <PostListSkeleton />
+            </main>
+        </div>
+    </div>
+);
+
+const PostListSkeleton: React.FC = () => (
+    <div className="grid gap-3 animate-pulse">
+        {[0, 1, 2].map((item) => (
+            <div
+                key={item}
+                className="overflow-hidden rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-950"
+            >
+                <div className="flex flex-col gap-4 sm:flex-row">
+                    <div className="h-32 w-full shrink-0 rounded-md bg-gray-100 dark:bg-neutral-900 sm:w-48"></div>
+                    <div className="flex flex-1 flex-col justify-between py-1">
+                        <div>
+                            <div className="mb-4 h-5 w-3/4 rounded-md bg-gray-200 dark:bg-neutral-800"></div>
+                            <div className="mb-2 h-4 w-full rounded-md bg-gray-100 dark:bg-neutral-900"></div>
+                            <div className="h-4 w-2/3 rounded-md bg-gray-100 dark:bg-neutral-900"></div>
+                        </div>
+                        <div className="mt-6 border-t border-gray-100 pt-4 dark:border-neutral-800">
+                            <div className="h-4 w-48 rounded-md bg-gray-100 dark:bg-neutral-900"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        ))}
+    </div>
+);
 
 export default AuthorDashboard;

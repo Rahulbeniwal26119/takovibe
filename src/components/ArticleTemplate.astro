@@ -191,7 +191,7 @@ const articleMainNav = [
                 </div>
             </a>
 
-            <div class="hidden min-w-0 flex-1 items-center justify-center gap-1 px-3 lg:flex">
+            <div id="article-nav-links" class="hidden min-w-0 flex-1 items-center justify-center gap-1 px-3 lg:flex">
                 {
                     articleMainNav.map((item) => (
                         <a
@@ -211,7 +211,7 @@ const articleMainNav = [
                 }
             </div>
 
-            <div class="flex shrink-0 items-center gap-2">
+            <div id="article-nav-actions" class="flex shrink-0 items-center gap-2">
                 <a
                     href="/post/new"
                     class="hidden rounded-lg bg-orange-600 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-500 md:inline-flex"
@@ -662,9 +662,9 @@ const articleMainNav = [
                                 </span>
                             </div>
 
-                            <!-- Title (Larger and Bolder for Dominance) -->
+                            <!-- Title -->
                             <h1
-                                class="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-neutral-950 dark:text-neutral-50 leading-[1.05] mb-4 break-words"
+                                class="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-neutral-950 dark:text-neutral-50 leading-[1.08] mb-4 break-words"
                             >
                                 {post.data.title}
                             </h1>
@@ -800,9 +800,6 @@ const articleMainNav = [
 
                         </div>
 
-                        <!-- Support Section (Client-side rendered) -->
-                        <div id="support-footer-container" class="hidden mb-12"></div>
-                        
                         <script>
                         async function loadSupportInfo() {
                             // Find username from profile link
@@ -852,39 +849,6 @@ const articleMainNav = [
                                         }
                                     });
 
-                                    // Render Footer
-                                    const footerContainer = document.getElementById('support-footer-container');
-                                    if (footerContainer) {
-                                        footerContainer.innerHTML = `
-                                            <div class="p-6 rounded-lg bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-center relative overflow-hidden group">
-                                                <div class="absolute top-0 left-0 w-full h-1 bg-orange-500 opacity-80"></div>
-                                                
-                                                <div class="relative z-10 max-w-lg mx-auto">
-                                                    <div class="w-14 h-14 mx-auto mb-4 rounded-lg bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-2xl shadow-sm group-hover:scale-105 transition-transform duration-300">
-                                                        ☕
-                                                    </div>
-                                                    <h3 class="text-2xl font-bold text-neutral-900 dark:text-white mb-3">
-                                                        Found this helpful?
-                                                    </h3>
-                                                    <p class="text-neutral-600 dark:text-neutral-400 mb-6 leading-relaxed">
-                                                        Creating high-quality tutorials takes time and coffee. If you learned something new today, consider supporting my work!
-                                                    </p>
-                                                    <a
-                                                        href="${supportUrl}"
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        class="inline-flex items-center gap-2 px-7 py-3 bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-lg shadow-sm transition-all duration-300"
-                                                    >
-                                                        <span>Buy Author a Coffee</span>
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                                                        </svg>
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        `;
-                                        footerContainer.classList.remove('hidden');
-                                    }
                                 }
                             } catch (e) {
                                 console.error('Failed to load support info', e);
@@ -932,16 +896,22 @@ const articleMainNav = [
                                         <button
                                             id="kumi-promo-card-series"
                                             class="kumi-promo-trigger group flex items-center justify-center gap-2 py-2.5 px-3 border-r border-neutral-200 dark:border-neutral-800 hover:bg-orange-500/[0.06] transition-all active:scale-95"
+                                            title="Ask Kumi"
                                         >
-                                            <span class="text-xs group-hover:scale-110 transition-transform">🤖</span>
+                                            <svg class="h-3.5 w-3.5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8V4m0 4a4 4 0 014 4v1m-4-5a4 4 0 00-4 4v1m8 0h1a3 3 0 013 3v1a3 3 0 01-3 3H7a3 3 0 01-3-3v-1a3 3 0 013-3h1m8 0v2m-8-2v2m2 2h.01M14 17h.01"></path>
+                                            </svg>
                                             <span class="text-[10px] font-black text-neutral-600 dark:text-neutral-400 group-hover:text-orange-600 dark:group-hover:text-orange-400 uppercase tracking-widest">Ask Kumi</span>
                                         </button>
 
                                         <button
                                             id="notes-promo-card-series"
                                             class="notes-promo-trigger group flex items-center justify-center gap-2 py-2.5 px-3 hover:bg-orange-500/[0.06] transition-all active:scale-95"
+                                            title="Open visual notes"
                                         >
-                                            <span class="text-xs group-hover:scale-110 transition-transform">✏️</span>
+                                            <svg class="h-3.5 w-3.5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 19.5V6a2 2 0 012-2h7l5 5v10.5a.5.5 0 01-.8.4L15 18.25l-2.2 1.65a.5.5 0 01-.6 0L10 18.25 7.8 19.9a.5.5 0 01-.6 0L5 18.25l-.2 1.65a.5.5 0 01-.8-.4z"></path>
+                                            </svg>
                                             <span class="text-[10px] font-black text-neutral-600 dark:text-neutral-400 group-hover:text-orange-600 dark:group-hover:text-orange-400 uppercase tracking-widest">LLD Notes</span>
                                         </button>
                                      </div>
@@ -959,81 +929,84 @@ const articleMainNav = [
                                 </div>
                             </div>
                         ) : (
-                            <!-- Interactive Toolkit (Bento Grid) -->
+                            <!-- Interactive Toolkit -->
                             <div class="pl-6 border-l border-neutral-200 dark:border-neutral-800">
-                                 <div class="flex items-center justify-between mb-4">
-                                    <h5 class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
-                                        Toolkit
-                                    </h5>
-                                    <span class="text-[10px] font-mono text-orange-600 bg-orange-50 dark:bg-orange-500/10 px-1.5 py-0.5 rounded">All-in-One</span>
-                                </div>
-                                
-                                <div class="grid grid-cols-2 gap-2">
-                                    <!-- Kumi AI (Hero - Full Width) -->
-                                    <button
-                                        id="kumi-promo-card"
-                                        class="col-span-2 group relative overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 transition-all hover:border-orange-300 dark:hover:border-orange-700"
-                                    >
-                                        <div class="relative h-full w-full p-3 flex items-center gap-3">
-                                            <div class="w-10 h-10 rounded-lg bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-300 flex items-center justify-center text-xl shrink-0">
-                                                🤖
-                                            </div>
-                                            <div class="text-left flex-1">
-                                                <div class="flex items-center justify-between">
-                                                    <h3 class="font-bold text-neutral-900 dark:text-white text-sm">Ask Kumi</h3>
-                                                    <span class="text-[9px] font-bold bg-orange-600 text-white px-1.5 py-0.5 rounded">AI</span>
-                                                </div>
-                                                <p class="text-[10px] text-neutral-500 dark:text-neutral-400 leading-tight mt-0.5 line-clamp-1">Chat & Summarize Article</p>
-                                            </div>
+                                <div class="rounded-lg border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                                    <div class="flex items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-neutral-800">
+                                        <div>
+                                            <h5 class="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-500 dark:text-neutral-400">
+                                                Toolkit
+                                            </h5>
+                                            <p class="mt-1 text-[11px] font-medium leading-tight text-neutral-900 dark:text-neutral-100">
+                                                Reader utilities
+                                            </p>
                                         </div>
-                                    </button>
+                                        <span class="rounded-md bg-orange-50 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-orange-700 dark:bg-orange-500/10 dark:text-orange-300">Live</span>
+                                    </div>
 
-                                    <!-- Code Studio (Square) -->
-                                    <button
-                                        id="code-promo-card"
-                                        class="col-span-1 group relative overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 transition-all hover:border-emerald-300 dark:hover:border-emerald-700"
-                                    >
-                                        <div class="relative h-full w-full p-3 flex flex-col items-center justify-center gap-2 text-center">
-                                            <div class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800">
-                                                <span class="text-[8px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider block leading-none">New</span>
-                                            </div>
-                                            <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-300 flex items-center justify-center text-lg mt-1">
-                                                💻
-                                            </div>
-                                            <div>
-                                                <h3 class="font-bold text-neutral-900 dark:text-white text-xs">Smart Code</h3>
-                                                <div class="text-[9px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">Run & Compare Fixes</div>
-                                            </div>
-                                        </div>
-                                    </button>
+                                    <div class="p-2">
+                                        <button
+                                            id="kumi-promo-card"
+                                            class="group flex w-full items-center gap-3 rounded-md border border-transparent p-2.5 text-left transition-all hover:border-orange-200 hover:bg-orange-50/70 active:scale-[0.99] dark:hover:border-orange-500/20 dark:hover:bg-orange-500/10"
+                                            title="Ask Kumi"
+                                        >
+                                            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-orange-100 text-orange-700 transition-transform group-hover:scale-105 dark:bg-orange-500/15 dark:text-orange-300">
+                                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8V4m0 4a4 4 0 014 4v1m-4-5a4 4 0 00-4 4v1m8 0h1a3 3 0 013 3v1a3 3 0 01-3 3H7a3 3 0 01-3-3v-1a3 3 0 013-3h1m8 0v2m-8-2v2m2 2h.01M14 17h.01"></path>
+                                                </svg>
+                                            </span>
+                                            <span class="min-w-0 flex-1">
+                                                <span class="flex items-center justify-between gap-2">
+                                                    <span class="text-sm font-bold text-neutral-950 dark:text-white">Ask Kumi</span>
+                                                    <span class="rounded bg-neutral-950 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-white dark:bg-white dark:text-neutral-950">AI</span>
+                                                </span>
+                                                <span class="mt-0.5 block text-[11px] leading-tight text-neutral-500 dark:text-neutral-400">Summaries, questions, and takeaways</span>
+                                            </span>
+                                        </button>
 
-                                    <!-- Visual Notes (Square) -->
-                                    <button
-                                        id="notes-promo-card"
-                                        class="col-span-1 group relative overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 transition-all hover:border-orange-300 dark:hover:border-orange-700"
-                                    >
-                                        <div class="relative h-full w-full p-3 flex flex-col items-center justify-center gap-2 text-center">
-                                            <div class="w-8 h-8 rounded-lg bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-300 flex items-center justify-center text-lg">
-                                                ✏️
-                                            </div>
-                                            <div>
-                                                <h3 class="font-bold text-neutral-900 dark:text-white text-xs">Sketch</h3>
-                                                <div class="text-[9px] text-orange-600 dark:text-orange-400 font-medium mt-0.5">LLD Interview</div>
-                                            </div>
+                                        <div class="my-1 h-px bg-neutral-100 dark:bg-neutral-800"></div>
+
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <button
+                                                id="code-promo-card"
+                                                class="group flex min-h-[7.25rem] flex-col justify-between rounded-md border border-neutral-200 bg-stone-50 p-3 text-left transition-all hover:border-emerald-300 hover:bg-emerald-50/80 active:scale-[0.99] dark:border-neutral-800 dark:bg-neutral-950/60 dark:hover:border-emerald-500/30 dark:hover:bg-emerald-500/10"
+                                                title="Open code studio"
+                                            >
+                                                <span class="flex items-center justify-between">
+                                                    <span class="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
+                                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l-4 3 4 3m8-6l4 3-4 3M14 4l-4 16"></path>
+                                                        </svg>
+                                                    </span>
+                                                    <span class="rounded bg-emerald-100 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">New</span>
+                                                </span>
+                                                <span>
+                                                    <span class="block text-xs font-bold text-neutral-950 dark:text-white">Smart Code</span>
+                                                    <span class="mt-1 block text-[10px] leading-tight text-neutral-500 dark:text-neutral-400">Run and compare fixes</span>
+                                                </span>
+                                            </button>
+
+                                            <button
+                                                id="notes-promo-card"
+                                                class="group flex min-h-[7.25rem] flex-col justify-between rounded-md border border-neutral-200 bg-stone-50 p-3 text-left transition-all hover:border-orange-300 hover:bg-orange-50/80 active:scale-[0.99] dark:border-neutral-800 dark:bg-neutral-950/60 dark:hover:border-orange-500/30 dark:hover:bg-orange-500/10"
+                                                title="Open visual notes"
+                                            >
+                                                <span class="flex h-8 w-8 items-center justify-center rounded-md bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300">
+                                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 19.5V6a2 2 0 012-2h7l5 5v10.5a.5.5 0 01-.8.4L15 18.25l-2.2 1.65a.5.5 0 01-.6 0L10 18.25 7.8 19.9a.5.5 0 01-.6 0L5 18.25l-.2 1.65a.5.5 0 01-.8-.4z"></path>
+                                                    </svg>
+                                                </span>
+                                                <span>
+                                                    <span class="block text-xs font-bold text-neutral-950 dark:text-white">Sketch</span>
+                                                    <span class="mt-1 block text-[10px] leading-tight text-neutral-500 dark:text-neutral-400">Visual LLD notes</span>
+                                                </span>
+                                            </button>
                                         </div>
-                                    </button>
+                                    </div>
                                 </div>
-                                
+
                                 <!-- Support Card (Client-side rendered) -->
-                                <div id="support-sidebar-b-container" class="mb-6 hidden"></div>
-
-                                <!-- Ultra-Compact Smart Actions -->
-                                <div class="mt-4 flex items-center gap-2 px-2 py-1.5 rounded-lg bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-800/20">
-                                    <span class="text-sm">✨</span>
-                                    <p class="text-[10px] font-medium text-orange-800 dark:text-orange-200">
-                                        <span class="font-bold">Pro Tip:</span> Select text to unlock smart tools.
-                                    </p>
-                                </div>
+                                <div id="support-sidebar-b-container" class="mt-4 hidden"></div>
                             </div>
                         )
                     }

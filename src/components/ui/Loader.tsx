@@ -7,42 +7,39 @@ interface LoaderProps {
 }
 
 export const Loader: React.FC<LoaderProps> = ({ text, size = 'lg', fullscreen = false }) => {
-    // Windows/Google-inspired fluid animation
-    // We'll use a polished "progress ring" or "bouncing dots" that feel liquid.
-
     const containerClasses = fullscreen
-        ? "fixed inset-0 z-[100] bg-white/80 dark:bg-[#0f1117]/80 backdrop-blur-md flex flex-col items-center justify-center transition-all duration-500"
+        ? "fixed inset-0 z-[100] bg-white/80 dark:bg-neutral-950/80 backdrop-blur-md flex flex-col items-center justify-center transition-all duration-500"
         : "flex flex-col justify-center items-center w-full h-full min-h-[300px] animate-in fade-in duration-500";
+    const sizeClass = {
+        sm: "h-12 w-12",
+        md: "h-14 w-14",
+        lg: "h-16 w-16",
+        xl: "h-20 w-20",
+    }[size];
 
     return (
         <div className={containerClasses}>
-            <div className="relative flex flex-col items-center gap-8">
-
-                {/* Visual Animation: Fluid Dots Orbit */}
-                {/* Inspired by modern OS loaders: minimalist but fluid motion */}
-                <div className="relative w-16 h-16">
-                    {/* Ring 1 */}
-                    <div className="absolute inset-0 rounded-full border-[3px] border-purple-100 dark:border-purple-900/30"></div>
-
-                    {/* Active Spinner */}
-                    <div className="absolute inset-0 rounded-full border-[3px] border-transparent border-t-purple-600 border-l-purple-600 rounded-full animate-spin-slow shadow-[0_0_15px_rgba(147,51,234,0.3)]"></div>
-
-                    {/* Inner Fluid Dot */}
-                    <div className="absolute inset-4 bg-gradient-to-tr from-blue-500 to-purple-600 rounded-full animate-pulse-slow shadow-lg"></div>
-
-                    {/* Floating orbital glow */}
-                    <div className="absolute -inset-4 bg-purple-500/10 rounded-full blur-xl animate-pulse"></div>
+            <div className="flex flex-col items-center gap-6">
+                <div className={`relative ${sizeClass}`}>
+                    <div className="absolute inset-0 rounded-lg border border-orange-500/20 bg-orange-500/5"></div>
+                    <div className="absolute left-3 right-3 top-4 space-y-2">
+                        <div className="h-2 w-8 rounded-full bg-orange-500 animate-pulse"></div>
+                        <div className="h-2 w-10 rounded-full bg-neutral-300 dark:bg-neutral-700 animate-pulse [animation-delay:120ms]"></div>
+                        <div className="h-2 w-6 rounded-full bg-neutral-300 dark:bg-neutral-700 animate-pulse [animation-delay:240ms]"></div>
+                    </div>
+                    <div className="absolute -right-1 -top-1 h-4 w-4 rounded-full bg-orange-500 animate-ping"></div>
+                    <div className="absolute -right-1 -top-1 h-4 w-4 rounded-full bg-orange-500"></div>
                 </div>
 
-                {/* Text Section */}
                 {text && (
-                    <div className="flex flex-col items-center gap-1">
-                        <h3 className="text-lg font-semibold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 tracking-tight">
+                    <div className="flex flex-col items-center gap-3">
+                        <h3 className="text-base font-semibold text-gray-900 dark:text-white tracking-tight">
                             {text}
                         </h3>
-                        {/* Subtle progress bar */}
-                        <div className="h-1 w-24 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                            <div className="h-full bg-gradient-to-r from-purple-500 to-blue-500 w-1/2 animate-progress-indeterminate rounded-full"></div>
+                        <div className="flex items-center gap-1.5">
+                            <span className="h-1.5 w-1.5 rounded-full bg-orange-500 animate-bounce"></span>
+                            <span className="h-1.5 w-1.5 rounded-full bg-orange-500 animate-bounce [animation-delay:120ms]"></span>
+                            <span className="h-1.5 w-1.5 rounded-full bg-orange-500 animate-bounce [animation-delay:240ms]"></span>
                         </div>
                     </div>
                 )}
