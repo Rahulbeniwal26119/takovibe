@@ -31,12 +31,12 @@
                 </svg>
             </span>
             <p class="truncate text-sm font-medium">
-                <span class="hidden sm:inline"
+                <span id="banner-title-desktop" class="hidden sm:inline"
                     >ResumeVibe is open for early builders</span
                 >
-                <span class="sm:hidden">ResumeVibe is live</span>
+                <span id="banner-title-mobile" class="sm:hidden">ResumeVibe is live</span>
                 <span class="mx-2 hidden text-neutral-500 md:inline">/</span>
-                <span class="hidden text-neutral-300 md:inline"
+                <span id="banner-subtitle" class="hidden text-neutral-300 md:inline"
                     >Run AI diagnostics on your resume</span
                 >
             </p>
@@ -45,10 +45,11 @@
         <!-- Actions -->
         <div class="flex shrink-0 items-center gap-2">
             <a
+                id="banner-link"
                 href="https://resumevibe.takovibe.com/"
                 class="inline-flex items-center gap-1.5 rounded-full bg-orange-500 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-orange-600"
             >
-                <span>Try ResumeVibe</span>
+                <span id="banner-cta">Try ResumeVibe</span>
                 <svg
                     class="h-3.5 w-3.5"
                     fill="none"
@@ -96,6 +97,36 @@
         const closeBtn = document.getElementById("close-banner");
 
         if (!banner) return;
+
+        const promos = [
+            {
+                desktop: "ResumeVibe is open for early builders",
+                mobile: "ResumeVibe is live",
+                subtitle: "Run AI diagnostics on your resume",
+                cta: "Try ResumeVibe",
+                href: "https://resumevibe.takovibe.com/",
+            },
+            {
+                desktop: "CodeDiff is live for clean code reviews",
+                mobile: "CodeDiff is live",
+                subtitle: "Compare code, import patches, and share anonymous diffs",
+                cta: "Open CodeDiff",
+                href: "https://codediff.takovibe.com/",
+            },
+        ];
+
+        const promo = promos[Math.floor(Date.now() / TWENTY_FOUR_HOURS) % promos.length];
+        const titleDesktop = document.getElementById("banner-title-desktop");
+        const titleMobile = document.getElementById("banner-title-mobile");
+        const subtitle = document.getElementById("banner-subtitle");
+        const cta = document.getElementById("banner-cta");
+        const link = document.getElementById("banner-link");
+
+        if (titleDesktop) titleDesktop.textContent = promo.desktop;
+        if (titleMobile) titleMobile.textContent = promo.mobile;
+        if (subtitle) subtitle.textContent = promo.subtitle;
+        if (cta) cta.textContent = promo.cta;
+        if (link) link.setAttribute("href", promo.href);
 
         // Check Local Storage
         const lastClosed = localStorage.getItem(BANNER_KEY);

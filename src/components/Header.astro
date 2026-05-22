@@ -10,8 +10,13 @@ const mainNav = [
   { href: "/blog", label: "Blog" },
   { href: "/series", label: "Series" },
   { href: "/notes", label: "Notes" },
-  { href: "/playground", label: "Playground" },
-  { href: "https://resumevibe.takovibe.com/", label: "Resume" },
+];
+
+const toolsNav = [
+  { href: "/playground", label: "Playground", description: "Run and share code snippets" },
+  { href: "https://codediff.takovibe.com/", label: "CodeDiff", description: "Compare code and review patches" },
+  { href: "https://resumevibe.takovibe.com/", label: "ResumeVibe", description: "Audit and optimize your resume" },
+  { href: "/notes", label: "Sketch Notes", description: "Capture visual thinking while reading" },
 ];
 
 const moreNav = [
@@ -22,12 +27,13 @@ const moreNav = [
   { href: "/contact", label: "Contact" },
 ];
 
-const mobileNav = [...mainNav, ...moreNav];
+const mobileNav = [...mainNav, ...toolsNav, ...moreNav];
 
 const isActivePath = (href: string) =>
   href === "/" ? currentPath === "/" : href.startsWith("/") && currentPath.startsWith(href);
 
 const hasActiveMoreItem = moreNav.some((item) => isActivePath(item.href));
+const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
 ---
 
 <header
@@ -72,6 +78,42 @@ const hasActiveMoreItem = moreNav.some((item) => isActivePath(item.href));
             {item.label}
           </a>
         ))}
+
+        <div class="relative">
+          <button
+            id="desktop-tools-btn"
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded="false"
+            class={`px-4 py-2 text-sm font-semibold rounded-full transition-all duration-300 whitespace-nowrap inline-flex items-center gap-1.5 ${
+              hasActiveToolItem
+                ? "text-orange-600 dark:text-orange-400 bg-neutral-50 dark:bg-neutral-800/20"
+                : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-50 hover:bg-neutral-100/50 dark:hover:bg-neutral-800/[0.03]"
+            }`}
+          >
+            Tools
+            <svg class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+
+          <div
+            id="desktop-tools-menu"
+            role="menu"
+            class="absolute left-1/2 top-full mt-3 hidden w-72 -translate-x-1/2 overflow-hidden rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 bg-neutral-50/95 dark:bg-neutral-950/95 shadow-xl shadow-neutral-900/10 dark:shadow-black/30 backdrop-blur-xl p-2"
+          >
+            {toolsNav.map((item) => (
+              <a
+                href={item.href}
+                role="menuitem"
+                class="block rounded-xl px-4 py-3 transition-colors text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800/50 hover:text-neutral-900 dark:hover:text-neutral-50"
+              >
+                <span class="block text-sm font-bold">{item.label}</span>
+                <span class="mt-0.5 block text-xs text-neutral-500 dark:text-neutral-500">{item.description}</span>
+              </a>
+            ))}
+          </div>
+        </div>
 
         <div class="relative">
           <button
@@ -429,6 +471,8 @@ const hasActiveMoreItem = moreNav.some((item) => isActivePath(item.href));
     const backdrop = document.querySelector("#drawerBackdrop");
     const openBtn = document.querySelector("#openDrawerBtn");
     const closeBtn = document.querySelector("#closeDrawerBtn");
+    const desktopToolsBtn = document.getElementById("desktop-tools-btn");
+    const desktopToolsMenu = document.getElementById("desktop-tools-menu");
     const desktopMoreBtn = document.getElementById("desktop-more-btn");
     const desktopMoreMenu = document.getElementById("desktop-more-menu");
 
@@ -466,6 +510,22 @@ const hasActiveMoreItem = moreNav.some((item) => isActivePath(item.href));
       desktopMoreBtn?.querySelector("svg")?.classList.remove("rotate-180");
     }
 
+    function closeDesktopTools() {
+      desktopToolsMenu?.classList.add("hidden");
+      desktopToolsBtn?.setAttribute("aria-expanded", "false");
+      desktopToolsBtn?.querySelector("svg")?.classList.remove("rotate-180");
+    }
+
+    function toggleDesktopTools() {
+      if (!desktopToolsMenu || !desktopToolsBtn) return;
+
+      const isOpen = !desktopToolsMenu.classList.contains("hidden");
+      desktopToolsMenu.classList.toggle("hidden", isOpen);
+      desktopToolsBtn.setAttribute("aria-expanded", String(!isOpen));
+      desktopToolsBtn.querySelector("svg")?.classList.toggle("rotate-180", !isOpen);
+      if (!isOpen) closeDesktopMore();
+    }
+
     function toggleDesktopMore() {
       if (!desktopMoreMenu || !desktopMoreBtn) return;
 
@@ -473,6 +533,7 @@ const hasActiveMoreItem = moreNav.some((item) => isActivePath(item.href));
       desktopMoreMenu.classList.toggle("hidden", isOpen);
       desktopMoreBtn.setAttribute("aria-expanded", String(!isOpen));
       desktopMoreBtn.querySelector("svg")?.classList.toggle("rotate-180", !isOpen);
+      if (!isOpen) closeDesktopTools();
     }
 
     function openSearch() {
@@ -530,6 +591,11 @@ const hasActiveMoreItem = moreNav.some((item) => isActivePath(item.href));
       toggleDesktopMore();
     });
 
+    desktopToolsBtn?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleDesktopTools();
+    });
+
     // Search Triggers
     searchTriggerBtn?.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -562,6 +628,15 @@ const hasActiveMoreItem = moreNav.some((item) => isActivePath(item.href));
         closeDesktopMore();
       }
 
+      if (
+        desktopToolsMenu &&
+        desktopToolsBtn &&
+        !desktopToolsMenu.contains(target) &&
+        !desktopToolsBtn.contains(target)
+      ) {
+        closeDesktopTools();
+      }
+
       // Close if clicking outside header when search is open
       const header = document.getElementById("site-header");
       const fullSearch = document.getElementById("full-header-search");
@@ -580,6 +655,7 @@ const hasActiveMoreItem = moreNav.some((item) => isActivePath(item.href));
         closeDrawer();
         closeSearch();
         closeDesktopMore();
+        closeDesktopTools();
       }
 
       if ((e.metaKey || e.ctrlKey) && e.key === "/") {

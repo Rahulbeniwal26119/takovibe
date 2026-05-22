@@ -1,0 +1,114 @@
+---
+
+---
+
+<section class="relative overflow-hidden bg-neutral-950 py-24 text-white sm:py-28">
+  <div class="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>
+  <div class="absolute -left-48 top-12 h-[520px] w-[520px] rounded-full bg-orange-600/15 blur-[130px]"></div>
+  <div class="absolute -right-56 bottom-0 h-[560px] w-[560px] rounded-full bg-sky-600/10 blur-[140px]"></div>
+
+  <div class="relative z-10 mx-auto max-w-7xl px-4 sm:px-6">
+    <div class="grid items-center gap-12 lg:grid-cols-[0.95fr_1.05fr]">
+      <div>
+        <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-orange-500/25 bg-orange-500/10 px-3 py-1 text-sm font-bold text-orange-300">
+          <span class="h-2 w-2 rounded-full bg-orange-400"></span>
+          CodeDiff
+        </div>
+        <h2 class="text-4xl font-bold leading-tight md:text-5xl lg:text-6xl">
+          Review changes before they become
+          <span class="bg-gradient-to-r from-orange-300 via-amber-300 to-sky-300 bg-clip-text text-transparent">production code.</span>
+        </h2>
+        <p class="mt-6 max-w-xl text-lg leading-relaxed text-neutral-400">
+          Compare code, inspect GitHub patches, and share clean anonymous diff links with teammates, reviewers, or readers.
+        </p>
+
+        <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+          <a
+            href="https://codediff.takovibe.com/"
+            class="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-5 py-3 text-sm font-black text-white shadow-lg shadow-orange-950/40 transition hover:bg-orange-400"
+          >
+            Open CodeDiff
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+            </svg>
+          </a>
+          <a
+            href="https://codediff.takovibe.com/patch"
+            class="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-bold text-neutral-200 transition hover:border-orange-400/40 hover:bg-white/10"
+          >
+            Review a patch
+          </a>
+        </div>
+
+        <div class="mt-10 grid gap-3 sm:grid-cols-3">
+          <div class="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <div class="text-xs font-black uppercase tracking-[0.18em] text-orange-300">Compare</div>
+            <p class="mt-2 text-sm text-neutral-400">Side-by-side and inline diffs for everyday review.</p>
+          </div>
+          <div class="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <div class="text-xs font-black uppercase tracking-[0.18em] text-sky-300">Patch</div>
+            <p class="mt-2 text-sm text-neutral-400">Import GitHub PR, commit, and raw patch links.</p>
+          </div>
+          <div class="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <div class="text-xs font-black uppercase tracking-[0.18em] text-emerald-300">Share</div>
+            <p class="mt-2 text-sm text-neutral-400">Anonymous links for fast handoff and discussion.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="relative">
+        <div class="rounded-2xl border border-white/10 bg-[#0d0b09] shadow-2xl shadow-black/40">
+          <div class="flex items-center justify-between border-b border-white/10 px-4 py-3">
+            <div class="flex items-center gap-2">
+              <span class="h-3 w-3 rounded-full bg-red-400/80"></span>
+              <span class="h-3 w-3 rounded-full bg-amber-400/80"></span>
+              <span class="h-3 w-3 rounded-full bg-emerald-400/80"></span>
+            </div>
+            <div class="rounded-lg border border-orange-400/20 bg-orange-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-orange-300">
+              Anonymous diff
+            </div>
+          </div>
+
+          <div class="grid min-h-[420px] gap-px bg-white/10 md:grid-cols-2">
+            <div class="bg-[#11100e]">
+              <div class="flex items-center gap-2 border-b border-white/10 px-4 py-3 text-xs font-black uppercase tracking-[0.18em] text-red-300">
+                <span class="h-2 w-2 rounded-full bg-red-400"></span>
+                Before
+              </div>
+              <pre class="m-0 overflow-hidden p-5 text-sm leading-7 text-neutral-300"><code><span class="text-neutral-500">1</span> const user = &#123;
+<span class="text-neutral-500">2</span>   name: <span class="text-orange-300">"John"</span>,
+<span class="text-neutral-500">3</span>   plan: <span class="text-orange-300">"free"</span>,
+<span class="text-neutral-500">4</span>   limits: &#123;
+<span class="text-neutral-500">5</span>     diffs: <span class="text-red-300">3</span>
+<span class="text-neutral-500">6</span>   &#125;
+<span class="text-neutral-500">7</span> &#125;;</code></pre>
+            </div>
+
+            <div class="bg-[#0d1510]">
+              <div class="flex items-center gap-2 border-b border-white/10 px-4 py-3 text-xs font-black uppercase tracking-[0.18em] text-emerald-300">
+                <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
+                After
+              </div>
+              <pre class="m-0 overflow-hidden p-5 text-sm leading-7 text-neutral-200"><code><span class="text-neutral-500">1</span> const user = &#123;
+<span class="text-neutral-500">2</span>   name: <span class="text-orange-300">"Jane"</span>,
+<span class="text-neutral-500">3</span>   plan: <span class="text-emerald-300">"pro"</span>,
+<span class="text-neutral-500">4</span>   limits: &#123;
+<span class="text-neutral-500">5</span>     diffs: <span class="text-emerald-300">50</span>,
+<span class="text-neutral-500">6</span>     patches: <span class="text-emerald-300">true</span>
+<span class="text-neutral-500">7</span>   &#125;
+<span class="text-neutral-500">8</span> &#125;;</code></pre>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 px-4 py-3">
+            <div class="font-mono text-xs text-sky-300">codediff.takovibe.com/8a64df17</div>
+            <div class="flex gap-2">
+              <span class="rounded-lg bg-orange-500 px-3 py-1.5 text-xs font-black text-white">Share</span>
+              <span class="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-bold text-neutral-300">Open</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

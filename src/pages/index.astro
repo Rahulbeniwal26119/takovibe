@@ -4,6 +4,7 @@ import Layout from "../layouts/Layout.astro";
 import VisualExecutionShowcase from "../components/home/VisualExecutionShowcase.astro";
 import ResumeVibeShowcase from "../components/home/ResumeVibeShowcase.astro";
 import SketchNotesShowcase from "../components/home/SketchNotesShowcase.astro";
+import CodeDiffShowcase from "../components/home/CodeDiffShowcase.astro";
 
 // API configuration
 const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
@@ -746,6 +747,12 @@ try {
       </div>
 </section>
 
+    <!-- CodeDiff Showcase -->
+    <CodeDiffShowcase />
+
+    <!-- ResumeVibe Showcase -->
+    <ResumeVibeShowcase />
+
     <!-- Latest Articles Section -->
     <section class="py-16 px-4 sm:px-6 relative overflow-hidden" id="articles">
       <div class="max-w-4xl mx-auto relative z-10">
@@ -846,10 +853,6 @@ try {
         </div>
       </div>
     </section>
-
-    <!-- ResumeVibe Showcase -->
-    <ResumeVibeShowcase />
-
     <!-- Topics Section -->
     <section class="py-16 px-4 sm:px-6 relative overflow-hidden" id="topics">
       <div class="max-w-7xl mx-auto relative z-10">

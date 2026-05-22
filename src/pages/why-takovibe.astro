@@ -1,692 +1,197 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import ParticlesBackground from "../components/ParticlesBackground.astro";
+
+const principles = [
+    {
+        title: "Depth over noise",
+        description:
+            "We publish for engineers who want the reasoning, trade-offs, and failure modes behind real systems.",
+    },
+    {
+        title: "Practice over theory",
+        description:
+            "Articles are shaped around implementation details, debugging stories, architecture decisions, and production constraints.",
+    },
+    {
+        title: "Tools near the work",
+        description:
+            "Learning is better when you can run code, compare changes, save notes, and turn your work into proof.",
+    },
+];
+
+const tools = [
+    {
+        label: "Playground",
+        href: "/playground",
+        description: "Run and share snippets while reading.",
+    },
+    {
+        label: "CodeDiff",
+        href: "https://codediff.takovibe.com/",
+        description: "Compare code, import patches, and share anonymous diffs.",
+    },
+    {
+        label: "ResumeVibe",
+        href: "https://resumevibe.takovibe.com/",
+        description: "Audit, rewrite, and present your resume with more signal.",
+    },
+    {
+        label: "Sketch Notes",
+        href: "/notes",
+        description: "Keep visual notes close to the ideas you are learning.",
+    },
+];
+
+const audience = [
+    "Engineers moving beyond surface-level tutorials",
+    "Builders who care about why a system behaves the way it does",
+    "Writers with practical lessons from real projects",
+];
 ---
 
 <Layout
-    title="Why Takovibe? | Engineering Knowledge for Practitioners"
+    title="Why TakoVibe? | Engineering Knowledge for Practitioners"
     description="Why TakoVibe exists and the gap we fill in modern technical content."
 >
-    <div
-        class="relative w-full overflow-x-hidden min-h-screen bg-gray-50 dark:bg-[#0B1120]"
-    >
-        <!-- Immersive Background -->
-        <div class="fixed inset-0 z-0 pointer-events-none">
-            <div
-                class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-purple-100 via-gray-50 to-white dark:from-[#1a103c] dark:via-[#0B1120] dark:to-[#0B1120]"
-            >
-            </div>
-            <div
-                class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-purple-400/20 dark:bg-purple-600/10 blur-[100px] animate-blob mix-blend-multiply dark:mix-blend-screen"
-            >
-            </div>
-            <div
-                class="absolute top-[20%] right-[-10%] w-[400px] h-[400px] rounded-full bg-blue-400/20 dark:bg-blue-600/10 blur-[100px] animate-blob animation-delay-2000 mix-blend-multiply dark:mix-blend-screen"
-            >
-            </div>
-            <ParticlesBackground />
-        </div>
-
-        <!-- Hero Section -->
-        <section class="relative z-10 pt-24 pb-16 lg:pt-32 lg:pb-24">
-            <div class="max-w-7xl mx-auto px-6 text-center">
-                <div
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-white/80 dark:bg-white/5 backdrop-blur-md text-purple-700 dark:text-purple-300 rounded-full text-sm font-medium mb-8 border border-purple-200/50 dark:border-white/10 shadow-sm animate-fade-in-up"
-                >
-                    <span class="text-base">🚀</span>
-                    <span>Our Mission</span>
-                </div>
-
-                <h1
-                    class="text-4xl md:text-6xl lg:text-7xl font-bold mb-8 animate-fade-in-up animation-delay-200 tracking-tight text-gray-900 dark:text-white"
-                >
-                    Why <span
-                        class="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent animate-gradient"
-                        >Takovibe</span
-                    >?
-                </h1>
-
-                <div class="max-w-3xl mx-auto space-y-6">
-                    <h2
-                        class="text-2xl md:text-3xl font-semibold text-gray-800 dark:text-gray-200 animate-fade-in-up animation-delay-400"
-                    >
-                        Why TakoVibe Exists
-                    </h2>
-                    <p
-                        class="text-xl text-gray-600 dark:text-gray-300 leading-relaxed animate-fade-in-up animation-delay-600"
-                    >
-                        Modern software engineering problems cannot be solved
-                        with surface-level tutorials. Takovibe exists to share
-                        real-world engineering knowledge, the kind that comes
-                        from building, scaling, and maintaining production
-                        systems.
-                    </p>
-                    <p
-                        class="text-lg text-gray-600 dark:text-gray-400 animate-fade-in-up animation-delay-800"
-                    >
-                        We focus on explaining not just how things work, but <span
-                            class="text-purple-600 dark:text-purple-400 font-semibold"
-                            >why</span
-                        > design decisions are made and what trade-offs engineers
-                        face in practice.
-                    </p>
-                </div>
-            </div>
-        </section>
-
-        <!-- The Problem Section -->
-        <section
-            class="py-24 relative z-10 border-y border-gray-200 dark:border-gray-800 bg-white/30 dark:bg-black/10 backdrop-blur-sm"
-        >
-            <div class="max-w-7xl mx-auto px-6">
-                <div class="grid lg:grid-cols-2 gap-16 items-center">
-                    <div>
-                        <h2
-                            class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6"
-                        >
-                            The Problem With Today’s <span class="text-red-500"
-                                >Tech Content</span
-                            >
-                        </h2>
-                        <p
-                            class="text-lg text-gray-600 dark:text-gray-300 mb-8 leading-relaxed"
-                        >
-                            The internet is full of technical articles, yet
-                            engineers still struggle when systems reach
-                            real-world complexity.
-                        </p>
-                        <div class="space-y-4">
-                            {
-                                [
-                                    "It stops at beginner-level explanations",
-                                    "It focuses on tools instead of system behavior",
-                                    "It prioritizes trends and speed over depth and accuracy",
-                                ].map((issue) => (
-                                    <div class="flex items-center gap-4 p-4 rounded-xl bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20">
-                                        <svg
-                                            class="w-5 h-5 text-red-500 shrink-0"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="M6 18L18 6M6 6l12 12"
-                                            />
-                                        </svg>
-                                        <span class="text-gray-700 dark:text-gray-300 font-medium">
-                                            {issue}
-                                        </span>
-                                    </div>
-                                ))
-                            }
-                        </div>
-                    </div>
-                    <div class="relative">
-                        <div
-                            class="relative bg-white dark:bg-[#131B2E] p-8 rounded-3xl border border-gray-100 dark:border-gray-800"
-                        >
-                            <p class="text-xl text-red-500 italic text-center">
-                                As a result, engineers often lack guidance when
-                                facing real production challenges.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- The Gap Section -->
-        <section class="py-24 relative z-10">
-            <div class="max-w-7xl mx-auto px-6">
-                <div class="text-center mb-16">
-                    <h2
-                        class="text-3xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6"
-                    >
-                        The Gap We Fill
-                    </h2>
-                    <p
-                        class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto"
-                    >
-                        There is a clear gap between basic tutorials and real
-                        engineering practice in production environments.
-                    </p>
-                </div>
-
-                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {
-                        [
-                            {
-                                title: "Architectural Reasoning",
-                                icon: "🏗️",
-                                desc: "Understanding the 'why' behind the high-level design.",
-                            },
-                            {
-                                title: "Performance Bottlenecks",
-                                icon: "⚡",
-                                desc: "Identifying and resolving real-world constraints.",
-                            },
-                            {
-                                title: "Scalability Constraints",
-                                icon: "📈",
-                                desc: "How systems behave when load increases exponentially.",
-                            },
-                            {
-                                title: "Long-term Decisions",
-                                icon: "⏳",
-                                desc: "Living with the consequences of engineering choices.",
-                            },
-                        ].map((item) => (
-                            <div class="p-8 rounded-3xl bg-white dark:bg-[#131B2E] border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md transition-all hover:-translate-y-1">
-                                <div class="text-4xl mb-6">{item.icon}</div>
-                                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">
-                                    {item.title}
-                                </h3>
-                                <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-                                    {item.desc}
-                                </p>
-                            </div>
-                        ))
-                    }
-                </div>
-            </div>
-        </section>
-
-        <!-- Our Approach Section -->
-        <section
-            class="py-24 relative z-10 bg-purple-600/5 dark:bg-purple-900/10 border-y border-purple-200/50 dark:border-purple-800/20"
-        >
-            <div class="max-w-7xl mx-auto px-6">
-                <div class="flex flex-col lg:flex-row gap-16 items-center">
-                    <div class="lg:w-1/2">
-                        <h2
-                            class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6"
-                        >
-                            Our Approach at <span class="text-purple-600"
-                                >TakoVibe</span
-                            >
-                        </h2>
-                        <p
-                            class="text-lg text-gray-600 dark:text-gray-300 mb-8 leading-relaxed"
-                        >
-                            At TakoVibe, content is treated like engineering
-                            with intent, structure, and responsibility.
-                        </p>
-                        <div class="grid gap-6">
-                            {
-                                [
-                                    {
-                                        title: "Experience-Driven",
-                                        desc: "Articles are based on real implementation, not theory.",
-                                    },
-                                    {
-                                        title: "Depth Over Frequency",
-                                        desc: "We value clarity and detail more than publishing often.",
-                                    },
-                                    {
-                                        title: "Real-World Context",
-                                        desc: "Engineering decisions are explained with reasoning and trade-offs.",
-                                    },
-                                ].map((item) => (
-                                    <div class="flex gap-4">
-                                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold text-sm">
-                                            ✓
-                                        </div>
-                                        <div>
-                                            <h4 class="font-bold text-gray-900 dark:text-white mb-1">
-                                                {item.title}
-                                            </h4>
-                                            <p class="text-gray-600 dark:text-gray-400 text-sm">
-                                                {item.desc}
-                                            </p>
-                                        </div>
-                                    </div>
-                                ))
-                            }
-                        </div>
-                    </div>
-                    <div class="lg:w-1/2">
-                        <div
-                            class="p-8 md:p-12 rounded-[2.5rem] bg-gradient-to-br from-purple-600 to-blue-700 text-white shadow-2xl"
-                        >
-                            <h3 class="text-2xl font-bold mb-6">
-                                Meaningful Engineering Knowledge
-                            </h3>
-                            <p
-                                class="text-purple-50 text-lg leading-relaxed mb-8"
-                            >
-                                "We don’t aim to publish more content. We aim to
-                                publish meaningful and lasting engineering
-                                knowledge."
-                            </p>
-                            <div class="w-16 h-1 bg-white/30 rounded-full">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Areas of Focus Section -->
-        <!-- <section
-            class="py-24 relative z-10 border-b border-gray-200 dark:border-gray-800 bg-white/30 dark:bg-black/10 backdrop-blur-sm"
-        >
-            <div class="max-w-7xl mx-auto px-6">
-                <div class="text-center mb-16">
-                    <h2
-                        class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6"
-                    >
-                        Key Areas of Focus
-                    </h2>
-                    <p
-                        class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto"
-                    >
-                        Takovibe covers topics that matter when software moves
-                        beyond tutorials and into production.
-                    </p>
-                </div>
-
-                <div class="flex flex-wrap gap-4 justify-center">
-                    {
-                        [
-                            {
-                                label: "Backend Engineering & APIs",
-                                highlight: "Modern API Development",
-                                icon: "⚙️",
-                            },
-                            {
-                                label: "Containers & DevOps",
-                                highlight: "Cloud-Native Infrastructure",
-                                icon: "🐳",
-                            },
-                            {
-                                label: "Core Python Mastery",
-                                highlight: "Language Internals & Design",
-                                icon: "🐍",
-                            },
-                            {
-                                label: "System Design & Architecture",
-                                highlight: "Scalability & Trade-offs",
-                                icon: "🏗️",
-                            },
-                            {
-                                label: "Performance & Reliability",
-                                highlight: "Production-Grade Systems",
-                                icon: "⚡",
-                            },
-                            {
-                                label: "Engineering Learnings",
-                                highlight: "Practical Case Studies",
-                                icon: "📚",
-                            },
-                        ].map((topic) => (
-                            <div class="flex items-center gap-4 px-6 py-4 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl hover:border-purple-500/50 transition-colors group w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.33%-1rem)]">
-                                <span class="text-2xl">{topic.icon}</span>
-                                <div>
-                                    <h4 class="font-bold text-gray-900 dark:text-white text-sm">
-                                        {topic.label}
-                                    </h4>
-                                    <p class="text-xs text-purple-600 dark:text-purple-400 font-medium">
-                                        {topic.highlight}
-                                    </p>
-                                </div>
-                            </div>
-                        ))
-                    }
-                </div>
-            </div>
-        </section> -->
-
-        <!-- The Ecosystem Section -->
-        <section
-            class="py-24 relative z-10 bg-gradient-to-br from-gray-50 to-white dark:from-[#0B1120] dark:to-[#0D1117] border-y border-gray-200 dark:border-gray-800"
-        >
-            <div class="max-w-7xl mx-auto px-6">
-                <div class="grid lg:grid-cols-2 gap-24 items-center">
-                    <div class="order-2 lg:order-1">
-                        <div class="relative group">
-                            <!-- Image Frame -->
-                            <div
-                                class="absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-[2rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                            </div>
-                            <div
-                                class="relative bg-white dark:bg-[#131B2E] rounded-2xl border border-gray-100 dark:border-gray-800 shadow-2xl overflow-hidden aspect-[4/3]"
-                            >
-                                <img
-                                    src="https://ik.imagekit.io/bhu1voux5/resumevibe1"
-                                    alt="ResumeVibe Dashboard"
-                                    class="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-105"
-                                />
-                                <!-- Overlay Badge -->
-                                <div
-                                    class="absolute top-6 left-6 px-4 py-2 bg-purple-600/90 backdrop-blur-md text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg"
-                                >
-                                    Product Spotlight
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="order-1 lg:order-2">
-                        <div
-                            class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 text-xs font-bold mb-6 border border-purple-200/50 dark:border-purple-800 uppercase tracking-wider"
-                        >
-                            Integrated Career Platform
-                        </div>
-                        <h2
-                            class="text-3xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-tight"
-                        >
-                            Beyond Just <span
-                                class="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent"
-                                >Information.</span
-                            >
-                        </h2>
-                        <p
-                            class="text-lg text-gray-600 dark:text-gray-300 mb-8 leading-relaxed"
-                        >
-                            Engineering knowledge is one half of the coin;
-                            presenting it correctly is the other. We built <span
-                                class="text-gray-900 dark:text-white font-bold"
-                                >ResumeVibe</span
-                            > as an integral part of the TakoVibe ecosystem.
-                        </p>
-
-                        <div class="space-y-6 mb-10">
-                            <div
-                                class="flex gap-4 p-5 rounded-2xl bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 shadow-sm"
-                            >
-                                <span class="text-2xl">⚡</span>
-                                <div>
-                                    <h4
-                                        class="font-bold text-gray-900 dark:text-white mb-1"
-                                    >
-                                        ATS-Optimized Architecture
-                                    </h4>
-                                    <p
-                                        class="text-sm text-gray-500 leading-relaxed"
-                                    >
-                                        Single-column layouts tested against
-                                        major recruiters to guarantee a 100%
-                                        read rate.
-                                    </p>
-                                </div>
-                            </div>
-                            <div
-                                class="flex gap-4 p-5 rounded-2xl bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 shadow-sm"
-                            >
-                                <span class="text-2xl">🤖</span>
-                                <div>
-                                    <h4
-                                        class="font-bold text-gray-900 dark:text-white mb-1"
-                                    >
-                                        Deep Audit Diagnostics
-                                    </h4>
-                                    <p
-                                        class="text-sm text-gray-500 leading-relaxed"
-                                    >
-                                        Identify content gaps and get AI-powered
-                                        bullet optimization for maximum
-                                        recruiter impact.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="flex flex-col sm:flex-row gap-4">
-                            <a
-                                href="https://resumevibe.takovibe.com/"
-                                class="inline-flex items-center justify-center px-8 py-4 bg-purple-600 text-white font-bold rounded-2xl hover:bg-purple-700 transition-all gap-2 group shadow-lg shadow-purple-500/20"
-                            >
-                                Build Your Resume
-                                <span
-                                    class="group-hover:translate-x-1 transition-transform"
-                                    >→</span
-                                >
-                            </a>
-                            <a
-                                href="https://resumevibe.takovibe.com/why-resumevibe"
-                                class="inline-flex items-center justify-center px-8 py-4 text-gray-600 dark:text-gray-400 font-bold hover:text-purple-600 transition-colors uppercase text-xs tracking-widest"
-                            >
-                                Why ResumeVibe?
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Who Takovibe Is For Section -->
-        <section class="py-24 relative z-10">
-            <div class="max-w-7xl mx-auto px-6">
-                <div class="text-center mb-16">
-                    <h2
-                        class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6"
-                    >
-                        Who TakoVibe Is For
-                    </h2>
-                </div>
-                <div
-                    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-                >
-                    {
-                        [
-                            "Engineers who want to go beyond surface-level learning",
-                            "Developers interested in system internals and architecture",
-                            "Professionals working on real-world production systems",
-                            "Writers who want to share authentic engineering experiences",
-                        ].map((target) => (
-                            <div class="p-6 rounded-2xl bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 text-center hover:border-purple-500/50 transition-colors">
-                                <p class="text-gray-700 dark:text-gray-300 font-medium">
-                                    {target}
-                                </p>
-                            </div>
-                        ))
-                    }
-                </div>
-            </div>
-        </section>
-
-        <!-- Write With Us Section -->
-        <section class="py-24 relative overflow-hidden z-10">
-            <div class="max-w-7xl mx-auto px-6">
-                <div
-                    class="bg-white dark:bg-[#131B2E] rounded-3xl p-12 border border-gray-200 dark:border-gray-700 shadow-xl overflow-hidden relative"
-                >
-                    <div class="absolute top-0 right-0 p-8 opacity-5">
-                        <svg
-                            class="w-64 h-64"
-                            fill="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                d="M12 2.029c-5.514 0-10 4.486-10 10s4.486 10 10 10 10-4.486 10-10-4.486-10-10-10zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8zM11 7h2v3h3v2h-3v3h-2v-3h-3v-2h3v-3z"
-                            ></path>
-                        </svg>
-                    </div>
-
-                    <div class="relative z-10 lg:flex items-center gap-16">
-                        <div class="lg:w-2/3">
-                            <h2
-                                class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6"
-                            >
-                                Want to Write With Us?
-                            </h2>
-                            <p
-                                class="text-lg text-gray-600 dark:text-gray-300 mb-8 leading-relaxed"
-                            >
-                                Takovibe welcomes engineers who want to share
-                                genuine, experience-backed knowledge. We value
-                                clear thinking, technical accuracy, and honest
-                                discussion of challenges.
-                            </p>
-                            <div class="flex flex-wrap gap-4 mb-8">
-                                {
-                                    [
-                                        "Clear Thinking",
-                                        "Technical Accuracy",
-                                        "Implementation Insights",
-                                        "Honest Discussion",
-                                    ].map((tag) => (
-                                        <span class="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-sm font-semibold">
-                                            {tag}
-                                        </span>
-                                    ))
-                                }
-                            </div>
-                        </div>
-                        <div class="lg:w-1/3 text-center lg:text-right">
-                            <a
-                                href="/contact"
-                                class="inline-block px-10 py-5 bg-purple-600 text-white font-bold rounded-2xl hover:bg-purple-700 transition-all shadow-lg hover:shadow-xl hover:-translate-y-1"
-                            >
-                                Join the Community
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Quality Commitment -->
-        <!-- <section
-            class="py-24 relative z-10 bg-gray-50/50 dark:bg-black/20 overflow-hidden"
-        >
-            <div class="max-w-7xl mx-auto px-6">
+    <main class="min-h-screen bg-neutral-50 text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50">
+        <section class="relative overflow-hidden border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950">
+            <div class="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.035] dark:opacity-[0.06]"></div>
+            <div class="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:py-32">
                 <div class="max-w-3xl">
-                    <h2
-                        class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-8"
-                    >
-                        Our Commitment to Quality
-                    </h2>
-                    <p
-                        class="text-xl text-gray-600 dark:text-gray-300 mb-12 leading-relaxed italic"
-                    >
-                        "Because engineers trust platforms that respect their
-                        time and intelligence."
+                    <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-sm font-bold text-orange-700 dark:border-orange-500/20 dark:bg-orange-500/10 dark:text-orange-300">
+                        <span class="h-2 w-2 rounded-full bg-orange-500"></span>
+                        Why TakoVibe
+                    </div>
+
+                    <h1 class="text-4xl font-black leading-tight tracking-tight text-neutral-950 md:text-6xl dark:text-white">
+                        Engineering knowledge should feel useful after the tab closes.
+                    </h1>
+
+                    <p class="mt-6 max-w-2xl text-lg leading-relaxed text-neutral-600 dark:text-neutral-300">
+                        TakoVibe exists for the space between quick tutorials and real engineering work. We focus on how systems behave, why choices are made, and what builders learn while shipping.
                     </p>
-                    <div class="grid sm:grid-cols-2 gap-8">
-                        <div>
-                            <h4
-                                class="font-bold text-gray-900 dark:text-white mb-2"
-                            >
-                                Technical Standards
-                            </h4>
-                            <p class="text-gray-600 dark:text-gray-400 text-sm">
-                                Every article is curated with care and undergoes
-                                technical validation to ensure
-                                production-focused accuracy.
-                            </p>
-                        </div>
-                        <div>
-                            <h4
-                                class="font-bold text-gray-900 dark:text-white mb-2"
-                            >
-                                Technical Depth
-                            </h4>
-                            <p class="text-gray-600 dark:text-gray-400 text-sm">
-                                We avoid shallow or repetitive content, focusing
-                                on depth and long-term usefulness for
-                                practitioners.
-                            </p>
-                        </div>
+
+                    <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+                        <a
+                            href="/blog"
+                            class="inline-flex items-center justify-center rounded-lg bg-orange-500 px-5 py-3 text-sm font-black text-white shadow-lg shadow-orange-950/10 transition hover:bg-orange-600"
+                        >
+                            Read the blog
+                        </a>
+                        <a
+                            href="#tools"
+                            class="inline-flex items-center justify-center rounded-lg border border-neutral-200 bg-white px-5 py-3 text-sm font-bold text-neutral-800 transition hover:border-orange-300 hover:text-orange-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:border-orange-500/40 dark:hover:text-orange-300"
+                        >
+                            Explore tools
+                        </a>
                     </div>
                 </div>
             </div>
-        </section> -->
+        </section>
 
-        <!-- Final Statement -->
-        <!-- <section class="py-32 relative z-10 text-center">
-            <div class="max-w-4xl mx-auto px-6">
-                <h2
-                    class="text-3xl md:text-5xl font-bold text-gray-900 dark:text-white mb-8"
-                >
-                    Why TakoVibe Matters
-                </h2>
-                <p
-                    class="text-2xl text-gray-600 dark:text-gray-300 mb-12 leading-relaxed"
-                >
-                    Takovibe exists to document real engineering lessons so
-                    others don’t have to relearn them the hard way.
-                </p>
-                <p
-                    class="text-xl text-purple-600 dark:text-purple-400 font-bold mb-16"
-                >
-                    If you believe software engineering is about understanding
-                    systems deeply, you’re in the right place.
-                </p>
-                <div
-                    class="w-32 h-1 bg-gradient-to-r from-purple-600 to-blue-600 mx-auto rounded-full"
-                >
+        <section class="px-4 py-16 sm:px-6">
+            <div class="mx-auto grid max-w-7xl gap-4 md:grid-cols-3">
+                {principles.map((item) => (
+                    <article class="rounded-lg border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
+                        <div class="mb-4 h-1.5 w-10 rounded-full bg-orange-500"></div>
+                        <h2 class="text-xl font-black text-neutral-950 dark:text-white">
+                            {item.title}
+                        </h2>
+                        <p class="mt-3 text-sm leading-6 text-neutral-600 dark:text-neutral-400">
+                            {item.description}
+                        </p>
+                    </article>
+                ))}
+            </div>
+        </section>
+
+        <section class="border-y border-neutral-200 bg-white px-4 py-16 sm:px-6 dark:border-neutral-800 dark:bg-neutral-900/40">
+            <div class="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
+                <div>
+                    <p class="text-sm font-black uppercase tracking-[0.18em] text-orange-600 dark:text-orange-300">
+                        The gap
+                    </p>
+                    <h2 class="mt-4 text-3xl font-black tracking-tight text-neutral-950 md:text-4xl dark:text-white">
+                        Less content churn. More working context.
+                    </h2>
+                    <p class="mt-5 text-base leading-7 text-neutral-600 dark:text-neutral-300">
+                        The goal is not to publish more noise. It is to make hard engineering ideas easier to revisit, test, explain, and apply.
+                    </p>
+                </div>
+
+                <div class="grid gap-3">
+                    {audience.map((item) => (
+                        <div class="flex items-start gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-950">
+                            <svg class="mt-0.5 h-5 w-5 shrink-0 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <p class="text-sm font-semibold leading-6 text-neutral-700 dark:text-neutral-300">
+                                {item}
+                            </p>
+                        </div>
+                    ))}
                 </div>
             </div>
-        </section> -->
-    </div>
+        </section>
+
+        <section id="tools" class="px-4 py-16 sm:px-6">
+            <div class="mx-auto max-w-7xl">
+                <div class="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+                    <div>
+                        <p class="text-sm font-black uppercase tracking-[0.18em] text-orange-600 dark:text-orange-300">
+                            Ecosystem
+                        </p>
+                        <h2 class="mt-3 text-3xl font-black tracking-tight text-neutral-950 dark:text-white">
+                            Built around how developers actually work.
+                        </h2>
+                    </div>
+                    <a href="/playground" class="text-sm font-bold text-orange-600 hover:text-orange-700 dark:text-orange-300 dark:hover:text-orange-200">
+                        Start with Playground
+                    </a>
+                </div>
+
+                <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    {tools.map((tool) => (
+                        <a
+                            href={tool.href}
+                            class="group rounded-lg border border-neutral-200 bg-white p-5 transition hover:border-orange-300 hover:shadow-lg hover:shadow-orange-950/5 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-orange-500/40"
+                        >
+                            <div class="flex items-center justify-between gap-3">
+                                <h3 class="font-black text-neutral-950 dark:text-white">
+                                    {tool.label}
+                                </h3>
+                                <svg class="h-4 w-4 text-neutral-400 transition group-hover:translate-x-0.5 group-hover:text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 17L17 7M17 7H8M17 7v9"></path>
+                                </svg>
+                            </div>
+                            <p class="mt-3 text-sm leading-6 text-neutral-600 dark:text-neutral-400">
+                                {tool.description}
+                            </p>
+                        </a>
+                    ))}
+                </div>
+            </div>
+        </section>
+
+        <section class="px-4 pb-20 sm:px-6">
+            <div class="mx-auto max-w-7xl rounded-lg border border-neutral-200 bg-neutral-950 p-8 text-white md:p-10 dark:border-neutral-800">
+                <div class="grid gap-6 md:grid-cols-[1fr_auto] md:items-center">
+                    <div>
+                        <h2 class="text-2xl font-black tracking-tight">
+                            Write from the work, not around it.
+                        </h2>
+                        <p class="mt-3 max-w-2xl text-sm leading-6 text-neutral-300">
+                            TakoVibe is open to practical engineering stories, architecture notes, debugging writeups, and lessons that help another builder move faster with more context.
+                        </p>
+                    </div>
+                    <a
+                        href="/contact"
+                        class="inline-flex items-center justify-center rounded-lg bg-orange-500 px-5 py-3 text-sm font-black text-white transition hover:bg-orange-400"
+                    >
+                        Write with us
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
 </Layout>
-
-<style>
-    @keyframes blob {
-        0% {
-            transform: translate(0px, 0px) scale(1);
-        }
-        33% {
-            transform: translate(30px, -50px) scale(1.1);
-        }
-        66% {
-            transform: translate(-20px, 20px) scale(0.9);
-        }
-        100% {
-            transform: translate(0px, 0px) scale(1);
-        }
-    }
-    .animate-blob {
-        animation: blob 7s infinite;
-    }
-    .animation-delay-2000 {
-        animation-delay: 2s;
-    }
-
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    .animate-fade-in-up {
-        animation: fadeInUp 0.8s ease-out forwards;
-        opacity: 0;
-    }
-    .animation-delay-200 {
-        animation-delay: 0.2s;
-    }
-    .animation-delay-400 {
-        animation-delay: 0.4s;
-    }
-    .animation-delay-600 {
-        animation-delay: 0.6s;
-    }
-    .animation-delay-800 {
-        animation-delay: 0.8s;
-    }
-
-    @keyframes gradient {
-        0% {
-            background-position: 0% 50%;
-        }
-        50% {
-            background-position: 100% 50%;
-        }
-        100% {
-            background-position: 0% 50%;
-        }
-    }
-    .animate-gradient {
-        background-size: 200% auto;
-        animation: gradient 4s linear infinite;
-    }
-</style>

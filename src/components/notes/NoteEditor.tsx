@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Excalidraw, WelcomeScreen, MainMenu, getSceneVersion, convertToExcalidrawElements } from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css";
-import { ArrowLeft, Save, Loader2, Cloud, CloudOff, Lock, Unlock, Wand2, X, Play, Code, Sparkles, Trash2, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Loader2, Cloud, CloudOff, Lock, Unlock, Wand2, X, Play, Code, Sparkles, Trash2, AlertTriangle } from 'lucide-react';
 import { parseMermaidToExcalidraw } from "@excalidraw/mermaid-to-excalidraw";
 import { fetchWithAuth } from '../../utils/api';
 import { showToast } from '../../utils/toast';
@@ -755,32 +755,41 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
     };
 
     return (
-        <div className="h-screen flex flex-col bg-white dark:bg-gray-900">
+        <div className="h-screen flex flex-col bg-neutral-100 text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50">
             {/* Header */}
-            <div className="h-14 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-2 sm:px-4 bg-gray-50 dark:bg-gray-900 z-10 transition-colors">
-                <div className="flex items-center gap-1 sm:gap-4 min-w-0">
-                    <a href={isAuthenticated ? "/notes#private" : "/notes#public"} className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors flex-shrink-0">
-                        <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+            <div className="h-16 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between gap-3 px-3 sm:px-5 bg-white/95 dark:bg-neutral-950/95 backdrop-blur z-10 transition-colors">
+                <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+                    <a href={isAuthenticated ? "/notes#private" : "/notes#public"} className="h-9 w-9 inline-flex items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-600 transition-colors hover:border-orange-300 hover:text-orange-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:border-orange-500/40 dark:hover:text-orange-300 flex-shrink-0">
+                        <ArrowLeft className="w-4 h-4" />
                     </a>
-                    <input
-                        type="text"
-                        value={title}
-                        disabled={isReadOnly}
-                        onChange={(e) => {
-                            setTitle(e.target.value);
-                            titleRef.current = e.target.value;
-                            if (!isReadOnly) setHasUnsavedChanges(true);
-                        }}
-                        onBlur={() => handleManualSave()}
-                        className={`bg-transparent text-gray-900 dark:text-white font-semibold text-base sm:text-lg focus:outline-none border-b border-transparent transition-colors min-w-0 w-28 sm:w-auto ${isReadOnly ? 'opacity-80 cursor-default' : 'hover:border-gray-300 focus:border-purple-500'}`}
-                    />
-                    {isReadOnly && (
-                        <span className="px-2 py-0.5 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs rounded font-medium flex items-center gap-1 flex-shrink-0">
-                            <Lock className="w-3 h-3" /> <span className="hidden sm:inline">Read Only</span>
-                        </span>
-                    )}
+                    <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="text"
+                                value={title}
+                                disabled={isReadOnly}
+                                onChange={(e) => {
+                                    setTitle(e.target.value);
+                                    titleRef.current = e.target.value;
+                                    if (!isReadOnly) setHasUnsavedChanges(true);
+                                }}
+                                onBlur={() => handleManualSave()}
+                                className={`min-w-0 w-40 sm:w-72 lg:w-[420px] bg-transparent text-neutral-950 dark:text-white font-black text-base sm:text-lg focus:outline-none border-b border-transparent transition-colors ${isReadOnly ? 'opacity-80 cursor-default' : 'hover:border-neutral-300 focus:border-orange-500 dark:hover:border-neutral-700'}`}
+                            />
+                            {isReadOnly && (
+                                <span className="px-2 py-0.5 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 text-xs rounded-md font-semibold flex items-center gap-1 flex-shrink-0">
+                                    <Lock className="w-3 h-3" /> <span className="hidden sm:inline">Read only</span>
+                                </span>
+                            )}
+                        </div>
+                        <div className="hidden sm:flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
+                            <span>Sketch Notes</span>
+                            <span className="h-1 w-1 rounded-full bg-orange-400"></span>
+                            <span>{isPublic ? "Public" : "Private"}</span>
+                        </div>
+                    </div>
                 </div>
-                <div className="flex items-center gap-1 sm:gap-4 flex-shrink-0">
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
                     <button
                         onClick={() => {
                             if (!isAuthenticated) {
@@ -793,11 +802,11 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                             }
                             setIsMermaidModalOpen(true);
                         }}
-                        className="p-1 min-[925px]:p-1.5 rounded-lg transition-colors flex items-center gap-1 min-[925px]:gap-2 text-sm font-medium text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-800"
+                        className="h-9 px-2 min-[925px]:px-3 rounded-lg transition-colors inline-flex items-center gap-1.5 text-sm font-semibold text-neutral-600 hover:bg-neutral-100 hover:text-orange-600 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-orange-300"
                         title="Text to Diagram"
                     >
-                        <Wand2 className="w-3.5 h-3.5 min-[925px]:w-4 min-[925px]:h-4" />
-                        <span className="hidden min-[925px]:inline">AI Diagram</span>
+                        <Wand2 className="w-4 h-4" />
+                        <span className="hidden min-[925px]:inline">Diagram</span>
                     </button>
 
                     {!isReadOnly && (
@@ -820,40 +829,37 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                             {/* VISIBLE UPLOAD IMAGE BUTTON */}
                             <button
                                 onClick={() => document.getElementById('custom-image-upload-standalone')?.click()}
-                                className="p-1 min-[925px]:p-1.5 min-[925px]:px-3 min-[925px]:mr-2 text-xs font-semibold rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-900/40 dark:text-indigo-300 dark:hover:bg-indigo-900/60 transition-colors flex items-center gap-1 min-[925px]:gap-2 border border-indigo-200 dark:border-indigo-700/50 shadow-sm"
+                                className="h-9 px-2 min-[925px]:px-3 text-xs font-semibold rounded-lg bg-neutral-100 text-neutral-700 hover:bg-orange-50 hover:text-orange-700 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-orange-500/10 dark:hover:text-orange-300 transition-colors flex items-center gap-1.5 border border-neutral-200 dark:border-neutral-800"
                                 title="Insert Custom Image"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                                <span className="hidden min-[925px]:inline">Upload Image</span>
+                                <span className="hidden min-[925px]:inline">Image</span>
                             </button>
 
                             <button
                                 onClick={() => {
                                     const becomingOpen = !isSidebarOpen;
                                     if (becomingOpen) {
-                                        setSidebarWidth(window.innerWidth / 2);
+                                        setSidebarWidth(Math.min(Math.max(window.innerWidth / 2, 380), 640));
                                     }
                                     setIsSidebarOpen(becomingOpen);
                                 }}
-                                className={`p-1 min-[925px]:p-1.5 rounded-lg transition-colors flex items-center gap-1 min-[925px]:gap-2 text-sm font-medium ${isSidebarOpen ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20' : 'text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-800'}`}
+                                className={`h-9 px-2 min-[925px]:px-3 rounded-lg transition-colors flex items-center gap-1.5 text-sm font-semibold ${isSidebarOpen ? 'text-orange-700 bg-orange-50 dark:bg-orange-500/10 dark:text-orange-300' : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-900'}`}
                                 title="Toggle Learning Tools"
                             >
-                                <Code className="w-3.5 h-3.5 min-[925px]:w-4 min-[925px]:h-4" />
+                                <Code className="w-4 h-4" />
                                 <span className="hidden min-[925px]:inline flex items-center gap-2">
-                                    Learning Tools
-                                    <span className="relative text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-full bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-purple-600 dark:text-purple-400 border border-purple-200/50 dark:border-purple-500/30 backdrop-blur-sm">
-                                        BETA
-                                    </span>
+                                    Tools
                                 </span>
                             </button>
 
 
                             <button
                                 onClick={togglePublic}
-                                className={`p-1 min-[925px]:p-1.5 rounded-lg transition-colors flex items-center gap-1 min-[925px]:gap-2 text-sm font-medium ${isPublic ? 'text-green-600 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40' : 'text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-800'}`}
+                                className={`h-9 px-2 min-[925px]:px-3 rounded-lg transition-colors flex items-center gap-1.5 text-sm font-semibold ${isPublic ? 'text-emerald-700 bg-emerald-50 dark:bg-emerald-500/10 dark:text-emerald-300' : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-900'}`}
                                 title={isPublic ? "Make Private" : "Make Public"}
                             >
-                                {isPublic ? <Unlock className="w-3.5 h-3.5 min-[925px]:w-4 min-[925px]:h-4" /> : <Lock className="w-3.5 h-3.5 min-[925px]:w-4 min-[925px]:h-4" />}
+                                {isPublic ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
                                 <span className="hidden min-[925px]:inline">{isPublic ? "Public" : "Private"}</span>
                             </button>
                         </>
@@ -861,11 +867,11 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                     {!isReadOnly && (
                         <>
                             {isAutoSavePaused && (
-                                <button onClick={handleManualSave} className="text-xs bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 px-3 py-1 rounded-full animate-pulse">
+                                <button onClick={handleManualSave} className="text-xs bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-300 px-3 py-1.5 rounded-lg font-bold animate-pulse">
                                     Retry Save
                                 </button>
                             )}
-                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <div className="hidden sm:flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-xs font-semibold text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">
                                 {isSaving ? (
                                     <><Loader2 className="w-3 h-3 animate-spin" /><span>Saving...</span></>
                                 ) : hasUnsavedChanges ? (
@@ -877,7 +883,7 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                         </>
                     )}
                     {!isAuthenticated && (
-                        <a href={`/login?next=/notes/${noteId || ''}`} className="text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700">
+                        <a href={`/login?next=/notes/${noteId || ''}`} className="text-sm font-bold text-orange-600 dark:text-orange-300 hover:text-orange-700">
                             Log In to Edit
                         </a>
                     )}
@@ -885,9 +891,9 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
             </div>
 
             {/* Editor */}
-            <div className="flex-1 w-full h-full relative overflow-hidden flex">
+            <div className="flex-1 w-full h-full relative overflow-hidden flex bg-neutral-100 dark:bg-neutral-950">
                 <div
-                    className="flex-1 h-full relative"
+                    className="flex-1 h-full relative overflow-hidden"
                     onMouseMove={(e) => {
                         const rect = e.currentTarget.getBoundingClientRect();
                         lastMousePos.current = {
@@ -897,8 +903,11 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                     }}
                 >
                     {isLoading ? (
-                        <div className="flex items-center justify-center h-full">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+                        <div className="flex h-full items-center justify-center bg-white dark:bg-neutral-950">
+                            <div className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-white px-4 py-3 text-sm font-bold text-neutral-600 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300">
+                                <Loader2 className="h-4 w-4 animate-spin text-orange-500" />
+                                Loading note
+                            </div>
                         </div>
                     ) : (
                         <Excalidraw
@@ -981,7 +990,7 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                                 left: `${selectionCoords.x}px`,
                                 top: `${selectionCoords.y}px`
                             }}
-                            className="fixed z-[999] px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full shadow-2xl font-bold text-sm flex items-center gap-2 hover:scale-105 active:scale-95 transition-all animate-in zoom-in-50 duration-200 whitespace-nowrap"
+                            className="fixed z-[999] px-4 py-2 bg-orange-500 text-white rounded-lg shadow-2xl font-bold text-sm flex items-center gap-2 hover:bg-orange-400 active:scale-95 transition-all animate-in zoom-in-50 duration-200 whitespace-nowrap"
                         >
                             <Sparkles className="w-4 h-4" />
                             Analyze with AI
@@ -992,10 +1001,10 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                     <>
                         <div
                             onMouseDown={startResizing}
-                            className={`w-0.5 hover:w-1 transition-all cursor-col-resize bg-gray-200 dark:bg-gray-800 hover:bg-purple-500/50 z-50 ${isResizing ? 'bg-purple-500/70 w-1' : ''}`}
+                            className={`w-1 transition-all cursor-col-resize bg-neutral-200 dark:bg-neutral-800 hover:bg-orange-500/50 z-50 ${isResizing ? 'bg-orange-500/70' : ''}`}
                         />
                         <div
-                            style={{ width: sidebarWidth }}
+                            style={{ width: Math.min(sidebarWidth, window.innerWidth * 0.92) }}
                             className="transition-[width] duration-300 ease-out"
                         >
                             <NoteEditorSidebar
@@ -1013,24 +1022,24 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
             {
                 isMermaidModalOpen && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-                        <div className="w-full max-w-2xl bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden flex flex-col max-h-[90vh]">
+                        <div className="w-full max-w-2xl bg-white dark:bg-neutral-950 rounded-lg shadow-2xl border border-neutral-200 dark:border-neutral-800 overflow-hidden flex flex-col max-h-[90vh]">
 
                             {/* Modal Header */}
-                            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+                            <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900">
                                 <div>
-                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                                        <Wand2 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                                    <h3 className="text-lg font-black text-neutral-950 dark:text-white flex items-center gap-2">
+                                        <Wand2 className="w-5 h-5 text-orange-500" />
                                         Text to Diagram
                                     </h3>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                    <p className="text-sm text-neutral-500 dark:text-neutral-400">
                                         Turn Mermaid syntax into editable diagrams instantly.
                                     </p>
                                 </div>
                                 <button
                                     onClick={() => setIsMermaidModalOpen(false)}
-                                    className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-full transition-colors"
+                                    className="p-2 hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded-lg transition-colors"
                                 >
-                                    <X className="w-5 h-5 text-gray-500" />
+                                    <X className="w-5 h-5 text-neutral-500" />
                                 </button>
                             </div>
 
@@ -1038,9 +1047,9 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                             <div className="p-6 flex-1 overflow-y-auto flex flex-col gap-6">
 
                                 {/* AI Section */}
-                                <div className="bg-purple-50 dark:bg-purple-900/10 p-4 rounded-xl border border-purple-100 dark:border-purple-900/30">
-                                    <label className="block text-sm font-bold text-purple-900 dark:text-purple-100 mb-2 flex items-center gap-2">
-                                        <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                                <div className="bg-orange-50 dark:bg-orange-500/10 p-4 rounded-lg border border-orange-100 dark:border-orange-500/20">
+                                    <label className="text-sm font-bold text-neutral-950 dark:text-white mb-2 flex items-center gap-2">
+                                        <Sparkles className="w-4 h-4 text-orange-500" />
                                         Describe your diagram
                                     </label>
                                     <div className="flex gap-2">
@@ -1050,12 +1059,12 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                                             onChange={(e) => setAiPrompt(e.target.value)}
                                             onKeyDown={(e) => e.key === 'Enter' && handleAIGenerate()}
                                             placeholder="e.g. 'Login flow with 2FA' or 'Sequence diagram for payment processing'"
-                                            className="flex-1 px-4 py-2.5 rounded-lg border border-purple-200 dark:border-purple-800 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-purple-500 outline-none transition-all"
+                                            className="flex-1 px-4 py-2.5 rounded-lg border border-orange-200 dark:border-orange-500/30 bg-white dark:bg-neutral-950 focus:ring-2 focus:ring-orange-500 outline-none transition-all text-neutral-950 dark:text-white"
                                         />
                                         <button
                                             onClick={handleAIGenerate}
                                             disabled={isGeneratingAI || !aiPrompt.trim()}
-                                            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                                            className="px-4 py-2 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-bold transition-colors flex items-center gap-2"
                                         >
                                             {isGeneratingAI ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
                                             <span className="hidden sm:inline">Magic</span>
@@ -1065,19 +1074,19 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
 
                                 {/* Manual Code Section */}
                                 <div className="flex-1 flex flex-col gap-2">
-                                    <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 flex items-center gap-2">
+                                    <label className="text-xs font-semibold uppercase tracking-wider text-neutral-500 flex items-center gap-2">
                                         <Code className="w-3 h-3" /> Mermaid Code
                                     </label>
                                     <textarea
                                         value={mermaidCode}
                                         onChange={(e) => setMermaidCode(e.target.value)}
                                         placeholder="Enter Mermaid syntax here..."
-                                        className="flex-1 min-h-[200px] p-4 font-mono text-sm bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none resize-none text-gray-900 dark:text-gray-100"
+                                        className="flex-1 min-h-[200px] p-4 font-mono text-sm bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none resize-none text-neutral-950 dark:text-neutral-100"
                                     />
 
-                                    <div className="flex items-center justify-between text-xs text-gray-400">
+                                    <div className="flex items-center justify-between text-xs text-neutral-400">
                                         <p>Supports Flowcharts, Sequence Diagrams, Class Diagrams, etc.</p>
-                                        <a href="https://mermaid.js.org/intro/" target="_blank" rel="noreferrer" className="hover:text-purple-500 underline">
+                                        <a href="https://mermaid.js.org/intro/" target="_blank" rel="noreferrer" className="hover:text-orange-500 underline">
                                             Mermaid Syntax Guide
                                         </a>
                                     </div>
@@ -1085,16 +1094,16 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                             </div>
 
                             {/* Modal Footer */}
-                            <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 flex justify-end gap-3">
+                            <div className="px-6 py-4 border-t border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 flex justify-end gap-3">
                                 <button
                                     onClick={() => setIsMermaidModalOpen(false)}
-                                    className="px-5 py-2.5 rounded-xl font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+                                    className="px-5 py-2.5 rounded-lg font-semibold text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleMermaidInsert}
-                                    className="px-5 py-2.5 rounded-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 hover:-translate-y-0.5 transition-all flex items-center gap-2"
+                                    className="px-5 py-2.5 rounded-lg font-bold bg-orange-500 text-white hover:bg-orange-600 transition-all flex items-center gap-2"
                                 >
                                     <Play className="w-4 h-4 fill-current" />
                                     Generate Diagram
