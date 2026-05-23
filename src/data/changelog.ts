@@ -27,6 +27,34 @@ export interface ChangeLogEntry {
 
 export const changelogData: ChangeLogEntry[] = [
     {
+        "date": "2026-05-23",
+        "version": "Revamp Complete",
+        "title": "Blog Revamp Wrapped",
+        "description": "The TakoVibe blog refresh is now complete: cleaner writing surfaces, polished saved posts, refined interactive blocks, and safer draft saving with optional images.",
+        "changes": [
+            {
+                "type": "improvement",
+                "text": "Saved Page Revamp: Reworked the saved posts page with the new neutral/orange visual system, stronger empty states, search, sorting, and cleaner article cards."
+            },
+            {
+                "type": "improvement",
+                "text": "Editor Refresh: Updated the new post editor with a calmer writing canvas, modern toolbar styling, tighter settings modal, and consistent rounded corners."
+            },
+            {
+                "type": "improvement",
+                "text": "Interactive Blocks Polish: Refreshed quiz blocks, code blocks, and CodeMirror playground UI while preserving the existing behavior and author workflow."
+            },
+            {
+                "type": "fix",
+                "text": "Optional Blog Images: Authors can now save and publish blogs without a cover image, while image uploads still work for both cover images and inline editor images."
+            },
+            {
+                "type": "fix",
+                "text": "Playground Stability: Added a safer loading boundary and dependency pre-optimization for the code playground to reduce stale dynamic import errors during development."
+            }
+        ]
+    },
+    {
         "date": "2026-05-09",
         "version": "Redesign In Progress",
         "title": "Frontend Redesign & Visual Refresh",
