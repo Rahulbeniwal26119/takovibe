@@ -38,7 +38,7 @@ const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
 
 <header
   id="site-header"
-  class="sticky top-0 z-[70] w-full transition-all duration-300 backdrop-blur-lg bg-neutral-50/80 dark:bg-neutral-950/80 border-b border-neutral-200/50 dark:border-neutral-800/50"
+  class="sticky top-0 z-[70] w-full transition-all duration-300 bg-transparent border-b border-transparent"
 >
   <div class="max-w-[1400px] mx-auto h-14 lg:h-16 px-4 sm:px-6 lg:px-8 relative">
     <div class="flex items-center justify-between h-full gap-4">
@@ -699,13 +699,14 @@ const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
                  "border",
                  "border-neutral-200",
                  "dark:border-neutral-800",
-                 "bg-neutral-50/90",
-                 "dark:bg-neutral-950/90",
+                 "bg-transparent",
                  "backdrop-blur-xl"
                );
                headerContent.classList.remove(
                  "bg-neutral-50/80",
                  "dark:bg-neutral-950/80",
+                 "bg-neutral-50/90",
+                 "dark:bg-neutral-950/90",
                  "border-b",
                  "border-neutral-200/10",
                  "dark:border-neutral-800/10"
@@ -724,16 +725,11 @@ const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
                  "border",
                  "border-neutral-200",
                  "dark:border-neutral-800",
-                 "bg-neutral-50/90",
-                 "dark:bg-neutral-950/90",
                  "backdrop-blur-xl"
                );
                headerContent.classList.add(
-                 "bg-neutral-50/80",
-                 "dark:bg-neutral-950/80",
-                 "border-b",
-                 "border-neutral-200/10",
-                 "dark:border-neutral-800/10"
+                 "bg-transparent",
+                 "border-transparent"
                );
              }
            }
