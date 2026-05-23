@@ -169,10 +169,10 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
 
     return (
         <NodeViewWrapper className="code-block my-4 sm:my-8 not-prose">
-            <div className="rounded-lg sm:rounded-xl overflow-visible border border-gray-200 dark:border-gray-700 shadow-sm sm:shadow-lg bg-white dark:bg-[#0d1117] transition-all duration-300 hover:shadow-md sm:hover:shadow-xl group">
+            <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm transition-all duration-300 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-950 group">
 
                 {/* Header */}
-                <div className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-2.5 bg-gray-50 dark:bg-[#161b22] border-b border-gray-200 dark:border-gray-700 select-none relative z-20">
+                <div className="relative z-20 flex items-center justify-between border-b border-neutral-200 bg-stone-50 px-3 py-2 select-none dark:border-neutral-800 dark:bg-neutral-900/80 sm:px-4 sm:py-2.5">
                     <div className="flex items-center gap-2 sm:gap-4 flex-1 overflow-x-auto">
                         <div className="flex items-center gap-1.5 group-hover:gap-2 transition-all duration-300 hidden sm:flex">
                             <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-400/80 border border-red-500/50" />
@@ -182,14 +182,14 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
 
                         {/* Tabs or Single Language Selector */}
                         {isTabbed ? (
-                            <div className="flex items-center gap-1 flex-1 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent pb-1">
+                            <div className="flex flex-1 items-center gap-1 overflow-x-auto pb-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-neutral-300 dark:scrollbar-thumb-neutral-700">
                                 {codeTabs.map((tab, index) => (
                                     <button
                                         key={index}
                                         onClick={() => setActiveTab(index)}
                                         className={`flex items-center gap-1.5 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded-md text-xs font-medium transition-all whitespace-nowrap ${activeTab === index
-                                            ? 'bg-purple-100 text-purple-700 border border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-700'
-                                            : 'text-gray-500 bg-gray-100 border border-gray-200 hover:bg-gray-200 dark:text-gray-400 dark:bg-gray-800/50 dark:border-gray-700 dark:hover:bg-gray-700'
+                                            ? 'bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-950/30 dark:text-orange-300 dark:border-orange-800/70'
+                                            : 'text-neutral-500 bg-white border border-neutral-200 hover:bg-neutral-100 dark:text-neutral-400 dark:bg-neutral-900 dark:border-neutral-800 dark:hover:bg-neutral-800'
                                             }`}
                                     >
                                         <span className="max-w-[80px] truncate">{tab.label || tab.language}</span>
@@ -209,7 +209,7 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                                     <>
                                         <button
                                             onClick={addNewTab}
-                                            className="flex items-center gap-1 px-2 py-1.5 sm:px-2.5 sm:py-1.5 rounded-md text-xs font-medium text-purple-600 bg-purple-50 border border-purple-200 hover:bg-purple-100 dark:text-purple-400 dark:bg-purple-900/20 dark:border-purple-800 dark:hover:bg-purple-900/30 transition-all"
+                                            className="flex items-center gap-1 rounded-md border border-orange-200 bg-orange-50 px-2 py-1.5 text-xs font-medium text-orange-700 transition-all hover:bg-orange-100 dark:border-orange-800/70 dark:bg-orange-950/30 dark:text-orange-300 dark:hover:bg-orange-950/50 sm:px-2.5 sm:py-1.5"
                                             title="Add Tab"
                                         >
                                             <Plus size={12} />
@@ -217,7 +217,7 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                                         </button>
                                         <button
                                             onClick={disableTabs}
-                                            className="flex items-center gap-1 px-2 py-1.5 sm:px-2.5 sm:py-1.5 rounded-md text-xs font-medium text-gray-500 bg-gray-100 border border-gray-200 hover:bg-gray-200 dark:text-gray-400 dark:bg-gray-700/50 dark:border-gray-600 dark:hover:bg-gray-700 transition-all"
+                                            className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-1.5 text-xs font-medium text-neutral-500 transition-all hover:bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 sm:px-2.5 sm:py-1.5"
                                             title="Disable Tabs (Keep Active Tab)"
                                         >
                                             <Minus size={12} />
@@ -230,7 +230,7 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                             <div className="flex items-center gap-2">
                                 {/* Show language name in read-only mode */}
                                 {!isEditable && (
-                                    <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider font-mono px-2">
+                                    <span className="px-2 font-mono text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
                                         {defaultLanguage || 'plaintext'}
                                     </span>
                                 )}
@@ -247,7 +247,7 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                                             setCodeTabs(initialTabs);
                                             updateAttributes({ tabs: initialTabs });
                                         }}
-                                        className="flex items-center gap-1 px-2 py-1.5 sm:px-2.5 sm:py-1.5 rounded-md text-xs font-medium text-purple-600 hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/30 transition-all"
+                                        className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium text-orange-600 transition-all hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-orange-950/30 sm:px-2.5 sm:py-1.5"
                                         title="Enable Tabs"
                                     >
                                         <Plus size={12} />
@@ -259,7 +259,7 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                     </div>
 
                     <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0 ml-2">
-                        <div className="w-px h-3 sm:h-4 bg-gray-600 mx-0.5 sm:mx-1" />
+                        <div className="mx-0.5 h-3 w-px bg-neutral-300 dark:bg-neutral-700 sm:mx-1 sm:h-4" />
 
 
 
@@ -281,7 +281,7 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                                             }
                                         }));
                                     }}
-                                    className="flex items-center gap-1.5 px-2 py-1.5 sm:px-2.5 sm:py-1.5 rounded-md text-xs font-medium transition-all text-purple-600 hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/30"
+                                    className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-orange-600 transition-all hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-orange-950/30 sm:px-2.5 sm:py-1.5"
                                     title="Open in Code Studio"
                                 >
                                     <Sparkles size={14} className="sm:w-[14px] sm:h-[14px]" />
@@ -292,7 +292,7 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                         {/* Explain Button */}
                         <button
                             onClick={handleExplainCode}
-                            className="flex items-center gap-1.5 px-2 py-1.5 sm:px-2.5 sm:py-1.5 rounded-md text-xs font-medium transition-all text-purple-600 hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/30"
+                            className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-orange-600 transition-all hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-orange-950/30 sm:px-2.5 sm:py-1.5"
                             title="Explain with AI"
                         >
                             <Search size={14} className="sm:w-[14px] sm:h-[14px]" />
@@ -302,8 +302,8 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                         <button
                             onClick={handleCopyCode}
                             className={`flex items-center gap-1.5 px-2 py-1.5 sm:px-2.5 sm:py-1.5 rounded-md text-xs font-medium transition-all ${isCopied
-                                ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
-                                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700'
+                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300'
+                                : 'text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-neutral-200 dark:hover:bg-neutral-800'
                                 }`}
                             title="Copy Code"
                         >
@@ -313,8 +313,8 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                         <button
                             onClick={() => updateAttributes({ showOutput: !showOutput })}
                             className={`flex items-center gap-1.5 px-2 py-1.5 sm:px-2.5 sm:py-1.5 rounded-md text-xs font-medium transition-colors ${showOutput
-                                ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400'
-                                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700'
+                                ? 'bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-300'
+                                : 'text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-neutral-200 dark:hover:bg-neutral-800'
                                 }`}
                             title="Toggle Output"
                         >
@@ -326,7 +326,7 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
 
                 {/* Editor Content Area */}
                 <div
-                    className="relative flex flex-row items-start bg-white dark:bg-[#0d1117] overflow-hidden"
+                    className="relative flex flex-row items-start overflow-hidden bg-white dark:bg-neutral-950"
                     style={{
                         fontFamily: '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
                         fontSize: '13px',
@@ -344,7 +344,7 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                                         <select
                                             value={codeTabs[activeTab]?.language || 'javascript'}
                                             onChange={(e) => updateTabLanguage(activeTab, e.target.value)}
-                                            className="text-xs px-2 py-1 rounded bg-gray-100 border border-gray-200 text-gray-700 dark:bg-[#161b22] dark:border-gray-700 dark:text-gray-300 focus:outline-none focus:border-purple-500 font-mono"
+                                            className="rounded border border-neutral-200 bg-stone-50 px-2 py-1 font-mono text-xs text-neutral-700 focus:border-orange-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300"
                                         >
                                             {languages.map((lang: string) => (
                                                 <option key={lang} value={lang}>{lang}</option>
@@ -354,7 +354,7 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                                     <textarea
                                         value={codeTabs[activeTab]?.code || ''}
                                         onChange={(e) => updateTabCode(activeTab, e.target.value)}
-                                        className="w-full min-h-[200px] bg-transparent text-gray-800 dark:text-gray-200 font-mono text-[12px] sm:text-[14px] outline-none resize-y"
+                                        className="min-h-[200px] w-full resize-y bg-transparent font-mono text-[12px] text-neutral-800 outline-none dark:text-neutral-200 sm:text-[14px]"
                                         style={{
                                             fontFamily: 'inherit',
                                             lineHeight: 'inherit',
@@ -369,7 +369,7 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                             ) : (
                                 // Read-only tabbed view
                                 <pre
-                                    className={`language-${(tabs && tabs[activeTab]?.language) || 'plaintext'} !m-0 !p-0 !bg-transparent text-gray-800 dark:text-gray-200`}
+                                    className={`language-${(tabs && tabs[activeTab]?.language) || 'plaintext'} !m-0 !p-0 !bg-transparent text-neutral-800 dark:text-neutral-200`}
                                     style={{
                                         whiteSpace: 'pre-wrap',
                                         fontFamily: 'inherit',
@@ -391,7 +391,7 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                                         <select
                                             value={defaultLanguage || 'auto'}
                                             onChange={(e) => updateAttributes({ language: e.target.value === 'auto' ? null : e.target.value })}
-                                            className="text-xs px-2 py-1 rounded bg-gray-100 border border-gray-200 text-gray-700 dark:bg-[#161b22] dark:border-gray-700 dark:text-gray-300 focus:outline-none focus:border-purple-500 font-mono"
+                                            className="rounded border border-neutral-200 bg-stone-50 px-2 py-1 font-mono text-xs text-neutral-700 focus:border-orange-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300"
                                         >
                                             <option value="auto">auto</option>
                                             {languages.map((lang: string) => (
@@ -401,7 +401,7 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                                     </div>
                                 )}
                                 <pre
-                                    className="!m-0 !p-0 !bg-transparent text-gray-800 dark:text-gray-200 outline-none shadow-none border-0 !font-[inherit] !leading-[inherit] text-[12px] sm:text-[14px]"
+                                    className="!m-0 !p-0 !bg-transparent text-neutral-800 dark:text-neutral-200 outline-none shadow-none border-0 !font-[inherit] !leading-[inherit] text-[12px] sm:text-[14px]"
                                     style={{
                                         whiteSpace: 'pre-wrap',
                                         fontFamily: 'inherit',
@@ -429,11 +429,11 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
 
                 {/* Output Section */}
                 {showOutput && (
-                    <div className="bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 animate-in fade-in slide-in-from-top-2 duration-200">
-                        <div className="flex items-center justify-between px-3 py-1 sm:px-4 sm:py-1.5 border-b border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-950">
+                    <div className="animate-in fade-in slide-in-from-top-2 border-t border-neutral-200 bg-stone-50 duration-200 dark:border-neutral-800 dark:bg-neutral-900">
+                        <div className="flex items-center justify-between border-b border-neutral-200 bg-neutral-100 px-3 py-1 dark:border-neutral-800 dark:bg-neutral-950 sm:px-4 sm:py-1.5">
                             <div className="flex items-center gap-2">
-                                <Terminal size={10} className="text-gray-400" />
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Output</span>
+                                <Terminal size={10} className="text-neutral-400" />
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">Output</span>
                             </div>
                         </div>
                         <div className="p-0">
@@ -442,11 +442,11 @@ export default ({ node, updateAttributes, extension, editor }: any) => {
                                     value={output}
                                     onChange={(e) => updateAttributes({ output: e.target.value })}
                                     placeholder="$ Code output will appear here..."
-                                    className="w-full bg-transparent text-gray-800 dark:text-gray-300 font-mono text-[12px] sm:text-[14px] outline-none resize-y placeholder-gray-400 dark:placeholder-gray-600 leading-relaxed p-2 sm:p-3 h-24 sm:h-32 selection:bg-gray-200 dark:selection:bg-gray-700"
+                                    className="h-24 w-full resize-y bg-transparent p-2 font-mono text-[12px] leading-relaxed text-neutral-800 outline-none placeholder-neutral-400 selection:bg-neutral-200 dark:text-neutral-300 dark:placeholder-neutral-600 dark:selection:bg-neutral-700 sm:h-32 sm:p-3 sm:text-[14px]"
                                     spellCheck={false}
                                 />
                             ) : (
-                                <div className="w-full bg-transparent text-gray-800 dark:text-gray-300 font-mono text-[12px] sm:text-[14px] outline-none leading-relaxed p-2 sm:p-3 whitespace-pre-wrap break-words selection:bg-gray-200 dark:selection:bg-gray-700">
+                                <div className="w-full whitespace-pre-wrap break-words bg-transparent p-2 font-mono text-[12px] leading-relaxed text-neutral-800 outline-none selection:bg-neutral-200 dark:text-neutral-300 dark:selection:bg-neutral-700 sm:p-3 sm:text-[14px]">
                                     {output}
                                 </div>
                             )}

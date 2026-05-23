@@ -148,9 +148,9 @@ export const SEOPreview: React.FC<SEOPreviewProps> = ({ title, description, slug
                             {description.length > 0 && description.length <= descLimit ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
                             <span className="text-sm font-medium">Description length is optimal</span>
                         </div>
-                        <div className={`flex items-center gap-3 p-3 rounded-lg border ${image ? 'bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400' : 'bg-slate-100 dark:bg-slate-800 border-transparent text-slate-500'}`}>
+                        <div className={`flex items-center gap-3 p-3 rounded-lg border ${image ? 'bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400' : 'bg-orange-500/10 border-orange-500/20 text-orange-600 dark:text-orange-400'}`}>
                             {image ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
-                            <span className="text-sm font-medium">Cover image is set</span>
+                            <span className="text-sm font-medium">{image ? 'Cover image is set' : 'Cover image is optional'}</span>
                         </div>
                     </div>
                 </div>

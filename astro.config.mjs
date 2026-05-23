@@ -246,7 +246,28 @@ export default defineConfig({
       noExternal: ['@tiptap/core', '@tiptap/starter-kit', 'clsx', '@excalidraw/excalidraw']
     },
     optimizeDeps: {
-      include: ['@tiptap/core', '@tiptap/starter-kit', 'clsx', '@excalidraw/excalidraw']
+      include: [
+        '@tiptap/core',
+        '@tiptap/starter-kit',
+        'clsx',
+        '@excalidraw/excalidraw',
+        '@uiw/react-codemirror',
+        '@uiw/codemirror-theme-github',
+        '@codemirror/lang-html',
+        '@codemirror/lang-css',
+        '@codemirror/lang-javascript',
+        '@codemirror/lang-python',
+        '@codemirror/lang-rust',
+        '@codemirror/lang-go',
+        '@codemirror/autocomplete',
+        '@codemirror/view',
+        '@codemirror/state',
+        '@replit/codemirror-vim',
+        'react-markdown',
+        'remark-gfm',
+        'rehype-highlight',
+        'diff',
+      ]
     },
     worker: {
       format: 'es'

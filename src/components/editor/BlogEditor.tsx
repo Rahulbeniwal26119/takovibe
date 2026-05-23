@@ -15,7 +15,7 @@ interface BlogEditorProps {
 export const BlogEditor: React.FC<BlogEditorProps> = (props) => {
     return (
         <Suspense fallback={
-            <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-slate-950">
+            <div className="flex items-center justify-center h-screen bg-stone-50 dark:bg-neutral-950">
                 <Loader text="Initializing Editor..." size="lg" />
             </div>
         }>

@@ -108,7 +108,7 @@ code.hljs {
 .code-block {
   position: relative;
   margin: 2rem 0;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   overflow: hidden;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
@@ -166,7 +166,7 @@ code.hljs {
   color: #0f172a !important;
   /* slate-900 */
   font-weight: 800 !important;
-  letter-spacing: -0.025em !important;
+  letter-spacing: 0 !important;
 }
 
 :root:not(.dark) .light-mode-editor strong,
@@ -193,10 +193,9 @@ code.hljs {
 }
 
 :root:not(.dark) .light-mode-editor a {
-  color: #7c3aed !important;
-  /* violet-600 */
+  color: #ea580c !important;
   text-decoration: underline;
-  text-decoration-color: #ddd6fe;
+  text-decoration-color: #fed7aa;
   text-underline-offset: 2px;
 }
 

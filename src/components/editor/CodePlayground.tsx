@@ -332,6 +332,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
     const [topPanelHeight, setTopPanelHeight] = useState(60);
     const [isDragging, setIsDragging] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
+    const editorMinHeight = '24rem';
 
     // Initial Setup from props
     useEffect(() => {
@@ -674,7 +675,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
     })();
 
     return (
-        <div className="flex flex-col h-full overflow-hidden bg-white dark:bg-neutral-900 not-prose relative">
+        <div className="relative flex h-full flex-col overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-950 not-prose">
             {/* Diff View Overlay */}
             {reviewingFixIndex !== null && aiFixData[reviewingFixIndex]?.extractedCode && (
                 <DiffView
@@ -759,7 +760,7 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
                     </div>
                 </div>
             )}
-            <div className="flex items-center justify-between px-4 py-2 bg-neutral-50 dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 shrink-0">
+            <div className="flex items-center justify-between border-b border-neutral-200 bg-stone-50 px-4 py-2 dark:border-neutral-800 dark:bg-neutral-900/80 shrink-0">
                 <div className="flex items-center gap-4">
                     {/* Modern Language Selector */}
                     <div className="relative">
@@ -939,21 +940,22 @@ export const CodePlayground: React.FC<CodePlaygroundProps> = ({
             </div>
 
             {/* Content Container - Vertical Layout */}
-            <div ref={containerRef} className="flex flex-col flex-1 relative min-h-0">
+            <div ref={containerRef} className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
                 {/* Editor Pane (Top) */}
                 <div
-                    className="flex flex-col relative overflow-hidden bg-white dark:bg-[#0d1117]"
-                    style={{ flex: `0 0 ${topPanelHeight}%` }}
+                    className="relative flex flex-col overflow-hidden bg-white dark:bg-neutral-950"
+                    style={{ flex: `0 0 ${topPanelHeight}%`, minHeight: editorMinHeight }}
                 >
                     <div className="h-full overflow-auto">
                         <CodeMirror
                             value={getCurrentValue()}
                             height="100%"
+                            minHeight={editorMinHeight}
                             theme={isDark ? githubDark : githubLight}
                             extensions={extensions}
                             onChange={handleChange}
                             onCreateEditor={setView}
-                            className="h-full text-base"
+                            className="h-full text-base [&_.cm-editor]:h-full [&_.cm-editor]:rounded-none [&_.cm-gutters]:border-r-neutral-200 dark:[&_.cm-gutters]:border-r-neutral-800 [&_.cm-scroller]:font-mono"
                             basicSetup={{
                                 lineNumbers: true,
                                 foldGutter: true,

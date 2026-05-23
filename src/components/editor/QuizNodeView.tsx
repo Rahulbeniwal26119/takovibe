@@ -69,59 +69,72 @@ const QuizNodeView = ({ node, updateAttributes, editor, getPos }) => {
 
         return (
             <NodeViewWrapper className="quiz-component my-4 sm:my-8 w-full not-prose">
-                <div className="bg-white dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300">
-                    <div className="p-4 sm:p-5">
-                        <div className="flex items-start gap-3 mb-4">
-                            <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg text-purple-600 dark:text-purple-400 mt-0.5">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
+                <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm transition-all duration-300 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-950">
+                    <div className="border-b border-neutral-200 bg-stone-50 px-4 py-3 dark:border-neutral-800 dark:bg-neutral-900/70 sm:px-5">
+                        <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-2">
+                                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300">
+                                    <span className="text-sm font-bold">?</span>
+                                </span>
+                                <span className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+                                    Quick Check
+                                </span>
                             </div>
-                            <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 dark:text-gray-100 leading-snug">
-                                {question || "Untitled Quiz"}
-                            </h3>
+                            <span className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-500 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-400">
+                                {isSubmitted ? "Completed" : "Interactive"}
+                            </span>
                         </div>
+                    </div>
+
+                    <div className="p-4 sm:p-5">
+                        <h3 className="mb-4 text-base font-semibold leading-snug text-neutral-900 dark:text-neutral-100 sm:text-lg lg:text-xl">
+                            {question || "Untitled Quiz"}
+                        </h3>
 
                         <div className="grid grid-cols-1 gap-2">
                             {options.map((option, index) => {
                                 const isSelected = selectedOption === index;
                                 const isCorrect = index === correctIndex;
-                                let borderClass = "border-gray-200 dark:border-gray-700";
-                                let bgClass = "bg-gray-50 dark:bg-gray-800/50";
-                                let textClass = "text-gray-700 dark:text-gray-300";
+                                let borderClass = "border-neutral-200 dark:border-neutral-800";
+                                let bgClass = "bg-stone-50 dark:bg-neutral-900/70";
+                                let textClass = "text-neutral-700 dark:text-neutral-300";
+                                let markerClass = "bg-neutral-200 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400";
 
                                 if (isSubmitted) {
                                     if (isCorrect) {
-                                        borderClass = "border-green-500 dark:border-green-500";
-                                        bgClass = "bg-green-50 dark:bg-green-900/20";
+                                        borderClass = "border-emerald-500 dark:border-emerald-500";
+                                        bgClass = "bg-emerald-50 dark:bg-emerald-950/30";
                                         textClass = "text-green-700 dark:text-green-300";
+                                        markerClass = "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300";
                                     } else if (isSelected) {
                                         borderClass = "border-red-500 dark:border-red-500";
-                                        bgClass = "bg-red-50 dark:bg-red-900/20";
+                                        bgClass = "bg-red-50 dark:bg-red-950/30";
                                         textClass = "text-red-700 dark:text-red-300";
+                                        markerClass = "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300";
                                     }
                                 } else if (isSelected) {
-                                    borderClass = "border-purple-500";
-                                    bgClass = "bg-purple-50 dark:bg-purple-900/10";
+                                    borderClass = "border-orange-500 dark:border-orange-500";
+                                    bgClass = "bg-orange-50 dark:bg-orange-950/30";
+                                    markerClass = "bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300";
                                 }
 
                                 return (
                                     <button
                                         key={index}
-                                        className={`relative flex items-center p-3 text-left rounded-lg border ${borderClass} ${bgClass} transition-all duration-200 group overflow-hidden ${!isSubmitted ? 'hover:border-purple-400 dark:hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/10' : 'cursor-default'}`}
+                                        className={`relative flex items-center rounded-lg border p-3 text-left ${borderClass} ${bgClass} group overflow-hidden transition-all duration-200 ${!isSubmitted ? 'hover:border-orange-400 hover:bg-orange-50 dark:hover:border-orange-500 dark:hover:bg-orange-950/30' : 'cursor-default'}`}
                                         onClick={() => handleOptionClick(index)}
                                         disabled={isSubmitted}
                                     >
-                                        <div className={`flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full ${isSubmitted && isCorrect ? 'bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400' : isSubmitted && isSelected && !isCorrect ? 'bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400' : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'} font-bold text-xs transition-colors mr-3 z-10`}>
+                                        <div className={`z-10 mr-3 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors ${markerClass}`}>
                                             {isSubmitted && isCorrect ? (
-                                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                                <CheckCircle2 className="h-4 w-4" />
                                             ) : isSubmitted && isSelected && !isCorrect ? (
-                                                <div className="w-3.5 h-3.5 flex items-center justify-center">✕</div>
+                                                <div className="flex h-4 w-4 items-center justify-center">x</div>
                                             ) : (
                                                 String.fromCharCode(65 + index)
                                             )}
                                         </div>
-                                        <span className={`${textClass} text-base sm:text-lg font-medium z-10`}>
+                                        <span className={`z-10 text-sm font-medium sm:text-base ${textClass}`}>
                                             {option}
                                         </span>
                                     </button>
@@ -129,10 +142,10 @@ const QuizNodeView = ({ node, updateAttributes, editor, getPos }) => {
                             })}
                         </div>
                     </div>
-                    <div className="px-4 py-2 sm:px-5 sm:py-2.5 bg-gray-50 dark:bg-gray-800/80 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400 font-semibold">
+                    <div className="flex items-center justify-between border-t border-neutral-200 bg-stone-50 px-4 py-2 text-[10px] font-semibold uppercase tracking-wider text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900/70 dark:text-neutral-400 sm:px-5 sm:py-2.5">
                         <span>{isSubmitted ? (selectedOption === correctIndex ? "Correct Answer" : "Incorrect Answer") : "Select an option"}</span>
                         <span className="flex items-center gap-1.5">
-                            <span className={`w-1.5 h-1.5 rounded-full ${isSubmitted ? (selectedOption === correctIndex ? 'bg-green-500' : 'bg-red-500') : 'bg-purple-500 animate-pulse'}`}></span>
+                            <span className={`h-1.5 w-1.5 rounded-full ${isSubmitted ? (selectedOption === correctIndex ? 'bg-emerald-500' : 'bg-red-500') : 'bg-orange-500 animate-pulse'}`}></span>
                             {isSubmitted ? "Completed" : "Interactive"}
                         </span>
                     </div>
@@ -143,76 +156,91 @@ const QuizNodeView = ({ node, updateAttributes, editor, getPos }) => {
 
     // Render for Editor (Quiz Creator)
     return (
-        <NodeViewWrapper className="quiz-component my-4 sm:my-8 p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm relative group">
-            <div className="absolute right-2 top-2 sm:right-4 sm:top-4 opacity-0 group-hover:opacity-100 transition-opacity">
+        <NodeViewWrapper className="quiz-component group relative my-4 overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-950 sm:my-8">
+            <div className="flex items-center justify-between gap-3 border-b border-neutral-200 bg-stone-50 px-4 py-3 dark:border-neutral-800 dark:bg-neutral-900/70 sm:px-5">
+                <div className="flex items-center gap-2">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300">
+                        <span className="text-sm font-bold">?</span>
+                    </span>
+                    <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+                            Quiz Block
+                        </p>
+                        <p className="text-[11px] text-neutral-400 dark:text-neutral-500">
+                            Mark the correct answer before publishing.
+                        </p>
+                    </div>
+                </div>
                 <button
                     onClick={handleCopyBlock}
-                    className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                    className="rounded-lg p-2 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
                     title="Copy Quiz Block"
                 >
-                    <Copy className="w-4 h-4" />
+                    <Copy className="h-4 w-4" />
                 </button>
             </div>
 
-            <div className="mb-4">
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Question
-                </label>
-                <input
-                    type="text"
-                    value={question}
-                    onChange={handleQuestionChange}
-                    className="w-full px-3 py-2 sm:px-4 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-transparent dark:text-white text-sm sm:text-base"
-                    placeholder="Enter your question here..."
-                />
-            </div>
+            <div className="p-4 sm:p-5">
+                <div className="mb-5">
+                    <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+                        Question
+                    </label>
+                    <input
+                        type="text"
+                        value={question}
+                        onChange={handleQuestionChange}
+                        className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white sm:px-4 sm:py-2 sm:text-base"
+                        placeholder="Enter your question here..."
+                    />
+                </div>
 
-            <div className="space-y-3">
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Options
-                </label>
-                {options.map((option, index) => (
-                    <div key={index} className="flex items-center gap-2 sm:gap-3">
-                        <button
-                            onClick={() => setCorrectOption(index)}
-                            className={`flex-shrink-0 transition-colors ${index === correctIndex
-                                ? 'text-green-500'
-                                : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'
-                                }`}
-                            title="Mark as correct answer"
-                        >
-                            {index === correctIndex ? (
-                                <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
-                            ) : (
-                                <Circle className="w-5 h-5 sm:w-6 sm:h-6" />
-                            )}
-                        </button>
-                        <input
-                            type="text"
-                            value={option}
-                            onChange={(e) => handleOptionChange(index, e.target.value)}
-                            className="flex-1 px-3 py-2 sm:px-4 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-transparent dark:text-white text-sm sm:text-base"
-                            placeholder={`Option ${index + 1}`}
-                        />
-                        <button
-                            onClick={() => removeOption(index)}
-                            className="p-1.5 sm:p-2 text-gray-400 hover:text-red-500 transition-colors"
-                            title="Remove option"
-                            disabled={options.length <= 2}
-                        >
-                            <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                        </button>
-                    </div>
-                ))}
-            </div>
+                <div className="space-y-3">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+                        Options
+                    </label>
+                    {options.map((option, index) => (
+                        <div key={index} className="flex items-center gap-2 sm:gap-3">
+                            <button
+                                onClick={() => setCorrectOption(index)}
+                                className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border transition-colors ${index === correctIndex
+                                    ? 'border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-800/70 dark:bg-emerald-950/30 dark:text-emerald-300'
+                                    : 'border-neutral-200 bg-stone-50 text-neutral-400 hover:border-orange-300 hover:text-orange-600 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-orange-800 dark:hover:text-orange-300'
+                                    }`}
+                                title="Mark as correct answer"
+                            >
+                                {index === correctIndex ? (
+                                    <CheckCircle2 className="h-5 w-5" />
+                                ) : (
+                                    <Circle className="h-5 w-5" />
+                                )}
+                            </button>
+                            <input
+                                type="text"
+                                value={option}
+                                onChange={(e) => handleOptionChange(index, e.target.value)}
+                                className="min-w-0 flex-1 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white sm:px-4 sm:py-2 sm:text-base"
+                                placeholder={`Option ${index + 1}`}
+                            />
+                            <button
+                                onClick={() => removeOption(index)}
+                                className="rounded-lg p-2 text-neutral-400 transition-colors hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-red-950/30"
+                                title="Remove option"
+                                disabled={options.length <= 2}
+                            >
+                                <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                            </button>
+                        </div>
+                    ))}
+                </div>
 
-            <button
-                onClick={addOption}
-                className="mt-4 flex items-center gap-2 text-sm font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors py-2"
-            >
-                <Plus className="w-4 h-4" />
-                Add Option
-            </button>
+                <button
+                    onClick={addOption}
+                    className="mt-4 flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-orange-600 transition-colors hover:bg-orange-50 hover:text-orange-700 dark:text-orange-400 dark:hover:bg-orange-950/30 dark:hover:text-orange-300"
+                >
+                    <Plus className="h-4 w-4" />
+                    Add Option
+                </button>
+            </div>
         </NodeViewWrapper>
     );
 };

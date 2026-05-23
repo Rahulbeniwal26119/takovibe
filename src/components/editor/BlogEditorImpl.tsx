@@ -123,6 +123,11 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
     const [uploadError, setUploadError] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
 
+    const appendUploadOwner = (formData: FormData) => {
+        const email = getUser()?.email;
+        if (email) formData.append("email", email);
+    };
+
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         // Prevent default behavior to avoid refresh
         e.preventDefault();
@@ -135,6 +140,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
         try {
             const formData = new FormData();
             formData.append("file", file);
+            appendUploadOwner(formData);
 
             const uploadResponse = await fetchWithAuth("/api/upload-image", {
                 method: "POST",
@@ -176,6 +182,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
         try {
             const formData = new FormData();
             formData.append("file", file);
+            appendUploadOwner(formData);
 
             const uploadResponse = await fetchWithAuth("/api/upload-image", {
                 method: "POST",
@@ -248,7 +255,6 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
         if (!frontmatter.author.trim()) errors.push('author');
         if (!frontmatter.date) errors.push('date');
         if (!frontmatter.slug.trim()) errors.push('slug');
-        if (!frontmatter.image.trim()) errors.push('image');
         if (!frontmatter.tags.trim()) errors.push('tags');
 
         setValidationErrors(errors);
@@ -432,11 +438,6 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
             type: 'doc',
             content: [
                 {
-                    type: 'heading',
-                    attrs: { level: 1 },
-                    content: [{ type: 'text', text: 'Start writing your story...' }],
-                },
-                {
                     type: 'paragraph',
                 },
             ],
@@ -607,9 +608,9 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
             return;
         }
 
-        // 2. Meta Fields Validation (Tags, Slug, Image)
+        // 2. Meta Fields Validation (Tags and slug)
         // If these are missing, we open the settings modal to let the user fill them in
-        if (!frontmatter.slug.trim() || !frontmatter.tags.trim() || !frontmatter.image.trim()) {
+        if (!frontmatter.slug.trim() || !frontmatter.tags.trim()) {
             setShowSettings(true);
             setSaveError("Please complete story details to publish.");
             // Highlight missing fields logic could go here if we want to be fancy, 
@@ -799,7 +800,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
     const MenuButton = ({ onClick, icon: Icon, label }: any) => (
         <button
             onClick={onClick}
-            className="flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors w-full text-left text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors w-full text-left text-neutral-600 dark:text-neutral-300 hover:bg-orange-50 hover:text-orange-700 dark:hover:bg-orange-950/30 dark:hover:text-orange-300"
             title={label}
         >
             <Icon className="w-4 h-4" />
@@ -824,18 +825,13 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
     return (
         <div className="relative w-full min-h-screen">
             {/* Main Content Container */}
-            <div className="w-full min-h-screen bg-white dark:bg-black transition-colors duration-500">
-
-                {/* Decorative Background Elements - OFF for clean look */}
-                {/* <div className={`absolute inset-0 overflow-hidden pointer-events-none transition-opacity duration-1000 ${isZenMode ? 'opacity-0' : 'opacity-100'}`}>
-                    <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full blur-3xl opacity-20 bg-purple-400 dark:bg-purple-600" />
-                    <div className="absolute top-[10%] -right-[10%] w-[40%] h-[40%] rounded-full blur-3xl opacity-20 bg-blue-400 dark:bg-blue-600" />
-                </div> */}
-
-
+            <div className="w-full min-h-screen bg-stone-50 dark:bg-neutral-950 transition-colors duration-500">
+                <div className="fixed inset-0 z-0 pointer-events-none">
+                    <div className="absolute top-0 left-0 right-0 h-[460px] bg-gradient-to-b from-orange-50/80 via-stone-50/40 to-transparent dark:from-orange-950/20 dark:via-neutral-950/40 dark:to-transparent" />
+                </div>
 
                 {/* Save Status Bar & Toolbar */}
-                <div className="sticky top-0 z-40 transition-all duration-500 backdrop-blur-xl border-b bg-white/80 dark:bg-slate-900/70 border-slate-200/50 dark:border-white/10 opacity-100">
+                <div className="sticky top-0 z-40 transition-all duration-500 backdrop-blur-xl border-b bg-stone-50/90 dark:bg-neutral-950/90 border-neutral-200 dark:border-neutral-800 opacity-100">
                     <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
 
                         {/* Left: Logo & Status */}
@@ -843,13 +839,13 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                             <a href="/" className="flex items-center gap-2 group" title="Go to Dashboard">
                                 <img src="/images/logo.svg" alt="TakoVibe" className="w-8 h-8 rounded-full hover:rotate-12 transition-transform duration-300" />
                             </a>
-                            <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 hidden sm:block"></div>
+                            <div className="h-6 w-px bg-neutral-200 dark:bg-neutral-800 hidden sm:block"></div>
 
-                            <div id="save-status" className="flex items-center gap-2 text-sm font-medium transition-all duration-300 text-gray-400 dark:text-gray-500">
+                            <div id="save-status" className="flex items-center gap-2 text-sm font-medium transition-all duration-300 text-neutral-400 dark:text-neutral-500">
                                 {isSaving ? (
                                     <>
-                                        <Loader2 className="w-3 h-3 animate-spin text-purple-500" />
-                                        <span className="text-purple-500 text-xs">Saving...</span>
+                                        <Loader2 className="w-3 h-3 animate-spin text-orange-500" />
+                                        <span className="text-orange-500 text-xs">Saving...</span>
                                     </>
                                 ) : saveError ? (
                                     <>
@@ -862,7 +858,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                         <span className="text-amber-500 text-xs">Unsaved changes</span>
                                     </>
                                 ) : (
-                                    <span className="text-gray-500 dark:text-gray-400 text-sm">
+                                    <span className="text-neutral-500 dark:text-neutral-400 text-sm">
                                         {lastSaved ? 'Saved' : 'Ready to write'}
                                     </span>
                                 )}
@@ -875,7 +871,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                             {/* Shortcuts Toggle - Desktop Only */}
                             <button
                                 onClick={() => setShowShortcuts(true)}
-                                className="hidden md:block p-2 md:p-2.5 rounded-xl text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:text-gray-400 dark:hover:text-purple-400 dark:hover:bg-purple-900/20 transition-all duration-300"
+                                className="hidden md:block p-2 md:p-2.5 rounded-lg text-neutral-500 hover:text-orange-600 hover:bg-orange-50 dark:text-neutral-400 dark:hover:text-orange-400 dark:hover:bg-orange-950/30 transition-all duration-300"
                                 title="Keyboard Shortcuts"
                             >
                                 <Keyboard className="w-5 h-5" />
@@ -884,7 +880,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                             {/* Settings Button */}
                             <button
                                 onClick={() => setShowSettings(!showSettings)}
-                                className="p-2 md:p-2.5 rounded-xl text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:text-gray-400 dark:hover:text-purple-400 dark:hover:bg-purple-900/20 transition-all duration-300"
+                                className="p-2 md:p-2.5 rounded-lg text-neutral-500 hover:text-orange-600 hover:bg-orange-50 dark:text-neutral-400 dark:hover:text-orange-400 dark:hover:bg-orange-950/30 transition-all duration-300"
                                 title="Story Settings"
                             >
                                 <Settings className="w-5 h-5" />
@@ -896,7 +892,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                     href={`/blog/${frontmatter.slug}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="hidden sm:flex items-center gap-2 px-3 py-2 md:px-4 md:py-2.5 rounded-xl font-medium text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:text-gray-400 dark:hover:text-purple-400 dark:hover:bg-purple-900/20 transition-all duration-300"
+                                    className="hidden sm:flex items-center gap-2 px-3 py-2 md:px-4 md:py-2.5 rounded-lg font-medium text-neutral-500 hover:text-orange-600 hover:bg-orange-50 dark:text-neutral-400 dark:hover:text-orange-400 dark:hover:bg-orange-950/30 transition-all duration-300"
                                     title="View Live Page"
                                 >
                                     <Eye className="w-5 h-5" />
@@ -909,7 +905,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                 <button
                                     onClick={handlePublish}
                                     disabled={isPublishing}
-                                    className="px-3 py-1.5 md:px-4 md:py-1.5 rounded-full text-sm font-medium bg-green-600 hover:bg-green-700 text-white transition-all shadow-sm hover:shadow hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                    className="px-3 py-1.5 md:px-4 md:py-1.5 rounded-lg text-sm font-medium bg-orange-600 hover:bg-orange-700 text-white transition-all shadow-sm hover:shadow hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                     title="Ready to Publish?"
                                 >
                                     {isPublishing ? (
@@ -922,7 +918,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                             )}
 
                             {/* User Profile */}
-                            <div className="pl-2 ml-1 border-l border-gray-200 dark:border-gray-700">
+                            <div className="pl-2 ml-1 border-l border-neutral-200 dark:border-neutral-800">
                                 <UserAuth />
                             </div>
                         </div>
@@ -930,9 +926,9 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                 </div>
 
                 {/* Scrollable Content Area */}
-                <div className="flex-1 overflow-y-auto w-full">
+                <div className="relative z-10 flex-1 overflow-y-auto w-full">
                     {/* Clean Title Input (Medium Style) */}
-                    <div className="max-w-4xl mx-auto w-full px-4 md:px-6 pt-8 pb-2 transition-all duration-500 ease-in-out">
+                    <div className="max-w-4xl mx-auto w-full px-4 md:px-6 pt-10 pb-2 transition-all duration-500 ease-in-out">
                         <textarea
                             ref={titleRef}
                             value={frontmatter.title}
@@ -941,7 +937,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                 setHasUnsavedChanges(true);
                                 if (validationErrors.includes('title')) setValidationErrors(prev => prev.filter(f => f !== 'title'));
                             }}
-                            className="w-full text-4xl md:text-5xl font-serif font-bold bg-transparent border-none outline-none p-0 placeholder:text-gray-300 dark:placeholder:text-gray-600 text-gray-900 dark:text-white transition-all leading-tight mb-2 resize-none overflow-hidden"
+                            className="w-full text-4xl md:text-5xl font-display font-bold bg-transparent border-none outline-none p-0 placeholder:text-neutral-300 dark:placeholder:text-neutral-700 text-neutral-900 dark:text-neutral-50 transition-all leading-tight mb-2 resize-none overflow-hidden"
                             placeholder="Title"
                             rows={1}
                         />
@@ -954,7 +950,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                 setHasUnsavedChanges(true);
                                 if (validationErrors.includes('description')) setValidationErrors(prev => prev.filter(f => f !== 'description'));
                             }}
-                            className="w-full text-xl bg-transparent border-none outline-none resize-none p-0 placeholder:text-gray-400 dark:placeholder:text-gray-600 text-gray-600 dark:text-gray-300 transition-all font-serif mb-4 resize-none overflow-hidden"
+                            className="w-full text-xl bg-transparent border-none outline-none resize-none p-0 placeholder:text-neutral-400 dark:placeholder:text-neutral-600 text-neutral-600 dark:text-neutral-300 transition-all mb-4 resize-none overflow-hidden"
                             placeholder="Tell your story..."
                             rows={1}
                         />
@@ -978,16 +974,16 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                 <div className={`relative flex items-center ${isBodyUploading ? 'hidden' : ''}`}>
                                     <button
                                         onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                        className={`p-1 rounded-full border transition-all duration-200 ${isMenuOpen
-                                            ? 'rotate-45 border-gray-400 text-gray-600 bg-white dark:bg-gray-800 dark:text-gray-300'
-                                            : 'border-gray-300 text-gray-400 hover:border-gray-400 hover:text-gray-600 dark:border-gray-600 dark:text-gray-500 dark:hover:text-gray-300'
+                                        className={`p-1 rounded-lg border transition-all duration-200 ${isMenuOpen
+                                            ? 'rotate-45 border-orange-300 text-orange-600 bg-white dark:bg-neutral-900 dark:text-orange-400 dark:border-orange-900/60'
+                                            : 'border-neutral-300 text-neutral-400 hover:border-orange-300 hover:text-orange-600 dark:border-neutral-700 dark:text-neutral-500 dark:hover:text-orange-400'
                                             }`}
                                     >
                                         <Plus className="w-5 h-5" />
                                     </button>
 
                                     {isMenuOpen && (
-                                        <div className="absolute left-10 top-1/2 -translate-y-1/2 flex items-center gap-2 shadow-xl border rounded-lg p-2 animate-in fade-in slide-in-from-left-2 z-50 min-w-[200px] bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+                                        <div className="absolute left-10 top-1/2 -translate-y-1/2 flex items-center gap-2 shadow-xl border rounded-lg p-2 animate-in fade-in slide-in-from-left-2 z-50 min-w-[200px] bg-white border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800">
                                             <div className="flex flex-col gap-1 w-full">
                                                 <MenuButton onClick={() => openMediaInput('image')} icon={ImageIcon} label="Image" />
                                                 <MenuButton onClick={() => openMediaInput('video')} icon={YoutubeIcon} label="Embed Video" />
@@ -1003,42 +999,42 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
 
                                     {/* Table Input Popover */}
                                     {showTableInput && (
-                                        <div className="absolute left-10 top-1/2 -translate-y-1/2 rounded-xl shadow-xl border p-4 z-[60] animate-in fade-in slide-in-from-left-2 w-64 bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+                                        <div className="absolute left-10 top-1/2 -translate-y-1/2 rounded-lg shadow-xl border p-4 z-[60] animate-in fade-in slide-in-from-left-2 w-64 bg-white border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800">
                                             <div className="space-y-3">
                                                 <div className="flex gap-4">
                                                     <div className="space-y-1">
-                                                        <label className="text-xs font-bold text-gray-500 uppercase">Rows</label>
+                                                        <label className="text-xs font-bold text-neutral-500 uppercase">Rows</label>
                                                         <input
                                                             type="number"
                                                             min="1"
                                                             max="20"
                                                             value={tableDims.rows}
                                                             onChange={(e) => setTableDims(prev => ({ ...prev, rows: parseInt(e.target.value) || 1 }))}
-                                                            className="w-full px-2 py-1 text-sm border rounded focus:ring-2 focus:ring-purple-500 bg-transparent border-gray-300 dark:border-gray-600 dark:text-white"
+                                                            className="w-full px-2 py-1 text-sm border rounded focus:ring-2 focus:ring-orange-500 bg-transparent border-neutral-300 dark:border-neutral-700 dark:text-white"
                                                         />
                                                     </div>
                                                     <div className="space-y-1">
-                                                        <label className="text-xs font-bold text-gray-500 uppercase">Cols</label>
+                                                        <label className="text-xs font-bold text-neutral-500 uppercase">Cols</label>
                                                         <input
                                                             type="number"
                                                             min="1"
                                                             max="10"
                                                             value={tableDims.cols}
                                                             onChange={(e) => setTableDims(prev => ({ ...prev, cols: parseInt(e.target.value) || 1 }))}
-                                                            className="w-full px-2 py-1 text-sm border rounded focus:ring-2 focus:ring-purple-500 bg-transparent border-gray-300 dark:border-gray-600 dark:text-white"
+                                                            className="w-full px-2 py-1 text-sm border rounded focus:ring-2 focus:ring-orange-500 bg-transparent border-neutral-300 dark:border-neutral-700 dark:text-white"
                                                         />
                                                     </div>
                                                 </div>
                                                 <div className="flex gap-2 pt-2">
                                                     <button
                                                         onClick={handleInsertTable}
-                                                        className="flex-1 py-1.5 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors"
+                                                        className="flex-1 py-1.5 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 transition-colors"
                                                     >
                                                         Insert Table
                                                     </button>
                                                     <button
                                                         onClick={() => setShowTableInput(false)}
-                                                        className="px-3 py-1.5 text-gray-500 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                                        className="px-3 py-1.5 text-neutral-500 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                                                     >
                                                         <X className="w-4 h-4" />
                                                     </button>
@@ -1049,14 +1045,14 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
 
                                     {/* Media Input Popover (Image/Youtube) */}
                                     {mediaInput.type && mediaInput.type !== 'link' && (
-                                        <div className="absolute left-10 top-1/2 -translate-y-1/2 rounded-xl shadow-xl border p-3 z-[60] animate-in fade-in slide-in-from-left-2 w-80 bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+                                        <div className="absolute left-10 top-1/2 -translate-y-1/2 rounded-lg shadow-xl border p-3 z-[60] animate-in fade-in slide-in-from-left-2 w-80 bg-white border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800">
                                             <div className="flex gap-2 items-center">
                                                 <input
                                                     type="text"
                                                     value={mediaInput.url}
                                                     onChange={(e) => setMediaInput({ ...mediaInput, url: e.target.value })}
                                                     placeholder={`Paste ${mediaInput.type} URL...`}
-                                                    className="flex-1 px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500 bg-transparent border-gray-300 dark:border-gray-600 dark:text-white"
+                                                    className="flex-1 px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-orange-500 bg-transparent border-neutral-300 dark:border-neutral-700 dark:text-white"
                                                     autoFocus
                                                     onKeyDown={(e) => {
                                                         if (e.key === 'Enter') handleMediaSubmit();
@@ -1065,13 +1061,13 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                                 />
                                                 <button
                                                     onClick={handleMediaSubmit}
-                                                    className="p-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                                                    className="p-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
                                                 >
                                                     <Check className="w-4 h-4" />
                                                 </button>
                                                 <button
                                                     onClick={() => setMediaInput({ type: null, url: '' })}
-                                                    className="p-2 text-gray-500 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                    className="p-2 text-neutral-500 rounded-lg transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
                                                 >
                                                     <X className="w-4 h-4" />
                                                 </button>
@@ -1089,13 +1085,13 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                             <BubbleMenu
                                 editor={editor}
                                 tippyOptions={{ duration: 100, maxWidth: 'none' }}
-                                className="flex items-center flex-wrap gap-1 shadow-lg border rounded-lg p-1 max-w-[90vw] bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700"
+                                className="flex items-center flex-wrap gap-1 shadow-lg border rounded-lg p-1 max-w-[90vw] bg-white border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800"
                             >
                                 <button
                                     onClick={() => editor.chain().focus().toggleBold().run()}
-                                    className={`p-2 rounded transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${editor.isActive('bold')
-                                        ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20'
-                                        : 'text-gray-600 dark:text-gray-300'
+                                    className={`p-2 rounded transition-colors hover:bg-orange-50 dark:hover:bg-orange-950/30 ${editor.isActive('bold')
+                                        ? 'text-orange-600 bg-orange-50 dark:bg-orange-950/30 dark:text-orange-400'
+                                        : 'text-neutral-600 dark:text-neutral-300'
                                         }`}
                                     title="Bold"
                                 >
@@ -1103,9 +1099,9 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                 </button>
                                 <button
                                     onClick={() => editor.chain().focus().toggleItalic().run()}
-                                    className={`p-2 rounded transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${editor.isActive('italic')
-                                        ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20'
-                                        : 'text-gray-600 dark:text-gray-300'
+                                    className={`p-2 rounded transition-colors hover:bg-orange-50 dark:hover:bg-orange-950/30 ${editor.isActive('italic')
+                                        ? 'text-orange-600 bg-orange-50 dark:bg-orange-950/30 dark:text-orange-400'
+                                        : 'text-neutral-600 dark:text-neutral-300'
                                         }`}
                                     title="Italic"
                                 >
@@ -1113,9 +1109,9 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                 </button>
                                 <button
                                     onClick={() => editor.chain().focus().toggleUnderline().run()}
-                                    className={`p-2 rounded transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${editor.isActive('underline')
-                                        ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20'
-                                        : 'text-gray-600 dark:text-gray-300'
+                                    className={`p-2 rounded transition-colors hover:bg-orange-50 dark:hover:bg-orange-950/30 ${editor.isActive('underline')
+                                        ? 'text-orange-600 bg-orange-50 dark:bg-orange-950/30 dark:text-orange-400'
+                                        : 'text-neutral-600 dark:text-neutral-300'
                                         }`}
                                     title="Underline"
                                 >
@@ -1123,35 +1119,35 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                 </button>
                                 <button
                                     onClick={() => editor.chain().focus().toggleStrike().run()}
-                                    className={`p-2 rounded transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${editor.isActive('strike')
-                                        ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20'
-                                        : 'text-gray-600 dark:text-gray-300'
+                                    className={`p-2 rounded transition-colors hover:bg-orange-50 dark:hover:bg-orange-950/30 ${editor.isActive('strike')
+                                        ? 'text-orange-600 bg-orange-50 dark:bg-orange-950/30 dark:text-orange-400'
+                                        : 'text-neutral-600 dark:text-neutral-300'
                                         }`}
                                     title="Strikethrough"
                                 >
                                     <Strikethrough className="w-4 h-4" />
                                 </button>
-                                <div className="w-px h-4 mx-1 bg-gray-200 dark:bg-gray-700" />
+                                <div className="w-px h-4 mx-1 bg-neutral-200 dark:bg-neutral-800" />
                                 <div className="relative">
                                     <button
                                         onClick={() => openMediaInput('link')}
-                                        className={`p-2 rounded transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${editor.isActive('link')
-                                            ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20'
-                                            : 'text-gray-600 dark:text-gray-300'
+                                        className={`p-2 rounded transition-colors hover:bg-orange-50 dark:hover:bg-orange-950/30 ${editor.isActive('link')
+                                            ? 'text-orange-600 bg-orange-50 dark:bg-orange-950/30 dark:text-orange-400'
+                                            : 'text-neutral-600 dark:text-neutral-300'
                                             }`}
                                         title="Link"
                                     >
                                         <LinkIcon className="w-4 h-4" />
                                     </button>
                                     {mediaInput.type === 'link' && (
-                                        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 rounded-xl shadow-xl border p-2 z-[60] animate-in fade-in slide-in-from-top-2 w-64 bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+                                        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 rounded-lg shadow-xl border p-2 z-[60] animate-in fade-in slide-in-from-top-2 w-64 bg-white border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800">
                                             <div className="flex gap-2 items-center">
                                                 <input
                                                     type="text"
                                                     value={mediaInput.url}
                                                     onChange={(e) => setMediaInput({ ...mediaInput, url: e.target.value })}
                                                     placeholder="https://..."
-                                                    className="flex-1 px-2 py-1 text-sm border rounded focus:ring-2 focus:ring-purple-500 bg-transparent border-gray-300 dark:border-gray-600 dark:text-white"
+                                                    className="flex-1 px-2 py-1 text-sm border rounded focus:ring-2 focus:ring-orange-500 bg-transparent border-neutral-300 dark:border-neutral-700 dark:text-white"
                                                     autoFocus
                                                     onKeyDown={(e) => {
                                                         if (e.key === 'Enter') handleMediaSubmit();
@@ -1160,7 +1156,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                                 />
                                                 <button
                                                     onClick={handleMediaSubmit}
-                                                    className="p-1.5 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+                                                    className="p-1.5 bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors"
                                                 >
                                                     <Check className="w-3 h-3" />
                                                 </button>
@@ -1171,7 +1167,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                                         }
                                                         setMediaInput({ type: null, url: '' });
                                                     }}
-                                                    className="p-1.5 text-gray-500 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                    className="p-1.5 text-neutral-500 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800"
                                                     title="Unlink"
                                                 >
                                                     <X className="w-3 h-3" />
@@ -1180,12 +1176,12 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                         </div>
                                     )}
                                 </div>
-                                <div className="w-px h-4 mx-1 bg-gray-200 dark:bg-gray-700" />
+                                <div className="w-px h-4 mx-1 bg-neutral-200 dark:bg-neutral-800" />
                                 <button
                                     onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-                                    className={`p-2 rounded transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${editor.isActive('heading', { level: 1 })
-                                        ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20'
-                                        : 'text-gray-600 dark:text-gray-300'
+                                    className={`p-2 rounded transition-colors hover:bg-orange-50 dark:hover:bg-orange-950/30 ${editor.isActive('heading', { level: 1 })
+                                        ? 'text-orange-600 bg-orange-50 dark:bg-orange-950/30 dark:text-orange-400'
+                                        : 'text-neutral-600 dark:text-neutral-300'
                                         }`}
                                     title="Heading 1"
                                 >
@@ -1193,9 +1189,9 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                 </button>
                                 <button
                                     onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-                                    className={`p-2 rounded transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${editor.isActive('heading', { level: 2 })
-                                        ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20'
-                                        : 'text-gray-600 dark:text-gray-300'
+                                    className={`p-2 rounded transition-colors hover:bg-orange-50 dark:hover:bg-orange-950/30 ${editor.isActive('heading', { level: 2 })
+                                        ? 'text-orange-600 bg-orange-50 dark:bg-orange-950/30 dark:text-orange-400'
+                                        : 'text-neutral-600 dark:text-neutral-300'
                                         }`}
                                     title="Heading 2"
                                 >
@@ -1203,9 +1199,9 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                 </button>
                                 <button
                                     onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-                                    className={`p-2 rounded transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${editor.isActive('heading', { level: 3 })
-                                        ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20'
-                                        : 'text-gray-600 dark:text-gray-300'
+                                    className={`p-2 rounded transition-colors hover:bg-orange-50 dark:hover:bg-orange-950/30 ${editor.isActive('heading', { level: 3 })
+                                        ? 'text-orange-600 bg-orange-50 dark:bg-orange-950/30 dark:text-orange-400'
+                                        : 'text-neutral-600 dark:text-neutral-300'
                                         }`}
                                     title="Heading 3"
                                 >
@@ -1213,20 +1209,20 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                 </button>
                                 <button
                                     onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}
-                                    className={`p-2 rounded transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${editor.isActive('heading', { level: 4 })
-                                        ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20'
-                                        : 'text-gray-600 dark:text-gray-300'
+                                    className={`p-2 rounded transition-colors hover:bg-orange-50 dark:hover:bg-orange-950/30 ${editor.isActive('heading', { level: 4 })
+                                        ? 'text-orange-600 bg-orange-50 dark:bg-orange-950/30 dark:text-orange-400'
+                                        : 'text-neutral-600 dark:text-neutral-300'
                                         }`}
                                     title="Heading 4"
                                 >
                                     <Heading4 className="w-4 h-4" />
                                 </button>
-                                <div className="w-px h-4 mx-1 bg-gray-200 dark:bg-gray-700" />
+                                <div className="w-px h-4 mx-1 bg-neutral-200 dark:bg-neutral-800" />
                                 <button
                                     onClick={() => editor.chain().focus().toggleBulletList().run()}
-                                    className={`p-2 rounded transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${editor.isActive('bulletList')
-                                        ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20'
-                                        : 'text-gray-600 dark:text-gray-300'
+                                    className={`p-2 rounded transition-colors hover:bg-orange-50 dark:hover:bg-orange-950/30 ${editor.isActive('bulletList')
+                                        ? 'text-orange-600 bg-orange-50 dark:bg-orange-950/30 dark:text-orange-400'
+                                        : 'text-neutral-600 dark:text-neutral-300'
                                         }`}
                                     title="Bullet List"
                                 >
@@ -1234,9 +1230,9 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                 </button>
                                 <button
                                     onClick={() => editor.chain().focus().toggleOrderedList().run()}
-                                    className={`p-2 rounded transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${editor.isActive('orderedList')
-                                        ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20'
-                                        : 'text-gray-600 dark:text-gray-300'
+                                    className={`p-2 rounded transition-colors hover:bg-orange-50 dark:hover:bg-orange-950/30 ${editor.isActive('orderedList')
+                                        ? 'text-orange-600 bg-orange-50 dark:bg-orange-950/30 dark:text-orange-400'
+                                        : 'text-neutral-600 dark:text-neutral-300'
                                         }`}
                                     title="Ordered List"
                                 >
@@ -1244,9 +1240,9 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                 </button>
                                 <button
                                     onClick={() => editor.chain().focus().toggleBlockquote().run()}
-                                    className={`p-2 rounded transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${editor.isActive('blockquote')
-                                        ? 'text-purple-600 bg-purple-50 dark:bg-purple-900/20'
-                                        : 'text-gray-600 dark:text-gray-300'
+                                    className={`p-2 rounded transition-colors hover:bg-orange-50 dark:hover:bg-orange-950/30 ${editor.isActive('blockquote')
+                                        ? 'text-orange-600 bg-orange-50 dark:bg-orange-950/30 dark:text-orange-400'
+                                        : 'text-neutral-600 dark:text-neutral-300'
                                         }`}
                                     title="Quote"
                                 >
@@ -1262,11 +1258,11 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                             editor={editor}
                             tippyOptions={{ duration: 100, maxWidth: 'none' }}
                             shouldShow={({ editor }) => editor.isActive('table')}
-                            className="flex items-center gap-1 shadow-lg border rounded-lg p-1 bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700"
+                            className="flex items-center gap-1 shadow-lg border rounded-lg p-1 bg-white border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800"
                         >
                             <button
                                 onClick={() => editor.chain().focus().addColumnBefore().run()}
-                                className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors"
+                                className="p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-300 transition-colors"
                                 title="Add Column Before"
                             >
                                 <div className="flex items-center">
@@ -1276,7 +1272,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                             </button>
                             <button
                                 onClick={() => editor.chain().focus().addColumnAfter().run()}
-                                className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors"
+                                className="p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-300 transition-colors"
                                 title="Add Column After"
                             >
                                 <div className="flex items-center">
@@ -1294,10 +1290,10 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                     <div className="w-3 h-0.5 bg-current rotate-90" />
                                 </div>
                             </button>
-                            <div className="w-px h-4 mx-1 bg-gray-200 dark:bg-gray-700" />
+                            <div className="w-px h-4 mx-1 bg-neutral-200 dark:bg-neutral-800" />
                             <button
                                 onClick={() => editor.chain().focus().addRowBefore().run()}
-                                className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors"
+                                className="p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-300 transition-colors"
                                 title="Add Row Before"
                             >
                                 <div className="flex flex-col items-center">
@@ -1307,7 +1303,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                             </button>
                             <button
                                 onClick={() => editor.chain().focus().addRowAfter().run()}
-                                className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors"
+                                className="p-2 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-300 transition-colors"
                                 title="Add Row After"
                             >
                                 <div className="flex flex-col items-center">
@@ -1325,7 +1321,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                     <div className="w-3 h-0.5 bg-current" />
                                 </div>
                             </button>
-                            <div className="w-px h-4 mx-1 bg-gray-200 dark:bg-gray-700" />
+                            <div className="w-px h-4 mx-1 bg-neutral-200 dark:bg-neutral-800" />
                             <button
                                 onClick={() => editor.chain().focus().deleteTable().run()}
                                 className="p-2 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 transition-colors"
@@ -1341,15 +1337,15 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
 
 
                     {/* Inline Status Info - Inside text flow */}
-                    <div className="max-w-4xl mx-auto w-full px-4 md:px-6 py-4 flex items-center gap-4 text-xs font-medium text-gray-400 dark:text-gray-500 transition-all duration-500 ease-in-out border-t border-gray-100 dark:border-gray-800 mt-8">
+                    <div className="max-w-4xl mx-auto w-full px-4 md:px-6 py-4 flex items-center gap-4 text-xs font-medium text-neutral-400 dark:text-neutral-500 transition-all duration-500 ease-in-out border-t border-neutral-200 dark:border-neutral-800 mt-8">
                         {editor && (
                             <>
-                                <div className="flex items-center gap-1.5 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                                <div className="flex items-center gap-1.5 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors">
                                     <FileText className="w-3.5 h-3.5" />
                                     <span>{editor.storage.characterCount.words()} words</span>
                                 </div>
-                                <div className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-700" />
-                                <div className="flex items-center gap-1.5 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                                <div className="w-1 h-1 rounded-full bg-neutral-300 dark:bg-neutral-700" />
+                                <div className="flex items-center gap-1.5 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors">
                                     <Clock className="w-3.5 h-3.5" />
                                     <span>{Math.ceil(editor.storage.characterCount.words() / 200)} min read</span>
                                 </div>
@@ -1366,15 +1362,15 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
             {/* Settings Modal */}
             {showSettings && (
                 <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden outline-none max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800 sticky top-0 bg-white dark:bg-slate-900 z-10">
+                    <div className="w-full max-w-2xl bg-white dark:bg-neutral-950 rounded-lg shadow-2xl border border-neutral-200 dark:border-neutral-800 overflow-hidden outline-none max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-200 dark:border-neutral-800 sticky top-0 bg-white dark:bg-neutral-950 z-10">
                             <div className="flex items-center gap-2">
-                                <Settings className="w-5 h-5 text-purple-600" />
-                                <h3 className="font-bold text-gray-900 dark:text-white">Story Settings</h3>
+                                <Settings className="w-5 h-5 text-orange-600" />
+                                <h3 className="font-bold text-neutral-900 dark:text-white">Story Settings</h3>
                             </div>
                             <button
                                 onClick={() => setShowSettings(false)}
-                                className="p-1 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                                className="p-1 rounded-lg text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                             >
                                 <X className="w-5 h-5" />
                             </button>
@@ -1384,18 +1380,18 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                             {/* Cover Image */}
                             {/* Cover Image Section */}
                             <div className="md:col-span-2 space-y-3">
-                                <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Cover Image</label>
+                                <label className="text-xs font-bold uppercase tracking-wider text-neutral-500">Cover Image <span className="font-medium text-neutral-400">(optional)</span></label>
 
                                 <div className="w-full">
                                     {isUploading ? (
-                                        <div className="w-full h-48 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-800 animate-pulse">
-                                            <Loader2 className="w-8 h-8 text-purple-500 animate-spin mb-2" />
-                                            <span className="text-sm font-medium text-gray-500">Uploading image...</span>
+                                        <div className="w-full h-48 border-2 border-dashed border-neutral-200 dark:border-neutral-800 rounded-lg flex flex-col items-center justify-center bg-stone-50 dark:bg-neutral-900 animate-pulse">
+                                            <Loader2 className="w-8 h-8 text-orange-500 animate-spin mb-2" />
+                                            <span className="text-sm font-medium text-neutral-500">Uploading image...</span>
                                         </div>
                                     ) : frontmatter.image ? (
                                         <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2">
                                             {/* Preview Banner */}
-                                            <div className="relative w-full h-48 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm group bg-gray-100 dark:bg-gray-800">
+                                            <div className="relative w-full h-48 rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-800 shadow-sm group bg-neutral-100 dark:bg-neutral-900">
                                                 <img
                                                     src={frontmatter.image}
                                                     alt="Cover Preview"
@@ -1430,24 +1426,24 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                             {/* URL Display */}
                                             <div className="relative group">
                                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                    <LinkIcon className="h-4 w-4 text-gray-400" />
+                                                    <LinkIcon className="h-4 w-4 text-neutral-400" />
                                                 </div>
                                                 <input
                                                     type="text"
                                                     value={frontmatter.image}
                                                     readOnly
                                                     onClick={(e) => e.currentTarget.select()}
-                                                    className="w-full pl-10 pr-3 py-2 text-xs font-mono text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none transition-all cursor-text text-ellipsis"
+                                                    className="w-full pl-10 pr-3 py-2 text-xs font-mono text-neutral-600 dark:text-neutral-300 bg-stone-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none transition-all cursor-text text-ellipsis"
                                                 />
                                                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <span className="text-[10px] text-gray-400">Click to copy</span>
+                                                    <span className="text-[10px] text-neutral-400">Click to copy</span>
                                                 </div>
                                             </div>
                                         </div>
                                     ) : (
-                                        <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-purple-500 dark:hover:border-purple-500 transition-all group">
-                                            <div className="flex flex-col items-center justify-center pt-5 pb-6 text-gray-400 group-hover:text-purple-600 transition-colors">
-                                                <div className="p-4 rounded-full bg-white dark:bg-gray-700 shadow-sm mb-3 group-hover:shadow-md group-hover:scale-110 transition-all">
+                                        <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-stone-50 dark:bg-neutral-900/70 hover:bg-neutral-100 dark:hover:bg-neutral-900 border-neutral-300 dark:border-neutral-700 hover:border-orange-500 dark:hover:border-orange-500 transition-all group">
+                                            <div className="flex flex-col items-center justify-center pt-5 pb-6 text-neutral-400 group-hover:text-orange-600 transition-colors">
+                                                <div className="p-4 rounded-lg bg-white dark:bg-neutral-800 shadow-sm mb-3 group-hover:shadow-md group-hover:scale-105 transition-all">
                                                     <Cloud className="w-8 h-8" />
                                                 </div>
                                                 <p className="mb-2 text-sm font-medium"><span className="font-bold">Click to upload</span> or drag and drop</p>
@@ -1473,42 +1469,42 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
 
                             {/* Author & Slug */}
                             <div className="space-y-2">
-                                <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Author</label>
+                                <label className="text-xs font-bold uppercase tracking-wider text-neutral-500">Author</label>
                                 <input
                                     type="text"
                                     value={frontmatter.author}
                                     readOnly
-                                    className="w-full bg-transparent border-b border-gray-200 dark:border-gray-700 py-1 text-sm text-gray-500 cursor-not-allowed"
+                                    className="w-full bg-transparent border-b border-neutral-200 dark:border-neutral-800 py-1 text-sm text-neutral-500 cursor-not-allowed"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Slug</label>
+                                <label className="text-xs font-bold uppercase tracking-wider text-neutral-500">Slug</label>
                                 <input
                                     type="text"
                                     value={frontmatter.slug}
                                     onChange={(e) => setFrontmatter({ ...frontmatter, slug: e.target.value })}
-                                    className="w-full bg-transparent border-b border-gray-200 dark:border-gray-700 py-1 text-sm focus:border-purple-500 outline-none transition-colors dark:text-white"
+                                    className="w-full bg-transparent border-b border-neutral-200 dark:border-neutral-800 py-1 text-sm focus:border-orange-500 outline-none transition-colors dark:text-white"
                                     placeholder="post-url-slug"
                                 />
                             </div>
 
                             {/* Date & Tags */}
                             <div className="space-y-2">
-                                <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Publish Date</label>
+                                <label className="text-xs font-bold uppercase tracking-wider text-neutral-500">Publish Date</label>
                                 <input
                                     type="date"
                                     value={frontmatter.date}
                                     onChange={(e) => setFrontmatter({ ...frontmatter, date: e.target.value })}
-                                    className="w-full bg-transparent border-b border-gray-200 dark:border-gray-700 py-1 text-sm focus:border-purple-500 outline-none transition-colors dark:text-white"
+                                    className="w-full bg-transparent border-b border-neutral-200 dark:border-neutral-800 py-1 text-sm focus:border-orange-500 outline-none transition-colors dark:text-white"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Tags</label>
+                                <label className="text-xs font-bold uppercase tracking-wider text-neutral-500">Tags</label>
                                 <input
                                     type="text"
                                     value={frontmatter.tags}
                                     onChange={(e) => setFrontmatter({ ...frontmatter, tags: e.target.value })}
-                                    className="w-full bg-transparent border-b border-gray-200 dark:border-gray-700 py-1 text-sm focus:border-purple-500 outline-none transition-colors dark:text-white"
+                                    className="w-full bg-transparent border-b border-neutral-200 dark:border-neutral-800 py-1 text-sm focus:border-orange-500 outline-none transition-colors dark:text-white"
                                     placeholder="comma, separated, tags"
                                 />
                             </div>
@@ -1535,10 +1531,10 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                             </div> */}
 
                             {/* SEO Preview Toggle */}
-                            <div className="md:col-span-2 mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+                            <div className="md:col-span-2 mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-800">
                                 <button
                                     onClick={() => setShowSeoPreview(!showSeoPreview)}
-                                    className="text-xs font-bold uppercase tracking-wider text-purple-600 hover:text-purple-700 flex items-center gap-1"
+                                    className="text-xs font-bold uppercase tracking-wider text-orange-600 hover:text-orange-700 flex items-center gap-1"
                                 >
                                     {showSeoPreview ? 'Hide' : 'Show'} SEO Preview
                                 </button>
@@ -1569,9 +1565,9 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
             {/* Body Image Upload Loading State */}
             {isBodyUploading && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white dark:bg-slate-800 px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 border border-gray-100 dark:border-gray-700">
-                        <Loader2 className="w-5 h-5 text-purple-600 animate-spin" />
-                        <span className="font-medium text-gray-700 dark:text-gray-200">Uploading image...</span>
+                    <div className="bg-white dark:bg-neutral-900 px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3 border border-neutral-200 dark:border-neutral-800">
+                        <Loader2 className="w-5 h-5 text-orange-600 animate-spin" />
+                        <span className="font-medium text-neutral-700 dark:text-neutral-200">Uploading image...</span>
                     </div>
                 </div>
             )}
@@ -1579,15 +1575,15 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
             {/* Shortcuts Modal */}
             {showShortcuts && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden outline-none">
-                        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+                    <div className="w-full max-w-md bg-white dark:bg-neutral-950 rounded-lg shadow-2xl border border-neutral-200 dark:border-neutral-800 overflow-hidden outline-none">
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-200 dark:border-neutral-800">
                             <div className="flex items-center gap-2">
-                                <Keyboard className="w-5 h-5 text-purple-600" />
-                                <h3 className="font-bold text-gray-900 dark:text-white">Shortcuts</h3>
+                                <Keyboard className="w-5 h-5 text-orange-600" />
+                                <h3 className="font-bold text-neutral-900 dark:text-white">Shortcuts</h3>
                             </div>
                             <button
                                 onClick={() => setShowShortcuts(false)}
-                                className="p-1 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                                className="p-1 rounded-lg text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                             >
                                 <X className="w-5 h-5" />
                             </button>
@@ -1607,11 +1603,11 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                     { label: 'Code Block', keys: ['```', 'Enter'] },
                                     { label: 'Divider', keys: ['---', 'Enter'] },
                                 ].map((item, i) => (
-                                    <div key={i} className="flex items-center justify-between px-4 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
-                                        <span className="text-sm font-medium text-gray-600 dark:text-gray-300">{item.label}</span>
+                                    <div key={i} className="flex items-center justify-between px-4 py-3 rounded-lg hover:bg-stone-50 dark:hover:bg-white/5 transition-colors group">
+                                        <span className="text-sm font-medium text-neutral-600 dark:text-neutral-300">{item.label}</span>
                                         <div className="flex gap-1">
                                             {item.keys.map((key, k) => (
-                                                <kbd key={k} className="min-w-[1.5rem] px-1.5 py-0.5 text-xs font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded shadow-sm text-center font-sans">
+                                                <kbd key={k} className="min-w-[1.5rem] px-1.5 py-0.5 text-xs font-bold text-neutral-500 dark:text-neutral-400 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded shadow-sm text-center font-sans">
                                                     {key}
                                                 </kbd>
                                             ))}

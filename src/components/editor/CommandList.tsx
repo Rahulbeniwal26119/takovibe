@@ -79,7 +79,7 @@ export const CommandList = forwardRef((props: any, ref) => {
     return (
         <div
             ref={scrollContainerRef}
-            className="bg-white dark:bg-gray-900 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-800 overflow-y-auto min-w-[300px] max-w-[500px] max-h-[350px] p-2 grid grid-cols-1 md:grid-cols-2 gap-2 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-700 hover:scrollbar-thumb-gray-300 dark:hover:scrollbar-thumb-gray-600"
+            className="bg-white dark:bg-neutral-950 rounded-lg shadow-2xl border border-neutral-200 dark:border-neutral-800 overflow-y-auto min-w-[300px] max-w-[500px] max-h-[350px] p-2 grid grid-cols-1 md:grid-cols-2 gap-2 scrollbar-thin scrollbar-thumb-neutral-200 dark:scrollbar-thumb-neutral-700 hover:scrollbar-thumb-neutral-300 dark:hover:scrollbar-thumb-neutral-600"
         >
             {props.items.length ? (
                 props.items.map((item: any, index: number) => {
@@ -88,23 +88,23 @@ export const CommandList = forwardRef((props: any, ref) => {
                     return (
                         <button
                             className={`flex items-start gap-3 w-full px-3 py-3 text-left rounded-lg transition-all duration-75 border ${isSelected
-                                ? 'bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-500/30'
-                                : 'bg-transparent border-transparent hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300'
+                                ? 'bg-orange-50 border-orange-200 dark:bg-orange-950/30 dark:border-orange-800/60'
+                                : 'bg-transparent border-transparent hover:bg-stone-50 dark:hover:bg-neutral-900 text-neutral-700 dark:text-neutral-300'
                                 }`}
                             key={index}
                             onClick={() => selectItem(index)}
                         >
                             <div className={`p-2 rounded-md shrink-0 ${isSelected
-                                ? 'bg-white text-purple-600 shadow-sm dark:bg-purple-500/20 dark:text-purple-300'
-                                : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'}`}>
+                                ? 'bg-white text-orange-600 shadow-sm dark:bg-orange-500/15 dark:text-orange-300'
+                                : 'bg-neutral-100 text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400'}`}>
                                 {Icon && <Icon className="w-5 h-5" />}
                             </div>
                             <div className="flex flex-col min-w-0">
-                                <span className={`font-semibold text-sm truncate ${isSelected ? 'text-purple-900 dark:text-purple-100' : 'text-gray-900 dark:text-gray-100'}`}>
+                                <span className={`font-semibold text-sm truncate ${isSelected ? 'text-orange-950 dark:text-orange-100' : 'text-neutral-900 dark:text-neutral-100'}`}>
                                     {item.title}
                                 </span>
                                 {item.description && (
-                                    <span className={`text-xs truncate ${isSelected ? 'text-purple-700/70 dark:text-purple-200/50' : 'text-gray-500 dark:text-gray-400'}`}>
+                                    <span className={`text-xs truncate ${isSelected ? 'text-orange-700/80 dark:text-orange-200/60' : 'text-neutral-500 dark:text-neutral-400'}`}>
                                         {item.description}
                                     </span>
                                 )}
@@ -113,7 +113,7 @@ export const CommandList = forwardRef((props: any, ref) => {
                     )
                 })
             ) : (
-                <div className="col-span-2 px-4 py-8 text-center text-sm text-gray-500">
+                <div className="col-span-2 px-4 py-8 text-center text-sm text-neutral-500">
                     No matching commands
                 </div>
             )}
