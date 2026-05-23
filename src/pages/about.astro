@@ -1,8 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import ParticlesBackground from "../components/ParticlesBackground.astro";
 
-// Stats Data Fetching
 const API_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
 let stats = null;
 
@@ -32,8 +30,8 @@ try {
             role: author.role || "Core Contributor",
             img:
                 author.profile_image ||
-                `https://ui-avatars.com/api/?name=${encodeURIComponent(author.name)}&background=random&color=fff`,
-            bio: author.bio || "No bio available.",
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(author.name)}&background=f97316&color=fff`,
+            bio: author.bio || "Practical engineering notes, lessons, and field-tested ideas.",
             linkedin: author.linkedin_url || "#",
             github: author.github_url || "#",
             website: author.website_url || "#",
@@ -43,613 +41,253 @@ try {
 } catch (e) {
     console.warn("Failed to fetch authors");
 }
+
+const principles = [
+    {
+        title: "Production context",
+        text: "We care about how systems behave after the happy path ends: latency, failure, scale, debugging, and trade-offs.",
+    },
+    {
+        title: "Clear reasoning",
+        text: "Good engineering writing should make decisions easier to explain, revisit, and improve.",
+    },
+    {
+        title: "Practical depth",
+        text: "Articles are shaped around implementation experience, not recycled summaries or surface-level walkthroughs.",
+    },
+];
+
+const values = [
+    {
+        title: "Quality over quantity",
+        text: "Fewer articles, written with more care.",
+    },
+    {
+        title: "Technical honesty",
+        text: "We include the constraints, failures, and compromises.",
+    },
+    {
+        title: "Useful artifacts",
+        text: "Code, diagrams, playgrounds, and notes should stay close to the explanation.",
+    },
+    {
+        title: "Open learning",
+        text: "Engineering insight should be practical, accessible, and grounded.",
+    },
+];
+
+const topics = [
+    "Backend engineering",
+    "APIs and architecture",
+    "Containers and DevOps",
+    "Python internals",
+    "System design",
+    "Performance and reliability",
+    "Debugging stories",
+    "Engineering tools",
+];
 ---
 
 <Layout
     title="About | TakoVibe"
     author="TakoVibe Team"
-    tags={["software engineering", "team", "mission"]}
+    description="Learn about TakoVibe, an engineering publication focused on practical depth, production context, and useful technical learning."
+    tags={["software engineering", "team", "mission", "technical writing"]}
 >
-    <div
-        class="relative w-full overflow-x-hidden min-h-screen bg-gray-50 dark:bg-[#0B1120]"
-    >
-        <!-- Immersive Background (Shared with Home for consistency) -->
-        <div class="fixed inset-0 z-0 pointer-events-none">
-            <div
-                class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-purple-100 via-gray-50 to-white dark:from-[#1a103c] dark:via-[#0B1120] dark:to-[#0B1120]"
-            >
-            </div>
-            <!-- Floating Orbs -->
-            <div
-                class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-purple-400/20 dark:bg-purple-600/10 blur-[100px] animate-blob mix-blend-multiply dark:mix-blend-screen"
-            >
-            </div>
-            <div
-                class="absolute top-[20%] right-[-10%] w-[400px] h-[400px] rounded-full bg-blue-400/20 dark:bg-blue-600/10 blur-[100px] animate-blob animation-delay-2000 mix-blend-multiply dark:mix-blend-screen"
-            >
-            </div>
-            <ParticlesBackground />
-        </div>
-
-        <!-- Hero Section -->
-        <section class="relative z-10 py-24 lg:py-32">
-            <div class="max-w-7xl mx-auto px-6 text-center">
-                <div
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-white/80 dark:bg-white/5 backdrop-blur-md text-purple-700 dark:text-purple-300 rounded-full text-sm font-medium mb-8 border border-purple-200/50 dark:border-white/10 shadow-sm animate-fade-in-up"
-                >
-                    <span class="text-base">💎</span>
-                    <span>Engineering Excellence</span>
-                </div>
-
-                <h1
-                    class="text-4xl md:text-6xl lg:text-7xl font-bold mb-8 animate-fade-in-up animation-delay-200 tracking-tight"
-                >
-                    <span class="block text-gray-900 dark:text-white mb-2"
-                        >Built by Engineers.</span
-                    >
-                    <span
-                        class="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent animate-gradient"
-                        >For Engineers.</span
-                    >
-                </h1>
-
-                <p
-                    class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-12 leading-relaxed animate-fade-in-up animation-delay-400"
-                >
-                    Production-first engineering knowledge covering lessons, fundamentals, and tools, built from real production experience.
-                    <br class="hidden md:block" />
-                    <span class="font-semibold text-purple-600 dark:text-purple-400">No fluff. No surface-level tutorials.</span>
-                    Only technical depth that matters.
-                </p>
-
-                <!-- Stats Grid (Home Page Style) -->
-                {stats && (
-                <div
-                    class="flex flex-wrap justify-center gap-8 md:gap-16 mt-16 animate-fade-in-up animation-delay-600"
-                >
-                    <div class="text-center group">
-                        <div
-                            class="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-2xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 shadow-lg group-hover:scale-110 transition-transform"
-                        >
-                            <svg
-                                class="w-8 h-8"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                                ><path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
-                                ></path></svg
-                            >
-                        </div>
-                        <div
-                            class="text-3xl font-bold text-gray-900 dark:text-white mb-1"
-                        >
-                            {stats.total_blogs}+
-                        </div>
-                        <div
-                            class="text-sm text-gray-500 uppercase tracking-wider font-semibold"
-                        >
-                            Articles
-                        </div>
+    <main class="min-h-screen bg-stone-50 text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50">
+        <section class="relative overflow-hidden border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950">
+            <div class="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.035] dark:opacity-[0.055]"></div>
+            <div class="relative mx-auto grid max-w-7xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-center lg:px-8 lg:py-28">
+                <div class="max-w-3xl">
+                    <div class="mb-6 flex items-center gap-3">
+                        <div class="h-px w-10 bg-orange-500"></div>
+                        <span class="text-xs font-black uppercase tracking-[0.22em] text-orange-600 dark:text-orange-400">About TakoVibe</span>
                     </div>
 
-                    <div class="text-center group">
-                        <div
-                            class="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-2xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 shadow-lg group-hover:scale-110 transition-transform"
-                        >
-                            <svg
-                                class="w-8 h-8"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                                ><path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                ></path><path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                ></path></svg
-                            >
-                        </div>
-                        <!-- Simple client-side re-animation can be done, but server render is enough -->
-                        <div
-                            class="text-3xl font-bold text-gray-900 dark:text-white mb-1"
-                        >
-                            {formatNumber(stats.total_views)}+
-                        </div>
-                        <div
-                            class="text-sm text-gray-500 uppercase tracking-wider font-semibold"
-                        >
-                            Views
-                        </div>
-                    </div>
+                    <h1 class="font-display text-5xl font-black leading-[1.02] tracking-tight text-neutral-950 dark:text-white md:text-7xl">
+                        Engineering knowledge for people building real systems.
+                    </h1>
 
-                    <div class="text-center group">
-                        <div
-                            class="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-2xl bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 shadow-lg group-hover:scale-110 transition-transform"
-                        >
-                            <svg
-                                class="w-8 h-8"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                                ><path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
-                                ></path></svg
-                            >
-                        </div>
-                        <div
-                            class="text-3xl font-bold text-gray-900 dark:text-white mb-1"
-                        >
-                            {stats.total_authors}
-                        </div>
-                        <div
-                            class="text-sm text-gray-500 uppercase tracking-wider font-semibold"
-                        >
-                            Authors
-                        </div>
-                    </div>
-                </div>
-                )}
-            </div>
-        </section>
-
-        <!-- Mission / Why We Started -->
-        <section
-            class="py-24 relative overflow-hidden bg-white/50 dark:bg-[#0B1120]/50 backdrop-blur-sm z-10 border-y border-gray-200 dark:border-gray-800"
-        >
-            <div class="max-w-7xl mx-auto px-6">
-                <div class="flex flex-col lg:flex-row items-center gap-16">
-                    <div class="lg:w-1/2">
-                        <h2
-                            class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6"
-                        >
-                            Why We Started <span
-                                class="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent"
-                                >TakoVibe</span
-                            >
-                        </h2>
-                        <div
-                            class="space-y-6 text-lg text-gray-600 dark:text-gray-300 leading-relaxed"
-                        >
-                            <p>
-                                The internet is full of “Hello World” tutorials. But when systems face real production challenges, require architectural clarity, or must remain reliable over time, practical guidance becomes harder to find.
-                            </p>
-                            <p>
-                                TakoVibe bridges the gap between basic tutorials and real engineering practice. We share tutorials, lessons, and core knowledge shaped by real-world experience not toy examples. We believe meaningful engineering insight comes from:
-                            </p>
-                            <ul class="space-y-3">
-                                <li class="flex items-center gap-3">
-                                    <span class="w-2 h-2 rounded-full bg-purple-600"></span>
-                                    <span>Building and maintaining production systems</span>
-                                </li>
-                                <li class="flex items-center gap-3">
-                                    <span class="w-2 h-2 rounded-full bg-blue-600"></span>
-                                    <span>Making difficult architectural trade-offs</span>
-                                </li>
-                                <li class="flex items-center gap-3">
-                                    <span class="w-2 h-2 rounded-full bg-pink-600"></span>
-                                    <span>Running into failures and learning what actually works</span>
-                                </li>
-                            </ul>
-                            <p>
-                                TakoVibe is our attempt to document those lessons openly for engineers who want to go deeper.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="lg:w-1/2">
-                        <div class="relative">
-                            <div
-                                class="absolute -inset-4 bg-gradient-to-tr from-purple-500 to-pink-500 rounded-[2rem] opacity-20 blur-xl"
-                            >
-                            </div>
-                            <div
-                                class="relative bg-white dark:bg-[#131B2E] p-8 md:p-12 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-2xl"
-                            >
-                                <div class="text-6xl mb-6">💡</div>
-                                <h3
-                                    class="text-2xl font-bold text-gray-900 dark:text-white mb-4"
-                                >
-                                    "We don't just write code."
-                                </h3>
-                                <p
-                                    class="text-gray-600 dark:text-gray-400 italic text-lg mb-8"
-                                >
-                                    We don't just write code we explain why things were built the way they were, including the failures and trade-offs.
-                                </p>
-                                <div class="flex items-center gap-4">
-                                    <div
-                                        class="w-12 h-12 rounded-full bg-gradient-to-tr from-purple-600 to-blue-600 p-0.5"
-                                    >
-                                        <div class="w-full h-full rounded-full bg-white dark:bg-[#0B1120] flex items-center justify-center font-bold">RB</div>
-                                    </div>
-                                    <div>
-                                        <div
-                                            class="font-bold text-gray-900 dark:text-white"
-                                        >
-                                            Rahul Beniwal
-                                        </div>
-                                        <div
-                                            class="text-sm text-purple-600 dark:text-purple-400"
-                                        >
-                                            Core Contributor
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Differentiation Section -->
-        <section class="py-24 relative z-10 border-b border-gray-200 dark:border-gray-800">
-            <div class="max-w-7xl mx-auto px-6">
-                <div class="grid lg:grid-cols-2 gap-16 items-center">
-                    <div class="order-2 lg:order-1">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {[
-                                { title: "Implementation Experience", desc: "Articles are written from real implementation experience, not just theory." },
-                                { title: "System Behavior", desc: "Topics go beyond basics into system behavior and design reasoning." },
-                                { title: "No Trend-Chasing", desc: "We avoid shallow explainers or chasing temporary hype." },
-                                { title: "By Engineers, For Engineers", desc: "Content written by practitioners who build and scale systems." }
-                            ].map((item, i) => (
-                                <div class={`p-6 rounded-2xl bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 shadow-sm hover:shadow-md transition-shadow`}>
-                                    <h4 class="font-bold text-gray-900 dark:text-white mb-2">{item.title}</h4>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed text-wrap">{item.desc}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                    <div class="order-1 lg:order-2">
-                        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
-                            What Makes TakoVibe <span class="text-purple-600 dark:text-purple-400">Different</span>
-                        </h2>
-                        <p class="text-lg text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
-                            Unlike generic tech blogs, TakoVibe focuses on depth, clarity, and authenticity. Our goal is not to publish more, our goal is to publish meaningful engineering knowledge.
-                        </p>
-                        <div class="inline-flex items-center gap-2 px-6 py-3 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-xl font-semibold">
-                            <span>Quality > Quantity</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Core Values Section -->
-        <section class="py-24 relative z-10 bg-gray-50/50 dark:bg-black/20">
-            <div class="max-w-7xl mx-auto px-6">
-                <div class="text-center mb-16">
-                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Our Core Values</h2>
-                    <div class="w-20 h-1 bg-gradient-to-r from-purple-600 to-blue-600 mx-auto rounded-full"></div>
-                </div>
-                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {[
-                        { title: "Quality over Quantity", desc: "Fewer articles, but deeply researched and thoughtfully written." },
-                        { title: "Technical Accuracy", desc: "Content reviewed with real-world applicability in mind." },
-                        { title: "Experience-Driven", desc: "We value lessons learned from building and maintaining systems." },
-                        { title: "Open Knowledge", desc: "Engineering insights should be accessible, honest, and practical." }
-                    ].map((value) => (
-                        <div class="text-center p-8 rounded-3xl bg-white dark:bg-[#131B2E] border border-gray-100 dark:border-gray-800 shadow-sm">
-                            <h3 class="font-bold text-gray-900 dark:text-white mb-3 text-lg">{value.title}</h3>
-                            <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{value.desc}</p>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </section>
-
-        <!-- Topics Section -->
-        <section class="py-24 relative z-10 border-y border-gray-200 dark:border-gray-800">
-            <div class="max-w-7xl mx-auto px-6">
-                <div class="flex flex-col md:flex-row items-end justify-between mb-12 gap-6">
-                    <div class="max-w-2xl">
-                        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">What We Write About</h2>
-                        <p class="text-lg text-gray-600 dark:text-gray-400">
-                            TakoVibe covers topics that matter when software moves beyond tutorials.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="flex flex-wrap gap-4">
-                    {[
-                        { label: "Backend Engineering & APIs", highlight: "Modern API Development", icon: "⚙️" },
-                        { label: "Containers & DevOps", highlight: "Cloud-Native Infrastructure", icon: "🐳" },
-                        { label: "Core Python Mastery", highlight: "Language Internals & Design", icon: "🐍" },
-                        { label: "System Design & Architecture", highlight: "Scalability & Trade-offs", icon: "🏗️" },
-                        { label: "Performance & Reliability", highlight: "Production-Grade Systems", icon: "⚡" },
-                        { label: "Engineering Learnings", highlight: "Practical Case Studies", icon: "📚" }
-                    ].map((topic) => (
-                        <div class="flex items-center gap-4 px-6 py-4 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl hover:border-purple-500/50 transition-colors group">
-                            <span class="text-2xl">{topic.icon}</span>
-                            <div>
-                                <h4 class="font-bold text-gray-900 dark:text-white text-sm">{topic.label}</h4>
-                                <p class="text-xs text-purple-600 dark:text-purple-400 font-medium">{topic.highlight}</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </section>
-
-        <!-- Team Section -->
-        {authors.length > 0 && (
-        <section class="py-24 relative z-10">
-            <div class="max-w-7xl mx-auto px-6">
-                <div class="text-center mb-16">
-                    <h2
-                        class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4"
-                    >
-                        Meet the <span
-                            class="text-purple-600 dark:text-purple-400"
-                            >Authors</span
-                        >
-                    </h2>
-                    <p
-                        class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto"
-                    >
-                        TakoVibe is written by active practitioners and technical contributors who build, scale, and maintain real-world systems. Every piece of content undergoes a rigorous peer-review and technical validation process to ensure it meets our standards of depth, clarity, and practical accuracy.
-                    </p>
-                </div>
-
-                <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                    {
-                        authors.map((author) => (
-                            <div class="group relative bg-white dark:bg-[#131B2E] rounded-3xl p-8 border border-gray-100 dark:border-gray-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-blue-500 rounded-t-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
-
-                                <div class="flex items-start gap-6">
-                                    <div class="shrink-0 relative">
-                                        <div class="w-20 h-20 rounded-2xl overflow-hidden bg-gray-100 dark:bg-gray-800">
-                                            <img
-                                                src={author.img}
-                                                alt={author.name}
-                                                class="w-full h-full object-cover"
-                                            />
-                                        </div>
-                                        <div class="absolute -bottom-2 -right-2 bg-white dark:bg-[#0B1120] p-1.5 rounded-lg border border-gray-100 dark:border-gray-800 shadow-sm">
-                                            <svg
-                                                class="w-4 h-4 text-purple-600"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <path
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    stroke-width="2"
-                                                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                                                />
-                                            </svg>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <h3 class="text-xl font-bold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                                            <a
-                                                href={author.profileUrl}
-                                                class="before:absolute before:inset-0 focus:outline-none"
-                                            >
-                                                {author.name}
-                                            </a>
-                                        </h3>
-                                        <p class="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3">
-                                            {author.role}
-                                        </p>
-                                        <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
-                                            {author.bio}
-                                        </p>
-                                        <div class="flex gap-3 relative z-10">
-                                            {author.linkedin !== "#" && (
-                                                <a
-                                                    href={author.linkedin}
-                                                    target="_blank"
-                                                    class="text-gray-400 hover:text-blue-600 transition-colors"
-                                                >
-                                                    <span class="sr-only">
-                                                        LinkedIn
-                                                    </span>
-                                                    <svg
-                                                        class="w-5 h-5"
-                                                        fill="currentColor"
-                                                        viewBox="0 0 24 24"
-                                                    >
-                                                        <path d="M19 0h-14c-2.76 0-5 2.24-5 5v14c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24 5-5v-14c0-2.76-2.24-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.27c-.966 0-1.75-.79-1.75-1.75s.784-1.75 1.75-1.75 1.75.79 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.27h-3v-5.6c0-3.37-4-3.12-4 0v5.6h-3v-11h3v1.76c1.4-2.59 7-2.78 7 2.47v6.77z" />
-                                                    </svg>
-                                                </a>
-                                            )}
-                                            {author.website !== "#" && (
-                                                <a
-                                                    href={author.website}
-                                                    target="_blank"
-                                                    class="text-gray-400 hover:text-purple-600 transition-colors"
-                                                >
-                                                    <span class="sr-only">
-                                                        Website
-                                                    </span>
-                                                    <svg
-                                                        class="w-5 h-5"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        viewBox="0 0 24 24"
-                                                    >
-                                                        <path
-                                                            stroke-linecap="round"
-                                                            stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
-                                                        />
-                                                    </svg>
-                                                </a>
-                                            )}
-                                            {author.github !== "#" && (
-                                                <a
-                                                    href={author.github}
-                                                    target="_blank"
-                                                    class="text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                                                >
-                                                    <span class="sr-only">
-                                                        GitHub
-                                                    </span>
-                                                    <svg
-                                                        class="w-5 h-5"
-                                                        fill="currentColor"
-                                                        viewBox="0 0 24 24"
-                                                    >
-                                                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-                                                    </svg>
-                                                </a>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        ))
-                    }
-                </div>
-            </div>
-        </section>
-        )}
-
-        <!-- Promise Section -->
-        <section class="py-24 relative z-10 bg-gradient-to-b from-transparent to-purple-500/5">
-            <div class="max-w-4xl mx-auto px-6 text-center">
-                <div class="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-xs font-bold uppercase tracking-wider mb-6">
-                    Our Promise
-                </div>
-                <h2 class="text-3xl md:text-5xl font-bold text-gray-900 dark:text-white mb-8 leading-tight">
-                    Every article is published with care.
-                </h2>
-                <p class="text-xl text-gray-600 dark:text-gray-400 mb-12 italic">
-                    "Because engineers don’t need more content, they need better content."
-                </p>
-                <div class="w-24 h-1 bg-purple-600 mx-auto rounded-full"></div>
-            </div>
-        </section>
-
-        <!-- Connect / Newsletter -->
-        <section class="py-24 relative overflow-hidden">
-            <div class="max-w-4xl mx-auto px-6 relative z-10">
-                <div
-                    class="bg-white/50 dark:bg-[#131B2E]/50 backdrop-blur-xl rounded-3xl p-12 border border-gray-200 dark:border-gray-700/50 text-center shadow-2xl"
-                >
-                    <h2
-                        class="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-6"
-                    >
-                        Have something to share?
-                    </h2>
-                    <p
-                        class="text-xl text-gray-600 dark:text-gray-400 leading-relaxed mb-10 max-w-2xl mx-auto"
-                    >
-                        We're always looking for quality contributors. If you
-                        have deep engineering expertise, we'd love to help you
-                        share it with the community.
+                    <p class="mt-7 max-w-2xl text-lg leading-8 text-neutral-600 dark:text-neutral-300">
+                        TakoVibe publishes practical software engineering writing with context: how things work, why decisions were made, and what actually matters when ideas meet production.
                     </p>
 
-                    <div
-                        class="flex flex-col sm:flex-row gap-6 justify-center items-center"
-                    >
+                    <div class="mt-9 flex flex-col gap-3 sm:flex-row">
+                        <a
+                            href="/blog"
+                            class="inline-flex items-center justify-center rounded-lg bg-orange-600 px-5 py-3 text-sm font-black text-white transition hover:bg-orange-700"
+                        >
+                            Read the blog
+                        </a>
                         <a
                             href="/contact"
-                            class="flex items-center gap-3 px-8 py-4 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1"
+                            class="inline-flex items-center justify-center rounded-lg border border-neutral-200 bg-white px-5 py-3 text-sm font-bold text-neutral-800 transition hover:border-orange-300 hover:text-orange-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:border-orange-500/40 dark:hover:text-orange-300"
                         >
-                            <svg
-                                class="w-5 h-5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                                ></path>
-                            </svg>
-                            Get in Touch
+                            Write with us
                         </a>
                     </div>
                 </div>
+
+                <aside class="rounded-lg border border-neutral-200 bg-stone-50 p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900/70">
+                    <div class="flex items-center gap-4 border-b border-neutral-200 pb-5 dark:border-neutral-800">
+                        <img src="/images/logo.svg" alt="TakoVibe" class="h-14 w-14 rounded-full bg-white shadow-sm" />
+                        <div>
+                            <p class="font-display text-2xl font-black text-neutral-950 dark:text-white">TakoVibe</p>
+                            <p class="text-sm font-semibold text-neutral-500 dark:text-neutral-400">Deep technical notes, tools, and articles.</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 grid gap-3">
+                        {principles.map((item) => (
+                            <div class="rounded-lg border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-950">
+                                <h2 class="text-sm font-black text-neutral-950 dark:text-white">{item.title}</h2>
+                                <p class="mt-2 text-sm leading-6 text-neutral-600 dark:text-neutral-400">{item.text}</p>
+                            </div>
+                        ))}
+                    </div>
+                </aside>
             </div>
         </section>
-    </div>
+
+        {stats && (
+            <section class="border-b border-neutral-200 bg-stone-50 dark:border-neutral-800 dark:bg-neutral-950">
+                <div class="mx-auto grid max-w-7xl gap-4 px-4 py-8 sm:grid-cols-3 sm:px-6 lg:px-8">
+                    <div class="rounded-lg border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900/60">
+                        <p class="text-xs font-black uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400">Articles</p>
+                        <p class="mt-2 font-display text-4xl font-black text-neutral-950 dark:text-white">{stats.total_blogs}+</p>
+                    </div>
+                    <div class="rounded-lg border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900/60">
+                        <p class="text-xs font-black uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400">Views</p>
+                        <p class="mt-2 font-display text-4xl font-black text-neutral-950 dark:text-white">{formatNumber(stats.total_views)}+</p>
+                    </div>
+                    <div class="rounded-lg border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900/60">
+                        <p class="text-xs font-black uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400">Authors</p>
+                        <p class="mt-2 font-display text-4xl font-black text-neutral-950 dark:text-white">{stats.total_authors}</p>
+                    </div>
+                </div>
+            </section>
+        )}
+
+        <section class="mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[0.85fr_1.15fr] lg:px-8 lg:py-24">
+            <div>
+                <p class="text-sm font-black uppercase tracking-[0.2em] text-orange-600 dark:text-orange-400">Why we started</p>
+                <h2 class="mt-4 font-display text-4xl font-black tracking-tight text-neutral-950 dark:text-white">
+                    The gap between tutorials and real engineering work is too wide.
+                </h2>
+            </div>
+
+            <div class="space-y-6 text-base leading-8 text-neutral-600 dark:text-neutral-300">
+                <p>
+                    The internet has plenty of quick starts. But once systems have users, incidents, migrations, deadlines, and long-term maintenance, the useful questions change.
+                </p>
+                <p>
+                    TakoVibe exists for those questions. We write about the reasoning behind systems, not just the commands to run. We care about the mistakes, the constraints, and the small decisions that make software easier to operate.
+                </p>
+                <p>
+                    Our goal is simple: publish fewer pieces with more signal, and keep the learning close to real code, diagrams, notes, and tools.
+                </p>
+            </div>
+        </section>
+
+        <section class="border-y border-neutral-200 bg-white px-4 py-16 dark:border-neutral-800 dark:bg-neutral-900/40 sm:px-6 lg:py-24">
+            <div class="mx-auto max-w-7xl">
+                <div class="mb-10 max-w-2xl">
+                    <p class="text-sm font-black uppercase tracking-[0.2em] text-orange-600 dark:text-orange-400">How we work</p>
+                    <h2 class="mt-4 font-display text-4xl font-black tracking-tight text-neutral-950 dark:text-white">Values that keep the writing useful.</h2>
+                </div>
+
+                <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    {values.map((value) => (
+                        <article class="rounded-lg border border-neutral-200 bg-stone-50 p-6 dark:border-neutral-800 dark:bg-neutral-950">
+                            <div class="mb-5 h-1.5 w-10 rounded-full bg-orange-500"></div>
+                            <h3 class="text-lg font-black text-neutral-950 dark:text-white">{value.title}</h3>
+                            <p class="mt-3 text-sm leading-6 text-neutral-600 dark:text-neutral-400">{value.text}</p>
+                        </article>
+                    ))}
+                </div>
+            </div>
+        </section>
+
+        <section class="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8 lg:py-24">
+            <div>
+                <p class="text-sm font-black uppercase tracking-[0.2em] text-orange-600 dark:text-orange-400">What we cover</p>
+                <h2 class="mt-4 font-display text-4xl font-black tracking-tight text-neutral-950 dark:text-white">
+                    Topics with production weight.
+                </h2>
+                <p class="mt-5 text-base leading-7 text-neutral-600 dark:text-neutral-300">
+                    We focus on subjects that help engineers understand systems more clearly and build with better judgment.
+                </p>
+            </div>
+
+            <div class="flex flex-wrap gap-3">
+                {topics.map((topic) => (
+                    <span class="rounded-lg border border-neutral-200 bg-white px-4 py-3 text-sm font-bold text-neutral-700 transition hover:border-orange-300 hover:text-orange-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:border-orange-500/40 dark:hover:text-orange-300">
+                        {topic}
+                    </span>
+                ))}
+            </div>
+        </section>
+
+        {authors.length > 0 && (
+            <section class="border-y border-neutral-200 bg-white px-4 py-16 dark:border-neutral-800 dark:bg-neutral-900/40 sm:px-6 lg:py-24">
+                <div class="mx-auto max-w-7xl">
+                    <div class="mb-10 max-w-2xl">
+                        <p class="text-sm font-black uppercase tracking-[0.2em] text-orange-600 dark:text-orange-400">Authors</p>
+                        <h2 class="mt-4 font-display text-4xl font-black tracking-tight text-neutral-950 dark:text-white">Written by practitioners.</h2>
+                        <p class="mt-5 text-base leading-7 text-neutral-600 dark:text-neutral-300">
+                            TakoVibe is shaped by people who build, debug, scale, and explain real systems.
+                        </p>
+                    </div>
+
+                    <div class="grid gap-4 md:grid-cols-2">
+                        {authors.map((author) => (
+                            <article class="group relative rounded-lg border border-neutral-200 bg-stone-50 p-5 transition hover:border-orange-300 dark:border-neutral-800 dark:bg-neutral-950 dark:hover:border-orange-500/40">
+                                <div class="flex gap-5">
+                                    <img src={author.img} alt={author.name} class="h-20 w-20 shrink-0 rounded-lg object-cover" />
+                                    <div class="min-w-0">
+                                        <h3 class="text-xl font-black text-neutral-950 transition group-hover:text-orange-600 dark:text-white dark:group-hover:text-orange-300">
+                                            <a href={author.profileUrl} class="before:absolute before:inset-0">
+                                                {author.name}
+                                            </a>
+                                        </h3>
+                                        <p class="mt-1 text-sm font-bold text-neutral-500 dark:text-neutral-400">{author.role}</p>
+                                        <p class="mt-3 text-sm leading-6 text-neutral-600 dark:text-neutral-300">{author.bio}</p>
+                                        <div class="relative z-10 mt-4 flex gap-3">
+                                            {author.linkedin !== "#" && (
+                                                <a href={author.linkedin} target="_blank" class="text-sm font-bold text-neutral-500 hover:text-orange-600 dark:text-neutral-400 dark:hover:text-orange-300">LinkedIn</a>
+                                            )}
+                                            {author.github !== "#" && (
+                                                <a href={author.github} target="_blank" class="text-sm font-bold text-neutral-500 hover:text-orange-600 dark:text-neutral-400 dark:hover:text-orange-300">GitHub</a>
+                                            )}
+                                            {author.website !== "#" && (
+                                                <a href={author.website} target="_blank" class="text-sm font-bold text-neutral-500 hover:text-orange-600 dark:text-neutral-400 dark:hover:text-orange-300">Website</a>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </article>
+                        ))}
+                    </div>
+                </div>
+            </section>
+        )}
+
+        <section class="px-4 py-16 sm:px-6 lg:py-24">
+            <div class="mx-auto grid max-w-7xl gap-8 rounded-lg border border-neutral-200 bg-neutral-950 p-8 text-white dark:border-neutral-800 dark:bg-black sm:p-10 lg:grid-cols-[1fr_auto] lg:items-center">
+                <div class="max-w-2xl">
+                    <p class="text-sm font-black uppercase tracking-[0.2em] text-orange-400">Contribute</p>
+                    <h2 class="mt-4 font-display text-4xl font-black tracking-tight">Have a hard-earned lesson to share?</h2>
+                    <p class="mt-4 text-base leading-7 text-neutral-300">
+                        We are always interested in practical engineering stories, deep technical notes, and clear explanations from builders.
+                    </p>
+                </div>
+                <a
+                    href="/contact"
+                    class="inline-flex items-center justify-center rounded-lg bg-orange-600 px-6 py-3 text-sm font-black text-white transition hover:bg-orange-500"
+                >
+                    Get in touch
+                </a>
+            </div>
+        </section>
+    </main>
 </Layout>
-
-<style>
-    @keyframes blob {
-        0% {
-            transform: translate(0px, 0px) scale(1);
-        }
-        33% {
-            transform: translate(30px, -50px) scale(1.1);
-        }
-        66% {
-            transform: translate(-20px, 20px) scale(0.9);
-        }
-        100% {
-            transform: translate(0px, 0px) scale(1);
-        }
-    }
-    .animate-blob {
-        animation: blob 7s infinite;
-    }
-    .animation-delay-2000 {
-        animation-delay: 2s;
-    }
-    .animation-delay-4000 {
-        animation-delay: 4s;
-    }
-
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    .animate-fade-in-up {
-        animation: fadeInUp 0.8s ease-out forwards;
-        opacity: 0;
-    }
-    .animation-delay-200 {
-        animation-delay: 0.2s;
-    }
-    .animation-delay-400 {
-        animation-delay: 0.4s;
-    }
-    .animation-delay-600 {
-        animation-delay: 0.6s;
-    }
-    .animation-delay-800 {
-        animation-delay: 0.8s;
-    }
-
-    @keyframes gradient {
-        0% {
-            background-position: 0% 50%;
-        }
-        50% {
-            background-position: 100% 50%;
-        }
-        100% {
-            background-position: 0% 50%;
-        }
-    }
-    .animate-gradient {
-        background-size: 200% auto;
-        animation: gradient 4s linear infinite;
-    }
-</style>
