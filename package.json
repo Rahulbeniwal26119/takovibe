@@ -53,6 +53,7 @@
     "astro-compress": "^2.3.6",
     "auth-astro": "^4.2.0",
     "diff": "^8.0.3",
+    "epubjs": "^0.3.93",
     "esbuild": "0.25.11",
     "gpt-tokenizer": "^3.0.1",
     "imagekit": "^6.0.0",

@@ -15,6 +15,7 @@ interface ChatBotProps {
     isSidebar?: boolean;
     initialMessage?: string;
     onMessageProcessed?: () => void;
+    floatingOnly?: boolean; // disable immersive split (for pages without an article container)
 }
 
 interface Message {
@@ -45,13 +46,14 @@ export default function ChatBot({
     articleId,
     isSidebar = false,
     initialMessage,
-    onMessageProcessed
+    onMessageProcessed,
+    floatingOnly = false
 }: ChatBotProps) {
     const [isOpen, setIsOpen] = useState(isSidebar);
     const [isMinimized, setIsMinimized] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
     // Default to split view on desktop (like Code Studio / Excalidraw); floating sheet on mobile
-    const [isSplit, setIsSplit] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 768);
+    const [isSplit, setIsSplit] = useState(() => !floatingOnly && typeof window !== 'undefined' && window.innerWidth >= 768);
     const [splitRatio, setSplitRatio] = useState(62); // article % on the left; Kumi takes the rest
     const [isMobile, setIsMobile] = useState(false);
     const isDraggingRef = useRef(false);
@@ -139,7 +141,7 @@ export default function ChatBot({
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
-    const splitActive = isSplit && isOpen && !isMobile && !isSidebar;
+    const splitActive = isSplit && isOpen && !isMobile && !isSidebar && !floatingOnly;
 
     // Immersive split: toggle the shared body flag and coordinate with the other immersive panels
     useEffect(() => {
@@ -856,13 +858,15 @@ export default function ChatBot({
                                             </button>
                                         </div>
                                     )}
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); setIsSplit((s) => !s); setIsExpanded(false); setIsMinimized(false); }}
-                                        className={`hidden rounded-md p-1.5 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-900 dark:hover:text-neutral-200 md:inline-flex ${isSplit ? 'text-orange-600 dark:text-orange-400' : ''}`}
-                                        title={isSplit ? "Exit split view" : "Split view"}
-                                    >
-                                        {isSplit ? <PanelRightClose className="w-4 h-4" /> : <PanelRight className="w-4 h-4" />}
-                                    </button>
+                                    {!floatingOnly && (
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); setIsSplit((s) => !s); setIsExpanded(false); setIsMinimized(false); }}
+                                            className={`hidden rounded-md p-1.5 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-900 dark:hover:text-neutral-200 md:inline-flex ${isSplit ? 'text-orange-600 dark:text-orange-400' : ''}`}
+                                            title={isSplit ? "Exit split view" : "Split view"}
+                                        >
+                                            {isSplit ? <PanelRightClose className="w-4 h-4" /> : <PanelRight className="w-4 h-4" />}
+                                        </button>
+                                    )}
                                     {!isSplit && (
                                         <button
                                             onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
@@ -1091,10 +1095,6 @@ Format:
                                                         <div className="flex flex-col">
                                                             {/* @ts-ignore */}
                                                             <span className="text-sm font-medium text-neutral-700 group-hover:text-orange-700 dark:text-neutral-200 dark:group-hover:text-orange-300">{starter.text}</span>
-                                                            {/* @ts-ignore */}
-                                                            {starter.warning && (
-                                                                <span className="text-[10px] text-orange-600 dark:text-orange-400 font-medium mt-0.5">{starter.warning}</span>
-                                                            )}
                                                         </div>
                                                     </button>
                                             ))}
