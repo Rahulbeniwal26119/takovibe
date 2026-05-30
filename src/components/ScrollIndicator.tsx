@@ -1,18 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowDown, ArrowUp } from 'lucide-react';
 
 const ScrollIndicator: React.FC = () => {
     const [isVisible, setIsVisible] = useState(false);
     const [direction, setDirection] = useState<'down' | 'up'>('down');
     const [scrollProgress, setScrollProgress] = useState(0);
+    const [isFooterVisible, setIsFooterVisible] = useState(false);
 
     useEffect(() => {
         const handleScroll = () => {
             const scrollTop = window.scrollY;
             const docHeight = document.documentElement.scrollHeight;
             const winHeight = window.innerHeight;
-            const threshold = 100; // Show after 100px or if content > window
-
             // Calculate progress
             const scrollTotal = docHeight - winHeight;
             const progress = scrollTotal > 0 ? (scrollTop / scrollTotal) * 100 : 0;
@@ -24,14 +23,13 @@ const ScrollIndicator: React.FC = () => {
                 setIsVisible(false);
             } else {
                 if (scrollTop + winHeight >= docHeight - 20) {
-                    // Reached bottom
+                    // Reached bottom — offer "Back to top"
                     setDirection('up');
                     setIsVisible(true);
                 } else {
-                    // Scrolling or at top
+                    // Don't show a "Continue" / scroll-down prompt
                     setDirection('down');
-                    // Show if at top OR scrolling (always show if content exists)
-                    setIsVisible(true);
+                    setIsVisible(false);
                 }
             }
         };
@@ -48,6 +46,19 @@ const ScrollIndicator: React.FC = () => {
         };
     }, []);
 
+    useEffect(() => {
+        const footer = document.querySelector('footer');
+        if (!footer) return;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => setIsFooterVisible(entry.isIntersecting),
+            { threshold: 0.01 }
+        );
+
+        observer.observe(footer);
+        return () => observer.disconnect();
+    }, []);
+
     const scrollTo = () => {
         if (direction === 'down') {
             window.scrollTo({
@@ -62,27 +73,27 @@ const ScrollIndicator: React.FC = () => {
         }
     };
 
-    if (!isVisible) return null;
+    if (!isVisible || isFooterVisible) return null;
 
     return (
         <button
             onClick={scrollTo}
-            className={`fixed bottom-8 right-8 z-50 p-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 active:scale-95 group
-                ${direction === 'down'
-                    ? 'bg-white/80 dark:bg-gray-800/80 text-purple-600 dark:text-purple-400 animate-bounce'
-                    : 'bg-purple-600 text-white hover:bg-purple-700'
-                }
-                backdrop-blur-md border border-purple-200 dark:border-purple-900/50
-            `}
+            className="fixed bottom-5 right-4 z-50 flex items-center gap-2 overflow-hidden rounded-full border border-neutral-200/80 bg-white/85 px-2.5 py-1.5 text-xs font-bold text-neutral-600 opacity-70 shadow-md shadow-neutral-900/5 backdrop-blur-xl transition-all duration-300 hover:border-orange-300 hover:text-orange-700 hover:opacity-100 active:scale-95 dark:border-neutral-800 dark:bg-neutral-900/85 dark:text-neutral-300 dark:shadow-black/20 dark:hover:border-orange-700 dark:hover:text-orange-300 sm:bottom-6 sm:right-6"
             aria-label={direction === 'down' ? "Scroll Down" : "Back to Top"}
         >
-            {direction === 'down' ? (
-                <ChevronDown size={24} className="stroke-[3]" />
-            ) : (
-                <ChevronUp size={24} className="stroke-[3]" />
-            )}
-
-            {/* Optional Toolkit: Circular Progress could go here */}
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-orange-100/80 text-orange-700 dark:bg-orange-950/60 dark:text-orange-300">
+                {direction === 'down' ? (
+                    <ArrowDown size={15} strokeWidth={2.5} />
+                ) : (
+                    <ArrowUp size={15} strokeWidth={2.5} />
+                )}
+            </span>
+            <span>{direction === 'down' ? "Continue" : "Back to top"}</span>
+            <span
+                className="absolute bottom-0 left-0 h-0.5 bg-orange-500 transition-[width] duration-300"
+                style={{ width: `${scrollProgress}%` }}
+                aria-hidden="true"
+            />
         </button>
     );
 };

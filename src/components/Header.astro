@@ -38,7 +38,8 @@ const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
 
 <header
   id="site-header"
-  class="sticky top-0 z-[70] w-full transition-all duration-300 bg-transparent border-b border-transparent"
+  class="sticky z-[70] w-full transition-all duration-300 bg-transparent border-b border-transparent"
+  style="top: var(--top-banner-height, 0px);"
 >
   <div class="max-w-[1400px] mx-auto h-14 lg:h-16 px-4 sm:px-6 lg:px-8 relative">
     <div class="flex items-center justify-between h-full gap-4">
@@ -673,6 +674,8 @@ const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
 
      // Scroll Behavior for Floating Header
      let ticking = false;
+     let lastScrollY = window.scrollY;
+     const HIDE_AFTER = 120; // px — don't auto-hide near the very top
      const onScroll = () => {
        if (!ticking) {
          window.requestAnimationFrame(() => {
@@ -684,6 +687,23 @@ const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
            }
 
            const currentScrollY = window.scrollY;
+
+           // Auto-hide on scroll down, reveal on scroll up.
+           // Suppressed while the mobile menu or full-screen search is open.
+           const fullSearch = document.getElementById("full-header-search");
+           const drawerBackdrop = document.getElementById("drawerBackdrop");
+           const overlayOpen =
+             (fullSearch && !fullSearch.classList.contains("pointer-events-none")) ||
+             (drawerBackdrop && !drawerBackdrop.classList.contains("pointer-events-none"));
+           const delta = currentScrollY - lastScrollY;
+           if (!overlayOpen && Math.abs(delta) > 5) {
+             if (delta > 0 && currentScrollY > HIDE_AFTER) {
+               header.style.transform = "translateY(-130%)";
+             } else if (delta < 0) {
+               header.style.transform = "";
+             }
+           }
+           lastScrollY = currentScrollY;
 
            if (currentScrollY > 20) {
              // Scrolled State: Floating Island

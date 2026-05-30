@@ -8,8 +8,8 @@ export function showToast(message: string, type: ToastType = 'info', position: '
         container = document.createElement('div');
         container.id = containerId;
         const positionClasses = position === 'bottom'
-            ? 'bottom-20 flex-col-reverse' // Bottom positioning
-            : 'top-20 flex-col';           // Top positioning
+            ? 'bottom-20 flex-col-reverse'
+            : 'top-[calc(var(--top-banner-height,0px)+5.5rem)] flex-col';
 
         container.className = `fixed ${positionClasses} left-1/2 transform -translate-x-1/2 z-[20000] flex gap-3 pointer-events-none`;
         document.body.appendChild(container);
@@ -20,13 +20,13 @@ export function showToast(message: string, type: ToastType = 'info', position: '
 
     // Base styles
     const translateYClass = position === 'bottom' ? 'translate-y-[20px]' : 'translate-y-[-20px]';
-    const baseClasses = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg backdrop-blur-md border transition-all duration-300 transform ${translateYClass} opacity-0 min-w-[300px] max-w-md`;
+    const baseClasses = `pointer-events-auto flex min-w-[300px] max-w-md items-center gap-3 rounded-xl border bg-stone-50/95 px-4 py-3 text-sm shadow-xl shadow-black/10 backdrop-blur-xl transition-all duration-300 transform dark:bg-neutral-950/95 ${translateYClass} opacity-0`;
 
     // Type-specific styles
     const typeClasses = {
-        success: 'bg-white/90 dark:bg-gray-800/90 border-green-200 dark:border-green-900/30 text-green-700 dark:text-green-400',
-        error: 'bg-white/90 dark:bg-gray-800/90 border-red-200 dark:border-red-900/30 text-red-700 dark:text-red-400',
-        info: 'bg-white/90 dark:bg-gray-800/90 border-purple-200 dark:border-purple-900/30 text-purple-700 dark:text-purple-400'
+        success: 'border-emerald-200 text-emerald-700 dark:border-emerald-900/70 dark:text-emerald-300',
+        error: 'border-red-200 text-red-700 dark:border-red-900/70 dark:text-red-300',
+        info: 'border-orange-200 text-orange-700 dark:border-orange-900/70 dark:text-orange-300'
     };
 
     // Icons
@@ -37,10 +37,11 @@ export function showToast(message: string, type: ToastType = 'info', position: '
     };
 
     toast.className = `${baseClasses} ${typeClasses[type]}`;
-    toast.innerHTML = `
-    ${icons[type]}
-    <p class="text-sm font-medium">${message}</p>
-  `;
+    toast.innerHTML = icons[type];
+    const text = document.createElement('p');
+    text.className = 'text-sm font-semibold text-neutral-700 dark:text-neutral-200';
+    text.textContent = message;
+    toast.appendChild(text);
 
     container.appendChild(toast);
 

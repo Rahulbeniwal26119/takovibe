@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Excalidraw, MainMenu, WelcomeScreen, getSceneVersion, convertToExcalidrawElements } from "@excalidraw/excalidraw";
 import { parseMermaidToExcalidraw } from "@excalidraw/mermaid-to-excalidraw";
 import "@excalidraw/excalidraw/index.css";
-import { X, PenTool, Lock, Unlock, Minimize2, Maximize2, LayoutTemplate, Monitor, GripVertical } from 'lucide-react';
+import { X, PenTool, Lock, Unlock, LayoutTemplate, Monitor } from 'lucide-react';
 import { fetchWithAuth } from '../utils/api';
 import { showToast } from '../utils/toast';
 import drwnioLib from '../data/libraries/drwnio.json';
@@ -289,7 +289,7 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                         y: cy,
                         fontSize: 20,
                         fontFamily: 1,
-                        strokeColor: "#9333ea",
+                        strokeColor: "#ea580c",
                         link: window.location.href,
                     }]);
                 }
@@ -317,6 +317,7 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
         window.addEventListener('toggle-excalidraw', handleToggle);
         window.addEventListener('open-excalidraw', handleOpen);
         window.addEventListener('open-code-studio', () => setViewMode('hidden')); // Close when Code Studio opens
+        window.addEventListener('open-kumi-split', () => setViewMode('hidden')); // Close when Kumi enters split
         window.addEventListener('request-add-to-sketch', handleAddToSketch as EventListener);
 
         // @ts-ignore
@@ -590,11 +591,11 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
 
 
     const getContainerStyles = () => {
-        const baseStyles = "bg-white dark:bg-gray-900 transition-none duration-0 ease-linear flex flex-col overflow-visible";
+        const baseStyles = "bg-white dark:bg-neutral-950 transition-none duration-0 ease-linear flex flex-col overflow-visible";
         switch (viewMode) {
-            case 'maximize': return `${baseStyles} fixed inset-x-0 bottom-0 h-[92vh] lg:h-full lg:inset-0 z-[10000] rounded-t-3xl lg:rounded-none shadow-2xl lg:shadow-none border-t lg:border-none border-gray-200 dark:border-gray-800`;
+            case 'maximize': return `${baseStyles} fixed inset-x-0 bottom-0 h-[92vh] lg:h-full lg:inset-0 z-[10000] rounded-t-3xl lg:rounded-none shadow-2xl lg:shadow-none border-t lg:border-none border-neutral-200 dark:border-neutral-800`;
             // In split mode, Excalidraw is on the right, taking up the remaining space
-            case 'split': return `${baseStyles} fixed top-0 bottom-0 right-0 z-[10000] shadow-2xl border-l border-gray-200 dark:border-gray-800`;
+            case 'split': return `${baseStyles} fixed top-0 bottom-0 right-0 z-[10000] shadow-2xl border-l border-neutral-200 dark:border-neutral-800`;
             default: return `${baseStyles} fixed top-[64px] bottom-0 right-0 w-0 z-[40] pointer-events-none opacity-0`;
         }
     };
@@ -694,18 +695,52 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                     /* Hide Standard Header & Footer */
                     #site-header, footer, .reading-progress { display: none !important; }
 
-                    /* CRITICAL: Restore Zen Nav & Force on Top */
+                    /* CRITICAL: Restore Zen Nav as a clean bar spanning the left pane (matches Code Studio / Kumi) */
                     #zen-nav {
                         display: flex !important;
                         visibility: visible !important;
                         opacity: 1 !important;
                         z-index: 30000 !important; /* Above everything including Excalidraw */
                         position: fixed !important;
-                        top: 1rem !important;
-                        left: 1rem !important;
+                        top: 0.75rem !important;
+                        left: 0.75rem !important;
+                        right: auto !important;
+                        width: calc(${splitRatio}% - 1.5rem) !important;
+                        max-width: calc(${splitRatio}% - 1.5rem) !important;
+                        padding: 0 !important;
+                        transform: none !important;
                         pointer-events: auto !important;
                     }
-                    
+                    #zen-nav > div {
+                        width: 100% !important;
+                        max-width: none !important;
+                        height: 3.75rem !important;
+                        border-color: rgba(64, 64, 64, 0.9) !important;
+                        background: rgba(23, 23, 23, 0.92) !important;
+                        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22) !important;
+                    }
+                    #article-nav-links { display: none !important; }
+                    #article-nav-actions a {
+                        padding: 0.5rem 0.75rem !important;
+                        border-radius: 0.5rem !important;
+                        background: #ea580c !important;
+                        color: #fff !important;
+                    }
+                    #zen-nav #zen-menu-trigger {
+                        display: grid !important;
+                        opacity: 1 !important;
+                        visibility: visible !important;
+                        background: rgba(255, 255, 255, 0.08) !important;
+                        color: white !important;
+                        border-color: rgba(255, 255, 255, 0.12) !important;
+                        box-shadow: none !important;
+                        backdrop-filter: blur(12px) !important;
+                    }
+                    html.dark #zen-nav #zen-menu-trigger {
+                        background: rgba(255, 255, 255, 0.08) !important;
+                        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+                    }
+
                     /* Restore & Fix Selection Popover */
                     #selection-popover {
                         z-index: 20003 !important;
@@ -769,7 +804,7 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                     
                      /* Adjust drag handle hovering */
                     .split-drag-handle:hover {
-                        background: #a855f7;
+                        background: #ea580c;
                     }
                 `}</style>
             )}
@@ -778,7 +813,7 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
             <div className={`fixed bottom-24 right-6 z-[60] transition-all duration-300 ${viewMode === 'minimized' ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'}`}>
                 <button
                     onClick={() => setViewMode('split')}
-                    className="w-14 h-14 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-2xl flex items-center justify-center transition-transform hover:scale-110"
+                    className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-600 text-white shadow-xl transition-transform hover:scale-105 hover:bg-orange-500"
                     title="Open Notes"
                 >
                     <PenTool className="w-6 h-6" />
@@ -788,7 +823,7 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
             {/* DRAG HANDLE (Only in split) */}
             {viewMode === 'split' && (
                 <div
-                    className="split-drag-handle fixed top-0 bottom-0 w-[6px] z-[10001] cursor-col-resize transition-colors duration-150 bg-gray-200 dark:bg-gray-800 hover:bg-purple-500 flex items-center justify-center group"
+                    className="split-drag-handle group fixed bottom-0 top-0 z-[10001] flex w-[6px] cursor-col-resize items-center justify-center bg-neutral-200 transition-colors duration-150 hover:bg-orange-600 dark:bg-neutral-800"
                     style={{ left: `calc(${splitRatio}% - 3px)` }}
                     onMouseDown={(e) => {
                         e.preventDefault();
@@ -798,7 +833,7 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                     }}
                 >
                     {/* Visual Grip */}
-                    <div className="w-1 h-8 rounded-full bg-gray-400 group-hover:bg-white/90"></div>
+                    <div className="h-8 w-1 rounded-full bg-neutral-400 group-hover:bg-white/90"></div>
                 </div>
             )}
 
@@ -810,7 +845,7 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                 }}
             >
                 {/* TOOLBAR HEADER */}
-                <div className="flex items-center justify-between p-2 px-4 border-b border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-sm relative z-[70]">
+                <div className="relative z-[70] flex items-center justify-between border-b border-neutral-200 bg-white/95 px-4 py-2 backdrop-blur-sm dark:border-neutral-800 dark:bg-neutral-950/95">
                     <div className="flex items-center gap-3">
                         {/* Title Input */}
                         <div className="flex items-center gap-2">
@@ -820,7 +855,7 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                                 value={title}
                                 onChange={(e) => { setTitle(e.target.value); titleRef.current = e.target.value; setHasUnsavedChanges(true); }}
                                 onBlur={() => excalidrawAPI && saveData(excalidrawAPI.getSceneElements(), excalidrawAPI.getAppState(), excalidrawAPI.getFiles(), isPublic)}
-                                className="text-sm font-semibold text-gray-700 dark:text-gray-200 bg-transparent border-none focus:outline-none w-32 sm:w-48 transition-colors truncate"
+                                className="w-32 truncate border-none bg-transparent text-sm font-semibold text-neutral-700 transition-colors focus:outline-none dark:text-neutral-200 sm:w-48"
                                 placeholder="Untitled Note"
                             />
                         </div>
@@ -835,100 +870,35 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                             className="hidden"
                             onChange={async (e) => {
                                 const file = e.target.files?.[0];
-                                if (!file || !excalidrawAPI) return;
-
-                                try {
-                                    // 1. Create temporary local url to show instantly
-                                    const tempUrl = URL.createObjectURL(file);
-                                    const fileId = Math.random().toString(36).substr(2, 9);
-
-                                    // 2. Upload to ImageKit
-                                    const formData = new FormData();
-                                    formData.append("file", file);
-
-                                    const token = localStorage.getItem('access_token');
-                                    const uploadRes = await fetch('/api/upload-image', {
-                                        method: 'POST',
-                                        headers: { 'Authorization': token ? `Token ${token}` : '' },
-                                        body: formData
-                                    });
-
-                                    if (uploadRes.ok) {
-                                        const data = await uploadRes.json();
-                                        // 3. Inject into Excalidraw canvas programmatically
-                                        excalidrawAPI.addFiles([{
-                                            id: fileId,
-                                            dataURL: data.url,
-                                            mimeType: file.type,
-                                            created: Date.now(),
-                                            lastRetrieved: Date.now()
-                                        }]);
-
-                                        // Force element insertion
-                                        const appState = excalidrawAPI.getAppState();
-                                        const cx = -appState.scrollX + (appState.width / 2) / appState.zoom.value;
-                                        const cy = -appState.scrollY + (appState.height / 2) / appState.zoom.value;
-
-                                        const imgElement = {
-                                            type: "image",
-                                            version: 1,
-                                            versionNonce: Math.floor(Math.random() * 1000000000),
-                                            isDeleted: false,
-                                            id: "img_" + fileId,
-                                            fillStyle: "hachure",
-                                            strokeWidth: 1,
-                                            strokeStyle: "solid",
-                                            roughness: 1,
-                                            opacity: 100,
-                                            angle: 0,
-                                            x: cx - 150, // center approx
-                                            y: cy - 150,
-                                            strokeColor: "transparent",
-                                            backgroundColor: "transparent",
-                                            width: 300,
-                                            height: 300,
-                                            seed: Math.floor(Math.random() * 1000000000),
-                                            groupIds: [],
-                                            strokeSharpness: "round",
-                                            boundElements: [],
-                                            updated: Date.now(),
-                                            link: null,
-                                            locked: false,
-                                            fileId: fileId,
-                                            status: "saved"
-                                        };
-
-                                        // Use internal update to force inject image skipping the tool check
-                                        excalidrawAPI.updateScene({
-                                            elements: [...excalidrawAPI.getSceneElements(), imgElement]
-                                        });
-                                    }
-                                } catch (err) {
-                                    console.error("Custom Image Insert Failed:", err);
-                                }
-                                e.target.value = ''; // Reset input
+                                if (file) await handleImageUpload(file);
+                                e.target.value = '';
                             }}
                         />
 
                         {/* VISIBLE UPLOAD IMAGE BUTTON */}
                         <button
                             onClick={() => document.getElementById('custom-image-upload')?.click()}
-                            className="p-1.5 px-3 mr-2 text-xs font-semibold rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-900/40 dark:text-indigo-300 dark:hover:bg-indigo-900/60 transition-colors flex items-center gap-2 border border-indigo-200 dark:border-indigo-700/50 shadow-sm"
+                            className="mr-2 flex items-center gap-2 rounded-md border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 transition-colors hover:bg-orange-100 dark:border-orange-900/70 dark:bg-orange-950/40 dark:text-orange-300 dark:hover:bg-orange-950/70"
                             title="Insert Custom Image"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
                             Upload Image
                         </button>
 
-                        <button onClick={togglePublic} className={`p-1.5 rounded-lg transition-colors ${isPublic ? 'text-green-600 bg-green-50 dark:bg-green-900/20' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}`}>
+                        <button
+                            onClick={togglePublic}
+                            className={`rounded-md p-1.5 transition-colors ${isPublic ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400' : 'text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-900 dark:hover:text-neutral-200'}`}
+                            title={isPublic ? 'Public note' : 'Private note'}
+                            aria-label={isPublic ? 'Make note private' : 'Make note public'}
+                        >
                             {isPublic ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
                         </button>
-                        <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1" />
+                        <div className="mx-1 h-4 w-px bg-neutral-200 dark:bg-neutral-800" />
 
                         {!isMobile && (
                             <button
                                 onClick={() => setViewMode('split')}
-                                className={`p-1.5 rounded-lg transition-colors ${viewMode === 'split' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                                className={`rounded-md p-1.5 transition-colors ${viewMode === 'split' ? 'bg-orange-100 text-orange-700 dark:bg-orange-950/60 dark:text-orange-300' : 'text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-900 dark:hover:text-neutral-200'}`}
                                 title="Split View"
                             >
                                 <LayoutTemplate className="w-4 h-4" />
@@ -936,14 +906,14 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                         )}
                         <button
                             onClick={() => setViewMode('maximize')}
-                            className={`p-1.5 rounded-lg transition-colors ${viewMode === 'maximize' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                            className={`rounded-md p-1.5 transition-colors ${viewMode === 'maximize' ? 'bg-orange-100 text-orange-700 dark:bg-orange-950/60 dark:text-orange-300' : 'text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-900 dark:hover:text-neutral-200'}`}
                             title="Full Screen"
                         >
                             <Monitor className="w-4 h-4" />
                         </button>
                         <button
                             onClick={() => setViewMode('hidden')}
-                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors ml-1"
+                            className="ml-1 rounded-md p-1.5 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-900 dark:hover:text-neutral-200"
                             title="Close"
                         >
                             <X className="w-4 h-4" />
@@ -952,148 +922,58 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                 </div>
 
                 {showMobileWarning && isMobile && (
-                    <div className="bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800 p-2 flex items-center justify-between text-xs sm:text-sm text-blue-800 dark:text-blue-200 px-4">
+                    <div className="flex items-center justify-between border-b border-orange-200 bg-orange-50 px-4 py-2 text-xs text-orange-900 dark:border-orange-900/70 dark:bg-orange-950/40 dark:text-orange-200 sm:text-sm">
                         <span>For the best experience, please use a laptop or larger screen.</span>
-                        <button onClick={() => setShowMobileWarning(false)} className="p-1 hover:bg-blue-100 dark:hover:bg-blue-800 rounded-full ml-2">
+                        <button onClick={() => setShowMobileWarning(false)} className="ml-2 rounded-full p-1 hover:bg-orange-100 dark:hover:bg-orange-900/70">
                             <X className="X w-3 h-3" />
                         </button>
                     </div>
                 )}
 
-                <div className="flex-1 relative w-full bg-gray-50 dark:bg-gray-900 overflow-visible">
+                <div className="relative flex-1 w-full overflow-visible bg-neutral-50 dark:bg-neutral-950">
                     <div style={{ width: "100%", height: "100%" }}>
                         <style>{`
-                        .excalidraw, .excalidraw-container { overflow: visible !important; }
-                        .excalidraw .dropdown-menu { z-index: 9999 !important; position: absolute !important; }
-                        .excalidraw .Island { z-index: 50 !important; overflow: visible !important; }
-                        .excalidraw .layer-ui__library { border-radius: 0; }
-                    `}</style>
-                        {/* Custom File Input for bypassing Excalidraw Image Tool */}
-                        <input
-                            type="file"
-                            id="custom-image-upload"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={async (e) => {
-                                const file = e.target.files?.[0];
-                                if (!file || !excalidrawAPI) return;
-
-                                try {
-                                    // 1. Create temporary local url to show instantly
-                                    const tempUrl = URL.createObjectURL(file);
-                                    const fileId = Math.random().toString(36).substr(2, 9);
-
-                                    // 2. Upload to ImageKit
-                                    const formData = new FormData();
-                                    formData.append("file", file);
-
-                                    const token = localStorage.getItem('access_token');
-                                    const uploadRes = await fetch('/api/upload-image', {
-                                        method: 'POST',
-                                        headers: { 'Authorization': token ? `Token ${token}` : '' },
-                                        body: formData
-                                    });
-
-                                    if (uploadRes.ok) {
-                                        const data = await uploadRes.json();
-                                        // 3. Inject into Excalidraw canvas programmatically
-                                        excalidrawAPI.addFiles([{
-                                            id: fileId,
-                                            dataURL: data.url,
-                                            mimeType: file.type,
-                                            created: Date.now(),
-                                            lastRetrieved: Date.now()
-                                        }]);
-
-                                        // Force element insertion
-                                        const appState = excalidrawAPI.getAppState();
-                                        const cx = -appState.scrollX + (appState.width / 2) / appState.zoom.value;
-                                        const cy = -appState.scrollY + (appState.height / 2) / appState.zoom.value;
-
-                                        const imgElement = {
-                                            type: "image",
-                                            version: 1,
-                                            versionNonce: Math.floor(Math.random() * 1000000000),
-                                            isDeleted: false,
-                                            id: "img_" + fileId,
-                                            fillStyle: "hachure",
-                                            strokeWidth: 1,
-                                            strokeStyle: "solid",
-                                            roughness: 1,
-                                            opacity: 100,
-                                            angle: 0,
-                                            x: cx - 150, // center approx
-                                            y: cy - 150,
-                                            strokeColor: "transparent",
-                                            backgroundColor: "transparent",
-                                            width: 300,
-                                            height: 300,
-                                            seed: Math.floor(Math.random() * 1000000000),
-                                            groupIds: [],
-                                            strokeSharpness: "round",
-                                            boundElements: [],
-                                            updated: Date.now(),
-                                            link: null,
-                                            locked: false,
-                                            fileId: fileId,
-                                            status: "saved"
-                                        };
-
-                                        // Use internal update to force inject image skipping the tool check
-                                        excalidrawAPI.updateScene({
-                                            elements: [...excalidrawAPI.getSceneElements(), imgElement]
-                                        });
-                                    }
-                                } catch (err) {
-                                    console.error("Custom Image Insert Failed:", err);
-                                }
-                                e.target.value = ''; // Reset input
-                            }}
-                        />
-
-                        <button onClick={togglePublic} className={`p-1.5 rounded-lg transition-colors ${isPublic ? 'text-green-600 bg-green-50 dark:bg-green-900/20' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}`}>
-                            {isPublic ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-                        </button>
-                        <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1" />
-
-                        {!isMobile && (
-                            <button
-                                onClick={() => setViewMode('split')}
-                                className={`p-1.5 rounded-lg transition-colors ${viewMode === 'split' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-                                title="Split View"
-                            >
-                                <LayoutTemplate className="w-4 h-4" />
-                            </button>
-                        )}
-                        <button
-                            onClick={() => setViewMode('maximize')}
-                            className={`p-1.5 rounded-lg transition-colors ${viewMode === 'maximize' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-                            title="Full Screen"
-                        >
-                            <Monitor className="w-4 h-4" />
-                        </button>
-                        <button
-                            onClick={() => setViewMode('hidden')}
-                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors ml-1"
-                            title="Close"
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
-                    </div>
-                </div>
-
-                {showMobileWarning && isMobile && (
-                    <div className="bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800 p-2 flex items-center justify-between text-xs sm:text-sm text-blue-800 dark:text-blue-200 px-4">
-                        <span>For the best experience, please use a laptop or larger screen.</span>
-                        <button onClick={() => setShowMobileWarning(false)} className="p-1 hover:bg-blue-100 dark:hover:bg-blue-800 rounded-full ml-2">
-                            <X className="X w-3 h-3" />
-                        </button>
-                    </div>
-                )}
-
-                <div className="flex-1 relative w-full bg-gray-50 dark:bg-gray-900 overflow-visible">
-                    <div style={{ width: "100%", height: "100%" }}>
-                        <style>{`
+                        .excalidraw {
+                            --focus-highlight-color: #fb923c;
+                            --select-highlight-color: #f97316;
+                            --color-selection: #ea580c;
+                            --color-primary: #ea580c;
+                            --color-primary-darker: #c2410c;
+                            --color-primary-darkest: #9a3412;
+                            --color-primary-hover: #c2410c;
+                            --color-primary-light: #ffedd5;
+                            --color-primary-light-darker: #fed7aa;
+                            --color-brand-hover: #c2410c;
+                            --color-brand-active: #9a3412;
+                            --color-on-primary-container: #7c2d12;
+                            --color-surface-primary-container: #ffedd5;
+                            --color-surface-high: #f5f5f4;
+                            --color-surface-mid: #f5f5f4;
+                            --color-surface-low: #fafaf9;
+                            --color-slider-track: #fed7aa;
+                        }
+                        .excalidraw.theme--dark {
+                            --focus-highlight-color: #fb923c;
+                            --select-highlight-color: #f97316;
+                            --color-selection: #ea580c;
+                            --color-primary: #fb923c;
+                            --color-primary-darker: #fdba74;
+                            --color-primary-darkest: #fed7aa;
+                            --color-primary-hover: #fdba74;
+                            --color-primary-light: #431407;
+                            --color-primary-light-darker: #7c2d12;
+                            --color-brand-hover: #fdba74;
+                            --color-brand-active: #fed7aa;
+                            --color-on-primary-container: #fed7aa;
+                            --color-surface-primary-container: #431407;
+                            --color-surface-high: #292524;
+                            --color-surface-mid: #1c1917;
+                            --color-surface-low: #1c1917;
+                            --color-surface-lowest: #0c0a09;
+                            --island-bg-color: #1c1917;
+                            --default-bg-color: #0c0a09;
+                            --color-slider-track: #7c2d12;
+                        }
                         .excalidraw, .excalidraw-container { overflow: visible !important; }
                         .excalidraw .dropdown-menu { z-index: 9999 !important; position: absolute !important; }
                         .excalidraw .Island { z-index: 50 !important; overflow: visible !important; }
@@ -1101,7 +981,7 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                     `}</style>
                         {isLoading ? (
                             <div className="flex items-center justify-center h-full">
-                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+                                <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-orange-600"></div>
                             </div>
                         ) : (
                             <Excalidraw

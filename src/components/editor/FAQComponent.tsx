@@ -1,6 +1,6 @@
 import { NodeViewWrapper } from '@tiptap/react';
 import React, { useState } from 'react';
-import { Plus, Trash2, ChevronDown, HelpCircle, GripVertical } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, HelpCircle } from 'lucide-react';
 
 interface FAQItem {
     question: string;
@@ -40,14 +40,14 @@ export default ({ node, updateAttributes, editor }: any) => {
         <NodeViewWrapper className="faq-component my-12 not-prose w-full">
             {/* Header */}
             <div className="flex items-center gap-4 mb-8">
-                <div className="w-12 h-12 flex items-center justify-center bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl shadow-lg shadow-purple-500/20 text-white transform -rotate-6">
-                    <HelpCircle size={24} strokeWidth={2.5} />
+                <div className="w-11 h-11 flex items-center justify-center bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl shadow-lg shadow-orange-500/20 text-white transform -rotate-6">
+                    <HelpCircle size={22} strokeWidth={2.5} />
                 </div>
                 <div>
-                    <h3 className="font-bold text-2xl text-gray-900 dark:text-white leading-tight">
+                    <h3 className="font-display font-bold text-xl text-neutral-900 dark:text-neutral-50 leading-tight">
                         Frequently Asked Questions
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+                    <p className="text-sm text-neutral-500 dark:text-neutral-400 font-medium">
                         Everything you need to know about the topic
                     </p>
                 </div>
@@ -58,9 +58,9 @@ export default ({ node, updateAttributes, editor }: any) => {
                 {items.map((item, index) => (
                     <div
                         key={index}
-                        className={`group border border-gray-200 dark:border-gray-800 rounded-2xl bg-white dark:bg-zinc-900/50 transition-all duration-300 ${expandedIndex === index
-                            ? 'shadow-lg shadow-gray-200/50 dark:shadow-none ring-1 ring-purple-500/20 dark:ring-purple-500/30'
-                            : 'hover:border-purple-200 dark:hover:border-purple-800/50'
+                        className={`group border border-neutral-200 dark:border-neutral-800 rounded-2xl bg-white dark:bg-neutral-900/50 transition-all duration-300 ${expandedIndex === index
+                            ? 'shadow-lg shadow-neutral-200/50 dark:shadow-none ring-1 ring-orange-500/20 dark:ring-orange-500/30'
+                            : 'hover:border-orange-200 dark:hover:border-orange-800/50'
                             }`}
                     >
                         <button
@@ -71,8 +71,8 @@ export default ({ node, updateAttributes, editor }: any) => {
                         >
                             <span
                                 className={`flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-lg text-sm font-bold transition-all duration-300 ${expandedIndex === index
-                                    ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300 scale-110'
-                                    : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 group-hover:bg-purple-50 dark:group-hover:bg-purple-900/20 group-hover:text-purple-600 dark:group-hover:text-purple-400'
+                                    ? 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300 scale-110'
+                                    : 'bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400 group-hover:bg-orange-50 dark:group-hover:bg-orange-900/20 group-hover:text-orange-600 dark:group-hover:text-orange-400'
                                     }`}
                             >
                                 {index + 1}
@@ -85,11 +85,11 @@ export default ({ node, updateAttributes, editor }: any) => {
                                         value={item.question}
                                         onChange={(e) => handleUpdateItem(index, 'question', e.target.value)}
                                         placeholder="Type your question here..."
-                                        className="w-full bg-transparent border-none outline-none font-bold text-lg sm:text-xl text-gray-900 dark:text-gray-100 placeholder-gray-400/70 p-0 focus:ring-0"
+                                        className="w-full bg-transparent border-none outline-none font-bold text-lg sm:text-xl text-neutral-900 dark:text-neutral-100 placeholder-neutral-400/70 p-0 focus:ring-0"
                                         onClick={(e) => e.stopPropagation()}
                                     />
                                 ) : (
-                                    <h4 className="font-bold text-lg sm:text-xl text-gray-900 dark:text-gray-100 pr-4 leading-snug">
+                                    <h4 className="font-bold text-lg sm:text-xl text-neutral-900 dark:text-neutral-100 pr-4 leading-snug">
                                         {item.question || 'Untitled Question'}
                                     </h4>
                                 )}
@@ -102,7 +102,7 @@ export default ({ node, updateAttributes, editor }: any) => {
                                             e.stopPropagation();
                                             handleDeleteItem(index);
                                         }}
-                                        className="p-2 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all cursor-pointer"
+                                        className="p-2 opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all cursor-pointer"
                                         title="Delete Question"
                                     >
                                         <Trash2 size={18} />
@@ -110,8 +110,8 @@ export default ({ node, updateAttributes, editor }: any) => {
                                 )}
                                 <div
                                     className={`p-2 rounded-lg transition-all duration-300 ${expandedIndex === index
-                                        ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300 rotate-180'
-                                        : 'text-gray-400 group-hover:text-purple-600 dark:group-hover:text-purple-400'
+                                        ? 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300 rotate-180'
+                                        : 'text-neutral-400 group-hover:text-orange-600 dark:group-hover:text-orange-400'
                                         }`}
                                 >
                                     <ChevronDown size={20} strokeWidth={2.5} />
@@ -132,11 +132,11 @@ export default ({ node, updateAttributes, editor }: any) => {
                                             value={item.answer}
                                             onChange={(e) => handleUpdateItem(index, 'answer', e.target.value)}
                                             placeholder="Write the detailed answer here..."
-                                            className="w-full bg-gray-50 dark:bg-black/20 border border-transparent focus:border-purple-200 dark:focus:border-purple-800 focus:bg-white dark:focus:bg-black/40 rounded-xl p-4 text-base sm:text-lg text-gray-600 dark:text-gray-300 leading-relaxed outline-none resize-none focus:ring-4 focus:ring-purple-500/5 transition-all min-h-[100px]"
+                                            className="w-full bg-neutral-50 dark:bg-black/20 border border-transparent focus:border-orange-200 dark:focus:border-orange-800 focus:bg-white dark:focus:bg-black/40 rounded-xl p-4 text-base sm:text-lg text-neutral-600 dark:text-neutral-300 leading-relaxed outline-none resize-none focus:ring-4 focus:ring-orange-500/5 transition-all min-h-[100px]"
                                             onClick={(e) => e.stopPropagation()}
                                         />
                                     ) : (
-                                        <div className="text-gray-600 dark:text-gray-300 text-base sm:text-lg leading-relaxed whitespace-pre-wrap">
+                                        <div className="text-neutral-600 dark:text-neutral-300 text-base sm:text-lg leading-relaxed whitespace-pre-wrap">
                                             {item.answer || 'No answer provided yet.'}
                                         </div>
                                     )}
@@ -151,12 +151,12 @@ export default ({ node, updateAttributes, editor }: any) => {
                 <div className="mt-8 flex justify-center">
                     <button
                         onClick={handleAddItem}
-                        className="group flex items-center gap-3 px-6 py-3 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-gray-800 hover:border-purple-400 dark:hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/10 rounded-full transition-all duration-300 transform hover:-translate-y-0.5"
+                        className="group flex items-center gap-3 px-6 py-3 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:border-orange-400 dark:hover:border-orange-500 hover:shadow-lg hover:shadow-orange-500/10 rounded-full transition-all duration-300 transform hover:-translate-y-0.5"
                     >
-                        <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 flex items-center justify-center group-hover:scale-110 transition-transform">
                             <Plus size={18} strokeWidth={2.5} />
                         </div>
-                        <span className="font-semibold text-gray-700 dark:text-gray-200 group-hover:text-purple-700 dark:group-hover:text-purple-300">
+                        <span className="font-semibold text-neutral-700 dark:text-neutral-200 group-hover:text-orange-700 dark:group-hover:text-orange-300">
                             Add Another Question
                         </span>
                     </button>

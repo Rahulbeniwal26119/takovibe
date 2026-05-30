@@ -160,18 +160,6 @@ try {
               <div class="w-px h-8 bg-neutral-300 dark:bg-neutral-700"></div>
 
               <div class="flex items-center gap-2 group cursor-default">
-                <span class="flex items-center justify-center w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                </span>
-                <div class="flex flex-col">
-                  <span class="text-lg font-bold text-neutral-900 dark:text-neutral-50 leading-none" id="total-views-hero">0+</span>
-                  <span class="text-xs text-neutral-500 font-medium uppercase tracking-wider">Views</span>
-                </div>
-              </div>
-
-              <div class="w-px h-8 bg-neutral-300 dark:bg-neutral-700"></div>
-
-              <div class="flex items-center gap-2 group cursor-default">
                 <span class="flex items-center justify-center w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                 </span>
@@ -701,7 +689,7 @@ try {
                 <!-- iFrame Snippet -->
                 <div class="relative bg-neutral-950 border border-neutral-700 rounded-lg p-3 font-mono text-[10px] text-neutral-300 leading-relaxed overflow-hidden">
                   <div><span class="text-sky-400">&lt;iframe</span></div>
-                  <div class="pl-4"><span class="text-amber-400">src</span>=<span class="text-orange-400">"takovibe.com/embed/playground?code=..."</span></div>
+                  <div class="pl-4"><span class="text-amber-400">src</span>=<span class="text-orange-400">"https://takovibe.com/embed/playground?code=..."</span></div>
                   <div class="pl-4"><span class="text-amber-400">width</span>=<span class="text-orange-400">"100%"</span> <span class="text-amber-400">height</span>=<span class="text-orange-400">"400"</span></div>
                   <div class="pl-4"><span class="text-amber-400">frameborder</span>=<span class="text-orange-400">"0"</span></div>
                   <div class="pl-4"><span class="text-amber-400">sandbox</span>=<span class="text-orange-400">"allow-scripts allow-same-origin"</span></div>
@@ -955,7 +943,6 @@ try {
         const heroBlogs = document.getElementById('total-blogs-hero');
         const heroCategories = document.getElementById('total-categories-hero');
         const heroAuthors = document.getElementById('total-authors-hero');
-        const heroViews = document.getElementById('total-views-hero');
 
         if (heroBlogs) {
           heroBlogs.innerHTML = `${stats.total_blogs}+`;
@@ -966,13 +953,6 @@ try {
         if (heroAuthors) {
           heroAuthors.innerHTML = `${stats.total_authors}+`;
         }
-        if (heroViews) {
-          // Format views (e.g., 5500 -> 5.5k)
-          const formattedViews = stats.total_views >= 1000 
-            ? `${(stats.total_views / 1000).toFixed(1)}k` 
-            : stats.total_views;
-          heroViews.innerHTML = `${formattedViews}+`;
-        }
       }
     } catch (error) {
       console.error('Failed to load stats:', error);
@@ -980,12 +960,10 @@ try {
       const heroBlogs = document.getElementById('total-blogs-hero');
       const heroCategories = document.getElementById('total-categories-hero');
       const heroAuthors = document.getElementById('total-authors-hero');
-      const heroViews = document.getElementById('total-views-hero');
 
       if (heroBlogs) heroBlogs.innerHTML = '25+';
       if (heroCategories) heroCategories.innerHTML = '10+';
       if (heroAuthors) heroAuthors.innerHTML = '2+';
-      if (heroViews) heroViews.innerHTML = '5k+';
     }
   }
 

@@ -1,0 +1,26 @@
+---
+interface Props {
+  text: string;
+}
+
+const { text } = Astro.props;
+const linkClass =
+  "font-semibold text-orange-600 underline decoration-orange-300 underline-offset-2 transition hover:text-orange-700 dark:text-orange-400 dark:decoration-orange-700 dark:hover:text-orange-300";
+
+// Policy copy is defined locally in source files, so these replacements stay controlled.
+const linkedText = text
+  .replaceAll(
+    "Rahul Beniwal, Sole Proprietor",
+    `<a href="https://www.linkedin.com/in/rahulbeniwal26119/" target="_blank" rel="noopener noreferrer" class="${linkClass}">Rahul Beniwal, Sole Proprietor</a>`,
+  )
+  .replaceAll(
+    "https://takovibe.com/contact/",
+    `<a href="https://takovibe.com/contact/" class="${linkClass}">https://takovibe.com/contact/</a>`,
+  )
+  .replaceAll(
+    "contact@takovibe.com",
+    `<a href="mailto:contact@takovibe.com" class="${linkClass}">contact@takovibe.com</a>`,
+  );
+---
+
+<p set:html={linkedText} />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LogIn, X } from 'lucide-react';
+import { LogIn } from 'lucide-react';
 
 export default function LoginPromptModal() {
     const [isOpen, setIsOpen] = useState(false);
@@ -26,18 +26,18 @@ export default function LoginPromptModal() {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[50000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-sm w-full border border-gray-200 dark:border-gray-800 transform scale-100 transition-all">
+        <div className="fixed inset-0 z-[50000] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-fade-in">
+            <div className="w-full max-w-sm transform overflow-hidden rounded-2xl border border-neutral-200 bg-stone-50 shadow-2xl shadow-black/20 transition-all dark:border-neutral-800 dark:bg-neutral-950">
                 <div className="p-6 text-center">
-                    <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <LogIn className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl border border-orange-200 bg-orange-50 dark:border-orange-900/70 dark:bg-orange-950/30">
+                        <LogIn className="h-7 w-7 text-orange-600 dark:text-orange-300" />
                     </div>
 
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                    <h3 className="mb-2 text-xl font-bold text-neutral-950 dark:text-white">
                         Login Required
                     </h3>
 
-                    <p className="text-gray-600 dark:text-gray-300 mb-6">
+                    <p className="mb-6 text-sm leading-6 text-neutral-600 dark:text-neutral-300">
                         You need to be logged in to use {featureName}.
                         Please login to continue.
                     </p>
@@ -45,7 +45,7 @@ export default function LoginPromptModal() {
                     <div className="flex flex-col gap-3">
                         <button
                             onClick={handleLogin}
-                            className="w-full py-3 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+                            className="flex w-full items-center justify-center gap-2 rounded-lg bg-orange-600 px-4 py-3 font-semibold text-white transition-colors hover:bg-orange-500"
                         >
                             <LogIn className="w-5 h-5" />
                             Login Now
@@ -53,7 +53,7 @@ export default function LoginPromptModal() {
 
                         <button
                             onClick={() => setIsOpen(false)}
-                            className="w-full py-3 px-4 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-semibold transition-colors"
+                            className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 font-semibold text-neutral-700 transition-colors hover:bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800"
                         >
                             Maybe Later
                         </button>

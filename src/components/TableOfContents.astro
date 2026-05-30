@@ -4,73 +4,77 @@ interface Props {
 }
 
 const { headings } = Astro.props;
-
-// Filter out h1 and limit depth if needed
-const toc = headings.filter((h) => h.depth > 1 && h.depth <= 3);
+const toc = headings.filter((heading) => heading.depth > 1 && heading.depth <= 3);
 ---
 
-<nav class="toc-container">
-    <h2
-        class="text-base font-bold text-gray-900 dark:text-gray-100 mb-4 uppercase tracking-wider"
-    >
-        On this page
-    </h2>
-    <ul class="space-y-3 text-base">
-        {
-            toc.map((heading) => (
-                <li
-                    class={`toc-item depth-${heading.depth} relative pl-3 border-l hover:border-gray-900 dark:hover:border-gray-100 transition-colors duration-200 border-transparent`}
-                >
-                    <a
-                        href={`#${heading.slug}`}
-                        class="block py-1 pl-4 text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-all duration-200 line-clamp-2 hover:scale-105 hover:translate-x-1"
+{
+    toc.length > 0 && (
+        <nav
+            class="toc-container flex max-h-[62vh] flex-col overflow-hidden rounded-xl border border-neutral-200/90 bg-white/80 p-3 shadow-sm shadow-neutral-900/5 backdrop-blur-sm dark:border-neutral-800 dark:bg-neutral-950/70 dark:shadow-black/20"
+            aria-label="Table of contents"
+        >
+            <div class="mb-3 flex items-center justify-between gap-3 px-1">
+                <div class="flex items-center gap-2">
+                    <span class="h-1.5 w-1.5 rounded-full bg-orange-500"></span>
+                    <h2 class="text-[11px] font-black uppercase tracking-[0.18em] text-neutral-700 dark:text-neutral-200">
+                        On this page
+                    </h2>
+                </div>
+                <span class="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-bold text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
+                    {toc.length}
+                </span>
+            </div>
+
+            <ul class="toc-list custom-scrollbar space-y-1 overflow-y-auto pr-1">
+                {toc.map((heading, index) => (
+                    <li
+                        class={`toc-item ${heading.depth === 3 ? "toc-item-nested" : ""}`}
+                        data-toc-slug={heading.slug}
                     >
-                        {heading.text}
-                    </a>
-                </li>
-            ))
-        }
-    </ul>
-</nav>
+                        <a
+                            href={`#${heading.slug}`}
+                            class="flex items-start gap-2.5 rounded-lg border border-transparent px-2 py-2 text-sm leading-5 text-neutral-600 transition-all duration-200 hover:border-orange-200 hover:bg-orange-50 hover:text-orange-700 dark:text-neutral-400 dark:hover:border-orange-900/70 dark:hover:bg-orange-950/30 dark:hover:text-orange-300"
+                        >
+                            <span class="toc-index mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md bg-neutral-100 font-mono text-[9px] font-bold text-neutral-500 transition-colors dark:bg-neutral-900 dark:text-neutral-500">
+                                {String(index + 1).padStart(2, "0")}
+                            </span>
+                            <span class="line-clamp-2">{heading.text}</span>
+                        </a>
+                    </li>
+                ))}
+            </ul>
+        </nav>
+    )
+}
 
 <script>
-    // Highlight active section on scroll
+    function setActiveTocItem(slug: string) {
+        document.querySelectorAll<HTMLElement>(".toc-item").forEach((item) => {
+            const isActive = item.dataset.tocSlug === slug;
+            item.classList.toggle("active", isActive);
+
+            if (!isActive) return;
+
+            const list = item.closest<HTMLElement>(".toc-list");
+            if (!list) return;
+
+            const itemTop = item.offsetTop;
+            const itemBottom = itemTop + item.offsetHeight;
+            const listBottom = list.scrollTop + list.clientHeight;
+
+            if (itemTop < list.scrollTop || itemBottom > listBottom) {
+                list.scrollTo({
+                    top: Math.max(itemTop - list.clientHeight / 3, 0),
+                    behavior: "smooth",
+                });
+            }
+        });
+    }
+
     const observer = new IntersectionObserver(
         (entries) => {
             entries.forEach((entry) => {
-                const id = entry.target.getAttribute("id");
-                const link = document.querySelector(
-                    `.toc-item a[href="#${id}"]`,
-                );
-
-                if (entry.isIntersecting) {
-                    document.querySelectorAll(".toc-item").forEach((item) => {
-                        item.classList.remove("active");
-                        item.classList.remove("border-purple-500");
-                    });
-                    link?.parentElement?.classList.add("active");
-                    link?.parentElement?.classList.add(
-                        "border-purple-600",
-                        "dark:border-purple-400",
-                        "bg-purple-50",
-                        "dark:bg-purple-900/20",
-                    );
-                    link?.classList.add(
-                        "text-purple-600",
-                        "dark:text-purple-400",
-                        "font-bold",
-                    );
-                } else {
-                    link?.classList.remove(
-                        "text-purple-600",
-                        "dark:text-purple-400",
-                        "font-bold",
-                    );
-                    link?.parentElement?.classList.remove(
-                        "bg-purple-50",
-                        "dark:bg-purple-900/20",
-                    );
-                }
+                if (entry.isIntersecting) setActiveTocItem(entry.target.id);
             });
         },
         { rootMargin: "-100px 0px -66%" },
@@ -82,15 +86,28 @@ const toc = headings.filter((h) => h.depth > 1 && h.depth <= 3);
 </script>
 
 <style>
-    .depth-3 {
-        margin-left: 1rem;
-    }
-
-    .toc-item.active {
-        @apply border-purple-600 dark:border-purple-400 bg-purple-50 dark:bg-purple-900/20;
+    .toc-item-nested {
+        margin-left: 0.75rem;
     }
 
     .toc-item.active a {
-        @apply text-purple-600 dark:text-purple-400 font-bold;
+        @apply border-orange-200 bg-orange-50 text-orange-700 shadow-sm dark:border-orange-900/70 dark:bg-orange-950/30 dark:text-orange-300;
+    }
+
+    .toc-item.active .toc-index {
+        @apply bg-orange-600 text-white dark:bg-orange-500 dark:text-neutral-950;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 3px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(249, 115, 22, 0.35);
+        border-radius: 999px;
     }
 </style>

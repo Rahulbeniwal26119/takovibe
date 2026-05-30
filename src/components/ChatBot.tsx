@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, Suspense } from 'react';
-import { MessageCircle, X, Send, Sparkles, User, Minimize2, Maximize2, Minus, Volume2, VolumeX, Copy, Mic, MicOff, Trash2, Check, Code2 } from 'lucide-react';
+import { X, Send, Sparkles, User, Minimize2, Maximize2, Minus, Mic, MicOff, Trash2, Check, Code2, FileText, Lightbulb, Brain, PanelRight, PanelRightClose } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
@@ -7,7 +7,6 @@ import 'highlight.js/styles/github-dark.css';
 
 // Lazy load heavy components
 const Mermaid = React.lazy(() => import('./Mermaid'));
-const QuizCard = React.lazy(() => import('./QuizCard'));
 
 interface ChatBotProps {
     articleContext?: string;
@@ -22,6 +21,22 @@ interface Message {
     role: 'user' | 'assistant';
     content: string;
     mode?: string;
+    displayContent?: string;
+}
+
+function parseQuizContent(raw: string): any | null {
+    if (!raw) return null;
+    let text = raw.trim();
+    const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+    if (fence) text = fence[1].trim();
+    if (!text.startsWith('{') && !text.startsWith('[')) return null;
+    try {
+        const data = JSON.parse(text);
+        if (data && Array.isArray(data.questions)) return data;
+    } catch {
+        return null;
+    }
+    return null;
 }
 
 export default function ChatBot({
@@ -35,6 +50,11 @@ export default function ChatBot({
     const [isOpen, setIsOpen] = useState(isSidebar);
     const [isMinimized, setIsMinimized] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
+    // Default to split view on desktop (like Code Studio / Excalidraw); floating sheet on mobile
+    const [isSplit, setIsSplit] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 768);
+    const [splitRatio, setSplitRatio] = useState(62); // article % on the left; Kumi takes the rest
+    const [isMobile, setIsMobile] = useState(false);
+    const isDraggingRef = useRef(false);
     const [messages, setMessages] = useState<Message[]>([
         { role: 'assistant', content: "Hi! I'm Kumi. I can help you understand this note better. Ask me anything!" }
     ]);
@@ -111,6 +131,64 @@ export default function ChatBot({
 
     }, [isOpen, isMinimized]);
 
+    // Track viewport so split is desktop-only
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    const splitActive = isSplit && isOpen && !isMobile && !isSidebar;
+
+    // Immersive split: toggle the shared body flag and coordinate with the other immersive panels
+    useEffect(() => {
+        if (splitActive) {
+            document.body.classList.add('split-view-active');
+            // Opening Kumi-split closes Code Studio / Excalidraw (they listen for this)
+            window.dispatchEvent(new CustomEvent('open-kumi-split'));
+        } else {
+            document.body.classList.remove('split-view-active');
+        }
+        return () => document.body.classList.remove('split-view-active');
+    }, [splitActive]);
+
+    // Exit split when another immersive panel opens
+    useEffect(() => {
+        const exit = () => setIsSplit(false);
+        window.addEventListener('open-code-studio', exit);
+        window.addEventListener('open-excalidraw', exit);
+        return () => {
+            window.removeEventListener('open-code-studio', exit);
+            window.removeEventListener('open-excalidraw', exit);
+        };
+    }, []);
+
+    // Draggable divider for split mode
+    useEffect(() => {
+        const onMove = (e: MouseEvent) => {
+            if (!isDraggingRef.current) return;
+            e.preventDefault();
+            const pct = (e.clientX / window.innerWidth) * 100;
+            if (pct > 30 && pct < 80) setSplitRatio(pct);
+        };
+        const onUp = () => {
+            if (isDraggingRef.current) {
+                isDraggingRef.current = false;
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+            }
+        };
+        if (splitActive) {
+            window.addEventListener('mousemove', onMove);
+            window.addEventListener('mouseup', onUp);
+        }
+        return () => {
+            window.removeEventListener('mousemove', onMove);
+            window.removeEventListener('mouseup', onUp);
+        };
+    }, [splitActive]);
+
     useEffect(() => {
         const handleAskKumi = (e: any) => {
             if (e.detail && e.detail.message) {
@@ -137,11 +215,6 @@ export default function ChatBot({
             setIsOpen(true);
             setIsMinimized(false);
             shouldAutoScrollRef.current = true; // Force scroll on trigger
-
-            if (mode === 'visualize') {
-                sendMessage("Visualize this", { mode: 'visualize', context: selectedText });
-                return;
-            }
 
             if (mode === 'explain') {
                 setInput("Can you explain how this code works line-by-line?");
@@ -227,28 +300,9 @@ export default function ChatBot({
         }
     };
 
-    // Speech Logic
-    const [isSpeechEnabled, setIsSpeechEnabled] = useState(false);
-
-    const speak = (text: string) => {
-        // console.log("Speak called:", text.substring(0, 50));
-        if (!window.speechSynthesis) return;
-        window.speechSynthesis.cancel(); // Stop current
-
-        // Strip markdown roughly for better speech
-        const cleanText = text
-            .replace(/```[\s\S]*?```/g, 'Code snippet provided.') // Skip code blocks
-            .replace(/[*#_`~>]/g, '') // Remove formatting chars
-            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1'); // Links to text
-
-        const utterance = new SpeechSynthesisUtterance(cleanText);
-        window.speechSynthesis.speak(utterance);
-    };
-
-    // Stop speech/listening on close
+    // Stop listening on close
     useEffect(() => {
         if (!isOpen) {
-            window.speechSynthesis?.cancel();
             if (isListening) {
                 recognitionRef.current?.stop();
                 setIsListening(false);
@@ -301,7 +355,6 @@ export default function ChatBot({
         const key = `chat_history_${articleId || articleTitle || 'general'}`;
         localStorage.removeItem(key);
         setReplyContext(null);
-        window.speechSynthesis?.cancel();
         if (isListening) {
             recognitionRef.current?.stop();
             setIsListening(false);
@@ -343,6 +396,17 @@ export default function ChatBot({
         if (wasLoadingRef.current && !isLoading && messages.length > 0) {
             const lastMsg = messages[messages.length - 1];
             if (lastMsg.role === 'assistant') {
+                // Quiz: hand off to the dedicated quiz drawer instead of rendering inline
+                if (lastMsg.mode === 'quiz') {
+                    const quiz = parseQuizContent(lastMsg.content);
+                    if (quiz) {
+                        window.dispatchEvent(new CustomEvent('open-quiz', { detail: { data: quiz } }));
+                        setIsMinimized(true);
+                    }
+                    wasLoadingRef.current = isLoading;
+                    return;
+                }
+
                 try {
                     const content = lastMsg.content.trim();
 
@@ -389,8 +453,8 @@ export default function ChatBot({
         wasLoadingRef.current = isLoading;
     }, [messages, isLoading]);
 
-    const sendMessage = async (text: string, options?: { mode?: string, context?: string }) => {
-        // Allow empty text if we have context/mode (e.g. visualize)
+    const sendMessage = async (text: string, options?: { mode?: string, context?: string, displayText?: string }) => {
+        // Allow empty text if we have context/mode
         if ((!text.trim() && !replyContext && !options?.context) || isLoading) return;
 
         shouldAutoScrollRef.current = true;
@@ -404,8 +468,8 @@ export default function ChatBot({
             setReplyContext(null);
         }
 
-        // Add User Message
-        const newMessages = [...messages, { role: 'user', content: userMessage, mode: options?.mode } as Message];
+        // Add User Message — displayContent shows a friendly label while content carries the real prompt
+        const newMessages = [...messages, { role: 'user', content: userMessage, mode: options?.mode, displayContent: options?.displayText } as Message];
         setMessages(newMessages);
 
         setIsLoading(true);
@@ -448,10 +512,6 @@ export default function ChatBot({
                     }
                     return newMessages;
                 });
-            }
-
-            if (isSpeechEnabled && aiResponse) {
-                speak(aiResponse);
             }
 
             // Premium Nudge for Debug Mode
@@ -513,7 +573,7 @@ export default function ChatBot({
         // Mobile: Fixed bottom inset-0 (full width bottom sheet)
         // Desktop: Fixed bottom-right corner
         // FIX: Increased z-index to 20000 to be above CodeEditorDrawer (z-10000)
-        'fixed bottom-0 z-[20000] flex flex-col shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden',
+        'fixed bottom-0 z-[20000] flex flex-col overflow-hidden border border-neutral-200 shadow-xl dark:border-neutral-800',
         'inset-x-0 md:inset-auto md:left-auto md:right-6 md:bottom-6',
         'kumi-chatbot-container', // Hook for CSS
 
@@ -522,7 +582,7 @@ export default function ChatBot({
         // Desktop: Bottom Right (grows from button)
         'origin-bottom md:origin-bottom-right',
 
-        'bg-white dark:bg-slate-900',
+        'bg-white dark:bg-neutral-950',
         'transition-all duration-300', // Smooth transition for entry/exit and hiding
         // Hide when comments are open (body class injected by comments drawer)
         'group-[.comments-open]/body:opacity-0 group-[.comments-open]/body:pointer-events-none group-[.comments-open]/body:translate-y-4',
@@ -546,14 +606,23 @@ export default function ChatBot({
         !isMinimized && !isExpanded ? 'h-[50dvh] md:w-96 md:h-[600px] max-h-[85dvh]' : ''
     ].filter(Boolean).join(' ');
 
+    // Immersive split: full-height pane on the right; the article (#immersive-article-container)
+    // is squeezed to splitRatio% and the header/footer are hidden by the injected styles below.
+    const splitContainerClasses = [
+        'kumi-chatbot-container flex flex-col overflow-hidden bg-white dark:bg-neutral-950',
+        'fixed top-0 bottom-0 right-0 z-[10000] border-l border-neutral-200 shadow-2xl dark:border-neutral-800',
+    ].join(' ');
+
+    const finalClasses = splitActive ? splitContainerClasses : containerClasses;
+
     if (isSidebar) {
         return (
-            <div className="flex flex-col h-full bg-white dark:bg-gray-900 overflow-hidden">
+            <div className="flex h-full flex-col overflow-hidden bg-white dark:bg-neutral-950">
                 <div className="flex-1 flex flex-col overflow-hidden">
                     <div
                         ref={chatContainerRef}
                         onScroll={handleScroll}
-                        className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-slate-900/50"
+                        className="flex-1 space-y-4 overflow-y-auto bg-neutral-50 p-4 dark:bg-neutral-950"
                     >
                         {messages.map((message, index) => (
                             <div
@@ -561,26 +630,26 @@ export default function ChatBot({
                                 className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
                             >
                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${message.role === 'user'
-                                    ? 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
-                                    : 'bg-gradient-to-br from-purple-500 to-blue-500 text-white'
+                                    ? 'bg-neutral-200 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300'
+                                    : 'bg-orange-600 text-white'
                                     }`}>
                                     {message.role === 'user' ? <User className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
                                 </div>
                                 <div
                                     className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${message.role === 'user'
-                                        ? 'bg-purple-600 text-white rounded-tr-sm shadow-sm'
-                                        : 'bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 border border-gray-100 dark:border-gray-800 shadow-sm rounded-tl-sm'
+                                        ? 'rounded-tr-sm bg-orange-600 text-white'
+                                        : 'rounded-tl-sm border border-neutral-200 bg-white text-neutral-900 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-100'
                                         }`}
                                 >
                                     <div className={`prose prose-sm max-w-none ${message.role === 'user'
                                         ? 'prose-invert'
-                                        : 'prose-slate dark:prose-invert prose-p:text-gray-800 dark:prose-p:text-gray-200 prose-strong:text-black dark:prose-strong:text-white'
+                                        : 'prose-neutral dark:prose-invert prose-p:text-neutral-800 dark:prose-p:text-neutral-200 prose-strong:text-black dark:prose-strong:text-white'
                                         }`}>
                                         <ReactMarkdown
                                             remarkPlugins={[remarkGfm]}
                                             rehypePlugins={[rehypeHighlight]}
                                         >
-                                            {message.content}
+                                            {message.displayContent || message.content}
                                         </ReactMarkdown>
                                     </div>
                                 </div>
@@ -588,18 +657,18 @@ export default function ChatBot({
                         ))}
                         {isLoading && messages[messages.length - 1]?.content === '' && (
                             <div className="flex gap-3 animate-pulse">
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shrink-0 text-white">
+                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-600 text-white">
                                     <Sparkles className="w-4 h-4" />
                                 </div>
-                                <div className="bg-white dark:bg-slate-800 px-4 py-3 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm">
-                                    <span className="text-sm font-medium text-gray-500">Kumi is thinking...</span>
+                                <div className="rounded-2xl border border-neutral-200 bg-white px-4 py-3 dark:border-neutral-800 dark:bg-neutral-900">
+                                    <span className="text-sm font-medium text-neutral-500">Kumi is thinking...</span>
                                 </div>
                             </div>
                         )}
                         <div ref={messagesEndRef} />
                     </div>
 
-                    <form onSubmit={handleSubmit} className="p-4 bg-white dark:bg-slate-900 border-t border-gray-50 dark:border-gray-800/50">
+                    <form onSubmit={handleSubmit} className="border-t border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-950">
                         <div className="relative flex items-center gap-2">
                             <input
                                 ref={inputRef}
@@ -607,12 +676,12 @@ export default function ChatBot({
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 placeholder="Ask Kumi a question..."
-                                className="flex-1 pl-4 pr-12 py-3 bg-gray-50 dark:bg-slate-800/50 text-gray-900 dark:text-white rounded-xl border border-gray-100 dark:border-gray-700 focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500/50 transition-all text-sm"
+                                className="flex-1 rounded-xl border border-neutral-200 bg-neutral-50 py-3 pl-4 pr-12 text-sm text-neutral-900 transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white"
                             />
                             <button
                                 type="submit"
                                 disabled={!input.trim() || isLoading}
-                                className="absolute right-2 p-1.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:shadow-lg hover:scale-105 active:scale-95 transition-all"
+                                className="absolute right-2 rounded-lg bg-orange-600 p-1.5 text-white transition-colors hover:bg-orange-500"
                             >
                                 <Send className="w-4 h-4" />
                             </button>
@@ -625,45 +694,162 @@ export default function ChatBot({
 
     return (
         <>
+            {/* IMMERSIVE SPLIT: squeeze the article left, hide chrome, Kumi takes the right */}
+            {splitActive && (
+                <style>{`
+                    body { overflow: hidden !important; }
+                    #site-header, footer, .reading-progress { display: none !important; }
+
+                    #zen-nav {
+                        display: flex !important;
+                        visibility: visible !important;
+                        opacity: 1 !important;
+                        z-index: 9999999 !important;
+                        position: fixed !important;
+                        top: 0.75rem !important;
+                        left: 0.75rem !important;
+                        right: auto !important;
+                        width: calc(${splitRatio}% - 1.5rem) !important;
+                        max-width: calc(${splitRatio}% - 1.5rem) !important;
+                        padding: 0 !important;
+                        transform: none !important;
+                        pointer-events: auto !important;
+                    }
+                    #zen-nav > div {
+                        width: 100% !important;
+                        max-width: none !important;
+                        height: 3.75rem !important;
+                        border-color: rgba(64, 64, 64, 0.9) !important;
+                        background: rgba(23, 23, 23, 0.92) !important;
+                        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22) !important;
+                    }
+                    #article-nav-links { display: none !important; }
+                    #article-nav-actions a {
+                        padding: 0.5rem 0.75rem !important;
+                        border-radius: 0.5rem !important;
+                        background: #ea580c !important;
+                        color: #fff !important;
+                    }
+                    #zen-nav #zen-menu-trigger {
+                        display: grid !important;
+                        opacity: 1 !important;
+                        visibility: visible !important;
+                        background: rgba(255, 255, 255, 0.08) !important;
+                        color: white !important;
+                        border-color: rgba(255, 255, 255, 0.12) !important;
+                        box-shadow: none !important;
+                        backdrop-filter: blur(12px) !important;
+                    }
+                    html.dark #zen-nav #zen-menu-trigger {
+                        background: rgba(255, 255, 255, 0.08) !important;
+                        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+                    }
+
+                    #immersive-article-container {
+                        position: fixed !important;
+                        top: 0 !important;
+                        left: 0 !important;
+                        bottom: 0 !important;
+                        width: ${splitRatio}% !important;
+                        max-width: none !important;
+                        margin: 0 !important;
+                        padding: 5.25rem 2rem 8rem !important;
+                        overflow-y: auto !important;
+                        overflow-x: hidden !important;
+                        z-index: 50 !important;
+                        background: var(--zen-bg, #fafaf9);
+                        border-right: 1px solid #262626;
+                    }
+                    html.dark #immersive-article-container {
+                        background: var(--zen-bg, #0a0a0a);
+                        border-right: 1px solid #262626;
+                    }
+                    aside { display: none !important; }
+                    #immersive-article-container > div {
+                        max-width: 800px !important;
+                        margin: 0 auto !important;
+                        display: block !important;
+                    }
+                    #article { max-width: 100% !important; }
+                    #article header {
+                        padding-top: 2rem !important;
+                        padding-bottom: 2rem !important;
+                        margin-bottom: 2rem !important;
+                    }
+                    #article h1 {
+                        font-size: clamp(2rem, 3.2vw, 3.25rem) !important;
+                        line-height: 1.08 !important;
+                        max-width: 100% !important;
+                    }
+                    #article header p {
+                        max-width: 40rem !important;
+                        font-size: 1rem !important;
+                        line-height: 1.7 !important;
+                    }
+                `}</style>
+            )}
+
+            {/* DRAG HANDLE (split only) */}
+            {splitActive && !isMinimized && (
+                <div
+                    className="fixed top-0 bottom-0 z-[10001] flex w-[6px] cursor-col-resize items-center justify-center bg-neutral-200 transition-colors duration-150 hover:bg-orange-500 dark:bg-neutral-800 group"
+                    style={{ left: `calc(${splitRatio}% - 3px)` }}
+                    onMouseDown={(e) => {
+                        e.preventDefault();
+                        isDraggingRef.current = true;
+                        document.body.style.cursor = 'col-resize';
+                        document.body.style.userSelect = 'none';
+                    }}
+                >
+                    <div className="h-8 w-1 rounded-full bg-neutral-400 group-hover:bg-white/90"></div>
+                </div>
+            )}
+
             {/* Chat Window */}
             {isOpen && (
-                <div className={containerClasses} onClick={isMinimized ? () => setIsMinimized(false) : undefined}>
+                <div
+                    className={finalClasses}
+                    style={splitActive ? { width: `${100 - splitRatio}%` } : undefined}
+                    onClick={isMinimized ? () => setIsMinimized(false) : undefined}
+                >
 
 
                     {/* Header */}
                     <div
-                        className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-600 to-blue-600 shadow-md z-10 h-14"
+                        className="z-10 flex h-14 items-center justify-between border-b border-neutral-200 bg-white px-4 dark:border-neutral-800 dark:bg-neutral-950"
                     >
-                        <div className="flex items-center gap-2 text-white cursor-pointer" onClick={() => setIsMinimized(!isMinimized)}>
-                            <Sparkles className="w-5 h-5" />
+                        <div className="flex cursor-pointer items-center gap-2 text-neutral-900 dark:text-white" onClick={() => { if (!isSplit) setIsMinimized(!isMinimized); }}>
+                            <Sparkles className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                             <span className="font-bold">Kumi</span>
-                            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full text-white/90 border border-white/10 shadow-sm ml-1 ${isPremium ? 'bg-gradient-to-r from-amber-400 to-orange-500' : 'bg-white/20'}`}>
-                                {isPremium ? 'PREMIUM' : 'FREE'}
-                            </span>
+                            {isPremium && (
+                                <span className="ml-1 rounded-full border border-orange-500 bg-orange-600 px-1.5 py-0.5 font-mono text-[10px] text-white">
+                                    PREMIUM
+                                </span>
+                            )}
                         </div>
-                        <div className="flex items-center gap-1 text-white/80">
+                        <div className="flex items-center gap-1 text-neutral-400">
                             {!isMinimized && (
                                 <>
                                     {!confirmClear ? (
                                         <button
                                             onClick={(e) => { e.stopPropagation(); setConfirmClear(true); }}
-                                            className="p-1.5 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-white/50 hover:text-red-300"
+                                            className="rounded-md p-1.5 transition-colors hover:bg-neutral-100 hover:text-red-600 dark:hover:bg-neutral-900 dark:hover:text-red-400"
                                             title="Clear Chat History"
                                         >
                                             <Trash2 className="w-4 h-4" />
                                         </button>
                                     ) : (
-                                        <div className="flex items-center bg-red-500/20 rounded-lg animate-in fade-in zoom-in duration-200">
+                                        <div className="flex animate-in items-center rounded-md bg-red-50 duration-200 fade-in zoom-in dark:bg-red-950/40">
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); clearChat(); }}
-                                                className="p-1.5 text-red-300 hover:text-white hover:bg-white/10 rounded-l-lg transition-colors"
+                                                className="rounded-l-md p-1.5 text-red-600 transition-colors hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-950"
                                                 title="Confirm Clear"
                                             >
                                                 <Check className="w-4 h-4" />
                                             </button>
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); setConfirmClear(false); }}
-                                                className="p-1.5 text-white/50 hover:text-white hover:bg-white/10 rounded-r-lg transition-colors"
+                                                className="rounded-r-md p-1.5 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-900 dark:hover:text-neutral-200"
                                                 title="Cancel"
                                             >
                                                 <X className="w-4 h-4" />
@@ -671,42 +857,36 @@ export default function ChatBot({
                                         </div>
                                     )}
                                     <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            const newState = !isSpeechEnabled;
-                                            setIsSpeechEnabled(newState);
-                                            if (!newState) {
-                                                window.speechSynthesis?.cancel();
-                                            } else {
-                                                const u = new SpeechSynthesisUtterance("Speech enabled.");
-                                                window.speechSynthesis?.speak(u);
-                                            }
-                                        }}
-                                        className={`p-1.5 hover:text-white hover:bg-white/10 rounded-lg transition-colors ${isSpeechEnabled ? 'text-white' : 'text-white/50'}`}
-                                        title={isSpeechEnabled ? "Mute Speech" : "Enable Speech"}
+                                        onClick={(e) => { e.stopPropagation(); setIsSplit((s) => !s); setIsExpanded(false); setIsMinimized(false); }}
+                                        className={`hidden rounded-md p-1.5 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-900 dark:hover:text-neutral-200 md:inline-flex ${isSplit ? 'text-orange-600 dark:text-orange-400' : ''}`}
+                                        title={isSplit ? "Exit split view" : "Split view"}
                                     >
-                                        {isSpeechEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                                        {isSplit ? <PanelRightClose className="w-4 h-4" /> : <PanelRight className="w-4 h-4" />}
                                     </button>
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
-                                        className="p-1.5 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                                        title={isExpanded ? "Collapse" : "Expand"}
-                                    >
-                                        {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-                                    </button>
-                                    <button
-                                        onClick={handleMinimize}
-                                        className="p-1.5 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                                        title="Minimize"
-                                    >
-                                        <Minus className="w-4 h-4" />
-                                    </button>
+                                    {!isSplit && (
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
+                                            className="rounded-md p-1.5 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-900 dark:hover:text-neutral-200"
+                                            title={isExpanded ? "Collapse" : "Expand"}
+                                        >
+                                            {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                                        </button>
+                                    )}
+                                    {!isSplit && (
+                                        <button
+                                            onClick={handleMinimize}
+                                            className="rounded-md p-1.5 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-900 dark:hover:text-neutral-200"
+                                            title="Minimize"
+                                        >
+                                            <Minus className="w-4 h-4" />
+                                        </button>
+                                    )}
                                 </>
                             )}
                             {isMinimized && (
                                 <button
                                     onClick={(e) => { e.stopPropagation(); setIsMinimized(false); }}
-                                    className="p-1.5 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                                    className="rounded-md p-1.5 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-900 dark:hover:text-neutral-200"
                                     title="Restore"
                                 >
                                     <Maximize2 className="w-4 h-4" />
@@ -714,7 +894,7 @@ export default function ChatBot({
                             )}
                             <button
                                 onClick={(e) => { e.stopPropagation(); handleClose(); }}
-                                className="p-1.5 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                                className="rounded-md p-1.5 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-900 dark:hover:text-neutral-200"
                                 title="Close"
                             >
                                 <X className="w-4 h-4" />
@@ -729,7 +909,7 @@ export default function ChatBot({
                                 <div
                                     ref={chatContainerRef}
                                     onScroll={handleScroll}
-                                    className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-100 dark:bg-slate-800/50 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600"
+                                    className="flex-1 space-y-4 overflow-y-auto bg-neutral-50 p-4 scrollbar-thin scrollbar-thumb-neutral-300 dark:bg-neutral-950 dark:scrollbar-thumb-neutral-700"
                                 >
                                     {messages.map((message, index) => (
                                         <div
@@ -737,58 +917,70 @@ export default function ChatBot({
                                             className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
                                         >
                                             <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${message.role === 'user'
-                                                ? 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
-                                                : 'bg-gradient-to-br from-purple-500 to-blue-500 text-white'
+                                                ? 'bg-neutral-200 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300'
+                                                : 'bg-orange-600 text-white'
                                                 }`}>
                                                 {message.role === 'user' ? <User className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
                                             </div>
                                             <div
                                                 className={`max-w-[80%] px-4 py-3 rounded-2xl text-base leading-relaxed ${message.role === 'user'
-                                                    ? 'bg-purple-600 text-white rounded-tr-sm'
-                                                    : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 shadow-sm rounded-tl-sm'
+                                                    ? 'rounded-tr-sm bg-orange-600 text-white'
+                                                    : 'rounded-tl-sm border border-neutral-200 bg-white text-neutral-900 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-100'
                                                     }`}
                                             >
                                                 <div className={`prose max-w-none ${message.role === 'user'
                                                     ? 'prose-invert'
-                                                    : 'prose-slate dark:prose-invert prose-p:text-slate-700 dark:prose-p:text-gray-300 prose-headings:text-slate-900 dark:prose-headings:text-gray-100 prose-strong:text-slate-900 dark:prose-strong:text-white prose-ul:text-slate-700 dark:prose-ul:text-gray-300 prose-ol:text-slate-700 dark:prose-ol:text-gray-300 prose-li:text-slate-700 dark:prose-li:text-gray-300 prose-code:text-pink-600 dark:prose-code:text-pink-400 prose-blockquote:text-slate-600 dark:prose-blockquote:text-gray-400 prose-a:text-purple-600 dark:prose-a:text-purple-400'
+                                                    : 'prose-neutral dark:prose-invert prose-p:text-neutral-700 dark:prose-p:text-neutral-300 prose-headings:text-neutral-900 dark:prose-headings:text-neutral-100 prose-strong:text-neutral-900 dark:prose-strong:text-white prose-ul:text-neutral-700 dark:prose-ul:text-neutral-300 prose-ol:text-neutral-700 dark:prose-ol:text-neutral-300 prose-li:text-neutral-700 dark:prose-li:text-neutral-300 prose-code:text-orange-700 dark:prose-code:text-orange-300 prose-blockquote:text-neutral-600 dark:prose-blockquote:text-neutral-400 prose-a:text-orange-600 dark:prose-a:text-orange-400'
                                                     }`}>
                                                     {(() => {
                                                         const isAssistant = message.role === 'assistant';
-                                                        const isJson = isAssistant && (message.content.trim().startsWith('{') || message.content.trim().startsWith('['));
+                                                        const isQuiz = isAssistant && (message.mode === 'quiz' || /"questions"\s*:/.test(message.content));
 
-                                                        // 1. Loading State for Quiz
-                                                        if (isLoading && isJson) {
+                                                        // Quiz: hand off to the quiz drawer — never render raw JSON in chat
+                                                        if (isQuiz) {
+                                                            const quizData = parseQuizContent(message.content);
+                                                            if (quizData) {
+                                                                return (
+                                                                    <button
+                                                                        onClick={() => window.dispatchEvent(new CustomEvent('open-quiz', { detail: { data: quizData } }))}
+                                                                        className="group flex w-full items-center gap-3 rounded-xl border border-orange-200 bg-orange-50 p-3 text-left transition-colors hover:border-orange-300 hover:bg-orange-100 dark:border-orange-900/60 dark:bg-orange-950/20 dark:hover:bg-orange-950/40"
+                                                                    >
+                                                                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-orange-600 text-white">
+                                                                            <Brain className="h-5 w-5" />
+                                                                        </span>
+                                                                        <span className="flex flex-col">
+                                                                            <span className="text-sm font-semibold text-orange-900 dark:text-orange-100">
+                                                                                {quizData.title || 'Quiz ready'}
+                                                                            </span>
+                                                                            <span className="text-xs text-orange-700/80 dark:text-orange-300/80">
+                                                                                {quizData.questions.length} questions · tap to open
+                                                                            </span>
+                                                                        </span>
+                                                                    </button>
+                                                                );
+                                                            }
+                                                            // Still streaming, or finished but unparseable — show a friendly state, not JSON
                                                             return (
-                                                                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 py-2">
-                                                                    <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-                                                                    <span className="text-sm font-medium">Generating...</span>
+                                                                <div className="flex items-center gap-2 py-2 text-neutral-500 dark:text-neutral-400">
+                                                                    {isLoading ? (
+                                                                        <>
+                                                                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-orange-500 border-t-transparent"></div>
+                                                                            <span className="text-sm font-medium">Generating quiz…</span>
+                                                                        </>
+                                                                    ) : (
+                                                                        <span className="text-sm font-medium">Couldn't generate a quiz. Please try again.</span>
+                                                                    )}
                                                                 </div>
                                                             );
                                                         }
 
-                                                        // 2. Finished State for Quiz
-                                                        if (!isLoading && isJson) {
-                                                            try {
-                                                                const quizData = JSON.parse(message.content);
-                                                                if (quizData.questions && Array.isArray(quizData.questions)) {
-                                                                    return (
-                                                                        <Suspense fallback={<div className="p-4 text-center text-gray-500">Loading Quiz...</div>}>
-                                                                            <QuizCard data={quizData} />
-                                                                        </Suspense>
-                                                                    );
-                                                                }
-                                                            } catch (e) {
-                                                                // console.warn("Failed to parse JSON", e);
-                                                            }
-                                                        }
-
-                                                        // 3. Fallback / Standard Text
+                                                        // Fallback / Standard Text
                                                         return (
-                                                            <div className={isAssistant && message.mode === 'debug' ? "bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-800/30 rounded-xl p-4 md:-mx-2" : ""}>
+                                                            <div className={isAssistant && message.mode === 'debug' ? "rounded-xl border border-orange-100 bg-orange-50 p-4 dark:border-orange-900/50 dark:bg-orange-950/20 md:-mx-2" : ""}>
                                                                 {isAssistant && message.mode === 'debug' && (
-                                                                    <div className="flex items-center gap-2 mb-3 pb-3 border-b border-purple-100 dark:border-purple-800/30">
-                                                                        <div className="p-1.5 bg-purple-500 rounded text-white"><Code2 className="w-3 h-3" /></div>
-                                                                        <span className="text-xs font-bold text-purple-900 dark:text-purple-100 uppercase tracking-widest">Debug Solution</span>
+                                                                    <div className="mb-3 flex items-center gap-2 border-b border-orange-100 pb-3 dark:border-orange-900/50">
+                                                                        <div className="rounded bg-orange-600 p-1.5 text-white"><Code2 className="w-3 h-3" /></div>
+                                                                        <span className="text-xs font-bold uppercase tracking-widest text-orange-900 dark:text-orange-100">Debug Solution</span>
                                                                     </div>
                                                                 )}
                                                                 <ReactMarkdown
@@ -797,7 +989,7 @@ export default function ChatBot({
                                                                     components={{
                                                                         pre: ({ node, ...props }) => (
                                                                             <div className="relative group/code">
-                                                                                <pre {...props} className="bg-slate-950 rounded-lg p-4 overflow-x-auto my-2 text-sm" />
+                                                                                <pre {...props} className="my-2 overflow-x-auto rounded-lg bg-neutral-950 p-4 text-sm" />
                                                                                 <button
                                                                                     onClick={(e) => {
                                                                                         const code = (e.currentTarget.previousSibling as HTMLElement)?.textContent || '';
@@ -830,7 +1022,7 @@ export default function ChatBot({
                                                                         }
                                                                     }}
                                                                 >
-                                                                    {message.content}
+                                                                    {message.displayContent || message.content}
                                                                 </ReactMarkdown>
                                                             </div>
                                                         );
@@ -841,15 +1033,15 @@ export default function ChatBot({
                                     ))}
                                     {isLoading && messages[messages.length - 1]?.content === '' && (
                                         <div className="flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shrink-0 text-white shadow-sm ring-2 ring-white dark:ring-slate-800">
+                                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-600 text-white ring-2 ring-white dark:ring-neutral-900">
                                                 <Sparkles className="w-4 h-4 animate-pulse" />
                                             </div>
-                                            <div className="bg-white dark:bg-slate-800 px-4 py-3 rounded-2xl rounded-tl-sm border border-gray-100 dark:border-gray-700 shadow-sm flex items-center gap-3">
-                                                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Kumi is thinking</span>
+                                            <div className="flex items-center gap-3 rounded-2xl rounded-tl-sm border border-neutral-200 bg-white px-4 py-3 dark:border-neutral-800 dark:bg-neutral-900">
+                                                <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Kumi is thinking</span>
                                                 <div className="flex gap-1">
-                                                    <span className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                                                    <span className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                                                    <span className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                                                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-orange-500" style={{ animationDelay: '0ms' }}></span>
+                                                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-orange-500" style={{ animationDelay: '150ms' }}></span>
+                                                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-orange-500" style={{ animationDelay: '300ms' }}></span>
                                                 </div>
                                             </div>
                                         </div>
@@ -858,20 +1050,15 @@ export default function ChatBot({
                                     {messages.length <= 1 && !isLoading && !replyContext && (
                                         <div className="grid grid-cols-1 gap-2 mt-4 px-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                             {[
-                                                { icon: "📝", text: "Summarize this article" },
-                                                { icon: "💡", text: "What are the key takeaways?" },
-                                                {
-                                                    icon: "🎨",
-                                                    text: "Ghost Artist (Experimental)",
-                                                    mode: "visualize",
-                                                    prompt: "Visualize this", // Fallback text if needed, but mode takes precedence
-                                                    warning: "⚠️ Use on a new/empty note to stay safe"
-                                                },
+                                                { icon: FileText, text: "Summarize this article" },
+                                                { icon: Lightbulb, text: "What are the key takeaways?" },
                                                 { divider: true },
                                                 {
-                                                    icon: "🧠",
+                                                    icon: Brain,
                                                     text: "Quiz me!",
-                                                    prompt: `Generate a short multiple-choice quiz about this article. 
+                                                    displayText: "Generate a quiz",
+                                                    mode: "quiz",
+                                                    prompt: `Generate a short multiple-choice quiz about this article.
 Return STRICT JSON format only. Do not add any conversational text before or after the JSON.
 Format:
 {
@@ -889,18 +1076,21 @@ Format:
                                                 }
                                             ].map((starter, i) => (
                                                 // @ts-ignore
-                                                starter.divider ? <div key={i} className="h-px bg-gray-200 dark:bg-gray-700 my-1" /> :
+                                                starter.divider ? <div key={i} className="my-1 h-px bg-neutral-200 dark:bg-neutral-800" /> :
                                                     <button
                                                         key={i}
                                                         // @ts-ignore
-                                                        onClick={() => sendMessage(starter.prompt || starter.text, starter.mode ? { mode: starter.mode } : undefined)}
-                                                        className="text-left p-3 rounded-xl bg-white dark:bg-slate-800 hover:bg-purple-50 dark:hover:bg-slate-700 hover:border-purple-200 dark:hover:border-purple-700/50 border border-gray-200 dark:border-gray-700 transition-all group flex items-start gap-3 shadow-sm hover:shadow-md"
+                                                        onClick={() => sendMessage(starter.prompt || starter.text, (starter.mode || starter.displayText) ? { mode: starter.mode, displayText: starter.displayText } : undefined)}
+                                                        className="group flex items-start gap-3 rounded-xl border border-neutral-200 bg-white p-3 text-left transition-colors hover:border-orange-300 hover:bg-orange-50 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-orange-900 dark:hover:bg-orange-950/20"
                                                     >
                                                         {/* @ts-ignore */}
-                                                        <span className="text-xl bg-white dark:bg-slate-900 w-8 h-8 flex items-center justify-center rounded-lg shadow-sm group-hover:scale-110 transition-transform shrink-0">{starter.icon}</span>
+                                                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-orange-50 text-orange-600 transition-transform group-hover:scale-105 dark:bg-orange-950/50 dark:text-orange-300">
+                                                            {/* @ts-ignore */}
+                                                            <starter.icon className="h-4 w-4" />
+                                                        </span>
                                                         <div className="flex flex-col">
                                                             {/* @ts-ignore */}
-                                                            <span className="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-purple-700 dark:group-hover:text-purple-300">{starter.text}</span>
+                                                            <span className="text-sm font-medium text-neutral-700 group-hover:text-orange-700 dark:text-neutral-200 dark:group-hover:text-orange-300">{starter.text}</span>
                                                             {/* @ts-ignore */}
                                                             {starter.warning && (
                                                                 <span className="text-[10px] text-orange-600 dark:text-orange-400 font-medium mt-0.5">{starter.warning}</span>
@@ -914,22 +1104,22 @@ Format:
                                 </div>
 
                                 {/* Input Area */}
-                                <form onSubmit={handleSubmit} className="p-4 bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-gray-800">
+                                <form onSubmit={handleSubmit} className="border-t border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-950">
                                     {replyContext && (
-                                        <div key={replyContext} className="mb-3 p-3 bg-gray-100 dark:bg-slate-800/80 rounded-lg border-l-4 border-purple-500 relative flex justify-between items-start group/reply animate-in slide-in-from-bottom-2 duration-200">
+                                        <div key={replyContext} className="group/reply relative mb-3 flex animate-in items-start justify-between rounded-lg border-l-4 border-orange-500 bg-neutral-100 p-3 duration-200 slide-in-from-bottom-2 dark:bg-neutral-900">
                                             <div className="flex-1 pr-6">
-                                                <div className="flex items-center gap-1.5 mb-1 text-xs font-semibold text-purple-600 dark:text-purple-400">
+                                                <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-orange-600 dark:text-orange-400">
                                                     <Sparkles className="w-3 h-3" />
                                                     <span>Context from clipboard</span>
                                                 </div>
-                                                <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2 italic">
+                                                <p className="line-clamp-2 text-xs italic text-neutral-600 dark:text-neutral-300">
                                                     "{replyContext}"
                                                 </p>
                                             </div>
                                             <button
                                                 type="button"
                                                 onClick={() => setReplyContext(null)}
-                                                className="absolute top-2 right-2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-700/50 rounded-full transition-colors"
+                                                className="absolute right-2 top-2 rounded-full p-1 text-neutral-400 transition-colors hover:bg-neutral-200 hover:text-neutral-600 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
                                             >
                                                 <X className="w-3 h-3" />
                                             </button>
@@ -943,7 +1133,7 @@ Format:
                                             onPaste={handlePaste}
                                             onChange={(e) => setInput(e.target.value)}
                                             placeholder={replyContext ? "Ask about this text..." : "Ask a question..."}
-                                            className="flex-1 pl-4 pr-24 py-3 bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white rounded-xl border-none focus:ring-2 focus:ring-purple-500/50 placeholder-gray-500 transition-all"
+                                            className="flex-1 rounded-xl border border-neutral-200 bg-neutral-100 py-3 pl-4 pr-24 text-neutral-900 placeholder-neutral-500 transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white"
                                         />
 
                                         {/* Voice Input */}
@@ -952,7 +1142,7 @@ Format:
                                             onClick={toggleListening}
                                             className={`absolute right-12 p-2 rounded-lg transition-all duration-200 ${isListening
                                                 ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 bg-red-50 dark:bg-red-900/10 ring-1 ring-red-500/50'
-                                                : 'text-gray-400 hover:text-purple-600 hover:bg-gray-200 dark:hover:bg-slate-700'
+                                                : 'text-neutral-400 hover:bg-neutral-200 hover:text-orange-600 dark:hover:bg-neutral-800'
                                                 }`}
                                             title={isListening ? "Stop Listening" : "Voice Input"}
                                         >
@@ -963,14 +1153,19 @@ Format:
                                         <button
                                             type="submit"
                                             disabled={(!input.trim() && !replyContext) || isLoading}
-                                            className="absolute right-2 p-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 disabled:shadow-none transition-all duration-200"
+                                            className="absolute right-2 rounded-lg bg-orange-600 p-2 text-white transition-colors duration-200 hover:bg-orange-500 disabled:opacity-50"
                                         >
                                             <Send className="w-4 h-4" />
                                         </button>
                                     </div>
-                                    <div className="text-center mt-2 flex items-center justify-center gap-1.5 opacity-60">
-                                        <Sparkles className="w-3 h-3 text-purple-500" />
-                                        <p className="text-[10px] text-gray-400">Powered by TakoVibe AI</p>
+                                    <div className="mt-2 flex flex-col items-center gap-0.5 text-center">
+                                        <div className="flex items-center justify-center gap-1.5 opacity-60">
+                                            <Sparkles className="h-3 w-3 text-orange-500" />
+                                            <p className="text-[10px] text-neutral-400">Powered by TakoVibe AI</p>
+                                        </div>
+                                        <p className="text-[10px] text-neutral-400">
+                                            We don't store your conversations — they're saved only in your device's local storage.
+                                        </p>
                                     </div>
                                 </form>
                             </div>

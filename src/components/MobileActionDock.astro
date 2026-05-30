@@ -12,18 +12,18 @@ const { headings, title, description, url } = Astro.props;
 >
     <!-- Dock Container -->
     <div
-        class="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 shadow-lg"
+        class="bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-800 shadow-lg"
         style="padding-bottom: env(safe-area-inset-bottom);"
     >
         <div class="flex items-center justify-around px-4 h-16">
             <!-- Ask AI -->
             <button
                 id="mobile-ai-btn"
-                class="flex flex-col items-center justify-center gap-1 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors active:scale-95"
+                class="flex flex-col items-center justify-center gap-1 p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors active:scale-95"
                 aria-label="Ask Kumi AI"
             >
                 <svg
-                    class="w-6 h-6 text-purple-600 dark:text-purple-400"
+                    class="w-6 h-6 text-orange-600 dark:text-orange-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -35,7 +35,7 @@ const { headings, title, description, url } = Astro.props;
                         d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                 </svg>
                 <span
-                    class="text-[10px] font-medium text-gray-600 dark:text-gray-400"
+                    class="text-[10px] font-medium text-neutral-600 dark:text-neutral-400"
                     >AI</span
                 >
             </button>
@@ -43,11 +43,11 @@ const { headings, title, description, url } = Astro.props;
             <!-- Comments -->
             <button
                 id="mobile-comments-btn"
-                class="flex flex-col items-center justify-center gap-1 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors active:scale-95"
+                class="flex flex-col items-center justify-center gap-1 p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors active:scale-95"
                 aria-label="Comments"
             >
                 <svg
-                    class="w-6 h-6 text-blue-600 dark:text-blue-400"
+                    class="w-6 h-6 text-orange-600 dark:text-orange-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -60,7 +60,7 @@ const { headings, title, description, url } = Astro.props;
                     ></path>
                 </svg>
                 <span
-                    class="text-[10px] font-medium text-gray-600 dark:text-gray-400"
+                    class="text-[10px] font-medium text-neutral-600 dark:text-neutral-400"
                     >Chat</span
                 >
             </button>
@@ -68,7 +68,7 @@ const { headings, title, description, url } = Astro.props;
             <!-- Notes -->
             <button
                 id="mobile-notes-btn"
-                class="flex flex-col items-center justify-center gap-1 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors active:scale-95"
+                class="flex flex-col items-center justify-center gap-1 p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors active:scale-95"
                 aria-label="Visual Notes"
             >
                 <svg
@@ -85,7 +85,7 @@ const { headings, title, description, url } = Astro.props;
                     ></path>
                 </svg>
                 <span
-                    class="text-[10px] font-medium text-gray-600 dark:text-gray-400"
+                    class="text-[10px] font-medium text-neutral-600 dark:text-neutral-400"
                     >Notes</span
                 >
             </button>
@@ -93,11 +93,11 @@ const { headings, title, description, url } = Astro.props;
             <!-- Like -->
             <button
                 id="mobile-like-btn"
-                class="flex flex-col items-center justify-center gap-1 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors active:scale-95 group"
+                class="flex flex-col items-center justify-center gap-1 p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors active:scale-95 group"
                 aria-label="Like Article"
             >
                 <svg
-                    class="w-6 h-6 text-gray-400 dark:text-gray-500 transition-colors group-hover:text-red-500"
+                    class="w-6 h-6 text-neutral-400 dark:text-neutral-500 transition-colors group-hover:text-red-500"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -110,7 +110,7 @@ const { headings, title, description, url } = Astro.props;
                     ></path>
                 </svg>
                 <span
-                    class="text-[10px] font-medium text-gray-600 dark:text-gray-400"
+                    class="text-[10px] font-medium text-neutral-600 dark:text-neutral-400"
                     >Like</span
                 >
             </button>
@@ -118,11 +118,11 @@ const { headings, title, description, url } = Astro.props;
             <!-- More -->
             <button
                 id="mobile-more-btn"
-                class="flex flex-col items-center justify-center gap-1 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors active:scale-95"
+                class="flex flex-col items-center justify-center gap-1 p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors active:scale-95"
                 aria-label="More options"
             >
                 <svg
-                    class="w-6 h-6 text-gray-600 dark:text-gray-400 transition-transform duration-200"
+                    class="w-6 h-6 text-neutral-600 dark:text-neutral-400 transition-transform duration-200"
                     id="more-btn-icon"
                     fill="none"
                     stroke="currentColor"
@@ -136,7 +136,7 @@ const { headings, title, description, url } = Astro.props;
                     ></path>
                 </svg>
                 <span
-                    class="text-[10px] font-medium text-gray-600 dark:text-gray-400"
+                    class="text-[10px] font-medium text-neutral-600 dark:text-neutral-400"
                     >More</span
                 >
             </button>
@@ -154,20 +154,20 @@ const { headings, title, description, url } = Astro.props;
 <!-- MORE MENU SHEET -->
 <div
     id="mobile-more-menu"
-    class="fixed bottom-0 left-0 right-0 z-[60] bg-white dark:bg-gray-900 rounded-t-3xl shadow-2xl transform translate-y-full transition-transform duration-300 mobile-sheet"
+    class="fixed bottom-0 left-0 right-0 z-[60] bg-white dark:bg-neutral-900 rounded-t-3xl shadow-2xl transform translate-y-full transition-transform duration-300 mobile-sheet"
 >
     <div class="p-6 pb-8">
         <div
-            class="w-12 h-1 bg-gray-300 dark:bg-gray-700 rounded-full mx-auto mb-6"
+            class="w-12 h-1 bg-neutral-300 dark:bg-neutral-700 rounded-full mx-auto mb-6"
         >
         </div>
-        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">
+        <h3 class="text-lg font-bold text-neutral-900 dark:text-white mb-4">
             More Options
         </h3>
         <div class="space-y-2">
             <!-- Bookmark -->
             <button
-                class="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                class="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                 id="mobile-bookmark-btn"
             >
                 <svg
@@ -182,18 +182,18 @@ const { headings, title, description, url } = Astro.props;
                         d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
                     ></path></svg
                 >
-                <span class="text-sm font-medium text-gray-900 dark:text-white"
+                <span class="text-sm font-medium text-neutral-900 dark:text-white"
                     >Save Article</span
                 >
             </button>
 
             <!-- Share -->
             <button
-                class="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                class="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                 onclick="openSheet('mobile-share-sheet')"
             >
                 <svg
-                    class="w-5 h-5 text-gray-600 dark:text-gray-400"
+                    class="w-5 h-5 text-neutral-600 dark:text-neutral-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -204,18 +204,18 @@ const { headings, title, description, url } = Astro.props;
                         d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
                     ></path></svg
                 >
-                <span class="text-sm font-medium text-gray-900 dark:text-white"
+                <span class="text-sm font-medium text-neutral-900 dark:text-white"
                     >Share Article</span
                 >
             </button>
 
             <!-- Text Settings -->
             <button
-                class="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                class="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                 onclick="openSheet('mobile-font-sheet')"
             >
                 <svg
-                    class="w-5 h-5 text-gray-600 dark:text-gray-400"
+                    class="w-5 h-5 text-neutral-600 dark:text-neutral-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -226,18 +226,18 @@ const { headings, title, description, url } = Astro.props;
                         d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
                     ></path></svg
                 >
-                <span class="text-sm font-medium text-gray-900 dark:text-white"
+                <span class="text-sm font-medium text-neutral-900 dark:text-white"
                     >Text Settings</span
                 >
             </button>
 
             <!-- TOC -->
             <button
-                class="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                class="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                 onclick="openSheet('mobile-toc-sheet')"
             >
                 <svg
-                    class="w-5 h-5 text-gray-600 dark:text-gray-400"
+                    class="w-5 h-5 text-neutral-600 dark:text-neutral-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -247,18 +247,18 @@ const { headings, title, description, url } = Astro.props;
                         stroke-width="2"
                         d="M4 6h16M4 12h16M4 18h7"></path></svg
                 >
-                <span class="text-sm font-medium text-gray-900 dark:text-white"
+                <span class="text-sm font-medium text-neutral-900 dark:text-white"
                     >Table of Contents</span
                 >
             </button>
 
             <!-- Focus Mode -->
             <button
-                class="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                class="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                 id="mobile-focus-btn"
             >
                 <svg
-                    class="w-5 h-5 text-gray-600 dark:text-gray-400"
+                    class="w-5 h-5 text-neutral-600 dark:text-neutral-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -273,7 +273,7 @@ const { headings, title, description, url } = Astro.props;
                         d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                     ></path></svg
                 >
-                <span class="text-sm font-medium text-gray-900 dark:text-white"
+                <span class="text-sm font-medium text-neutral-900 dark:text-white"
                     >Focus Mode</span
                 >
             </button>
@@ -281,12 +281,12 @@ const { headings, title, description, url } = Astro.props;
 
         <!-- Code Studio -->
         <button
-            class="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            class="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
             id="mobile-code-studio-btn"
         >
             <div class="relative">
                 <svg
-                    class="w-5 h-5 text-gray-600 dark:text-gray-400"
+                    class="w-5 h-5 text-neutral-600 dark:text-neutral-400"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -307,7 +307,7 @@ const { headings, title, description, url } = Astro.props;
                 </span>
             </div>
             <div class="flex flex-col items-start">
-                <span class="text-sm font-medium text-gray-900 dark:text-white"
+                <span class="text-sm font-medium text-neutral-900 dark:text-white"
                     >Code Studio</span
                 >
                 <span
@@ -322,36 +322,36 @@ const { headings, title, description, url } = Astro.props;
 <!-- TEXT SETTINGS SHEET -->
 <div
     id="mobile-font-sheet"
-    class="fixed bottom-0 left-0 right-0 z-[60] bg-white dark:bg-gray-900 rounded-t-3xl shadow-2xl transform translate-y-full transition-transform duration-300 mobile-sheet"
+    class="fixed bottom-0 left-0 right-0 z-[60] bg-white dark:bg-neutral-900 rounded-t-3xl shadow-2xl transform translate-y-full transition-transform duration-300 mobile-sheet"
 >
     <div class="p-6 pb-8">
         <div
-            class="w-12 h-1 bg-gray-300 dark:bg-gray-700 rounded-full mx-auto mb-6"
+            class="w-12 h-1 bg-neutral-300 dark:bg-neutral-700 rounded-full mx-auto mb-6"
         >
         </div>
-        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-6">
+        <h3 class="text-lg font-bold text-neutral-900 dark:text-white mb-6">
             Text Settings
         </h3>
 
         <div class="space-y-6">
             <!-- Size -->
             <div
-                class="flex items-center justify-between bg-gray-100 dark:bg-gray-800 p-2 rounded-xl"
+                class="flex items-center justify-between bg-neutral-100 dark:bg-neutral-800 p-2 rounded-xl"
             >
                 <button
                     id="mobile-decrease-font"
-                    class="p-3 bg-white dark:bg-gray-700 rounded-lg shadow-sm hover:scale-105 transition-transform text-gray-700 dark:text-gray-200"
+                    class="p-3 bg-white dark:bg-neutral-700 rounded-lg shadow-sm hover:scale-105 transition-transform text-neutral-700 dark:text-neutral-200"
                 >
                     <span class="text-xs font-bold">A-</span>
                 </button>
                 <span
                     id="mobile-font-size-display"
-                    class="font-mono font-bold text-gray-700 dark:text-gray-300"
+                    class="font-mono font-bold text-neutral-700 dark:text-neutral-300"
                     >18px</span
                 >
                 <button
                     id="mobile-increase-font"
-                    class="p-3 bg-white dark:bg-gray-700 rounded-lg shadow-sm hover:scale-105 transition-transform text-gray-700 dark:text-gray-200"
+                    class="p-3 bg-white dark:bg-neutral-700 rounded-lg shadow-sm hover:scale-105 transition-transform text-neutral-700 dark:text-neutral-200"
                 >
                     <span class="text-lg font-bold">A+</span>
                 </button>
@@ -359,7 +359,7 @@ const { headings, title, description, url } = Astro.props;
 
             <button
                 id="mobile-reset-font"
-                class="w-full py-2 text-sm text-purple-600 dark:text-purple-400 font-medium hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
+                class="w-full py-2 text-sm text-orange-600 dark:text-orange-400 font-medium hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors"
             >
                 Reset to Default
             </button>
@@ -370,14 +370,14 @@ const { headings, title, description, url } = Astro.props;
 <!-- SHARE SHEET -->
 <div
     id="mobile-share-sheet"
-    class="fixed bottom-0 left-0 right-0 z-[60] bg-white dark:bg-gray-900 rounded-t-3xl shadow-2xl transform translate-y-full transition-transform duration-300 mobile-sheet"
+    class="fixed bottom-0 left-0 right-0 z-[60] bg-white dark:bg-neutral-900 rounded-t-3xl shadow-2xl transform translate-y-full transition-transform duration-300 mobile-sheet"
 >
     <div class="p-6 pb-8">
         <div
-            class="w-12 h-1 bg-gray-300 dark:bg-gray-700 rounded-full mx-auto mb-6"
+            class="w-12 h-1 bg-neutral-300 dark:bg-neutral-700 rounded-full mx-auto mb-6"
         >
         </div>
-        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-6">
+        <h3 class="text-lg font-bold text-neutral-900 dark:text-white mb-6">
             Share Article
         </h3>
         <SocialShare title={title} description={description} url={url} />
@@ -387,10 +387,10 @@ const { headings, title, description, url } = Astro.props;
 <!-- TOC SHEET -->
 <div
     id="mobile-toc-sheet"
-    class="fixed bottom-0 left-0 right-0 z-[60] bg-white dark:bg-gray-900 rounded-t-3xl shadow-2xl transform translate-y-full transition-transform duration-300 mobile-sheet max-h-[80vh] flex flex-col"
+    class="fixed bottom-0 left-0 right-0 z-[60] bg-white dark:bg-neutral-900 rounded-t-3xl shadow-2xl transform translate-y-full transition-transform duration-300 mobile-sheet max-h-[80vh] flex flex-col"
 >
-    <div class="p-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
-        <div class="w-12 h-1 bg-gray-300 dark:bg-gray-700 rounded-full mx-auto">
+    <div class="p-4 border-b border-neutral-100 dark:border-neutral-800 shrink-0">
+        <div class="w-12 h-1 bg-neutral-300 dark:bg-neutral-700 rounded-full mx-auto">
         </div>
     </div>
     <div class="flex-1 overflow-y-auto p-6 custom-scrollbar">
@@ -404,6 +404,7 @@ const { headings, title, description, url } = Astro.props;
     const backdrop = document.getElementById("mobile-sheet-backdrop");
     const sheets = document.querySelectorAll(".mobile-sheet");
     let activeSheet = null;
+    let isFooterVisible = false;
 
     // Scroll Logic
     let lastScroll = 0;
@@ -412,6 +413,10 @@ const { headings, title, description, url } = Astro.props;
         clearTimeout(scrollTimeout);
         scrollTimeout = setTimeout(() => {
             const currentScroll = window.scrollY;
+            if (isFooterVisible) {
+                dock?.classList.add("translate-y-full");
+                return;
+            }
             if (currentScroll <= 0) {
                 dock?.classList.remove("translate-y-full");
                 return;
@@ -456,8 +461,32 @@ const { headings, title, description, url } = Astro.props;
         backdrop?.classList.add("opacity-0");
         setTimeout(() => backdrop?.classList.add("hidden"), 300);
         activeSheet = null;
-        dock?.classList.remove("translate-y-full"); // Ensure dock returns
+        if (!isFooterVisible) dock?.classList.remove("translate-y-full");
     };
+
+    function initFooterVisibility() {
+        const footer = document.querySelector("footer");
+        if (!footer || !dock) return;
+
+        const footerObserver = new IntersectionObserver(
+            ([entry]) => {
+                isFooterVisible = entry.isIntersecting;
+                if (entry.isIntersecting) window.closeAllSheets();
+                dock.classList.toggle("translate-y-full", entry.isIntersecting);
+            },
+            { threshold: 0.01 },
+        );
+
+        footerObserver.observe(footer);
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initFooterVisibility, {
+            once: true,
+        });
+    } else {
+        initFooterVisibility();
+    }
 
     backdrop?.addEventListener("click", window.closeAllSheets);
 

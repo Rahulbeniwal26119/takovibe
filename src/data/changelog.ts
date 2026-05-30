@@ -27,6 +27,38 @@ export interface ChangeLogEntry {
 
 export const changelogData: ChangeLogEntry[] = [
     {
+        "date": "2026-05-30",
+        "version": "Revamp Complete",
+        "title": "Complete Site Revamp Done",
+        "description": "The full TakoVibe revamp is complete. Every surface now shares one consistent orange/neutral design language — reading, Kumi, the Quiz drawer, Notes, and Code Studio all open in a unified immersive split, and the header gets out of your way while you read.",
+        "changes": [
+            {
+                "type": "new",
+                "text": "Kumi Split View: Kumi now opens in an immersive split by default on desktop — the article squeezes to the left with a draggable divider while Kumi fills the right. Toggle back to the floating window anytime."
+            },
+            {
+                "type": "new",
+                "text": "Quiz Drawer: Generated quizzes now open in a dedicated slide-in panel with the brand orange/neutral design, instead of a cramped card inside the chat."
+            },
+            {
+                "type": "improvement",
+                "text": "Code Studio Revamp: Refreshed the Code Studio chrome end to end — orange icon badge and display title, a segmented split/full-screen control, a neutral close button, and an orange resize divider in place of the old purple/gray/red styling."
+            },
+            {
+                "type": "improvement",
+                "text": "Auto-Hiding Header: The site header now slides away as you scroll down an article and reappears when you scroll back up, and it stays fully hidden in every split view (Kumi, Code Studio, Notes)."
+            },
+            {
+                "type": "improvement",
+                "text": "Consistent Split Chrome: Notes, Code Studio, and Kumi now share the same clean top bar in split view, and only one immersive panel stays open at a time."
+            },
+            {
+                "type": "fix",
+                "text": "Kumi Cleanup: Removed the FREE badge and the experimental \"Visualize this\" action, clarified that conversations are stored only on your device, and quizzes now render as a widget instead of raw JSON."
+            }
+        ]
+    },
+    {
         "date": "2026-05-23",
         "version": "Revamp Complete",
         "title": "Blog Revamp Wrapped",

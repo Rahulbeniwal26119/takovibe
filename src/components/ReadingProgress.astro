@@ -1,18 +1,18 @@
-<div class="progress-bar" id="reading-progress"></div>
+<div class="reading-progress" id="reading-progress"></div>
 
 <style>
-  .progress-bar {
+  .reading-progress {
     position: fixed;
     top: 0;
     left: 0;
-    height: 3px;
-    background: linear-gradient(to right, #7e22ce, #db2777);
+    height: 2px;
+    background: linear-gradient(to right, #ea580c, #f59e0b);
     width: 0%;
-    z-index: 1000;
-    transition: width 0.1s ease-out; /* optimized transition */
+    z-index: 10000;
+    transition: width 0.1s ease-out;
     transform: translateZ(0);
-    backdrop-filter: blur(8px);
-    will-change: width; /* performance hint */
+    box-shadow: 0 0 10px rgb(249 115 22 / 35%);
+    will-change: width;
   }
 </style>
 
@@ -23,7 +23,7 @@
   function updateProgress() {
     const winScroll = document.documentElement.scrollTop;
     const height = document.documentElement.scrollHeight - window.innerHeight;
-    const scrolled = Math.min((winScroll / height) * 100, 100); // capped at 100
+    const scrolled = height > 0 ? Math.min((winScroll / height) * 100, 100) : 0;
 
     if (progressBar) {
       progressBar.style.width = `${scrolled}%`;
@@ -40,6 +40,5 @@
       }
     },
     { passive: true },
-  ); // passive listener for performance
+  );
 </script>
-

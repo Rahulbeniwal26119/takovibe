@@ -47,7 +47,7 @@ const DiffView = ({ original, modified, explanation, onAccept, onReject }: { ori
                     <span className="text-sm font-bold text-orange-900 dark:text-orange-100 uppercase tracking-wider">Review Fix</span>
 
                     {/* Confidence Badge */}
-                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-800 text-[10px] font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wider">
+                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-orange-100 dark:bg-orange-900/40 border border-orange-200 dark:border-orange-800 text-[10px] font-bold text-orange-700 dark:text-orange-300 uppercase tracking-wider">
                         <Sparkles size={10} fill="currentColor" />
                         High Confidence
                     </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Maximize2, Minimize2, LayoutTemplate, Monitor, Lock, Unlock, PenTool, Code2 } from 'lucide-react';
+import { X, Maximize2, LayoutTemplate, Monitor, Lock, Unlock, PenTool, Code2 } from 'lucide-react';
 import { fetchWithAuth } from '../utils/api';
 import { showToast } from '../utils/toast';
 import { CodeStudio } from './editor/CodeStudio';
@@ -61,6 +61,7 @@ const CodeEditorDrawer: React.FC<CodeEditorDrawerProps> = ({ articleSlug, initia
         window.addEventListener('open-code-studio', handleOpen as EventListener);
         window.addEventListener('open-excalidraw', () => setViewMode('hidden')); // Close when Excalidraw opens
         window.addEventListener('toggle-excalidraw', () => setViewMode('hidden'));
+        window.addEventListener('open-kumi-split', () => setViewMode('hidden')); // Close when Kumi enters split
         return () => {
             window.removeEventListener('resize', checkMobile);
             window.removeEventListener('open-code-studio', handleOpen as EventListener);
@@ -132,10 +133,10 @@ const CodeEditorDrawer: React.FC<CodeEditorDrawerProps> = ({ articleSlug, initia
     }, [viewMode]);
 
     const getContainerStyles = () => {
-        const baseStyles = "bg-white dark:bg-gray-900 transition-none duration-0 ease-linear flex flex-col overflow-hidden";
+        const baseStyles = "bg-white dark:bg-neutral-950 transition-none duration-0 ease-linear flex flex-col overflow-hidden";
         switch (viewMode) {
             case 'maximize': return `${baseStyles} fixed inset-0 z-[10000]`;
-            case 'split': return `${baseStyles} fixed top-0 bottom-0 right-0 z-[10000] shadow-2xl border-l border-gray-200 dark:border-gray-800`;
+            case 'split': return `${baseStyles} fixed top-0 bottom-0 right-0 z-[10000] shadow-2xl border-l border-neutral-200 dark:border-neutral-800`;
             default: return `${baseStyles} fixed top-0 bottom-0 right-0 w-0 z-[40] pointer-events-none opacity-0`;
         }
     };
@@ -252,7 +253,7 @@ const CodeEditorDrawer: React.FC<CodeEditorDrawerProps> = ({ articleSlug, initia
             {/* DRAG HANDLE (Only in split) */}
             {viewMode === 'split' && (
                 <div
-                    className="split-drag-handle fixed top-0 bottom-0 w-[6px] z-[10001] cursor-col-resize transition-colors duration-150 bg-gray-200 dark:bg-gray-800 hover:bg-purple-500 flex items-center justify-center group"
+                    className="split-drag-handle fixed top-0 bottom-0 w-[6px] z-[10001] cursor-col-resize transition-colors duration-150 bg-neutral-200 dark:bg-neutral-800 hover:bg-orange-500 flex items-center justify-center group"
                     style={{ left: `calc(${splitRatio}% - 3px)` }}
                     onMouseDown={(e) => {
                         e.preventDefault();
@@ -261,7 +262,7 @@ const CodeEditorDrawer: React.FC<CodeEditorDrawerProps> = ({ articleSlug, initia
                         document.body.style.userSelect = 'none';
                     }}
                 >
-                    <div className="w-1 h-8 rounded-full bg-gray-400 group-hover:bg-white/90"></div>
+                    <div className="w-1 h-8 rounded-full bg-neutral-400 group-hover:bg-white/90"></div>
                 </div>
             )}
 
@@ -273,44 +274,48 @@ const CodeEditorDrawer: React.FC<CodeEditorDrawerProps> = ({ articleSlug, initia
                 }}
             >
                 {/* TOOLBAR */}
-                <div className="flex items-center justify-between p-2 px-4 border-b border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-sm relative z-[70]">
-                    <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200 font-semibold">
-                            <Code2 className="w-5 h-5 text-purple-600" />
-                            <span>Code Studio</span>
+                <div className="relative z-[70] flex items-center justify-between gap-3 border-b border-neutral-200 bg-white/95 px-4 py-2 backdrop-blur-sm dark:border-neutral-800 dark:bg-neutral-950/95">
+                    <div className="flex min-w-0 items-center gap-2.5">
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-950/50 dark:text-orange-300">
+                            <Code2 className="h-4 w-4" />
+                        </span>
+                        <div className="flex min-w-0 flex-col leading-tight">
+                            <span className="font-display text-sm font-bold text-neutral-900 dark:text-neutral-50">Code Studio</span>
+                            {title && <span className="truncate text-[11px] text-neutral-400 dark:text-neutral-500">{title}</span>}
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1">
                         {!isMobile && (
-                            <button
-                                onClick={() => setViewMode('split')}
-                                className={`p-1.5 rounded-lg transition-colors ${viewMode === 'split' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-                                title="Split View"
-                            >
-                                <LayoutTemplate className="w-4 h-4" />
-                            </button>
+                            <div className="flex items-center gap-0.5 rounded-lg border border-neutral-200 bg-neutral-100 p-0.5 dark:border-neutral-800 dark:bg-neutral-900">
+                                <button
+                                    onClick={() => setViewMode('split')}
+                                    className={`rounded-md p-1.5 transition-colors ${viewMode === 'split' ? 'bg-white text-orange-600 shadow-sm dark:bg-neutral-800 dark:text-orange-400' : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200'}`}
+                                    title="Split view"
+                                >
+                                    <LayoutTemplate className="h-4 w-4" />
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('maximize')}
+                                    className={`rounded-md p-1.5 transition-colors ${viewMode === 'maximize' ? 'bg-white text-orange-600 shadow-sm dark:bg-neutral-800 dark:text-orange-400' : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200'}`}
+                                    title="Full screen"
+                                >
+                                    <Maximize2 className="h-4 w-4" />
+                                </button>
+                            </div>
                         )}
                         <button
-                            onClick={() => setViewMode('maximize')}
-                            className={`p-1.5 rounded-lg transition-colors ${viewMode === 'maximize' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-                            title="Full Screen"
-                        >
-                            <Minimize2 className="w-4 h-4" />
-                        </button>
-                        <button
                             onClick={() => setViewMode('hidden')}
-                            className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors ml-2 shadow-sm"
+                            className="rounded-md p-1.5 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-900 dark:hover:text-neutral-200"
                             title="Close Code Studio"
                         >
-                            <X className="w-3 h-3" />
-                            Close
+                            <X className="h-4 w-4" />
                         </button>
                     </div>
                 </div>
 
                 {/* EDITOR CONTENT */}
-                <div className="flex-1 overflow-auto bg-gray-50 dark:bg-[#0d1117] relative">
+                <div className="relative flex-1 overflow-auto bg-stone-50 dark:bg-neutral-950">
                     <CodeStudio
                         code={code}
                         language={language}

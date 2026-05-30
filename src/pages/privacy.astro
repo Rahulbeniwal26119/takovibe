@@ -1,0 +1,106 @@
+---
+import Layout from "../layouts/Layout.astro";
+import PolicyParagraph from "../components/PolicyParagraph.astro";
+
+const sections = [
+    {
+        title: "1. Who operates Takovibe",
+        paragraphs: [
+            "Takovibe is operated by Rahul Beniwal, Sole Proprietor. This policy applies to takovibe.com and Takovibe services that link to this page, including features made available through related Takovibe subdomains.",
+            "For privacy questions or requests, email contact@takovibe.com.",
+        ],
+    },
+    {
+        title: "2. Information we collect",
+        paragraphs: [
+            "We collect information you provide, such as your name, email address, password, profile details, contact messages, newsletter preferences, comments, articles, notes, saved articles, uploaded images, code snippets, diffs, resume content, and other material you choose to submit.",
+            "When you use the service, we may process technical information such as IP address, browser or device information, authentication tokens, feature usage, article views, and request logs where needed to operate and protect the service.",
+            "If you purchase VibeTokens or another paid feature, payment processing is handled through Razorpay. We receive payment status, transaction identifiers, amount, and related records needed to provide the purchase and maintain accounts. We do not ask you to enter card details directly into Takovibe.",
+        ],
+    },
+    {
+        title: "3. How we use information",
+        paragraphs: [
+            "We use information to operate accounts, provide requested features, publish content you choose to make public, send account and newsletter emails, answer support requests, process purchases, prevent abuse, improve reliability, and comply with legal obligations.",
+            "Where a feature is public or shareable, such as a public profile, published article, public note, shared code diff, playground link, or public resume, the information you publish may be visible to anyone with access to the relevant page or link.",
+        ],
+    },
+    {
+        title: "4. AI and code-execution features",
+        paragraphs: [
+            "When you use AI-assisted features, the text, prompts, code, article context, diagram content, or resume content needed to answer your request may be sent to an AI service provider. Do not submit secrets, credentials, or information you do not have permission to share.",
+            "When you run code, the code and execution request are sent to the execution infrastructure needed to provide the result. Do not use the playground to process confidential data or run harmful code.",
+        ],
+    },
+    {
+        title: "5. Service providers",
+        paragraphs: [
+            "We use service providers where needed to run Takovibe. These may include Cloudflare for website protection, Google for sign-in where enabled, Resend for email delivery, ImageKit for uploaded media, OpenAI for certain AI-assisted features, Razorpay for payments, and hosting or execution providers used to deliver the service.",
+            "These providers process information according to their own terms and privacy practices. Information may be processed outside your state or country where permitted by applicable law.",
+        ],
+    },
+    {
+        title: "6. Browser storage",
+        paragraphs: [
+            "Takovibe uses browser storage, such as local storage, for account tokens and preferences such as theme or editor settings. Third-party services may use cookies or similar technologies where required to provide their features.",
+        ],
+    },
+    {
+        title: "7. Retention and security",
+        paragraphs: [
+            "We generally keep information, including contact messages, article-view records, resumes, notes, and AI-related records, until you ask us to delete it.",
+            "We may retain limited information where reasonably needed to maintain required payment or accounting records, resolve disputes, prevent abuse, or comply with law.",
+            "We take reasonable measures to protect information, but no online service can guarantee complete security.",
+        ],
+    },
+    {
+        title: "8. Your choices and requests",
+        paragraphs: [
+            "You can unsubscribe from newsletter emails using the unsubscribe link in those emails. You may also ask us to access, correct, or delete personal information, withdraw consent where applicable, or raise a privacy concern through https://takovibe.com/contact/ or by emailing contact@takovibe.com.",
+            "We may need to verify your identity before completing a request. Some information may be retained where required by law or needed for legitimate record-keeping.",
+        ],
+    },
+    {
+        title: "9. Updates",
+        paragraphs: [
+            "We may update this policy as Takovibe changes. We will post the updated version on this page and revise the effective date.",
+        ],
+    },
+];
+---
+
+<Layout
+    title="Privacy Policy | TakoVibe"
+    description="How Takovibe collects, uses, shares, and protects personal information."
+>
+    <main class="min-h-screen bg-stone-50 text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50">
+        <section class="border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950">
+            <div class="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+                <p class="text-xs font-black uppercase tracking-[0.22em] text-orange-600 dark:text-orange-400">Legal</p>
+                <h1 class="mt-4 font-display text-4xl font-black tracking-tight sm:text-5xl">Privacy Policy</h1>
+                <p class="mt-5 max-w-2xl text-base leading-7 text-neutral-600 dark:text-neutral-300">
+                    A plain-language explanation of the information Takovibe processes and the choices available to you.
+                </p>
+                <p class="mt-4 text-sm font-semibold text-neutral-500 dark:text-neutral-400">Effective: May 30, 2026</p>
+            </div>
+        </section>
+
+        <section class="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+            <div class="space-y-5">
+                {sections.map((section) => (
+                    <article class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900/70 sm:p-7">
+                        <h2 class="font-display text-xl font-black text-neutral-950 dark:text-white">{section.title}</h2>
+                        <div class="mt-4 space-y-3 text-sm leading-7 text-neutral-600 dark:text-neutral-300 sm:text-base">
+                            {section.paragraphs.map((paragraph) => <PolicyParagraph text={paragraph} />)}
+                        </div>
+                    </article>
+                ))}
+            </div>
+            <div class="mt-8 rounded-xl border border-orange-200 bg-orange-50 p-6 dark:border-orange-900/60 dark:bg-orange-950/20">
+                <h2 class="font-display text-xl font-black text-neutral-950 dark:text-white">Privacy request or question?</h2>
+                <p class="mt-3 text-sm leading-7 text-neutral-600 dark:text-neutral-300">Send a message through the contact page and the Takovibe admin will review it.</p>
+                <a href="/contact/" class="mt-4 inline-flex rounded-lg bg-orange-600 px-4 py-2.5 text-sm font-black text-white transition hover:bg-orange-700">Contact Takovibe</a>
+            </div>
+        </section>
+    </main>
+</Layout>

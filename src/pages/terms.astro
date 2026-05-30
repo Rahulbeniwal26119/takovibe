@@ -1,0 +1,131 @@
+---
+import Layout from "../layouts/Layout.astro";
+import PolicyParagraph from "../components/PolicyParagraph.astro";
+
+const sections = [
+    {
+        title: "1. About these terms",
+        paragraphs: [
+            "These Terms of Use apply when you access or use takovibe.com and Takovibe services that link to these terms, including related Takovibe subdomains. Takovibe is operated by Rahul Beniwal, Sole Proprietor.",
+            "By using the service, you agree to these terms. If you do not agree, do not use the service.",
+        ],
+    },
+    {
+        title: "2. Accounts",
+        paragraphs: [
+            "You are responsible for providing accurate account information, keeping your login details secure, and for activity performed through your account. Tell us promptly through https://takovibe.com/contact/ or at contact@takovibe.com if you believe your account has been compromised.",
+        ],
+    },
+    {
+        title: "3. Your content",
+        paragraphs: [
+            "You retain ownership of content you submit, such as articles, comments, notes, code, diffs, images, and resumes. You give Takovibe a limited permission to host, store, process, display, and transmit that content as needed to provide the features you choose to use.",
+            "You are responsible for your content and must have the right to submit it. Do not upload confidential information, credentials, unlawful material, or content that infringes another person's rights.",
+            "If you make content public or generate a shareable link, other people may view and copy it. Review your content before publishing or sharing it.",
+        ],
+    },
+    {
+        title: "4. Acceptable use",
+        paragraphs: [
+            "Do not misuse Takovibe. This includes attempting unauthorized access, disrupting the service, bypassing limits, scraping where prohibited, distributing malware, running harmful code, abusing AI features, violating another person's privacy, or using the service for unlawful activity.",
+            "We may limit or suspend access where reasonably necessary to protect Takovibe, its users, or third parties.",
+        ],
+    },
+    {
+        title: "5. AI-assisted features",
+        paragraphs: [
+            "AI-generated results may be incomplete, inaccurate, or unsuitable for your situation. Review outputs before relying on them, especially for code, security, career, financial, legal, or other important decisions.",
+            "You are responsible for deciding whether your prompts and content are appropriate to submit to an AI-assisted feature.",
+        ],
+    },
+    {
+        title: "6. Playground and CodeDiff",
+        paragraphs: [
+            "Code execution and comparison tools are provided for learning, experimentation, and collaboration. Do not use them for harmful activity, confidential workloads, or production operations.",
+            "Execution availability, supported languages, output, resource limits, and shared links may change over time.",
+        ],
+    },
+    {
+        title: "7. ResumeVibe",
+        paragraphs: [
+            "ResumeVibe provides tools to review and improve resumes. It does not guarantee employment, interviews, applicant-tracking-system results, or career outcomes. Review all suggestions before using them.",
+            "You control whether a resume is private or shared publicly. Check the visibility setting before sharing a resume link.",
+        ],
+    },
+    {
+        title: "8. Purchases and VibeTokens",
+        paragraphs: [
+            "Payments for VibeTokens or other paid features are processed through Razorpay. Prices, token packs, and feature costs are shown at the time of purchase and may change for future purchases.",
+            "VibeToken purchases are non-refundable. If your payment was completed but the purchased tokens were not credited because of a technical issue, contact us through https://takovibe.com/contact/ or at contact@takovibe.com with the transaction details so we can investigate and correct the issue. This does not limit any rights that cannot legally be excluded.",
+        ],
+    },
+    {
+        title: "9. Third-party services",
+        paragraphs: [
+            "Takovibe may link to or depend on third-party services. Their own terms and privacy policies apply to their services. We are not responsible for third-party websites or services that we do not control.",
+        ],
+    },
+    {
+        title: "10. Takovibe content and branding",
+        paragraphs: [
+            "The Takovibe name, branding, website design, and service materials are owned by or licensed to Takovibe. You may not copy or use them in a way that suggests endorsement or affiliation without permission.",
+        ],
+    },
+    {
+        title: "11. Disclaimers and liability",
+        paragraphs: [
+            "Takovibe is provided on an as-is and as-available basis. We do not promise that every feature will always be available, uninterrupted, secure, or error-free.",
+            "To the extent permitted by applicable law, Takovibe will not be liable for indirect, incidental, special, or consequential losses arising from your use of the service. Nothing in these terms limits liability that cannot legally be limited.",
+        ],
+    },
+    {
+        title: "12. Changes and termination",
+        paragraphs: [
+            "We may update, suspend, or discontinue features and may update these terms as the service changes. The effective date will be revised when these terms are updated.",
+            "You may stop using Takovibe at any time. We may suspend or terminate access for misuse, legal requirements, or risks to the service or other users.",
+        ],
+    },
+    {
+        title: "13. Governing law and contact",
+        paragraphs: [
+            "These terms are governed by the laws of India. For questions, account requests, or disputes, use https://takovibe.com/contact/ or email contact@takovibe.com.",
+        ],
+    },
+];
+---
+
+<Layout
+    title="Terms of Use | TakoVibe"
+    description="The terms that apply when you use Takovibe services."
+>
+    <main class="min-h-screen bg-stone-50 text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50">
+        <section class="border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950">
+            <div class="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+                <p class="text-xs font-black uppercase tracking-[0.22em] text-orange-600 dark:text-orange-400">Legal</p>
+                <h1 class="mt-4 font-display text-4xl font-black tracking-tight sm:text-5xl">Terms of Use</h1>
+                <p class="mt-5 max-w-2xl text-base leading-7 text-neutral-600 dark:text-neutral-300">
+                    The basic rules for using Takovibe, its tools, and related services.
+                </p>
+                <p class="mt-4 text-sm font-semibold text-neutral-500 dark:text-neutral-400">Effective: May 30, 2026</p>
+            </div>
+        </section>
+
+        <section class="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+            <div class="space-y-5">
+                {sections.map((section) => (
+                    <article class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900/70 sm:p-7">
+                        <h2 class="font-display text-xl font-black text-neutral-950 dark:text-white">{section.title}</h2>
+                        <div class="mt-4 space-y-3 text-sm leading-7 text-neutral-600 dark:text-neutral-300 sm:text-base">
+                            {section.paragraphs.map((paragraph) => <PolicyParagraph text={paragraph} />)}
+                        </div>
+                    </article>
+                ))}
+            </div>
+            <div class="mt-8 rounded-xl border border-orange-200 bg-orange-50 p-6 dark:border-orange-900/60 dark:bg-orange-950/20">
+                <h2 class="font-display text-xl font-black text-neutral-950 dark:text-white">Need help with a payment or account?</h2>
+                <p class="mt-3 text-sm leading-7 text-neutral-600 dark:text-neutral-300">Send the details through the contact page and the Takovibe admin will review the request.</p>
+                <a href="/contact/" class="mt-4 inline-flex rounded-lg bg-orange-600 px-4 py-2.5 text-sm font-black text-white transition hover:bg-orange-700">Contact Takovibe</a>
+            </div>
+        </section>
+    </main>
+</Layout>

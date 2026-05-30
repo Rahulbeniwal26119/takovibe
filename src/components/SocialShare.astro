@@ -3,14 +3,12 @@ const { title, url } = Astro.props;
 const encodedTitle = encodeURIComponent(title);
 const encodedUrl = encodeURIComponent(url);
 ---
-<button
-class="p-3 rounded-full bg-gray-900 hover:bg-gray-800 transition-all duration-300"
->
+<div class="flex items-center justify-center gap-2">
   <a 
     href={`https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`}
     target="_blank"
     rel="noopener noreferrer"
-    class="text-gray-400 hover:text-blue-400 transition-colors"
+    class="grid h-9 w-9 place-items-center rounded-lg border border-neutral-200 bg-neutral-50 text-neutral-500 transition hover:border-orange-300 hover:bg-orange-50 hover:text-orange-700 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-400 dark:hover:border-orange-700 dark:hover:bg-orange-950/30 dark:hover:text-orange-300"
     aria-label="Share on Twitter"
   >
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
@@ -23,7 +21,7 @@ class="p-3 rounded-full bg-gray-900 hover:bg-gray-800 transition-all duration-30
     href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`}
     target="_blank"
     rel="noopener noreferrer"
-    class="text-gray-400 hover:text-blue-600 transition-colors p-2"
+    class="grid h-9 w-9 place-items-center rounded-lg border border-neutral-200 bg-neutral-50 text-neutral-500 transition hover:border-orange-300 hover:bg-orange-50 hover:text-orange-700 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-400 dark:hover:border-orange-700 dark:hover:bg-orange-950/30 dark:hover:text-orange-300"
     aria-label="Share on LinkedIn"
   >
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
@@ -36,11 +34,11 @@ class="p-3 rounded-full bg-gray-900 hover:bg-gray-800 transition-all duration-30
     href={`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`}
     target="_blank"
     rel="noopener noreferrer"
-    class="text-gray-400 hover:text-blue-800 transition-colors"
+    class="grid h-9 w-9 place-items-center rounded-lg border border-neutral-200 bg-neutral-50 text-neutral-500 transition hover:border-orange-300 hover:bg-orange-50 hover:text-orange-700 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-400 dark:hover:border-orange-700 dark:hover:bg-orange-950/30 dark:hover:text-orange-300"
     aria-label="Share on Facebook"
   >
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
       <path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951z"/>
     </svg>
   </a>
-</button> 
+</div>
