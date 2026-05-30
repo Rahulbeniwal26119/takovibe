@@ -14,10 +14,11 @@ const mainNav = [
 ];
 
 const toolsNav = [
-  { href: "/playground", label: "Playground", description: "Run and share code snippets" },
-  { href: "https://codediff.takovibe.com/", label: "CodeDiff", description: "Compare code and review patches" },
-  { href: "https://resumevibe.takovibe.com/", label: "ResumeVibe", description: "Audit and optimize your resume" },
   { href: "/notes", label: "Sketch Notes", description: "Capture visual thinking while reading" },
+  { href: "/reader", label: "Reader", description: "Read EPUBs and sync your progress" },
+  { href: "https://resumevibe.takovibe.com/", label: "ResumeVibe", description: "Audit and optimize your resume" },
+  { href: "https://codediff.takovibe.com/", label: "CodeDiff", description: "Compare code and review patches" },
+  { href: "/playground", label: "Playground", description: "Run and share code snippets" },
 ];
 
 const moreNav = [
@@ -28,7 +29,7 @@ const moreNav = [
   { href: "/contact", label: "Contact" },
 ];
 
-const mobileNav = [...mainNav, ...toolsNav, ...moreNav];
+const mobileNav = [...mainNav, ...toolsNav.filter((item) => item.href !== "/reader"), ...moreNav];
 
 const isActivePath = (href: string) =>
   href === "/" ? currentPath === "/" : href.startsWith("/") && currentPath.startsWith(href);
