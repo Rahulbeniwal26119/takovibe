@@ -273,6 +273,13 @@ export default defineConfig({
       format: 'es'
     },
     server: {
+      proxy: {
+        '/backend-api': {
+          target: process.env.LOCAL_BACKEND_API_URL || 'http://localhost:8000',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/backend-api/, ''),
+        },
+      },
       fs: {
         allow: ['..']
       }

@@ -17,7 +17,7 @@ import {
     Sun,
     Languages,
 } from 'lucide-react';
-import { getBookFile, getBookMeta, saveProgress } from '../../lib/ebookLibrary';
+import { flushBookProgress, getBookFile, getBookMeta, saveProgress } from '../../lib/ebookLibrary';
 import ReaderAssistant, { type AssistantSeed } from './ReaderAssistant';
 
 interface Props {
@@ -88,6 +88,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
 
     const [title, setTitle] = useState('');
     const [ready, setReady] = useState(false);
+    const [loadError, setLoadError] = useState('');
     const [progress, setProgress] = useState(0);
     const [chapter, setChapter] = useState('');
     const [activeTocHref, setActiveTocHref] = useState('');
@@ -324,87 +325,97 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
     useEffect(() => {
         let destroyed = false;
         (async () => {
-            const [buf, meta] = await Promise.all([getBookFile(bookId), getBookMeta(bookId)]);
-            if (destroyed || !buf || !viewerRef.current) return;
-            setTitle(meta?.title || '');
+            try {
+                const [buf, meta] = await Promise.all([getBookFile(bookId), getBookMeta(bookId)]);
+                if (destroyed || !viewerRef.current) return;
+                if (!buf) throw new Error('The EPUB file is not available on this device.');
+                setTitle(meta?.title || '');
 
-            const book: any = ePub(buf);
-            bookRef.current = book;
-            const rendition = book.renderTo(viewerRef.current, {
-                width: '100%',
-                height: '100%',
-                flow: 'paginated',
-                spread: 'auto',
-                allowScriptedContent: true,
-            });
-            renditionRef.current = rendition;
+                const book: any = ePub(buf);
+                bookRef.current = book;
+                const rendition = book.renderTo(viewerRef.current, {
+                    width: '100%',
+                    height: '100%',
+                    flow: 'paginated',
+                    spread: 'auto',
+                    allowScriptedContent: true,
+                });
+                renditionRef.current = rendition;
 
-            applyTheme(rendition, themeRef.current, fontRef.current);
+                applyTheme(rendition, themeRef.current, fontRef.current);
 
-            await rendition.display(meta?.location || undefined);
-            if (destroyed) return;
-            setReady(true);
+                await rendition.display(meta?.location || undefined);
+                if (destroyed) return;
+                setReady(true);
 
-            book.loaded.navigation.then((nav: any) => setToc(nav.toc || []));
+                book.loaded.navigation.then((nav: any) => setToc(nav.toc || []));
 
-            // Text selection inside the book → offer "Ask Kumi" (like blog articles)
-            rendition.on('selected', (_cfiRange: string, contents: any) => {
-                const text = contents?.window?.getSelection()?.toString()?.trim() || '';
-                selectionWinRef.current = contents?.window || null;
-                if (text.length > 1) {
+                // Text selection inside the book -> offer reader actions.
+                rendition.on('selected', (_cfiRange: string, contents: any) => {
+                    const text = contents?.window?.getSelection()?.toString()?.trim() || '';
+                    selectionWinRef.current = contents?.window || null;
+                    if (text.length > 1) {
+                        resetTranslation();
+                        setSelectionText(text);
+                    }
+                });
+
+                const updateReaderPosition = (location: any) => {
+                    const cfi = location?.start?.cfi;
+                    if (!cfi) return;
+                    let pct = 0;
+                    if (locationsReady.current && book.locations?.length()) {
+                        const total = book.locations.length();
+                        const current = Math.min(total, (book.locations.locationFromCfi(cfi) || 0) + 1);
+                        pct = total > 0 ? current / total : 0;
+                        setPage({
+                            current,
+                            total,
+                        });
+                    } else if (location?.start?.displayed?.total) {
+                        const current = location.start.displayed.page;
+                        const total = location.start.displayed.total;
+                        pct = total > 0 ? current / total : 0;
+                        setPage({ current, total });
+                    }
+                    setProgress(pct);
+                    const href = location?.start?.href || '';
+                    const match = (book.navigation?.toc || []).find(
+                        (t: any) => href && t.href && href.indexOf(t.href.split('#')[0]) !== -1,
+                    );
+                    const chapterTitle = match?.label?.trim() || '';
+                    if (match) {
+                        setChapter(chapterTitle);
+                        setActiveTocHref(match.href || '');
+                    }
+                    saveProgress(bookId, cfi, pct, href, chapterTitle);
+                };
+
+                rendition.on('relocated', (location: any) => {
                     resetTranslation();
-                    setSelectionText(text);
-                }
-            });
+                    setSelectionText(null);
+                    updateReaderPosition(location);
+                });
 
-            const updateReaderPosition = (location: any) => {
-                const cfi = location?.start?.cfi;
-                if (!cfi) return;
-                let pct = 0;
-                if (locationsReady.current && book.locations?.length()) {
-                    const total = book.locations.length();
-                    const current = Math.min(total, (book.locations.locationFromCfi(cfi) || 0) + 1);
-                    pct = total > 0 ? current / total : 0;
-                    setPage({
-                        current,
-                        total,
-                    });
-                } else if (location?.start?.displayed?.total) {
-                    const current = location.start.displayed.page;
-                    const total = location.start.displayed.total;
-                    pct = total > 0 ? current / total : 0;
-                    setPage({ current, total });
+                book.ready
+                    .then(() => book.locations.generateLocations(1600))
+                    .then(() => {
+                        locationsReady.current = true;
+                        const cur = rendition.currentLocation();
+                        if (cur?.start?.cfi && book.locations?.length()) updateReaderPosition(cur);
+                    })
+                    .catch(() => {});
+            } catch (error) {
+                if (!destroyed) {
+                    console.error('Failed to open EPUB', error);
+                    setLoadError(error instanceof Error ? error.message : 'The EPUB could not be opened.');
                 }
-                setProgress(pct);
-                const href = location?.start?.href || '';
-                const match = (book.navigation?.toc || []).find(
-                    (t: any) => href && t.href && href.indexOf(t.href.split('#')[0]) !== -1,
-                );
-                if (match) {
-                    setChapter(match.label?.trim() || '');
-                    setActiveTocHref(match.href || '');
-                }
-                saveProgress(bookId, cfi, pct);
-            };
-
-            rendition.on('relocated', (location: any) => {
-                resetTranslation();
-                setSelectionText(null);
-                updateReaderPosition(location);
-            });
-
-            book.ready
-                .then(() => book.locations.generateLocations(1600))
-                .then(() => {
-                    locationsReady.current = true;
-                    const cur = rendition.currentLocation();
-                    if (cur?.start?.cfi && book.locations?.length()) updateReaderPosition(cur);
-                })
-                .catch(() => {});
+            }
         })();
 
         return () => {
             destroyed = true;
+            flushBookProgress(bookId);
             try {
                 renditionRef.current?.destroy();
                 bookRef.current?.destroy();
@@ -591,7 +602,19 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
             >
                 {!ready && (
                     <div className="absolute inset-0 z-10 flex items-center justify-center" style={{ background: pageBg }}>
-                        <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
+                        {loadError ? (
+                            <div className="max-w-sm px-6 text-center">
+                                <p className="text-sm text-red-600 dark:text-red-300">{loadError}</p>
+                                <button
+                                    onClick={onClose}
+                                    className="mt-4 rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-500"
+                                >
+                                    Back to library
+                                </button>
+                            </div>
+                        ) : (
+                            <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
+                        )}
                     </div>
                 )}
                 <div

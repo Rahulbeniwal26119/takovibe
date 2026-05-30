@@ -1,6 +1,8 @@
 ---
 const currentYear = new Date().getFullYear();
-const apiUrl = import.meta.env.PUBLIC_API_URL;
+const apiUrl = import.meta.env.DEV
+  ? "/backend-api"
+  : import.meta.env.PUBLIC_API_URL || "https://backend.takovibe.com";
 ---
 
 <footer

@@ -1,10 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ePub from 'epubjs';
 import { BookOpen, Upload, Trash2, Loader2, Plus } from 'lucide-react';
-import { listBooks, saveBook, deleteBook, type BookMeta } from '../../lib/ebookLibrary';
+import { deleteBook, syncLibrary, uploadBook, type BookMeta } from '../../lib/ebookLibrary';
+import { EbookApiError, hasReaderAccount, requestReaderLogin } from '../../lib/ebookApi';
 
 interface Props {
     onOpen: (id: string, title: string) => void;
+}
+
+interface UploadState {
+    filename: string;
+    percentage: number;
+    stage: 'preparing' | 'uploading' | 'verifying';
+    current: number;
+    total: number;
 }
 
 async function objectUrlToDataUrl(url: string): Promise<string | null> {
@@ -21,16 +30,33 @@ async function objectUrlToDataUrl(url: string): Promise<string | null> {
     }
 }
 
+function formatLastReadAt(timestamp: number | null): string {
+    if (!timestamp) return '';
+    return new Intl.DateTimeFormat(undefined, {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+    }).format(timestamp);
+}
+
 export default function EbookLibrary({ onOpen }: Props) {
     const [books, setBooks] = useState<BookMeta[]>([]);
     const [loading, setLoading] = useState(true);
     const [importing, setImporting] = useState(false);
     const [dragging, setDragging] = useState(false);
+    const [error, setError] = useState('');
+    const [uploadState, setUploadState] = useState<UploadState | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
     const refresh = async () => {
-        setBooks(await listBooks());
-        setLoading(false);
+        try {
+            setBooks(await syncLibrary());
+        } catch (e) {
+            console.error('Failed to sync ebook library', e);
+            setError(e instanceof EbookApiError ? e.message : 'Your library could not be refreshed.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -40,11 +66,24 @@ export default function EbookLibrary({ onOpen }: Props) {
     const importFiles = async (files: FileList | File[]) => {
         const list = Array.from(files).filter((f) => f.name.toLowerCase().endsWith('.epub'));
         if (!list.length) return;
+        if (!hasReaderAccount()) {
+            requestReaderLogin();
+            return;
+        }
+        setError('');
         setImporting(true);
-        for (const file of list) {
+        for (const [index, file] of list.entries()) {
+            let book: any = null;
             try {
+                setUploadState({
+                    filename: file.name,
+                    percentage: 0,
+                    stage: 'preparing',
+                    current: index + 1,
+                    total: list.length,
+                });
                 const buf = await file.arrayBuffer();
-                const book: any = ePub(buf);
+                book = ePub(buf);
                 await book.ready;
                 const md = book.packaging?.metadata || {};
                 let cover: string | null = null;
@@ -54,30 +93,48 @@ export default function EbookLibrary({ onOpen }: Props) {
                 } catch {
                     /* no cover */
                 }
-                const meta: BookMeta = {
-                    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                setUploadState((state) => (state ? { ...state, stage: 'uploading' } : state));
+                await uploadBook({
                     title: md.title || file.name.replace(/\.epub$/i, ''),
                     author: md.creator || 'Unknown author',
                     cover,
                     addedAt: Date.now(),
                     updatedAt: Date.now(),
                     location: null,
+                    chapterHref: '',
+                    chapterTitle: '',
                     progress: 0,
-                };
-                await saveBook(meta, file);
-                book.destroy?.();
+                    progressUpdatedAt: null,
+                }, file, (percentage) => {
+                    setUploadState((state) => (
+                        state
+                            ? { ...state, percentage, stage: percentage === 100 ? 'verifying' : 'uploading' }
+                            : state
+                    ));
+                });
             } catch (e) {
                 console.error('Failed to import', file.name, e);
+                setError(e instanceof EbookApiError ? e.message : `${file.name} could not be uploaded.`);
+            } finally {
+                book?.destroy?.();
             }
         }
+        if (inputRef.current) inputRef.current.value = '';
+        setUploadState(null);
         setImporting(false);
         refresh();
     };
 
     const handleDelete = async (e: React.MouseEvent, id: string) => {
         e.stopPropagation();
-        await deleteBook(id);
-        refresh();
+        setError('');
+        try {
+            await deleteBook(id);
+            refresh();
+        } catch (error) {
+            console.error('Failed to delete ebook', error);
+            setError(error instanceof EbookApiError ? error.message : 'The book could not be removed.');
+        }
     };
 
     return (
@@ -110,8 +167,7 @@ export default function EbookLibrary({ onOpen }: Props) {
                         Library
                     </h1>
                     <p className="mt-2 max-w-xl text-neutral-500 dark:text-neutral-400">
-                        Your EPUB shelf. Upload a book and pick up right where you left off — on any device,
-                        stored privately on this one.
+                        Your private EPUB shelf. Upload a book and pick up right where you left off on any device.
                     </p>
                 </div>
                 <button
@@ -123,6 +179,44 @@ export default function EbookLibrary({ onOpen }: Props) {
                     {importing ? 'Importing…' : 'Upload EPUB'}
                 </button>
             </div>
+
+            {error && (
+                <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
+                    {error}
+                </div>
+            )}
+
+            {uploadState && (
+                <div className="mb-5 overflow-hidden rounded-xl border border-orange-200 bg-white shadow-sm dark:border-orange-900/70 dark:bg-neutral-900">
+                    <div className="flex items-center gap-3 px-4 py-3">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-orange-50 text-orange-600 dark:bg-orange-950/50 dark:text-orange-300">
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                            <div className="flex items-center justify-between gap-3">
+                                <p className="truncate text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+                                    {uploadState.filename}
+                                </p>
+                                <span className="shrink-0 font-mono text-xs font-bold text-orange-600 dark:text-orange-400">
+                                    {uploadState.percentage}%
+                                </span>
+                            </div>
+                            <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
+                                {uploadState.total > 1 && `File ${uploadState.current} of ${uploadState.total} · `}
+                                {uploadState.stage === 'preparing' && 'Reading EPUB details...'}
+                                {uploadState.stage === 'uploading' && 'Uploading securely to your private library...'}
+                                {uploadState.stage === 'verifying' && 'Verifying upload...'}
+                            </p>
+                        </div>
+                    </div>
+                    <div className="h-1.5 bg-orange-100 dark:bg-orange-950/60">
+                        <div
+                            className="h-full bg-orange-500 transition-[width] duration-200 ease-out"
+                            style={{ width: `${uploadState.percentage}%` }}
+                        />
+                    </div>
+                </div>
+            )}
 
             {loading ? (
                 <div className="flex items-center justify-center py-24 text-neutral-400">
@@ -201,6 +295,11 @@ export default function EbookLibrary({ onOpen }: Props) {
                             <span className="mt-0.5 text-[11px] font-medium text-orange-600 dark:text-orange-400">
                                 {book.progress > 0 ? `${Math.round(book.progress * 100)}% · Continue` : 'Start reading'}
                             </span>
+                            {book.progress > 0 && (book.progressUpdatedAt || book.chapterTitle) && (
+                                <span className="mt-0.5 line-clamp-1 text-[11px] text-neutral-500 dark:text-neutral-400">
+                                    {[formatLastReadAt(book.progressUpdatedAt), book.chapterTitle].filter(Boolean).join(' · ')}
+                                </span>
+                            )}
                         </button>
                     ))}
 
