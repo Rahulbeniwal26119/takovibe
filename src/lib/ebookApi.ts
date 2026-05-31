@@ -27,6 +27,15 @@ export interface RemoteEbook {
     updated_at: string;
 }
 
+export interface RemoteEbookHighlight {
+    id: string;
+    epub_cfi_range: string;
+    color: 'yellow' | 'green' | 'blue' | 'pink';
+    selected_text: string;
+    created_at: string;
+    updated_at: string;
+}
+
 interface UploadUrlResponse {
     book: RemoteEbook;
     upload_url: string;
@@ -230,4 +239,29 @@ export async function syncRemoteProgress(
         }
         throw error;
     }
+}
+
+export function listRemoteHighlights(id: string): Promise<RemoteEbookHighlight[]> {
+    return apiFetch(`${API_BASE}/books/${id}/highlights/`);
+}
+
+export function createRemoteHighlight(
+    id: string,
+    highlight: {
+        epub_cfi_range: string;
+        color: RemoteEbookHighlight['color'];
+        selected_text: string;
+    },
+): Promise<RemoteEbookHighlight> {
+    return apiFetch(`${API_BASE}/books/${id}/highlights/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(highlight),
+    });
+}
+
+export function deleteRemoteHighlight(bookId: string, highlightId: string): Promise<void> {
+    return apiFetch(`${API_BASE}/books/${bookId}/highlights/${highlightId}/`, {
+        method: 'DELETE',
+    });
 }

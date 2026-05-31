@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import ePub from 'epubjs';
+import ePub, { EpubCFI } from 'epubjs';
 import {
     ArrowLeft,
     ChevronLeft,
@@ -16,8 +16,16 @@ import {
     Moon,
     Sun,
     Languages,
+    Highlighter,
 } from 'lucide-react';
 import { flushBookProgress, getBookFile, getBookMeta, saveProgress } from '../../lib/ebookLibrary';
+import {
+    createRemoteHighlight,
+    deleteRemoteHighlight,
+    hasReaderAccount,
+    listRemoteHighlights,
+    type RemoteEbookHighlight,
+} from '../../lib/ebookApi';
 import ReaderAssistant, { type AssistantSeed } from './ReaderAssistant';
 
 interface Props {
@@ -28,6 +36,15 @@ interface Props {
 type ThemeName = 'light' | 'sepia' | 'dark';
 type PageTurnDirection = 'next' | 'prev';
 type PageTurnPhase = 'idle' | 'out-next' | 'out-prev' | 'in-next' | 'in-prev';
+type HighlightColor = 'yellow' | 'green' | 'blue' | 'pink';
+
+interface StoredHighlight {
+    id?: string;
+    cfiRange: string;
+    color: HighlightColor;
+    text: string;
+    createdAt: number;
+}
 
 const THEMES: Record<ThemeName, { bg: string; color: string; link: string; label: string }> = {
     light: { bg: '#fafaf9', color: '#1c1917', link: '#ea580c', label: 'Light' },
@@ -37,6 +54,15 @@ const THEMES: Record<ThemeName, { bg: string; color: string; link: string; label
 
 const FONT_MIN = 80;
 const FONT_MAX = 180;
+const SWIPE_THRESHOLD = 45;
+// Characters per generated location — smaller means finer-grained "pages".
+const LOCATION_CHARS = 1024;
+const HIGHLIGHT_COLORS: Record<HighlightColor, { label: string; value: string; button: string }> = {
+    yellow: { label: 'Yellow', value: '#fde047', button: 'bg-yellow-300' },
+    green: { label: 'Green', value: '#86efac', button: 'bg-green-300' },
+    blue: { label: 'Blue', value: '#93c5fd', button: 'bg-blue-300' },
+    pink: { label: 'Pink', value: '#f9a8d4', button: 'bg-pink-300' },
+};
 const TRANSLATION_LANGUAGE_KEY = 'reader_translation_language';
 const TRANSLATION_LANGUAGES = [
     'Hindi',
@@ -76,6 +102,28 @@ function siteIsDark(): boolean {
     return typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
 }
 
+// Collapse a range CFI to its start/end point CFIs so two ranges can be compared.
+function cfiRangeEndpoints(cfiRange: string): { start: string; end: string } | null {
+    try {
+        const start = new EpubCFI(cfiRange);
+        start.collapse(true);
+        const end = new EpubCFI(cfiRange);
+        end.collapse(false);
+        return { start: start.toString(), end: end.toString() };
+    } catch {
+        return null;
+    }
+}
+
+// Two highlights overlap when they share interior text (adjacency is allowed).
+function cfiRangesOverlap(a: string, b: string): boolean {
+    const ae = cfiRangeEndpoints(a);
+    const be = cfiRangeEndpoints(b);
+    if (!ae || !be) return false;
+    const cfi = new EpubCFI();
+    return cfi.compare(ae.start, be.end) < 0 && cfi.compare(be.start, ae.end) < 0;
+}
+
 export default function EbookReaderView({ bookId, onClose }: Props) {
     const rootRef = useRef<HTMLDivElement>(null);
     const viewerRef = useRef<HTMLDivElement>(null);
@@ -85,6 +133,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
     const initialSiteDarkRef = useRef<boolean | null>(null);
     const pageTurnBusyRef = useRef(false);
     const pageTurnTimersRef = useRef<number[]>([]);
+    const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
     const [title, setTitle] = useState('');
     const [ready, setReady] = useState(false);
@@ -93,6 +142,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
     const [chapter, setChapter] = useState('');
     const [activeTocHref, setActiveTocHref] = useState('');
     const [page, setPage] = useState<{ current: number; total: number } | null>(null);
+    const [locationsGenerated, setLocationsGenerated] = useState(false);
     const [toc, setToc] = useState<any[]>([]);
     const [tocOpen, setTocOpen] = useState(false);
     const [settingsOpen, setSettingsOpen] = useState(false);
@@ -100,6 +150,8 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [clock, setClock] = useState('');
     const [selectionText, setSelectionText] = useState<string | null>(null);
+    const [selectionCfiRange, setSelectionCfiRange] = useState<string | null>(null);
+    const [scrubLocation, setScrubLocation] = useState<number | null>(null);
     const selectionWinRef = useRef<Window | null>(null);
     const translationAbortRef = useRef<AbortController | null>(null);
     const [translationLanguage, setTranslationLanguage] = useState(() =>
@@ -141,8 +193,18 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
         pageTurnTimersRef.current = [];
     };
 
+    const resizeRendition = () => {
+        const rendition = renditionRef.current;
+        if (!rendition?.manager) return;
+        try {
+            rendition.resize();
+        } catch {
+            /* The iframe manager may disappear during a reload. */
+        }
+    };
+
     const turnPage = (direction: PageTurnDirection, navigate: () => unknown) => {
-        if (!renditionRef.current || pageTurnBusyRef.current) return;
+        if (!renditionRef.current?.manager || pageTurnBusyRef.current) return;
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
             navigate();
             return;
@@ -173,6 +235,97 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
     const next = () => turnPage('next', () => renditionRef.current?.next());
     const prev = () => turnPage('prev', () => renditionRef.current?.prev());
 
+    const loadHighlights = (): StoredHighlight[] => {
+        try {
+            const saved = localStorage.getItem(`reader_highlights_${bookId}`);
+            return saved ? JSON.parse(saved) : [];
+        } catch {
+            return [];
+        }
+    };
+
+    const saveHighlights = (highlights: StoredHighlight[]) => {
+        localStorage.setItem(`reader_highlights_${bookId}`, JSON.stringify(highlights));
+    };
+
+    const renderHighlight = (highlight: StoredHighlight) => {
+        renditionRef.current?.annotations.highlight(
+            highlight.cfiRange,
+            { color: highlight.color },
+            undefined,
+            `tako-highlight-${highlight.color}`,
+            {
+                fill: HIGHLIGHT_COLORS[highlight.color].value,
+                'fill-opacity': '0.48',
+                'mix-blend-mode': 'multiply',
+            },
+        );
+    };
+
+    const remoteToStoredHighlight = (highlight: RemoteEbookHighlight): StoredHighlight => ({
+        id: highlight.id,
+        cfiRange: highlight.epub_cfi_range,
+        color: highlight.color,
+        text: highlight.selected_text,
+        createdAt: Date.parse(highlight.created_at) || Date.now(),
+    });
+
+    const refreshHighlightsFromCloud = async (): Promise<StoredHighlight[]> => {
+        const cached = loadHighlights();
+        if (!hasReaderAccount()) return cached;
+
+        try {
+            let remote = await listRemoteHighlights(bookId);
+            const remoteRanges = new Set(remote.map((highlight) => highlight.epub_cfi_range));
+            const localOnly = cached.filter((highlight) => !highlight.id && !remoteRanges.has(highlight.cfiRange));
+            if (localOnly.length) {
+                await Promise.all(
+                    localOnly.map((highlight) =>
+                        createRemoteHighlight(bookId, {
+                            epub_cfi_range: highlight.cfiRange,
+                            color: highlight.color,
+                            selected_text: highlight.text,
+                        }),
+                    ),
+                );
+                remote = await listRemoteHighlights(bookId);
+            }
+            const synced = remote.map(remoteToStoredHighlight);
+            saveHighlights(synced);
+            return synced;
+        } catch (error) {
+            console.error('Failed to sync ebook highlights; using local cache.', error);
+            return cached;
+        }
+    };
+
+    const seekToProgress = (fraction: number) => {
+        const rendition = renditionRef.current;
+        const book = bookRef.current;
+        if (!rendition) return;
+        const clamped = Math.max(0, Math.min(1, fraction));
+        let target: string | undefined;
+        if (locationsReady.current && book?.locations?.length()) {
+            // Precise whole-book seek once locations exist.
+            target = book.locations.cfiFromPercentage(clamped);
+        } else if (book?.spine?.length) {
+            // Coarse seek before locations are ready: land on the nearest spine
+            // item. display() needs an href, not a raw index, to navigate reliably.
+            const spineIndex = Math.max(0, Math.min(book.spine.length - 1, Math.floor(clamped * book.spine.length)));
+            target = book.spine.get(spineIndex)?.href;
+        }
+        if (!target) {
+            setScrubLocation(null);
+            return;
+        }
+        // Hold the dragged value on the thumb until the book has actually moved.
+        // Clearing it before display() resolves snaps the controlled input back to
+        // the previous position, which reads as "the slider reset itself".
+        Promise.resolve(rendition.display(target))
+            .catch((error) => console.error('Failed to seek to position', error))
+            .finally(() => setScrubLocation(null));
+    };
+
     const toggleFullscreen = () => {
         if (document.fullscreenElement) document.exitFullscreen?.();
         else rootRef.current?.requestFullscreen?.();
@@ -194,6 +347,50 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
         }
         resetTranslation();
         setSelectionText(null);
+        setSelectionCfiRange(null);
+    };
+
+    const addHighlight = (color: HighlightColor) => {
+        if (!selectionCfiRange || !selectionText) return;
+        // Drop any existing highlight that overlaps the new one — overlaps aren't allowed.
+        const kept: StoredHighlight[] = [];
+        const removed: StoredHighlight[] = [];
+        loadHighlights().forEach((item) => {
+            if (item.cfiRange === selectionCfiRange || cfiRangesOverlap(item.cfiRange, selectionCfiRange)) {
+                renditionRef.current?.annotations.remove(item.cfiRange, 'highlight');
+                removed.push(item);
+            } else {
+                kept.push(item);
+            }
+        });
+        const highlight = {
+            cfiRange: selectionCfiRange,
+            color,
+            text: selectionText,
+            createdAt: Date.now(),
+        };
+        kept.push(highlight);
+        saveHighlights(kept);
+        renderHighlight(highlight);
+        clearSelection();
+
+        if (!hasReaderAccount()) return;
+        Promise.all(
+            removed.filter((item) => item.id).map((item) => deleteRemoteHighlight(bookId, item.id!)),
+        )
+            .then(() =>
+                createRemoteHighlight(bookId, {
+                    epub_cfi_range: highlight.cfiRange,
+                    color: highlight.color,
+                    selected_text: highlight.text,
+                }),
+            )
+            .then((remote) => {
+                const current = loadHighlights().filter((item) => item.cfiRange !== highlight.cfiRange);
+                current.push(remoteToStoredHighlight(remote));
+                saveHighlights(current);
+            })
+            .catch((error) => console.error('Failed to sync ebook highlight; keeping local copy.', error));
     };
 
     const askKumiAboutSelection = () => {
@@ -338,7 +535,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                     height: '100%',
                     flow: 'paginated',
                     spread: 'auto',
-                    allowScriptedContent: true,
+                    allowScriptedContent: false,
                 });
                 renditionRef.current = rendition;
 
@@ -351,32 +548,80 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                 book.loaded.navigation.then((nav: any) => setToc(nav.toc || []));
 
                 // Text selection inside the book -> offer reader actions.
-                rendition.on('selected', (_cfiRange: string, contents: any) => {
+                rendition.on('selected', (cfiRange: string, contents: any) => {
                     const text = contents?.window?.getSelection()?.toString()?.trim() || '';
                     selectionWinRef.current = contents?.window || null;
                     if (text.length > 1) {
                         resetTranslation();
                         setSelectionText(text);
+                        setSelectionCfiRange(cfiRange);
                     }
                 });
+
+                // epub.js renders chapters in iframes, so mobile gestures need
+                // to be bound inside each content document.
+                const bindTouchNavigation = (contents: any) => {
+                    const doc = contents?.document;
+                    if (!doc || doc.documentElement.dataset.takoTouchNav === 'true') return;
+                    doc.documentElement.dataset.takoTouchNav = 'true';
+                    doc.addEventListener(
+                        'touchstart',
+                        (event: TouchEvent) => {
+                            const touch = event.changedTouches[0];
+                            if (touch) touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+                        },
+                        { passive: true },
+                    );
+                    doc.addEventListener(
+                        'touchend',
+                        (event: TouchEvent) => {
+                            const start = touchStartRef.current;
+                            const touch = event.changedTouches[0];
+                            touchStartRef.current = null;
+                            if (!start || !touch || contents.window.getSelection()?.toString()?.trim()) return;
+                            const dx = touch.clientX - start.x;
+                            const dy = touch.clientY - start.y;
+                            if (Math.abs(dx) >= SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy) * 1.2) {
+                                if (dx < 0) next();
+                                else prev();
+                                return;
+                            }
+                            if (Math.abs(dx) > 12 || Math.abs(dy) > 12) return;
+                            const target = event.target as HTMLElement | null;
+                            if (target?.closest('a, button, input, select, textarea')) return;
+                            const ratio = touch.clientX / contents.window.innerWidth;
+                            if (ratio < 0.24) prev();
+                            else if (ratio > 0.76) next();
+                            else setChromeVisible((visible) => !visible);
+                        },
+                        { passive: true },
+                    );
+                };
+                rendition.hooks.content.register(bindTouchNavigation);
+                rendition.getContents().forEach(bindTouchNavigation);
 
                 const updateReaderPosition = (location: any) => {
                     const cfi = location?.start?.cfi;
                     if (!cfi) return;
                     let pct = 0;
                     if (locationsReady.current && book.locations?.length()) {
+                        // Whole-book pagination: "page 42 of 980" across the entire book.
                         const total = book.locations.length();
                         const current = Math.min(total, (book.locations.locationFromCfi(cfi) || 0) + 1);
                         pct = total > 0 ? current / total : 0;
-                        setPage({
-                            current,
-                            total,
-                        });
-                    } else if (location?.start?.displayed?.total) {
-                        const current = location.start.displayed.page;
-                        const total = location.start.displayed.total;
-                        pct = total > 0 ? current / total : 0;
                         setPage({ current, total });
+                    } else {
+                        // Locations aren't generated yet. displayed.page/total is only the
+                        // page count WITHIN the current section, so it must not be shown as a
+                        // book total. Approximate whole-book progress from the spine position
+                        // instead, and leave the page indicator empty until locations exist.
+                        const spineIndex = location?.start?.index ?? 0;
+                        const spineTotal = book.spine?.length || 1;
+                        const displayed = location?.start?.displayed;
+                        const within =
+                            displayed?.total > 0 ? (displayed.page - 1) / displayed.total : 0;
+                        pct = Math.min(1, (spineIndex + within) / spineTotal);
+                        setPage(null);
                     }
                     setProgress(pct);
                     const href = location?.start?.href || '';
@@ -394,17 +639,51 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                 rendition.on('relocated', (location: any) => {
                     resetTranslation();
                     setSelectionText(null);
+                    setSelectionCfiRange(null);
+                    setScrubLocation(null);
                     updateReaderPosition(location);
                 });
 
+                const initialLocation = rendition.currentLocation();
+                if (initialLocation?.start?.cfi) updateReaderPosition(initialLocation);
+
+                const locationsCacheKey = `reader_locations_${bookId}`;
                 book.ready
-                    .then(() => book.locations.generateLocations(1600))
-                    .then(() => {
-                        locationsReady.current = true;
-                        const cur = rendition.currentLocation();
-                        if (cur?.start?.cfi && book.locations?.length()) updateReaderPosition(cur);
+                    .then(async () => {
+                        if (destroyed) return;
+                        const cached =
+                            typeof localStorage !== 'undefined' ? localStorage.getItem(locationsCacheKey) : null;
+                        if (cached) {
+                            book.locations.load(cached);
+                            return;
+                        }
+                        await book.locations.generate(LOCATION_CHARS);
+                        if (destroyed) return;
+                        try {
+                            localStorage.setItem(locationsCacheKey, book.locations.save());
+                        } catch {
+                            /* Locations are large; a full localStorage is non-fatal. */
+                        }
                     })
-                    .catch(() => {});
+                    .then(() => {
+                        if (destroyed || !book.locations?.length()) return;
+                        locationsReady.current = true;
+                        setLocationsGenerated(true);
+                        const cachedHighlights = loadHighlights();
+                        cachedHighlights.forEach(renderHighlight);
+                        refreshHighlightsFromCloud().then((syncedHighlights) => {
+                            if (destroyed) return;
+                            cachedHighlights.forEach((highlight) =>
+                                rendition.annotations.remove(highlight.cfiRange, 'highlight'),
+                            );
+                            syncedHighlights.forEach(renderHighlight);
+                        });
+                        const cur = rendition.currentLocation();
+                        if (cur?.start?.cfi) updateReaderPosition(cur);
+                    })
+                    .catch((error) => {
+                        console.error('Failed to generate book locations', error);
+                    });
             } catch (error) {
                 if (!destroyed) {
                     console.error('Failed to open EPUB', error);
@@ -416,15 +695,18 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
         return () => {
             destroyed = true;
             flushBookProgress(bookId);
+            const rendition = renditionRef.current;
+            const book = bookRef.current;
+            renditionRef.current = null;
+            bookRef.current = null;
             try {
-                renditionRef.current?.destroy();
-                bookRef.current?.destroy();
+                rendition?.destroy();
+                book?.destroy();
             } catch {
                 /* ignore */
             }
-            renditionRef.current = null;
-            bookRef.current = null;
             locationsReady.current = false;
+            setLocationsGenerated(false);
         };
     }, [bookId]);
 
@@ -440,11 +722,12 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
     // Keyboard nav (when focus is outside the iframe) + resize
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
+            if (e.target instanceof HTMLInputElement && e.target.type === 'range') return;
             if (e.key === 'ArrowRight') next();
             else if (e.key === 'ArrowLeft') prev();
             else if (e.key === 'Escape') onClose();
         };
-        const onResize = () => renditionRef.current?.resize();
+        const onResize = () => resizeRendition();
         window.addEventListener('keyup', onKey);
         window.addEventListener('resize', onResize);
         return () => {
@@ -455,7 +738,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
 
     // The paginated view needs a recalculation when the available height changes
     useEffect(() => {
-        const id = setTimeout(() => renditionRef.current?.resize(), 320);
+        const id = setTimeout(() => resizeRendition(), 320);
         return () => clearTimeout(id);
     }, [chromeVisible, assistantOpen, assistantWidth, isNarrow]);
 
@@ -597,7 +880,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                     {/* Reading area - inset by the chrome height so the bars never cover the text */}
                     <div
                 className={`relative flex-1 overflow-hidden transition-[padding] duration-300 ${
-                    chromeVisible ? 'pt-14 pb-11' : ''
+                    chromeVisible ? 'pt-14 pb-20 sm:pb-16' : ''
                 }`}
             >
                 {!ready && (
@@ -628,10 +911,10 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                     <div ref={viewerRef} className="h-full w-full" />
                 </div>
 
-                {/* Persistent desktop page-turn indicators */}
+                {/* Persistent page-turn controls */}
                 <button
                     onClick={prev}
-                    className="absolute left-3 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-neutral-200/80 bg-white/80 text-neutral-600 shadow-sm backdrop-blur transition-colors hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:border-neutral-800 dark:bg-neutral-900/80 dark:text-neutral-300 dark:hover:border-orange-900 dark:hover:bg-orange-950/60 dark:hover:text-orange-300 md:flex"
+                    className="absolute left-1 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-neutral-200/80 bg-white/75 text-neutral-600 shadow-sm backdrop-blur transition-colors hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:border-neutral-800 dark:bg-neutral-900/75 dark:text-neutral-300 dark:hover:border-orange-900 dark:hover:bg-orange-950/60 dark:hover:text-orange-300 md:left-3 md:h-10 md:w-10"
                     aria-label="Previous page"
                     title="Previous page"
                 >
@@ -639,7 +922,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                 </button>
                 <button
                     onClick={next}
-                    className="absolute right-3 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-neutral-200/80 bg-white/80 text-neutral-600 shadow-sm backdrop-blur transition-colors hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:border-neutral-800 dark:bg-neutral-900/80 dark:text-neutral-300 dark:hover:border-orange-900 dark:hover:bg-orange-950/60 dark:hover:text-orange-300 md:flex"
+                    className="absolute right-1 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-neutral-200/80 bg-white/75 text-neutral-600 shadow-sm backdrop-blur transition-colors hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:border-neutral-800 dark:bg-neutral-900/75 dark:text-neutral-300 dark:hover:border-orange-900 dark:hover:bg-orange-950/60 dark:hover:text-orange-300 md:right-3 md:h-10 md:w-10"
                     aria-label="Next page"
                     title="Next page"
                 >
@@ -666,13 +949,34 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                             Page {page.current} of {page.total}
                         </span>
                     )}
-                    <div className="hidden h-1 w-28 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-800 sm:block">
-                        <div className="h-full bg-orange-500 transition-[width] duration-300" style={{ width: `${pct}%` }} />
-                    </div>
                     <span className="w-9 shrink-0 text-right text-xs font-semibold text-neutral-600 dark:text-neutral-300">
                         {pct}%
                     </span>
                 </div>
+                    {ready && (
+                        <div className="mx-auto mt-1.5 flex max-w-3xl items-center gap-2">
+                            <input
+                                type="range"
+                                min="0"
+                                max="100"
+                                step="1"
+                                value={scrubLocation ?? pct}
+                                onChange={(event) => setScrubLocation(Number(event.target.value))}
+                                onPointerUp={(event) => seekToProgress(Number(event.currentTarget.value) / 100)}
+                                onKeyUp={(event) => seekToProgress(Number(event.currentTarget.value) / 100)}
+                                className="h-1.5 w-full cursor-pointer accent-orange-500"
+                                aria-label="Jump to position"
+                                title={locationsGenerated ? 'Drag to jump to a page' : 'Drag to jump to a section'}
+                            />
+                            <span className="w-12 shrink-0 text-right font-mono text-[10px] tabular-nums text-neutral-400">
+                                {scrubLocation !== null
+                                    ? `${scrubLocation}%`
+                                    : page
+                                    ? `${page.current}/${page.total}`
+                                    : `${pct}%`}
+                            </span>
+                        </div>
+                    )}
                     </footer>
 
                     {/* Selected passages can be attached to the dedicated reading companion. */}
@@ -681,6 +985,19 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                     <p className="mb-2 line-clamp-2 border-l-2 border-orange-500 pl-2 text-xs italic text-neutral-500 dark:text-neutral-400">
                         “{selectionText}”
                     </p>
+                        <div className="mb-2 flex items-center gap-2">
+                            <Highlighter className="h-4 w-4 text-neutral-400" />
+                            <span className="mr-1 text-xs font-semibold text-neutral-500 dark:text-neutral-400">Highlight</span>
+                            {(Object.keys(HIGHLIGHT_COLORS) as HighlightColor[]).map((color) => (
+                                <button
+                                    key={color}
+                                    onClick={() => addHighlight(color)}
+                                    className={`h-6 w-6 rounded-full border border-black/10 shadow-sm transition-transform hover:scale-110 ${HIGHLIGHT_COLORS[color].button}`}
+                                    aria-label={`Highlight in ${HIGHLIGHT_COLORS[color].label.toLowerCase()}`}
+                                    title={`${HIGHLIGHT_COLORS[color].label} highlight`}
+                                />
+                            ))}
+                        </div>
                     <div className="flex flex-wrap items-center gap-2">
                         <button
                             onClick={askKumiAboutSelection}
