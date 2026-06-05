@@ -9,6 +9,78 @@ import AuthorDashboard from "../components/AuthorDashboard";
     no_footer={true}
 >
     <div class="min-h-screen bg-gray-50 dark:bg-neutral-950">
-        <AuthorDashboard client:only="react" />
+        <div
+            id="dashboard-guard"
+            class="flex min-h-screen items-center justify-center"
+        >
+            <div
+                class="h-8 w-8 animate-spin rounded-full border-2 border-orange-500 border-t-transparent"
+            >
+            </div>
+        </div>
+        <div id="dashboard-content" class="hidden">
+            <AuthorDashboard client:only="react" />
+        </div>
     </div>
+
+    <script>
+        const AUTHOR_ROLES = ["Author", "Editor", "Admin"];
+        const API_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
+
+        const isAuthor = (u: any) =>
+            !!u &&
+            (u.is_author ||
+                u.is_superuser ||
+                AUTHOR_ROLES.includes(u.client_type || ""));
+
+        const reveal = () => {
+            document.getElementById("dashboard-guard")?.classList.add("hidden");
+            document
+                .getElementById("dashboard-content")
+                ?.classList.remove("hidden");
+        };
+
+        const toLogin = () => {
+            const returnUrl = encodeURIComponent(window.location.pathname);
+            window.location.href = `/login?redirect=${returnUrl}`;
+        };
+
+        const checkAuth = async () => {
+            const token = localStorage.getItem("access_token");
+            if (!token) {
+                toLogin();
+                return;
+            }
+
+            let cached = null;
+            try {
+                cached = JSON.parse(localStorage.getItem("user") || "null");
+            } catch {}
+
+            try {
+                const res = await fetch(`${API_URL}/api/users/me/`, {
+                    headers: { Authorization: `Token ${token}` },
+                });
+                if (res.status === 401) {
+                    toLogin();
+                    return;
+                }
+                if (res.ok) {
+                    const data = await res.json();
+                    if (isAuthor(data.data || data)) reveal();
+                    else window.location.href = "/";
+                    return;
+                }
+            } catch {
+                if (isAuthor(cached)) reveal();
+                else window.location.href = "/";
+                return;
+            }
+
+            if (isAuthor(cached)) reveal();
+            else window.location.href = "/";
+        };
+
+        checkAuth();
+    </script>
 </Layout>

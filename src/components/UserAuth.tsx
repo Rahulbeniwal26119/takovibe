@@ -234,6 +234,13 @@ const UserAuthContent: React.FC = () => {
                                 Dashboard
                             </a>
 
+                            <a
+                                href="/saved"
+                                className="block px-4 py-2.5 text-sm text-gray-700 transition-colors hover:bg-orange-50 hover:text-orange-700 dark:text-neutral-300 dark:hover:bg-neutral-900 dark:hover:text-orange-300"
+                            >
+                                Saved
+                            </a>
+
                             {(user.is_author || user.is_superuser || ['Author', 'Editor', 'Admin'].includes(user.client_type || '')) && (
                                 <a
                                     href="/post/new"

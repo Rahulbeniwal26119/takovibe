@@ -6,35 +6,24 @@ import UserAuth from "./UserAuth.tsx";
 const currentPath = Astro.url.pathname;
 
 const mainNav = [
-  { href: "/", label: "Home" },
-  { href: "/blog", label: "Blog" },
-  { href: "/series", label: "Series" },
-  { href: "/notes", label: "Notes" },
-  { href: "/reader", label: "Reader" },
+  { href: "/blog", label: "Articles" },
+  { href: "/series", label: "Topics" },
+  { href: "/about", label: "About" },
 ];
 
 const toolsNav = [
-  { href: "/reader", label: "Reader", description: "Read EPUBs and sync your progress" },
-  { href: "/tasks", label: "Learning Tasks", description: "Plan articles, ebooks, and learning goals" },
-  { href: "https://resumevibe.takovibe.com/", label: "ResumeVibe", description: "Audit and optimize your resume" },
-  { href: "https://codediff.takovibe.com/", label: "CodeDiff", description: "Compare code and review patches" },
-  { href: "/playground", label: "Playground", description: "Run and share code snippets" },
+  { href: "/reader", label: "Reader", description: "Read EPUBs with highlights and Kumi" },
+  { href: "/playground", label: "Playground", description: "Run code in the browser" },
+  { href: "/notes", label: "Sketch Notes", description: "Diagram what you're reading" },
+  { href: "https://resumevibe.takovibe.com/", label: "ResumeVibe", description: "Also from TakoVibe" },
+  { href: "https://codediff.takovibe.com/", label: "CodeDiff", description: "Also from TakoVibe" },
 ];
 
-const moreNav = [
-  { href: "/about", label: "About" },
-  { href: "/saved", label: "Saved" },
-  { href: "/why-takovibe", label: "Why TakoVibe?" },
-  { href: "/changelog", label: "Changelog" },
-  { href: "/contact", label: "Contact" },
-];
-
-const mobileNav = [...mainNav, ...toolsNav.filter((item) => item.href !== "/reader"), ...moreNav];
+const mobileNav = [...mainNav, ...toolsNav];
 
 const isActivePath = (href: string) =>
   href === "/" ? currentPath === "/" : href.startsWith("/") && currentPath.startsWith(href);
 
-const hasActiveMoreItem = moreNav.some((item) => isActivePath(item.href));
 const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
 ---
 
@@ -61,7 +50,7 @@ const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
 
         <a href="/" class="flex items-center gap-3 group">
           <img src="/images/logo.svg" alt="TakoVibe" class="w-8 h-8 lg:w-9 lg:h-9 rounded-full hover:rotate-12 transition-transform duration-500" />
-          <span class="font-bold text-xl tracking-tight text-neutral-900 dark:text-neutral-50 hidden sm:block">
+          <span class="font-bold text-xl text-neutral-900 dark:text-neutral-50 hidden sm:block">
             TakoVibe
           </span>
         </a>
@@ -118,44 +107,6 @@ const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
           </div>
         </div>
 
-        <div class="relative">
-          <button
-            id="desktop-more-btn"
-            type="button"
-            aria-haspopup="menu"
-            aria-expanded="false"
-            class={`px-4 py-2 text-sm font-semibold rounded-full transition-all duration-300 whitespace-nowrap inline-flex items-center gap-1.5 ${
-              hasActiveMoreItem
-                ? "text-orange-600 dark:text-orange-400 bg-neutral-50 dark:bg-neutral-800/20"
-                : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-50 hover:bg-neutral-100/50 dark:hover:bg-neutral-800/[0.03]"
-            }`}
-          >
-            More
-            <svg class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-            </svg>
-          </button>
-
-          <div
-            id="desktop-more-menu"
-            role="menu"
-            class="absolute left-1/2 top-full mt-3 hidden w-56 -translate-x-1/2 overflow-hidden rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 bg-neutral-50/95 dark:bg-neutral-950/95 shadow-xl shadow-neutral-900/10 dark:shadow-black/30 backdrop-blur-xl p-2"
-          >
-            {moreNav.map((item) => (
-              <a
-                href={item.href}
-                role="menuitem"
-                class={`block rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
-                  isActivePath(item.href)
-                    ? "bg-orange-50 dark:bg-orange-900/10 text-orange-600 dark:text-orange-400"
-                    : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800/50 hover:text-neutral-900 dark:hover:text-neutral-50"
-                }`}
-              >
-                {item.label}
-              </a>
-            ))}
-          </div>
-        </div>
       </nav>
 
       <!-- Right: Actions -->
@@ -187,13 +138,13 @@ const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
         <div class="h-6 w-px bg-neutral-300/50 dark:bg-neutral-600/50 hidden sm:block"></div>
 
         <a
-          href="/post/new"
-          class="hidden xl:flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold text-white bg-orange-500 hover:bg-orange-600 transition-all duration-300 shadow-sm"
+          href="#newsletter-wrapper"
+          class="hidden sm:flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold text-white bg-orange-500 hover:bg-orange-600 transition-all duration-300 shadow-sm"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
           </svg>
-          Write
+          Subscribe
         </a>
 
         <button
@@ -288,6 +239,13 @@ const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
 
 <!-- Drawer Nav -->
 <nav class="flex-1 overflow-y-auto px-4 py-2 space-y-1">
+  <a
+    id="mobile-subscribe-link"
+    href="#newsletter-wrapper"
+    class="flex items-center justify-center gap-2 mb-2 px-4 py-3 rounded-xl text-sm font-bold text-white bg-orange-500 hover:bg-orange-600 transition-colors shadow-sm shadow-orange-500/20"
+  >
+    Subscribe to the newsletter
+  </a>
   {mobileNav.map((item) => (
     <a
       href={item.href}
@@ -345,6 +303,17 @@ const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
           </div>
         </div>
       </div>
+      <a
+        id="mobile-write-link"
+        href="/post/new"
+        class="mb-2 hidden w-full items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-neutral-700 hover:bg-orange-50 hover:text-orange-700 dark:text-neutral-300 dark:hover:bg-neutral-800/50 dark:hover:text-orange-300 transition-colors"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 20h9"></path>
+          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+        </svg>
+        Write a post
+      </a>
       <button
         id="mobile-logout-btn"
         class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
@@ -476,8 +445,6 @@ const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
     const closeBtn = document.querySelector("#closeDrawerBtn");
     const desktopToolsBtn = document.getElementById("desktop-tools-btn");
     const desktopToolsMenu = document.getElementById("desktop-tools-menu");
-    const desktopMoreBtn = document.getElementById("desktop-more-btn");
-    const desktopMoreMenu = document.getElementById("desktop-more-menu");
 
     // Search elements
     const searchTriggerBtn = document.getElementById("searchTriggerBtn");
@@ -507,12 +474,6 @@ const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
       document.body.style.overflow = "";
     }
 
-    function closeDesktopMore() {
-      desktopMoreMenu?.classList.add("hidden");
-      desktopMoreBtn?.setAttribute("aria-expanded", "false");
-      desktopMoreBtn?.querySelector("svg")?.classList.remove("rotate-180");
-    }
-
     function closeDesktopTools() {
       desktopToolsMenu?.classList.add("hidden");
       desktopToolsBtn?.setAttribute("aria-expanded", "false");
@@ -526,17 +487,6 @@ const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
       desktopToolsMenu.classList.toggle("hidden", isOpen);
       desktopToolsBtn.setAttribute("aria-expanded", String(!isOpen));
       desktopToolsBtn.querySelector("svg")?.classList.toggle("rotate-180", !isOpen);
-      if (!isOpen) closeDesktopMore();
-    }
-
-    function toggleDesktopMore() {
-      if (!desktopMoreMenu || !desktopMoreBtn) return;
-
-      const isOpen = !desktopMoreMenu.classList.contains("hidden");
-      desktopMoreMenu.classList.toggle("hidden", isOpen);
-      desktopMoreBtn.setAttribute("aria-expanded", String(!isOpen));
-      desktopMoreBtn.querySelector("svg")?.classList.toggle("rotate-180", !isOpen);
-      if (!isOpen) closeDesktopTools();
     }
 
     function openSearch() {
@@ -588,11 +538,7 @@ const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
 
     closeBtn?.addEventListener("click", closeDrawer);
     backdrop?.addEventListener("click", closeDrawer);
-
-    desktopMoreBtn?.addEventListener("click", (e) => {
-      e.stopPropagation();
-      toggleDesktopMore();
-    });
+    document.getElementById("mobile-subscribe-link")?.addEventListener("click", closeDrawer);
 
     desktopToolsBtn?.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -623,15 +569,6 @@ const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
       }
 
       if (
-        desktopMoreMenu &&
-        desktopMoreBtn &&
-        !desktopMoreMenu.contains(target) &&
-        !desktopMoreBtn.contains(target)
-      ) {
-        closeDesktopMore();
-      }
-
-      if (
         desktopToolsMenu &&
         desktopToolsBtn &&
         !desktopToolsMenu.contains(target) &&
@@ -657,7 +594,6 @@ const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
       if (e.key === "Escape") {
         closeDrawer();
         closeSearch();
-        closeDesktopMore();
         closeDesktopTools();
       }
 
@@ -782,6 +718,17 @@ const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
           if (mobileAuthLinks) mobileAuthLinks.classList.add("hidden");
 
           if (mobileUserProfile) mobileUserProfile.classList.remove("hidden");
+
+          const isAuthor = !!(
+            user.is_author ||
+            user.is_superuser ||
+            ["Author", "Editor", "Admin"].includes(user.client_type || "")
+          );
+          const mobileWriteLink = document.getElementById("mobile-write-link");
+          if (mobileWriteLink) {
+            mobileWriteLink.classList.toggle("hidden", !isAuthor);
+            mobileWriteLink.classList.toggle("flex", isAuthor);
+          }
 
           if (mobileUserName) mobileUserName.textContent = user.name;
           if (mobileUserEmail) mobileUserEmail.textContent = user.email;

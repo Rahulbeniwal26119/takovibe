@@ -3,6 +3,9 @@ export const prerender = true;
 import Layout from "../layouts/Layout.astro";
 
 const API_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
+const newsletterApiUrl = import.meta.env.DEV
+  ? "/backend-api"
+  : import.meta.env.PUBLIC_API_URL || "https://backend.takovibe.com";
 
 interface ApiBlogPost {
   id: number;
@@ -36,136 +39,194 @@ try {
   console.warn("Homepage articles could not be loaded.", error);
 }
 
-const productSuite = [
+const latestPost = featuredPosts[0];
+const workspacePowers = [
+  {
+    title: "Run the code",
+    copy: "Turn claims into small experiments inside the article, so the idea is not just something you read.",
+  },
+  {
+    title: "Ask in context",
+    copy: "Use Kumi around the paragraph you are reading instead of losing the thread in another tab.",
+  },
+  {
+    title: "Sketch the system",
+    copy: "Attach a diagram to the piece you are studying so the model survives after the tab closes.",
+  },
+  {
+    title: "Save the insight",
+    copy: "Highlights, notes, and follow-ups live with the article, where they stay useful.",
+  },
+];
+
+const toolSuite = [
   {
     number: "01",
     title: "ResumeVibe",
-    copy: "Audit your resume, sharpen the story, and understand what a hiring screen sees before you send the next application.",
-    href: "https://resumevibe.takovibe.com/",
     label: "Career tool",
+    href: "https://resumevibe.takovibe.com/",
     cta: "Open ResumeVibe",
-    accent: "from-orange-500/30 via-orange-400/5 to-transparent",
-    layout: "xl:col-span-2",
+    copy: "Audit the resume before a recruiter does. Tighten the story, expose weak bullets, and tune the version for the role.",
+    proof: "Score, gaps, rewrites, and role fit in one pass.",
+    items: ["ATS clarity", "Bullet rewrites", "Role match"],
+    accent: "from-orange-500/25 via-orange-400/5 to-transparent",
   },
   {
     number: "02",
     title: "CodeDiff",
-    copy: "Review a patch with less noise. Compare changes, follow the reasoning, and share a cleaner engineering conversation.",
+    label: "Review tool",
     href: "https://codediff.takovibe.com/",
-    label: "Developer tool",
     cta: "Open CodeDiff",
+    copy: "Make code review less noisy. Compare a patch, follow the reasoning, and turn a diff into a clearer engineering conversation.",
+    proof: "Side-by-side review with the important changes pulled forward.",
+    items: ["Patch focus", "Change notes", "Shareable review"],
     accent: "from-sky-500/25 via-sky-400/5 to-transparent",
-    layout: "xl:col-span-2",
   },
   {
     number: "03",
     title: "Reader",
-    copy: "Read EPUBs in a calmer space. Sync progress, collect colored highlights, attach memory notes, translate passages, and keep Kumi nearby.",
-    href: "/reader",
     label: "Learning tool",
+    href: "/reader",
     cta: "Open Reader",
-    accent: "from-amber-500/25 via-amber-400/5 to-transparent",
-    layout: "xl:col-span-2",
+    copy: "Read EPUBs in a calmer workspace with progress, colored highlights, translation, memory notes, and Kumi nearby.",
+    proof: "Books become a study surface instead of another forgotten tab.",
+    items: ["EPUB reading", "Highlights", "Kumi context"],
+    accent: "from-emerald-500/20 via-emerald-400/5 to-transparent",
   },
   {
     number: "04",
     title: "Sketch Notes",
-    copy: "Capture a system visually while you learn it. Keep the diagram close enough to the source that it still makes sense tomorrow.",
-    href: "/notes",
     label: "Thinking tool",
+    href: "/notes",
     cta: "Open Notes",
+    copy: "Capture the system visually while you learn it. Keep diagrams close enough to the source that they still make sense later.",
+    proof: "Boxes, arrows, and notes for the model forming in your head.",
+    items: ["System maps", "Source memory", "Visual notes"],
     accent: "from-rose-500/20 via-rose-400/5 to-transparent",
-    layout: "xl:col-span-2",
   },
   {
     number: "05",
     title: "Learning Tasks",
-    copy: "Turn reading, sketch notes, and learning goals into a plan. Filter by priority, collection, and date, then log the hours you actually spent.",
-    href: "/tasks",
     label: "Planning tool",
+    href: "/tasks",
     cta: "Open Tasks",
+    copy: "Turn reading goals into a plan. Filter by priority, collection, and date, then log the hours you actually spent.",
+    proof: "A lightweight command center for deliberate technical practice.",
+    items: ["Priorities", "Collections", "Time logs"],
     accent: "from-violet-500/20 via-violet-400/5 to-transparent",
-    layout: "xl:col-span-2",
   },
   {
     number: "06",
     title: "Playground",
-    copy: "Run Python, JavaScript, Go, Rust, or front-end experiments in the browser and share the result without setup.",
-    href: "/playground",
     label: "Code tool",
+    href: "/playground",
     cta: "Open Playground",
-    accent: "from-emerald-500/20 via-emerald-400/5 to-transparent",
-    layout: "xl:col-span-2",
+    copy: "Run Python, JavaScript, Go, Rust, or front-end experiments in the browser and share the result without setup.",
+    proof: "Small runnable artifacts for posts, demos, and quick checks.",
+    items: ["Multi-language", "Browser run", "Share output"],
+    accent: "from-amber-500/20 via-amber-400/5 to-transparent",
   },
 ];
 ---
 
 <Layout
-  title="TakoVibe - Learn by following the idea"
-  description="A technical reading workspace for articles, EPUBs, visual notes, runnable code, and focused AI help."
+  title="TakoVibe - The reasoning behind real systems"
+  description="Opinionated technical articles with runnable code, diagrams, and contextual AI help for engineers who want the reasoning behind real systems."
   type="website"
-  author="TakoVibe Team"
-  tags={["software engineering", "system design", "developer learning", "EPUB reader", "visual notes"]}
+  author="Rahul Beniwal"
+  tags={["software engineering", "system design", "runnable code", "technical writing"]}
 >
   <div class="home-shell min-h-screen overflow-hidden bg-[#f4f0e8] text-neutral-950 dark:bg-[#11100e] dark:text-stone-100">
     <section class="relative isolate overflow-hidden border-b border-black/10 dark:border-white/10">
       <div class="hero-grid absolute inset-0 -z-20 opacity-60 dark:opacity-35"></div>
-      <div class="absolute -right-24 top-28 -z-10 h-72 w-72 rounded-full bg-orange-400/20 blur-3xl sm:h-[34rem] sm:w-[34rem]"></div>
 
-      <div class="mx-auto grid min-h-[calc(100vh-5rem)] max-w-[1440px] gap-10 px-5 pb-14 pt-16 sm:px-8 lg:grid-cols-[1.08fr_0.92fr] lg:items-end lg:px-12 lg:pb-16 lg:pt-20">
-        <div class="max-w-4xl">
-          <p class="home-kicker home-rise">A workspace for technical curiosity</p>
-          <h1 class="home-rise home-delay-1 mt-8 max-w-5xl font-display text-[clamp(4.25rem,11vw,10rem)] font-extrabold leading-[0.82] tracking-[-0.085em]">
-            Follow
-            <span class="block text-orange-600 dark:text-orange-400">the idea.</span>
+      <div class="mx-auto grid min-h-[calc(100vh-5rem)] max-w-[1440px] gap-10 px-5 pb-14 pt-16 sm:px-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(22rem,0.72fr)] lg:items-center lg:gap-16 lg:px-12 lg:pb-16 lg:pt-20 xl:grid-cols-[minmax(0,0.88fr)_minmax(28rem,0.68fr)]">
+        <div class="min-w-0 max-w-3xl">
+          <p class="home-kicker home-rise">A publication for working engineers</p>
+          <h1 class="home-rise home-delay-1 mt-7 max-w-[9.5ch] font-display text-[clamp(3.25rem,6.4vw,6.7rem)] font-extrabold leading-[0.92]">
+            <span class="block">The reasoning</span>
+            <span class="block">behind real</span>
+            <span class="block">systems.</span>
           </h1>
           <p class="home-rise home-delay-2 mt-9 max-w-2xl text-lg leading-8 text-neutral-700 dark:text-stone-300 sm:text-xl sm:leading-9">
-            Read deeply. Ask better questions. Sketch the system. Run the code.
-            TakoVibe keeps the tools of understanding close to the thing you are
-            trying to understand.
+            One deep technical piece at a time: the claim, the tradeoff, the
+            runnable artifact, and the questions that make the system click.
           </p>
-          <div class="home-rise home-delay-3 mt-9 flex flex-wrap gap-3">
+          <form id="home-newsletter-form" class="home-rise home-delay-3 mt-9 max-w-xl">
+            <label for="home-newsletter-email" class="sr-only">Email address</label>
+            <div class="flex flex-col gap-3 rounded-2xl border border-black/10 bg-white/70 p-2 shadow-xl shadow-orange-950/5 backdrop-blur dark:border-white/10 dark:bg-white/[0.045] sm:flex-row">
+              <input
+                id="home-newsletter-email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                required
+                placeholder="Email for one deep-dive a week"
+                class="min-h-12 flex-1 rounded-xl border-0 bg-transparent px-4 text-sm text-neutral-900 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-orange-500 dark:text-white dark:placeholder:text-stone-500"
+              />
+              <button type="submit" class="home-button home-button-primary justify-center">
+                Subscribe
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 12h13m-5-5 5 5-5 5"></path>
+                </svg>
+              </button>
+            </div>
+            <p id="home-newsletter-status" class="mt-3 min-h-5 text-sm font-medium text-neutral-600 dark:text-stone-400"></p>
+          </form>
+          <div class="home-rise home-delay-3 mt-6 flex flex-wrap gap-3">
             <a class="home-button home-button-primary" href="/blog">
-              Start reading
+              Read articles
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M5 12h13m-5-5 5 5-5 5"></path>
               </svg>
             </a>
-            <a class="home-button home-button-secondary" href="/reader">
-              Open EPUB reader
+            <a class="home-button home-button-secondary" href="#articles">
+              Latest issue
             </a>
           </div>
         </div>
 
-        <div class="home-rise home-delay-2 lg:justify-self-end">
-          <p class="max-w-md text-sm leading-6 text-neutral-600 dark:text-stone-400">
-            Not another tab full of disconnected tools. One place to stay with a
-            difficult idea long enough for it to become useful.
-          </p>
-          <div class="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-black/10 bg-black/10 dark:border-white/10 dark:bg-white/10">
-            <div class="bg-[#f4f0e8] p-4 dark:bg-[#11100e]">
-              <span class="home-kicker">Mode</span>
-              <strong class="mt-2 block text-sm">Active reading</strong>
+        <div class="home-rise home-delay-2 min-w-0 lg:justify-self-end">
+          {latestPost ? (
+            <a href={`/blog/${latestPost.slug}`} class="featured-article group block w-full max-w-[34rem] overflow-hidden rounded-[1.75rem] border border-black/10 bg-[#181713] text-stone-100 shadow-2xl shadow-orange-950/15 transition hover:-translate-y-1 hover:shadow-orange-950/25 dark:border-white/10">
+              {latestPost.image_url ? (
+                <img src={`${latestPost.image_url}?tr=w-800`} alt="" class="h-52 w-full object-cover opacity-85 transition duration-500 group-hover:opacity-100 sm:h-60 xl:h-72" />
+              ) : (
+                <div class="h-52 bg-[radial-gradient(circle_at_30%_20%,rgba(249,115,22,0.35),transparent_28%),linear-gradient(135deg,#181713,#2b2119)] sm:h-60 xl:h-72"></div>
+              )}
+              <div class="p-6 xl:p-7">
+                <div class="flex flex-wrap gap-2 text-[10px] font-bold uppercase text-orange-300">
+                  <span>Latest article</span>
+                  <span class="text-stone-600">/</span>
+                  <span>{latestPost.tags?.[0] || "Engineering"}</span>
+                </div>
+                <h2 class="mt-4 line-clamp-3 font-display text-3xl font-bold leading-tight xl:text-4xl">
+                  {latestPost.title}
+                </h2>
+                <p class="mt-4 line-clamp-2 text-sm leading-6 text-stone-400">
+                  {latestPost.description}
+                </p>
+                <span class="home-product-link mt-7 text-orange-300">
+                  Read the piece
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 12h13m-5-5 5 5-5 5"></path>
+                  </svg>
+                </span>
+              </div>
+            </a>
+          ) : (
+            <div class="rounded-[1.75rem] border border-black/10 bg-white/70 p-8 dark:border-white/10 dark:bg-white/[0.045]">
+              <p class="home-kicker text-orange-700 dark:text-orange-300">Next issue</p>
+              <h2 class="mt-5 font-display text-4xl font-bold">A deep-dive is being prepared.</h2>
+              <p class="mt-4 text-neutral-600 dark:text-stone-400">Subscribe now and start with the full library while the next piece lands.</p>
             </div>
-            <div class="bg-[#f4f0e8] p-4 dark:bg-[#11100e]">
-              <span class="home-kicker">Context</span>
-              <strong class="mt-2 block text-sm">Kept nearby</strong>
-            </div>
-            <div class="bg-[#f4f0e8] p-4 dark:bg-[#11100e]">
-              <span class="home-kicker">Output</span>
-              <strong class="mt-2 block text-sm">Notes that stick</strong>
-            </div>
-            <div class="bg-[#f4f0e8] p-4 dark:bg-[#11100e]">
-              <span class="home-kicker">Pace</span>
-              <strong class="mt-2 block text-sm">Yours</strong>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
       <div class="border-t border-black/10 bg-[#181713] text-stone-200 dark:border-white/10">
-        <div class="home-marquee flex min-w-max items-center gap-10 py-3 text-[10px] font-bold uppercase tracking-[0.24em] text-stone-400">
-          <span>Reader</span><i></i><span>Learning tasks</span><i></i><span>System design</span><i></i><span>Runnable code</span><i></i><span>Sketch notes</span><i></i><span>Contextual AI</span><i></i><span>Reader</span><i></i><span>Learning tasks</span><i></i><span>System design</span><i></i><span>Runnable code</span><i></i><span>Sketch notes</span><i></i><span>Contextual AI</span>
+        <div class="home-marquee flex min-w-max items-center gap-10 py-3 text-[10px] font-bold uppercase text-stone-400">
+          <span>Runnable deep-dives</span><i></i><span>System design</span><i></i><span>Python internals</span><i></i><span>Architecture tradeoffs</span><i></i><span>Code you can run</span><i></i><span>One issue a week</span><i></i><span>Runnable deep-dives</span><i></i><span>System design</span><i></i><span>Python internals</span><i></i><span>Architecture tradeoffs</span><i></i><span>Code you can run</span><i></i><span>One issue a week</span>
         </div>
       </div>
     </section>
@@ -175,7 +236,7 @@ const productSuite = [
         <div class="grid gap-10 lg:grid-cols-[0.42fr_1fr] lg:gap-20">
           <div>
             <p class="home-kicker">The learning surface</p>
-            <h2 class="mt-5 font-display text-4xl font-bold leading-[0.96] tracking-[-0.065em] sm:text-6xl">
+            <h2 class="mt-5 font-display text-4xl font-bold leading-[0.96] sm:text-6xl">
               Stay with the difficult part.
             </h2>
             <p class="mt-6 max-w-sm text-base leading-7 text-neutral-600 dark:text-stone-400">
@@ -190,13 +251,13 @@ const productSuite = [
                 <span class="h-2.5 w-2.5 rounded-full bg-orange-500"></span>
                 <span class="home-kicker text-stone-400">Reading workspace</span>
               </div>
-              <span class="rounded-full border border-white/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.18em] text-orange-300">Focus mode</span>
+              <span class="rounded-full border border-white/10 px-2.5 py-1 text-[9px] font-bold uppercase text-orange-300">Focus mode</span>
             </div>
 
             <div class="grid min-h-[560px] lg:grid-cols-[1.12fr_0.88fr]">
               <article class="relative border-b border-white/10 p-6 sm:p-9 lg:border-b-0 lg:border-r">
                 <p class="home-kicker text-orange-300">System design / queues</p>
-                <h3 class="mt-7 max-w-xl font-display text-3xl font-bold leading-[1.02] tracking-[-0.06em] sm:text-5xl">
+                <h3 class="mt-7 max-w-xl font-display text-3xl font-bold leading-[1.02] sm:text-5xl">
                   Backpressure is a promise to the rest of your system.
                 </h3>
                 <div class="mt-8 max-w-xl space-y-4 text-sm leading-7 text-stone-400 sm:text-base">
@@ -211,12 +272,12 @@ const productSuite = [
                   </p>
                   <p class="home-kicker text-orange-300">Saved highlight / memory note attached</p>
                 </div>
-                <div class="mt-8 flex flex-wrap gap-2 text-[10px] font-bold uppercase tracking-[0.16em]">
+                <div class="mt-8 flex flex-wrap gap-2 text-[10px] font-bold uppercase">
                   <span class="rounded-full border border-orange-400/30 bg-orange-400/10 px-3 py-1.5 text-orange-200">Highlight</span>
                   <span class="rounded-full border border-white/10 px-3 py-1.5 text-stone-400">Ask Kumi</span>
                   <span class="rounded-full border border-white/10 px-3 py-1.5 text-stone-400">Translate</span>
                 </div>
-                <div class="absolute inset-x-6 bottom-6 flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.14em] text-stone-500 sm:inset-x-9">
+                <div class="absolute inset-x-6 bottom-6 flex items-center gap-3 text-[10px] font-bold uppercase text-stone-500 sm:inset-x-9">
                   <span>42%</span>
                   <span class="h-px flex-1 bg-white/10"><span class="block h-px w-[42%] bg-orange-500"></span></span>
                   <span>07:14</span>
@@ -230,7 +291,7 @@ const productSuite = [
                     <span class="text-orange-400">+</span>
                   </div>
                   <div class="mt-5 rounded-xl border border-white/10 bg-white/[0.035] p-4">
-                    <div class="flex items-center justify-between gap-2 text-[10px] font-bold uppercase tracking-[0.12em] text-stone-300">
+                    <div class="flex items-center justify-between gap-2 text-[10px] font-bold uppercase text-stone-300">
                       <span class="rounded-lg border border-orange-400/30 bg-orange-400/10 px-2 py-2">API</span>
                       <span class="text-orange-400">-&gt;</span>
                       <span class="rounded-lg border border-amber-400/30 bg-amber-400/10 px-2 py-2">Queue</span>
@@ -266,36 +327,31 @@ queue.buffer(incoming - capacity);</code></pre>
       <div class="mx-auto max-w-[1440px]">
         <div class="grid gap-8 lg:grid-cols-[1fr_0.7fr] lg:items-end">
           <div>
-            <p class="home-kicker text-orange-700 dark:text-orange-300">The TakoVibe toolkit</p>
-            <h2 class="mt-5 max-w-4xl font-display text-5xl font-bold leading-[0.92] tracking-[-0.075em] sm:text-7xl">
-              Useful tools for the work around the work.
+            <p class="home-kicker text-orange-700 dark:text-orange-300">The article workspace</p>
+            <h2 class="mt-5 max-w-4xl font-display text-5xl font-bold leading-[0.92] sm:text-7xl">
+              The tools serve the reading.
             </h2>
           </div>
           <p class="max-w-xl text-base leading-7 text-neutral-600 dark:text-stone-400">
-            TakoVibe is more than the reading surface. These tools help you
-            understand, test, review, and present the things you are building.
+            The publication stays focused on articles. The software earns its
+            place by making those articles runnable, discussable, and easier to
+            remember.
           </p>
         </div>
 
-        <div class="mt-14 grid gap-px overflow-hidden rounded-[1.75rem] border border-black/10 bg-black/10 dark:border-white/10 dark:bg-white/10 md:grid-cols-2 xl:grid-cols-6">
-          {productSuite.map((product) => (
-            <a href={product.href} class={`product-card group relative min-h-[19rem] overflow-hidden bg-[#f4f0e8] p-5 transition-colors hover:bg-white dark:bg-[#12110f] dark:hover:bg-[#201d19] sm:p-6 ${product.layout}`}>
-              <div class={`absolute inset-x-0 top-0 h-36 bg-gradient-to-b ${product.accent}`}></div>
+        <div class="mt-14 grid gap-px overflow-hidden rounded-[1.75rem] border border-black/10 bg-black/10 dark:border-white/10 dark:bg-white/10 md:grid-cols-2 xl:grid-cols-4">
+          {workspacePowers.map((power, index) => (
+            <div class="product-card relative min-h-[17rem] overflow-hidden bg-[#f4f0e8] p-5 dark:bg-[#12110f] sm:p-6">
+              <div class="absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-orange-500/20 via-orange-400/5 to-transparent"></div>
               <div class="relative flex h-full flex-col">
                 <div class="flex items-center justify-between gap-3">
-                  <span class="font-mono text-xs text-orange-700 dark:text-orange-300">{product.number}</span>
-                  <span class="rounded-full border border-black/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-neutral-500 dark:border-white/10 dark:text-stone-400">{product.label}</span>
+                  <span class="font-mono text-xs text-orange-700 dark:text-orange-300">0{index + 1}</span>
+                  <span class="rounded-full border border-black/10 px-2.5 py-1 text-[9px] font-bold uppercase text-neutral-500 dark:border-white/10 dark:text-stone-400">In article</span>
                 </div>
-                <h3 class="mt-16 font-display text-3xl font-bold tracking-[-0.055em] text-neutral-950 dark:text-white">{product.title}</h3>
-                <p class="mt-4 text-sm leading-6 text-neutral-600 dark:text-stone-400">{product.copy}</p>
-                <span class="home-product-link mt-auto pt-8">
-                  {product.cta}
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M5 12h13m-5-5 5 5-5 5"></path>
-                  </svg>
-                </span>
+                <h3 class="mt-16 font-display text-3xl font-bold text-neutral-950 dark:text-white">{power.title}</h3>
+                <p class="mt-4 text-sm leading-6 text-neutral-600 dark:text-stone-400">{power.copy}</p>
               </div>
-            </a>
+            </div>
           ))}
         </div>
       </div>
@@ -306,7 +362,7 @@ queue.buffer(incoming - capacity);</code></pre>
         <div class="flex items-end justify-between gap-6 border-b border-black/15 pb-6 dark:border-white/15">
           <div>
             <p class="home-kicker">From the library</p>
-            <h2 class="mt-4 font-display text-4xl font-bold tracking-[-0.06em] sm:text-6xl">Keep reading.</h2>
+            <h2 class="mt-4 font-display text-4xl font-bold sm:text-6xl">Keep reading.</h2>
           </div>
           <a class="home-text-link" href="/blog">
             All articles
@@ -322,12 +378,12 @@ queue.buffer(incoming - capacity);</code></pre>
               <a href={`/blog/${post.slug}`} class="article-row group grid gap-5 border-b border-black/15 py-7 dark:border-white/15 sm:grid-cols-[3rem_1fr_10rem] sm:items-center">
                 <span class="font-mono text-xs text-neutral-500">0{index + 1}</span>
                 <div>
-                  <div class="flex flex-wrap gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-600 dark:text-orange-400">
+                  <div class="flex flex-wrap gap-2 text-[10px] font-bold uppercase text-orange-600 dark:text-orange-400">
                     <span>{post.tags?.[0] || "Engineering"}</span>
                     <span class="text-neutral-400">/</span>
                     <span class="text-neutral-500">{post.author?.name || "TakoVibe"}</span>
                   </div>
-                  <h3 class="mt-3 max-w-4xl font-display text-2xl font-bold leading-tight tracking-[-0.04em] transition group-hover:text-orange-600 dark:group-hover:text-orange-400 sm:text-4xl">
+                  <h3 class="mt-3 max-w-4xl font-display text-2xl font-bold leading-tight transition group-hover:text-orange-600 dark:group-hover:text-orange-400 sm:text-4xl">
                     {post.title}
                   </h3>
                   <p class="mt-2 line-clamp-2 max-w-3xl text-sm leading-6 text-neutral-600 dark:text-stone-400">{post.description}</p>
@@ -350,26 +406,113 @@ queue.buffer(incoming - capacity);</code></pre>
       </div>
     </section>
 
-    <section class="relative overflow-hidden bg-orange-600 px-5 py-20 text-white sm:px-8 sm:py-28 lg:px-12">
-      <div class="cta-grid absolute inset-0 opacity-20"></div>
-      <div class="relative mx-auto max-w-[1440px]">
-        <p class="home-kicker text-orange-100">A quieter way to go deeper</p>
-        <div class="mt-5 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
-          <h2 class="max-w-5xl font-display text-5xl font-extrabold leading-[0.9] tracking-[-0.08em] sm:text-7xl lg:text-8xl">
-            Bring the book.<br />Keep the thinking.
-          </h2>
-          <a class="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-bold text-orange-700 transition hover:bg-orange-50" href="/reader">
-            Open the reader
-          </a>
-          <a class="inline-flex items-center justify-center rounded-full border border-white/30 px-6 py-3 text-sm font-bold text-white transition hover:bg-white/10" href="/tasks">
-            Plan learning tasks
-          </a>
+    <section class="border-y border-black/10 bg-[#181713] px-5 py-20 text-stone-100 dark:border-white/10 sm:px-8 sm:py-28 lg:px-12">
+      <div class="mx-auto max-w-[1440px]">
+        <div class="grid gap-8 lg:grid-cols-[0.8fr_1fr] lg:items-end">
+          <div>
+            <p class="home-kicker text-orange-300">Tools worth showcasing</p>
+            <h2 class="mt-5 max-w-3xl font-display text-4xl font-extrabold leading-[0.98] sm:text-6xl">
+              Give the tools their own stage.
+            </h2>
+          </div>
+          <div class="max-w-2xl lg:justify-self-end">
+            <p class="text-base leading-7 text-stone-400">
+              The publication can stay focused on technical writing without
+              hiding the products around it. Each tool solves a different job:
+              career polish, code review, reading, visual thinking, planning,
+              and runnable experiments.
+            </p>
+            <div class="mt-6 flex flex-wrap gap-3">
+              <a class="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-bold text-orange-700 transition hover:bg-orange-50" href="/reader">
+                Start with Reader
+              </a>
+              <a class="inline-flex items-center justify-center rounded-full border border-white/20 px-6 py-3 text-sm font-bold text-white transition hover:bg-white/10" href="/playground">
+                Try Playground
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-12 grid gap-px overflow-hidden rounded-lg border border-white/10 bg-white/10 md:grid-cols-2 xl:grid-cols-3">
+          {toolSuite.map((tool) => (
+            <a href={tool.href} class="showcase-card group relative flex min-h-[24rem] flex-col overflow-hidden bg-[#11100e] p-5 transition hover:bg-[#1f1b17] sm:p-6">
+              <div class={`absolute inset-x-0 top-0 h-40 bg-gradient-to-b ${tool.accent}`}></div>
+              <div class="relative flex h-full flex-col">
+                <div class="flex items-center justify-between gap-4 text-[10px] font-bold uppercase text-orange-300">
+                  <span>{tool.number}</span>
+                  <span class="text-right text-stone-400">{tool.label}</span>
+                </div>
+                <h3 class="mt-14 font-display text-4xl font-bold leading-tight text-white">{tool.title}</h3>
+                <p class="mt-4 text-sm leading-6 text-stone-400">{tool.copy}</p>
+
+                <div class="mt-7 border-y border-white/10 py-4">
+                  <p class="text-xs font-bold uppercase text-stone-500">What it gives you</p>
+                  <div class="mt-3 flex flex-wrap gap-2">
+                    {tool.items.map((item) => (
+                      <span class="rounded-full border border-white/10 px-3 py-1.5 text-[10px] font-bold uppercase text-stone-300">
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <p class="mt-5 text-sm leading-6 text-stone-300">{tool.proof}</p>
+                <span class="home-product-link mt-auto pt-8 text-orange-300">
+                  {tool.cta}
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 12h13m-5-5 5 5-5 5"></path>
+                  </svg>
+                </span>
+              </div>
+            </a>
+          ))}
         </div>
       </div>
     </section>
 
   </div>
 </Layout>
+
+<script define:vars={{ newsletterApiUrl }}>
+  const form = document.getElementById("home-newsletter-form");
+  const emailInput = document.getElementById("home-newsletter-email");
+  const status = document.getElementById("home-newsletter-status");
+
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!emailInput?.value || !status) return;
+
+    const submitButton = form.querySelector('button[type="submit"]');
+
+    status.textContent = "Subscribing...";
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.classList.add("opacity-70");
+    }
+
+    try {
+      const response = await fetch(`${newsletterApiUrl}/api/users/newsletter/`, {
+        method: "POST",
+        body: JSON.stringify({ email: emailInput.value }),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        throw new Error("Newsletter request failed");
+      }
+
+      status.textContent = "You're in. The next deep-dive will land in your inbox.";
+      emailInput.value = "";
+    } catch (error) {
+      status.textContent = "Something failed. Please try again.";
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.classList.remove("opacity-70");
+      }
+    }
+  });
+</script>
 
 <style>
   .home-shell {
@@ -423,7 +566,8 @@ queue.buffer(incoming - capacity);</code></pre>
 
   .home-button:hover svg,
   .home-text-link:hover svg,
-  .product-card:hover .home-product-link svg {
+  .product-card:hover .home-product-link svg,
+  .showcase-card:hover .home-product-link svg {
     transform: translateX(0.25rem);
   }
 
