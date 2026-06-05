@@ -1,0 +1,1110 @@
+---
+title: "How I Built My Own Kindle: A Practical System Design Lesson"
+date: "2026-06-01"
+author: "Rahul Beniwal"
+description: "A practical, code-backed system design walkthrough of building a private EPUB reader with direct S3 uploads, IndexedDB caching, EPUB CFI progress sync, annotations, and an AI reading companion."
+image: "/images/default-og.png"
+readingTime: "22 min read"
+tags: ["system-design", "aws-s3", "epub", "django", "react", "indexeddb", "ai", "openai"]
+keywords: ["build kindle clone", "epub reader system design", "presigned urls s3 upload", "epub cfi sync", "offline first reader", "annotation sync"]
+type: "article"
+canonical: "https://takovibe.com/blog/how-i-built-my-own-kindle-system-design"
+---
+
+import Mermaid from '../../components/Mermaid.astro';
+
+# How I Built My Own Kindle: A Practical System Design Lesson
+
+<div className="prose-base leading-relaxed mt-0">
+<span className="float-left text-7xl font-serif mr-3 mt-1">I</span> love reading EPUBs and PDFs. But my files were scattered across devices, my reading position was easy to lose, and most of the tools I tried did not feel as clean as I wanted. I was looking for a small part of the Amazon Kindle experience: upload a book once, open it anywhere, continue from the same passage, save highlights, attach notes, and ask for help when a paragraph is difficult.
+</div>
+
+So I built **TakoVibe Reader**.
+
+The current version deliberately starts with **EPUB files**, not PDFs. EPUB is a better fit for the first version because it is reflowable: the same chapter adapts to a phone, laptop, dark theme, or larger font. That also creates the most interesting system design problem in the project:
+
+> If page numbers change whenever the screen or font changes, what exactly should be synchronized between devices?
+
+The answer is not a visual page number. It is an **EPUB CFI**, a stable content location that can identify a reading position or a selected range inside the book.
+
+This article explains the complete implementation, from a browser upload to private S3 storage, IndexedDB caching, CFI-based progress synchronization, colored highlights with memory notes, and Kumi, my AI reading companion.
+
+<div className="bg-orange-50 dark:bg-orange-950/30 border-l-4 border-orange-500 p-4 my-6 rounded-r-xl">
+<strong>What makes this a useful system design exercise?</strong>
+<br />
+It is small enough to build, but it still forces us to think about object storage, database ownership, direct uploads, cache design, optimistic concurrency, offline behavior, idempotency, iframe events, streaming AI responses, and honest product boundaries.
+</div>
+
+<div className="bg-gray-50/5 dark:bg-gray-800/50 rounded-xl p-6 my-8 border border-gray-200/20 dark:border-gray-700/50 backdrop-blur-sm shadow-xl [&_a]:text-orange-500 [&_a:hover]:text-orange-400 [&_a]:no-underline">
+
+## Table of Contents
+
+- [1. Requirements and boundaries](#requirements)
+- [2. The architecture](#architecture)
+- [3. Why object storage, database rows, and browser storage have different jobs](#storage-split)
+- [4. Uploading an EPUB with pre-signed URLs](#upload-flow)
+- [5. Opening a book without downloading it every time](#read-flow)
+- [6. Why page numbers are the wrong sync primitive](#cfi-sync)
+- [7. Progress sync with optimistic concurrency](#optimistic-concurrency)
+- [8. Highlights, annotations, and memory notes](#annotations)
+- [9. Integrating Kumi, the AI reading companion](#kumi)
+- [10. Frontend details that make the reader feel calm](#frontend)
+- [11. API and data model reference](#reference)
+- [12. Failure modes and security decisions](#failure-security)
+- [13. How I would scale and harden version two](#scaling)
+- [14. Lessons from the design](#lessons)
+
+</div>
+
+# <a id="requirements"></a>1. Requirements and Boundaries
+
+Before writing code, I reduced the product to a few practical requirements.
+
+## Functional requirements
+
+1. A signed-in reader can upload an EPUB from a browser.
+2. The EPUB remains private and does not pass through the Django application server.
+3. A reader can see a library of uploaded books on another device.
+4. Opening a book should restore the last reading position.
+5. The reader should work smoothly after the file has already been downloaded once.
+6. A reader can save colored highlights, attach short notes, revisit them, and jump back to the selected passage.
+7. A selected paragraph can be translated or sent to Kumi for explanation.
+8. The UI should support light, sepia, and dark themes, font sizing, fullscreen reading, a table of contents, swipe navigation, and a progress scrubber.
+
+## Non-functional requirements
+
+1. **Privacy:** books must live in private object storage.
+2. **Low backend bandwidth:** large EPUB bytes should not travel through Django.
+3. **Responsive reading:** reopening a cached book should feel local.
+4. **Cross-device correctness:** an older browser tab should not silently overwrite a newer reading position without detecting the conflict.
+5. **Graceful degradation:** a temporary network failure should not stop a reader from opening a locally cached book.
+
+## Explicit boundaries of the current version
+
+The first release is intentionally not a complete Kindle replacement:
+
+- It accepts `.epub` files only.
+- It does not support DRM-protected books.
+- It stores cover images in the browser cache; cover synchronization between devices is a later improvement.
+- The backend exposes reader preference APIs, but the active UI currently stores theme, font size, and translation language in browser storage.
+- Progress synchronization is conflict-aware, but it is not collaborative editing. When two devices race, the client retries its latest local position against the newest server version.
+
+These constraints are useful. A good first system is not the system with every imaginable feature. It is the smallest design with clear upgrade paths.
+
+# <a id="architecture"></a>2. The Architecture
+
+The implementation uses five important pieces:
+
+1. **Astro + React frontend:** library UI, reader UI, and Kumi UI.
+2. **epub.js:** parsing, paginated rendering, EPUB CFI locations, navigation, selections, and rendered annotations.
+3. **Django REST API:** authentication, ownership checks, metadata, sync state, annotation records, and pre-signed URL creation.
+4. **Private S3-compatible object storage:** EPUB bytes.
+5. **Browser storage:** IndexedDB for cached EPUB blobs and local metadata; `localStorage` for generated location maps, display preferences, and a local highlight fallback.
+
+<Mermaid code={`
+flowchart LR
+    U[Reader Browser] --> FE[Astro and React UI]
+    FE --> EPUB[epub js]
+    FE --> IDB[IndexedDB Cache]
+    FE --> LS[Local Storage]
+    FE --> API[Django REST API]
+    API --> DB[Relational Database]
+    API --> S3[Private S3 Compatible Storage]
+    FE -->|Pre signed PUT and GET| S3
+    FE --> AI[Astro AI Route]
+    AI --> LLM[OpenAI Streaming API]
+`} />
+
+The important design choice is that **the application server is the control plane, not the data plane** for books.
+
+- Django decides whether a user may upload, download, update, or delete a book.
+- S3 stores and transfers the large binary object.
+- The browser caches what it needs for a fast reading experience.
+
+That separation keeps the backend simple and cheap.
+
+# <a id="storage-split"></a>3. Why Storage Has Three Different Jobs
+
+It is tempting to put everything in one database. That would be the wrong shape for this problem.
+
+| Data | Storage | Why |
+| --- | --- | --- |
+| EPUB bytes | Private S3-compatible object storage | Large immutable blobs belong in object storage |
+| Book ownership and metadata | Django database | Queryable, authenticated, relational data |
+| Reading progress | Django database | Small cross-device sync record with a version |
+| Synced highlights and notes | Django database | Queryable per-book annotations |
+| Cached EPUB blob | IndexedDB | Fast reopen without another network download |
+| Cached book metadata | IndexedDB | Render the local shelf and recover from temporary API failures |
+| Generated EPUB location map | `localStorage` | Avoid regenerating the same pagination map on every open |
+| Reader theme, font size, translation language | `localStorage` | Lightweight device-level preferences in the current UI |
+| Highlight fallback | `localStorage` | Keep local annotations usable if synchronization fails |
+
+There is a small but important principle hiding here:
+
+> Choose storage based on access pattern, not convenience.
+
+An EPUB might be 20 MB. A reading-position update might be 200 bytes. Treating them as the same kind of data makes the system slower and more expensive.
+
+# <a id="upload-flow"></a>4. Uploading an EPUB with Pre-Signed URLs
+
+A naive upload flow looks like this:
+
+```text
+Browser -> Django server -> S3
+```
+
+That makes Django receive and retransmit every byte. The API server spends bandwidth and worker time acting as a pipe.
+
+The implemented flow is:
+
+```text
+Browser -> Django for permission and a signed URL
+Browser -> S3 directly for the EPUB bytes
+Browser -> Django to verify and finalize the upload
+```
+
+## Complete upload sequence
+
+<Mermaid code={`
+sequenceDiagram
+    participant B as Browser
+    participant A as Django API
+    participant D as Database
+    participant S as Private S3
+
+    B->>B: Parse EPUB metadata and cover locally
+    B->>A: POST books upload-url
+    A->>A: Validate name type and size
+    A->>A: Generate UUID and object key
+    A->>S: Create pre signed PUT URL
+    A->>D: Insert pending Ebook row
+    A-->>B: Upload URL required headers and expiry
+    B->>S: PUT EPUB bytes directly
+    S-->>B: Upload accepted
+    B->>A: POST books id complete-upload
+    A->>S: HEAD object
+    S-->>A: ContentLength and ContentType
+    A->>D: Mark Ebook ready and save metadata
+    A-->>B: Ready book record
+`} />
+
+## Step 1: extract metadata in the browser
+
+When a reader selects a file, the React library view reads it as an `ArrayBuffer`, opens it with `epub.js`, waits for the package metadata, and extracts:
+
+- title
+- creator
+- optional cover image
+
+The title falls back to the file name, and the author falls back to `Unknown author`.
+
+This is a good frontend responsibility. Parsing the EPUB locally avoids uploading the file just to learn its title.
+
+## Step 2: request a signed upload URL
+
+The browser sends a small authenticated request:
+
+```http
+POST /api/ebooks/books/upload-url/
+Authorization: Token <access-token>
+Content-Type: application/json
+
+{
+  "filename": "Designing Data-Intensive Applications.epub",
+  "file_size": 18392041,
+  "content_type": "application/epub+zip"
+}
+```
+
+The backend validates three things before signing anything:
+
+1. The sanitized base file name ends with `.epub`.
+2. The content type is `application/epub+zip` or `application/octet-stream`.
+3. The size is positive and no larger than the configured limit. The default is 50 MB.
+
+The API generates a UUID and builds an object key:
+
+```text
+ebooks/<user-id>/<ebook-uuid>.epub
+```
+
+Using a generated key instead of the original filename gives us:
+
+- no filename collisions
+- a natural per-user namespace
+- no accidental exposure of a private filename in storage paths
+- an easy mapping from database record to object
+
+The server returns:
+
+```json
+{
+  "book": {
+    "id": "4bc4...f0a1",
+    "upload_status": "pending"
+  },
+  "upload_url": "https://...",
+  "headers": {
+    "Content-Type": "application/epub+zip"
+  },
+  "expires_in": 600
+}
+```
+
+The upload URL is valid for 10 minutes by default.
+
+## Step 3: upload directly to object storage
+
+The frontend uses `XMLHttpRequest` for the `PUT` request instead of a plain `fetch`. The reason is practical: `XMLHttpRequest.upload` exposes progress events, allowing the UI to show a real percentage while the EPUB moves directly to S3.
+
+```ts
+request.open('PUT', upload.upload_url);
+request.setRequestHeader('Content-Type', 'application/epub+zip');
+request.upload.addEventListener('progress', updateProgressBar);
+request.send(file);
+```
+
+The application server is not in the binary upload path.
+
+## Step 4: verify before marking the book ready
+
+A successful `PUT` is not enough. The browser calls:
+
+```http
+POST /api/ebooks/books/<book-id>/complete-upload/
+Authorization: Token <access-token>
+Content-Type: application/json
+
+{
+  "title": "Designing Data-Intensive Applications",
+  "author": "Martin Kleppmann"
+}
+```
+
+Django performs an S3 `HEAD` request and checks:
+
+- the uploaded object exists
+- the stored byte size matches the size requested earlier
+- the content type is acceptable
+
+Only then does the record move from `pending` to `ready`.
+
+This two-phase handshake prevents incomplete uploads from appearing in the library.
+
+<div className="bg-blue-50 dark:bg-blue-950/30 border-l-4 border-blue-500 p-4 my-6 rounded-r-xl">
+<strong>Operational note:</strong> direct browser uploads also require a narrowly scoped bucket CORS policy that permits the frontend origin to perform the signed <code>PUT</code> and <code>GET</code> requests. The signed URL authorizes the object operation; CORS controls whether the browser is allowed to make it.
+</div>
+
+# <a id="read-flow"></a>5. Opening a Book Without Downloading It Every Time
+
+Uploading is only half the story. A reader should not download the same EPUB every time it opens.
+
+The browser keeps two IndexedDB object stores:
+
+```text
+takovibe-ebooks
+  meta   -> BookMeta by book id
+  files  -> EPUB Blob by book id
+```
+
+## Library refresh
+
+When the library opens:
+
+1. Read local metadata from IndexedDB.
+2. If the user is signed in, fetch remote `ready` books from Django.
+3. Convert remote records into local metadata.
+4. Update the IndexedDB cache.
+5. Remove locally cached cloud books that no longer exist remotely.
+6. If the network request fails, return the existing local cache.
+
+This makes the shelf resilient to a temporary backend outage.
+
+## Book open
+
+When the reader opens a book:
+
+1. Look for the EPUB `Blob` in IndexedDB.
+2. If the blob exists, convert it to an `ArrayBuffer`.
+3. If it is missing and the book is a cloud book, request a signed download URL.
+4. Download the blob directly from S3.
+5. Store it in IndexedDB.
+6. Pass the bytes to `epub.js`.
+
+<Mermaid code={`
+sequenceDiagram
+    participant B as Browser
+    participant I as IndexedDB
+    participant A as Django API
+    participant S as Private S3
+
+    B->>I: Get EPUB blob by book id
+    alt Blob exists
+        I-->>B: Return cached EPUB
+    else Cache miss
+        B->>A: POST books id download-url
+        A-->>B: Pre signed GET URL
+        B->>S: GET EPUB directly
+        S-->>B: EPUB blob
+        B->>I: Cache blob by book id
+    end
+    B->>B: Render bytes with epub js
+`} />
+
+The default download URL expiry is one hour. The database stores only the stable S3 key, never the temporary signed URL.
+
+That detail matters: signed URLs are credentials with a clock attached. Persisting them as if they were permanent resource URLs causes security and reliability problems.
+
+# <a id="cfi-sync"></a>6. Why Page Numbers Are the Wrong Sync Primitive
+
+Suppose I stop on page 82 on my laptop and continue reading on my phone.
+
+What is page 82 on the phone?
+
+It depends on:
+
+- screen width
+- screen height
+- font size
+- line height
+- selected theme and injected styles
+- whether the reader uses one-column or two-column spreads
+
+EPUB is reflowable. A visual page is a rendering result, not a stable address.
+
+## EPUB CFI
+
+An EPUB Canonical Fragment Identifier, usually called an EPUB CFI, identifies a location in an EPUB document structure.
+
+A simplified example looks like:
+
+```text
+epubcfi(/6/6!/4/2/14:37)
+```
+
+For progress synchronization, the reader stores the CFI at the start of the current rendered location:
+
+```ts
+const cfi = location?.start?.cfi;
+```
+
+For a selected passage, `epub.js` emits a CFI range:
+
+```text
+epubcfi(/6/6!/4/2,/1:0,/1:42)
+```
+
+A single CFI restores a reading position. A CFI range restores a highlight.
+
+## Progress percentage still has a job
+
+CFI is the restore primitive, but a percentage is useful for:
+
+- drawing the progress bar on a library card
+- showing `42%`
+- seeking with a slider
+- displaying whole-book page estimates
+
+The reader asks `epub.js` to generate locations in chunks of 1024 characters:
+
+```ts
+await book.locations.generate(1024);
+```
+
+The serialized location map is cached in `localStorage` so the work does not repeat on every open.
+
+Once locations are available:
+
+```ts
+const total = book.locations.length();
+const current = book.locations.locationFromCfi(cfi) + 1;
+const fraction = current / total;
+```
+
+Before the map is generated, the UI uses a coarse fallback based on the current spine item and progress inside that section. That lets the reader respond immediately without pretending a chapter-local page count is a whole-book page count.
+
+<div className="bg-green-50 dark:bg-green-950/30 border-l-4 border-green-500 p-4 my-6 rounded-r-xl">
+<strong>System design lesson:</strong> store the stable domain identifier, then derive presentation values from it. In this case, synchronize the CFI and derive page-like progress for the current device.
+</div>
+
+# <a id="optimistic-concurrency"></a>7. Progress Sync with Optimistic Concurrency
+
+Cross-device progress sounds easy until two devices are open at once.
+
+Imagine:
+
+1. Laptop reads version `7`.
+2. Phone reads version `7`.
+3. Laptop advances and writes version `8`.
+4. Phone advances from its stale copy and tries to write version `7`.
+
+Without conflict detection, the phone silently overwrites the laptop update.
+
+## The server model
+
+Each book has one `ReadingProgress` row:
+
+| Field | Purpose |
+| --- | --- |
+| `ebook` | One-to-one relation to the book |
+| `epub_cfi` | Stable restore location |
+| `chapter_href` | Current chapter resource |
+| `chapter_title` | Friendly UI label |
+| `percentage` | Normalized fraction from `0` to `1` |
+| `version` | Optimistic concurrency token |
+| `updated_at` | Last server update time |
+
+The percentage is rounded to four decimal places. That gives enough precision for display and avoids persisting noisy floating-point values.
+
+## The client writes locally first
+
+On every relocation event, the frontend:
+
+1. updates the visible progress
+2. writes the latest state into IndexedDB immediately
+3. adds the update to an in-memory pending map
+4. waits 1200 ms before sending the patch
+
+The debounce prevents page turns from producing a burst of API calls.
+
+```ts
+pendingProgress.set(bookId, latestPosition);
+setTimeout(() => flushProgress(bookId), 1200);
+```
+
+When the reader closes, it flushes pending progress before destroying the EPUB rendition.
+
+## The API detects stale writes
+
+The browser sends:
+
+```http
+PATCH /api/ebooks/books/<book-id>/progress/
+Authorization: Token <access-token>
+Content-Type: application/json
+
+{
+  "epub_cfi": "epubcfi(/6/6!/4/2/14:37)",
+  "chapter_href": "chapter-4.xhtml",
+  "chapter_title": "Replication",
+  "percentage": 0.4287,
+  "version": 7
+}
+```
+
+The server compares the incoming version with the current database version.
+
+If they match, the update succeeds and the server stores version `8`.
+
+If they do not match, the API returns:
+
+```http
+409 Conflict
+
+{
+  "detail": "Reading progress changed on another device.",
+  "progress": {
+    "epub_cfi": "...",
+    "percentage": "0.4312",
+    "version": 8
+  }
+}
+```
+
+The frontend updates its known version and retries its latest local progress up to two times.
+
+This is not a merge algorithm. It is a practical **conflict-aware retry strategy** for a single small record. The important improvement over blind last-write-wins behavior is that the race is detected and handled intentionally.
+
+<Mermaid code={`
+sequenceDiagram
+    participant P as Phone
+    participant A as Django API
+    participant D as Database
+
+    P->>A: PATCH progress with version 7
+    A->>D: Read current progress
+    D-->>A: Current version is 8
+    A-->>P: 409 Conflict and server version 8
+    P->>P: Update local concurrency token
+    P->>A: Retry latest position with version 8
+    A->>D: Save progress as version 9
+    A-->>P: Return version 9
+`} />
+
+# <a id="annotations"></a>8. Highlights, Annotations, and Memory Notes
+
+Reading is not only about resuming at the correct place. I also wanted to preserve why a paragraph mattered.
+
+The reader supports four highlight colors:
+
+- yellow
+- green
+- blue
+- pink
+
+Each synced annotation stores:
+
+| Field | Purpose |
+| --- | --- |
+| `id` | UUID for deletion |
+| `ebook` | Owning book |
+| `epub_cfi_range` | Stable selected range |
+| `color` | Highlight color |
+| `selected_text` | Human-readable excerpt |
+| `note` | Short memory note attached to the passage |
+| `created_at`, `updated_at` | Audit timestamps |
+
+The database has a unique constraint on:
+
+```text
+(ebook, epub_cfi_range)
+```
+
+That turns a highlight `POST` into an idempotent upsert for the same selected range. Posting the same range again updates its color, selected text, or note instead of creating a duplicate.
+
+## Selection flow
+
+`epub.js` renders chapters inside iframes. When the reader selects text, the rendition emits:
+
+```ts
+rendition.on('selected', (cfiRange, contents) => {
+  const text = contents.window.getSelection().toString().trim();
+});
+```
+
+The UI opens a small passage action panel:
+
+- choose a highlight color
+- ask Kumi
+- translate the passage
+- dismiss the selection
+
+When a color is selected:
+
+1. Save the highlight to the local fallback immediately.
+2. Draw the annotation using `rendition.annotations.highlight(...)`.
+3. Clear the browser selection.
+4. If signed in, sync the annotation to Django.
+5. Replace the local copy with the returned remote record containing its UUID.
+
+Local-first behavior keeps the UI responsive even if the network is slow.
+
+## Preventing overlapping highlights
+
+Overlapping annotation ranges become confusing quickly. The reader prevents them on the client.
+
+For each saved range:
+
+1. Construct an `EpubCFI`.
+2. Collapse one copy to its start point.
+3. Collapse another copy to its end point.
+4. Compare endpoints.
+5. Remove an old highlight if it overlaps the new selection.
+
+Adjacency is allowed. Interior overlap is not.
+
+```ts
+return compare(aStart, bEnd) < 0 && compare(bStart, aEnd) < 0;
+```
+
+If an overlapping highlight already exists remotely, the browser deletes it before creating the new one.
+
+## Highlights drawer and notes
+
+The toolbar opens a drawer containing saved passages. From there the reader can:
+
+- jump back to the CFI range
+- write or edit a note
+- save the note
+- delete the annotation
+
+Saving a note reuses the highlight upsert endpoint:
+
+```http
+POST /api/ebooks/books/<book-id>/highlights/
+Authorization: Token <access-token>
+Content-Type: application/json
+
+{
+  "epub_cfi_range": "epubcfi(...)",
+  "color": "green",
+  "selected_text": "The difficult part is not ...",
+  "note": "Connect this idea to the cache invalidation example."
+}
+```
+
+## Local and cloud reconciliation
+
+Highlights are also stored under a book-specific `localStorage` key:
+
+```text
+reader_highlights_<book-id>
+```
+
+When a book opens:
+
+1. Render cached annotations quickly.
+2. Fetch remote annotations if the reader is authenticated.
+3. Upload local-only annotations that do not yet have remote IDs.
+4. Fetch the remote list again.
+5. Replace the local cache with the synchronized records.
+6. Re-render the final annotation list.
+
+This is a modest sync protocol, but it gives the reader a useful local fallback without making the browser cache the ultimate source of truth for cloud books.
+
+# <a id="kumi"></a>9. Integrating Kumi, the AI Reading Companion
+
+Sometimes a paragraph is not worth leaving the reader, opening another tab, copying text, and rebuilding the context manually.
+
+Kumi is designed to stay next to the book.
+
+On desktop, Kumi opens in a resizable side panel. On a narrow screen, it becomes an overlay drawer. Both modes use the same reading companion component.
+
+## Ask Kumi about a selected passage
+
+When the reader clicks **Ask Kumi**, the selected text becomes a seed:
+
+```ts
+setAssistantSeed({
+  id: Date.now(),
+  context: selectionText
+});
+```
+
+The assistant combines:
+
+- book title
+- selected passage, if present
+- user message history
+- a prompt asking Kumi to remain concise and avoid inventing plot beyond the supplied passage
+
+Then it calls an Astro API route:
+
+```http
+POST /api/ai/chat
+Content-Type: application/json
+
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "Why is this tradeoff important?"
+    }
+  ],
+  "article_context": "Book: \"...\". The reader is asking about this passage ..."
+}
+```
+
+## Streaming response path
+
+The Astro route:
+
+1. verifies that the OpenAI API key exists
+2. rate-limits by a SHA-256 hash derived from the client IP
+3. parses the request body
+4. limits conversation history to the latest 10 messages
+5. strips HTML, normalizes whitespace, and truncates context to 5000 characters
+6. calls `gpt-5-mini` with streaming enabled
+7. forwards text chunks to the browser as they arrive
+
+The React assistant reads from `response.body.getReader()` and updates the last assistant message incrementally.
+
+<Mermaid code={`
+sequenceDiagram
+    participant U as Reader
+    participant R as React Reader
+    participant A as Astro AI Route
+    participant O as OpenAI
+
+    U->>R: Select passage and ask question
+    R->>A: POST recent messages and passage context
+    A->>A: Rate limit sanitize and truncate
+    A->>O: Start streaming completion
+    O-->>A: Token chunks
+    A-->>R: Stream text chunks
+    R-->>U: Render answer incrementally
+`} />
+
+## Quick translation
+
+Translation uses the same AI route but a smaller interaction:
+
+```text
+Translate the following passage to Hindi.
+Reply with only the translation.
+```
+
+The selection panel streams the translated text inline. An `AbortController` cancels the previous translation if the selection changes or the panel closes.
+
+Kumi also offers translation from its own input bar once a passage context is attached.
+
+## Privacy boundary
+
+The EPUB itself is not automatically sent to the model.
+
+Only the relevant prompt, recent chat history, book title, and selected passage are transmitted when the reader explicitly invokes an AI action. That boundary should remain visible in the product and documented clearly.
+
+# <a id="frontend"></a>10. Frontend Details That Make the Reader Feel Calm
+
+System design is not only backend boxes and arrows. Small frontend choices determine whether the system feels like a reader or a file viewer.
+
+## Paginated rendering
+
+The book is rendered with:
+
+```ts
+book.renderTo(viewerElement, {
+  width: '100%',
+  height: '100%',
+  flow: 'paginated',
+  spread: 'auto',
+  allowScriptedContent: false
+});
+```
+
+Disabling scripted EPUB content is an important safety default. The book content should not execute arbitrary scripts inside the reading surface.
+
+## Theme injection
+
+Books can arrive with their own CSS. The reader registers a broad `epub.js` theme and applies colors with `!important` so a dark or sepia theme does not leave unreadable fragments behind.
+
+The reader currently supports:
+
+- light
+- sepia
+- dark
+- font sizing from `80%` to `180%`
+
+## Navigation inside iframes
+
+Because `epub.js` renders chapters inside iframes, touch handlers must be registered inside each chapter document.
+
+The reader supports:
+
+- left and right arrow buttons
+- keyboard arrow keys outside the iframe
+- horizontal swipes
+- tap left edge for previous
+- tap right edge for next
+- tap center to hide or reveal reader chrome
+- table-of-contents navigation
+- fullscreen mode
+- progress-slider seeking
+
+The UI also adds a short page-turn animation and respects `prefers-reduced-motion`.
+
+## Seeking before and after location generation
+
+When the generated location map exists, the slider can seek precisely:
+
+```ts
+book.locations.cfiFromPercentage(fraction);
+```
+
+Before generation completes, the slider falls back to the closest spine resource. It is less precise but immediately usable.
+
+This pattern is useful beyond ebook readers:
+
+> Provide a coarse answer quickly, then upgrade to a precise answer when the expensive index is ready.
+
+# <a id="reference"></a>11. API and Data Model Reference
+
+## REST endpoints
+
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| `GET` | `/api/ebooks/books/` | List the authenticated user's ready books |
+| `GET` | `/api/ebooks/books/<id>/` | Retrieve one owned book |
+| `DELETE` | `/api/ebooks/books/<id>/` | Delete the storage object and soft-delete the database row |
+| `POST` | `/api/ebooks/books/upload-url/` | Validate an upload and issue a pre-signed `PUT` URL |
+| `POST` | `/api/ebooks/books/<id>/complete-upload/` | Verify the uploaded object and mark the book ready |
+| `POST` | `/api/ebooks/books/<id>/download-url/` | Issue a pre-signed `GET` URL for a ready book |
+| `GET` | `/api/ebooks/books/<id>/progress/` | Read synced progress |
+| `PUT`, `PATCH` | `/api/ebooks/books/<id>/progress/` | Update progress with a version check |
+| `GET` | `/api/ebooks/books/<id>/highlights/` | List annotations for a book |
+| `POST` | `/api/ebooks/books/<id>/highlights/` | Create or update an annotation by CFI range |
+| `DELETE` | `/api/ebooks/books/<id>/highlights/<highlight-id>/` | Delete an annotation |
+| `GET`, `PUT`, `PATCH` | `/api/ebooks/preferences/` | Read or update server-side reader preferences |
+
+All ebook endpoints require authentication.
+
+## Core database relationships
+
+<Mermaid code={`
+erDiagram
+    USER ||--o{ EBOOK : owns
+    EBOOK ||--o| READING_PROGRESS : has
+    EBOOK ||--o{ EBOOK_HIGHLIGHT : contains
+    USER ||--o| READER_PREFERENCE : has
+
+    EBOOK {
+        uuid id
+        string title
+        string author
+        string s3_object_key
+        bigint file_size
+        string upload_status
+        datetime deleted_at
+    }
+
+    READING_PROGRESS {
+        text epub_cfi
+        string chapter_href
+        string chapter_title
+        decimal percentage
+        int version
+    }
+
+    EBOOK_HIGHLIGHT {
+        uuid id
+        text epub_cfi_range
+        string color
+        text selected_text
+        text note
+    }
+
+    READER_PREFERENCE {
+        string theme
+        string font_family
+        int font_size
+        decimal line_height
+        string translation_language
+    }
+`} />
+
+## Ownership isolation
+
+The backend does not fetch a book globally and then check ownership afterward. Its base queryset is already scoped:
+
+```python
+Ebook.objects.filter(
+    user=request.user,
+    deleted_at__isnull=True,
+)
+```
+
+That matters because every nested action inherits the same ownership boundary:
+
+- download URL
+- progress
+- highlight list
+- highlight creation
+- highlight deletion
+- book deletion
+
+If another user guesses a UUID, the API returns `404`, not the book.
+
+# <a id="failure-security"></a>12. Failure Modes and Security Decisions
+
+A useful system design review asks what happens when each step fails.
+
+## Upload URL creation fails
+
+The server signs the S3 URL before creating the pending database row. If signing fails, no useless pending record is left behind.
+
+## Direct S3 upload fails
+
+The browser reports the error and tries to delete the pending book record. The backend deletion path also deletes the storage key if it exists.
+
+## The browser closes after upload but before finalization
+
+A `pending` row and possibly an object can remain. The current product hides pending books from library listing, so readers do not see broken entries.
+
+For a hardened version, add a scheduled cleanup job:
+
+```text
+delete pending uploads older than N hours
+delete their storage objects if present
+```
+
+## The API is temporarily unreachable
+
+The library returns locally cached metadata. Cached blobs still open from IndexedDB. Progress is written locally first, but the current in-memory sync queue is not a durable retry outbox. A later relocation queues another cloud write; a hardened version should persist failed mutations until they are acknowledged.
+
+## A signed download URL leaks
+
+The URL expires after a configured period, one hour by default. The bucket remains private. A shorter expiry reduces exposure but may increase retries on slow networks.
+
+## Someone uploads a fake EPUB
+
+The current backend verifies extension, requested content type, stored content type, and byte length. That is useful but not a full archive inspection.
+
+A stronger upload pipeline should asynchronously:
+
+1. inspect the ZIP structure
+2. validate required EPUB files
+3. reject decompression bombs
+4. cap uncompressed size and entry count
+5. optionally scan for malware
+6. mark the object `ready` only after validation
+
+## Book HTML contains scripts
+
+The reader sets:
+
+```ts
+allowScriptedContent: false
+```
+
+That is the correct default for untrusted ebook content.
+
+## Delete semantics
+
+Deleting a book performs two operations:
+
+1. delete the storage object
+2. set `deleted_at` in the database
+
+This means metadata is soft-deleted, but bytes are eagerly removed. It is a reasonable privacy-oriented default, but it is not a restoreable trash folder.
+
+# <a id="scaling"></a>13. How I Would Scale and Harden Version Two
+
+The current design is intentionally simple. It also has a natural evolution path.
+
+## What already scales well
+
+### Direct object transfer
+
+Large EPUB files move between browser and S3, not through Django. Adding more readers does not turn API workers into file-transfer workers.
+
+### Small API records
+
+Most database requests are tiny:
+
+- metadata
+- one progress row
+- a short list of annotations
+- a preference record
+
+### Local caching
+
+IndexedDB avoids unnecessary repeated downloads and reduces latency for returning readers.
+
+## What I would improve next
+
+### 1. Add asynchronous EPUB validation
+
+Introduce a queue worker and a state transition:
+
+```text
+pending -> uploaded -> validating -> ready
+                         |
+                         -> failed
+```
+
+The worker can validate the archive safely before the book becomes readable.
+
+### 2. Clean stale pending uploads
+
+Run a scheduled job to remove abandoned rows and objects.
+
+### 3. Synchronize covers
+
+The browser currently converts the extracted cover into a local data URL. A second version can upload a normalized cover thumbnail to object storage or an image CDN and persist its stable URL.
+
+### 4. Wire server-side preferences into the UI
+
+The Django `ReaderPreference` model already supports:
+
+- theme
+- font family
+- font size
+- line height
+- translation language
+
+The active reader still uses device-local storage for display preferences. Connecting the endpoint would make the reading environment follow the user across devices.
+
+### 5. Use stronger annotation reconciliation
+
+Current highlight sync is appropriate for a personal reader, but a richer offline-first version should track mutation IDs, tombstones, and per-annotation update versions.
+
+That prevents a stale offline device from resurrecting an annotation that was deleted elsewhere.
+
+### 6. Improve progress conflict policy
+
+Today, the browser detects a conflict, adopts the server version token, and retries its latest local location.
+
+Possible future policies:
+
+- newest `updated_at` wins
+- furthest progress wins unless the user explicitly moved backward
+- ask the reader which position to keep
+- keep a short position history per device
+
+The right policy is a product decision, not only a database decision.
+
+### 7. Add a durable progress outbox
+
+Persist unsent progress mutations in IndexedDB and retry them after reconnect. The current in-memory queue is intentionally small, but it cannot survive a tab close or reload after a failed request.
+
+### 8. Move AI rate limiting to shared storage
+
+The AI route currently keeps a one-minute IP-hash rate-limit map in server memory. That is sufficient for a single process, but a multi-instance deployment needs Redis or another shared limiter.
+
+### 9. Add PDF as a separate rendering pipeline
+
+PDF should not be forced into the EPUB model. A PDF is fixed-layout, so it needs:
+
+- a PDF renderer such as PDF.js
+- page number plus text-position anchors
+- a separate annotation coordinate model
+- careful handling for scanned documents and OCR
+
+The library abstraction can stay shared, but the reader engine should be format-specific.
+
+### 10. Add observability
+
+Useful metrics include:
+
+- upload URL requests
+- completion success rate
+- abandoned pending uploads
+- `HEAD` verification failures
+- signed download requests
+- IndexedDB cache-hit rate
+- progress sync latency
+- progress conflicts
+- annotation sync failures
+- AI request latency and rate-limit rejections
+
+Without these, scaling discussions become guesswork.
+
+# <a id="lessons"></a>14. Lessons from the Design
+
+Building a personal Kindle-like reader taught me more than adding another page to a website.
+
+## 1. Do not route large files through your application server by default
+
+Use the API to authorize the operation and object storage to move the bytes.
+
+## 2. Stable identifiers matter more than visual coordinates
+
+For EPUBs, a page number is temporary. A CFI survives reflow and is the correct synchronization primitive.
+
+## 3. Local-first does not mean local-only
+
+IndexedDB gives speed and resilience. Django gives ownership and cross-device state. S3 gives durable blob storage. Each layer solves a different problem.
+
+## 4. Detect races even when your first resolution policy is simple
+
+A version number and `409 Conflict` response are small additions that turn silent overwrites into intentional behavior.
+
+## 5. Model annotations as data, not decoration
+
+A highlight is more than a yellow rectangle. It has a stable range, color, excerpt, note, identity, and sync lifecycle.
+
+## 6. AI works best when attached to a real interaction
+
+Kumi is useful because the reader can select a confusing passage and ask a question without rebuilding context manually. The AI feature begins with a product affordance, not with a model call.
+
+## 7. Honest boundaries make the next version easier
+
+This reader does not claim to support every ebook format or every offline conflict. It supports EPUB well enough to expose the important architectural decisions clearly.
+
+---
+
+The result is not Amazon Kindle, and it does not need to be.
+
+It is a small, practical reading system: private EPUB storage, direct uploads, fast local reopening, cross-device CFI sync, colored annotations with memory notes, translation, and Kumi close by when a paragraph deserves a second look.
+
+That is enough to make reading feel like one continuous activity again, even when the device changes.

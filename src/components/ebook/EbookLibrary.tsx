@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ePub from 'epubjs';
-import { BookOpen, Upload, Trash2, Loader2, Plus } from 'lucide-react';
+import { BookOpen, Upload, Trash2, Loader2, Plus, CalendarPlus, Check } from 'lucide-react';
 import { deleteBook, syncLibrary, uploadBook, type BookMeta } from '../../lib/ebookLibrary';
 import { EbookApiError, hasReaderAccount, requestReaderLogin } from '../../lib/ebookApi';
+import { createTask } from '../../lib/taskApi';
 
 interface Props {
     onOpen: (id: string, title: string) => void;
@@ -45,6 +46,7 @@ export default function EbookLibrary({ onOpen }: Props) {
     const [importing, setImporting] = useState(false);
     const [dragging, setDragging] = useState(false);
     const [error, setError] = useState('');
+    const [plannedBookId, setPlannedBookId] = useState<string | null>(null);
     const [uploadState, setUploadState] = useState<UploadState | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -134,6 +136,29 @@ export default function EbookLibrary({ onOpen }: Props) {
         } catch (error) {
             console.error('Failed to delete ebook', error);
             setError(error instanceof EbookApiError ? error.message : 'The book could not be removed.');
+        }
+    };
+
+    const handlePlan = async (e: React.MouseEvent, book: BookMeta) => {
+        e.stopPropagation();
+        setError('');
+        try {
+            const now = new Date();
+            const due = new Date();
+            due.setHours(18, 0, 0, 0);
+            if (due <= now) due.setTime(now.getTime() + 60 * 60 * 1000);
+            await createTask({
+                title: `${book.progress > 0 ? 'Continue' : 'Read'} ${book.title}`,
+                status: 'todo',
+                due_at: due.toISOString(),
+                reminder_at: null,
+                ebook_id: book.id,
+                target_type: 'complete',
+            });
+            setPlannedBookId(book.id);
+        } catch (error) {
+            console.error('Failed to plan ebook', error);
+            setError(error instanceof Error ? error.message : 'The reading task could not be created.');
         }
     };
 
@@ -274,6 +299,19 @@ export default function EbookLibrary({ onOpen }: Props) {
                                     aria-label="Remove from library"
                                 >
                                     <Trash2 className="h-3.5 w-3.5" />
+                                </span>
+                                <span
+                                    onClick={(e) => handlePlan(e, book)}
+                                    className={`absolute left-2 top-2 flex h-7 w-7 items-center justify-center rounded-lg bg-white/90 shadow-sm transition-all group-hover:opacity-100 dark:bg-neutral-900/90 ${
+                                        plannedBookId === book.id
+                                            ? 'text-emerald-600 opacity-100 dark:text-emerald-400'
+                                            : 'text-neutral-500 opacity-0 hover:text-orange-600 dark:text-neutral-400 dark:hover:text-orange-400'
+                                    }`}
+                                    title={plannedBookId === book.id ? "Added to today's tasks" : "Add to today's tasks"}
+                                    role="button"
+                                    aria-label="Add to today's tasks"
+                                >
+                                    {plannedBookId === book.id ? <Check className="h-3.5 w-3.5" /> : <CalendarPlus className="h-3.5 w-3.5" />}
                                 </span>
 
                                 {book.progress > 0 && (

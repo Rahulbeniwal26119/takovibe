@@ -60,7 +60,7 @@ const productSuite = [
   {
     number: "03",
     title: "Reader",
-    copy: "Bring your EPUB library into a calmer reading space with progress sync, themes, highlights, translation, and Kumi nearby.",
+    copy: "Read EPUBs in a calmer space. Sync progress, collect colored highlights, attach memory notes, translate passages, and keep Kumi nearby.",
     href: "/reader",
     label: "Learning tool",
     cta: "Open Reader",
@@ -75,17 +75,27 @@ const productSuite = [
     label: "Thinking tool",
     cta: "Open Notes",
     accent: "from-rose-500/20 via-rose-400/5 to-transparent",
-    layout: "xl:col-span-3",
+    layout: "xl:col-span-2",
   },
   {
     number: "05",
+    title: "Learning Tasks",
+    copy: "Turn reading, sketch notes, and learning goals into a plan. Filter by priority, collection, and date, then log the hours you actually spent.",
+    href: "/tasks",
+    label: "Planning tool",
+    cta: "Open Tasks",
+    accent: "from-violet-500/20 via-violet-400/5 to-transparent",
+    layout: "xl:col-span-2",
+  },
+  {
+    number: "06",
     title: "Playground",
     copy: "Run Python, JavaScript, Go, Rust, or front-end experiments in the browser and share the result without setup.",
     href: "/playground",
     label: "Code tool",
     cta: "Open Playground",
     accent: "from-emerald-500/20 via-emerald-400/5 to-transparent",
-    layout: "xl:col-span-3",
+    layout: "xl:col-span-2",
   },
 ];
 ---
@@ -155,7 +165,7 @@ const productSuite = [
 
       <div class="border-t border-black/10 bg-[#181713] text-stone-200 dark:border-white/10">
         <div class="home-marquee flex min-w-max items-center gap-10 py-3 text-[10px] font-bold uppercase tracking-[0.24em] text-stone-400">
-          <span>Reader</span><i></i><span>System design</span><i></i><span>Runnable code</span><i></i><span>Sketch notes</span><i></i><span>Contextual AI</span><i></i><span>Reader</span><i></i><span>System design</span><i></i><span>Runnable code</span><i></i><span>Sketch notes</span><i></i><span>Contextual AI</span>
+          <span>Reader</span><i></i><span>Learning tasks</span><i></i><span>System design</span><i></i><span>Runnable code</span><i></i><span>Sketch notes</span><i></i><span>Contextual AI</span><i></i><span>Reader</span><i></i><span>Learning tasks</span><i></i><span>System design</span><i></i><span>Runnable code</span><i></i><span>Sketch notes</span><i></i><span>Contextual AI</span>
         </div>
       </div>
     </section>
@@ -199,6 +209,7 @@ const productSuite = [
                     The goal is not infinite capacity. It is graceful behavior
                     when capacity is finite.
                   </p>
+                  <p class="home-kicker text-orange-300">Saved highlight / memory note attached</p>
                 </div>
                 <div class="mt-8 flex flex-wrap gap-2 text-[10px] font-bold uppercase tracking-[0.16em]">
                   <span class="rounded-full border border-orange-400/30 bg-orange-400/10 px-3 py-1.5 text-orange-200">Highlight</span>
@@ -349,6 +360,9 @@ queue.buffer(incoming - capacity);</code></pre>
           </h2>
           <a class="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-bold text-orange-700 transition hover:bg-orange-50" href="/reader">
             Open the reader
+          </a>
+          <a class="inline-flex items-center justify-center rounded-full border border-white/30 px-6 py-3 text-sm font-bold text-white transition hover:bg-white/10" href="/tasks">
+            Plan learning tasks
           </a>
         </div>
       </div>

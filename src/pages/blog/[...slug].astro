@@ -7,13 +7,16 @@ import ArticleTemplate from "../../components/ArticleTemplate.astro";
 
 export async function getStaticPaths() {
   const API_BASE = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
+  const blogEntries = await getCollection("blog");
   try {
     const response = await fetch(
       `${API_BASE}/api/blogs/blogs/?include_content=true`,
     );
     if (!response.ok) {
       console.error("Failed to fetch posts for static paths");
-      return [];
+      return blogEntries.map((post) => ({
+        params: { slug: post.slug },
+      }));
     }
     const data = await response.json();
     // Handle both direct array and results object formats
@@ -23,10 +26,18 @@ export async function getStaticPaths() {
       params: { slug: post.slug },
       props: { initialPostData: post },
     }));
-    return paths;
+    const backendSlugs = new Set(posts.map((post: any) => post.slug));
+    const staticPaths = blogEntries
+      .filter((post) => !backendSlugs.has(post.slug))
+      .map((post) => ({
+        params: { slug: post.slug },
+      }));
+    return [...paths, ...staticPaths];
   } catch (e) {
     console.error("Error fetching static paths:", e);
-    return [];
+    return blogEntries.map((post) => ({
+      params: { slug: post.slug },
+    }));
   }
 }
 

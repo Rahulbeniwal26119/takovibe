@@ -32,6 +32,7 @@ export interface RemoteEbookHighlight {
     epub_cfi_range: string;
     color: 'yellow' | 'green' | 'blue' | 'pink';
     selected_text: string;
+    note: string;
     created_at: string;
     updated_at: string;
 }
@@ -251,6 +252,7 @@ export function createRemoteHighlight(
         epub_cfi_range: string;
         color: RemoteEbookHighlight['color'];
         selected_text: string;
+        note?: string;
     },
 ): Promise<RemoteEbookHighlight> {
     return apiFetch(`${API_BASE}/books/${id}/highlights/`, {

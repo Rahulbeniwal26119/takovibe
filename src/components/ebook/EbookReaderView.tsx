@@ -17,6 +17,9 @@ import {
     Sun,
     Languages,
     Highlighter,
+    NotebookPen,
+    Save,
+    Trash2,
 } from 'lucide-react';
 import { flushBookProgress, getBookFile, getBookMeta, saveProgress } from '../../lib/ebookLibrary';
 import {
@@ -43,6 +46,7 @@ interface StoredHighlight {
     cfiRange: string;
     color: HighlightColor;
     text: string;
+    note: string;
     createdAt: number;
 }
 
@@ -145,6 +149,9 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
     const [locationsGenerated, setLocationsGenerated] = useState(false);
     const [toc, setToc] = useState<any[]>([]);
     const [tocOpen, setTocOpen] = useState(false);
+    const [highlightsOpen, setHighlightsOpen] = useState(false);
+    const [highlights, setHighlights] = useState<StoredHighlight[]>([]);
+    const [highlightNoteDrafts, setHighlightNoteDrafts] = useState<Record<string, string>>({});
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [chromeVisible, setChromeVisible] = useState(true);
     const [isFullscreen, setIsFullscreen] = useState(false);
@@ -238,7 +245,10 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
     const loadHighlights = (): StoredHighlight[] => {
         try {
             const saved = localStorage.getItem(`reader_highlights_${bookId}`);
-            return saved ? JSON.parse(saved) : [];
+            const parsed = saved ? JSON.parse(saved) : [];
+            return Array.isArray(parsed)
+                ? parsed.map((highlight) => ({ ...highlight, note: highlight.note || '' }))
+                : [];
         } catch {
             return [];
         }
@@ -246,6 +256,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
 
     const saveHighlights = (highlights: StoredHighlight[]) => {
         localStorage.setItem(`reader_highlights_${bookId}`, JSON.stringify(highlights));
+        setHighlights(highlights);
     };
 
     const renderHighlight = (highlight: StoredHighlight) => {
@@ -267,6 +278,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
         cfiRange: highlight.epub_cfi_range,
         color: highlight.color,
         text: highlight.selected_text,
+        note: highlight.note || '',
         createdAt: Date.parse(highlight.created_at) || Date.now(),
     });
 
@@ -285,6 +297,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                             epub_cfi_range: highlight.cfiRange,
                             color: highlight.color,
                             selected_text: highlight.text,
+                            note: highlight.note,
                         }),
                     ),
                 );
@@ -367,6 +380,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
             cfiRange: selectionCfiRange,
             color,
             text: selectionText,
+            note: '',
             createdAt: Date.now(),
         };
         kept.push(highlight);
@@ -383,6 +397,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                     epub_cfi_range: highlight.cfiRange,
                     color: highlight.color,
                     selected_text: highlight.text,
+                    note: highlight.note,
                 }),
             )
             .then((remote) => {
@@ -391,6 +406,44 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                 saveHighlights(current);
             })
             .catch((error) => console.error('Failed to sync ebook highlight; keeping local copy.', error));
+    };
+
+    const goToHighlight = (highlight: StoredHighlight) => {
+        renditionRef.current?.display(highlight.cfiRange);
+        setHighlightsOpen(false);
+    };
+
+    const removeHighlight = (highlight: StoredHighlight) => {
+        renditionRef.current?.annotations.remove(highlight.cfiRange, 'highlight');
+        saveHighlights(loadHighlights().filter((item) => item.cfiRange !== highlight.cfiRange));
+        if (highlight.id && hasReaderAccount()) {
+            deleteRemoteHighlight(bookId, highlight.id).catch((error) =>
+                console.error('Failed to delete synced ebook highlight.', error),
+            );
+        }
+    };
+
+    const saveHighlightNote = (highlight: StoredHighlight) => {
+        const note = highlightNoteDrafts[highlight.cfiRange] ?? highlight.note;
+        const updated = { ...highlight, note };
+        saveHighlights(
+            loadHighlights().map((item) => (item.cfiRange === highlight.cfiRange ? updated : item)),
+        );
+        if (!hasReaderAccount()) return;
+        createRemoteHighlight(bookId, {
+            epub_cfi_range: updated.cfiRange,
+            color: updated.color,
+            selected_text: updated.text,
+            note: updated.note,
+        })
+            .then((remote) => {
+                saveHighlights(
+                    loadHighlights().map((item) =>
+                        item.cfiRange === updated.cfiRange ? remoteToStoredHighlight(remote) : item,
+                    ),
+                );
+            })
+            .catch((error) => console.error('Failed to sync ebook highlight note; keeping local copy.', error));
     };
 
     const askKumiAboutSelection = () => {
@@ -670,6 +723,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                         locationsReady.current = true;
                         setLocationsGenerated(true);
                         const cachedHighlights = loadHighlights();
+                        setHighlights(cachedHighlights);
                         cachedHighlights.forEach(renderHighlight);
                         refreshHighlightsFromCloud().then((syncedHighlights) => {
                             if (destroyed) return;
@@ -857,14 +911,32 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                         )}
                     </div>
                     <button
-                        onClick={() => {
-                            setTocOpen((s) => !s);
-                            setSettingsOpen(false);
-                        }}
+                            onClick={() => {
+                                setTocOpen((s) => !s);
+                                setHighlightsOpen(false);
+                                setSettingsOpen(false);
+                            }}
                         className={`rounded-lg p-2 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-900 ${tocOpen ? 'text-orange-600 dark:text-orange-400' : 'text-neutral-600 dark:text-neutral-300'}`}
                         aria-label="Table of contents"
                     >
                         <List className="h-5 w-5" />
+                    </button>
+                    <button
+                        onClick={() => {
+                            setHighlightsOpen((open) => !open);
+                            setTocOpen(false);
+                            setSettingsOpen(false);
+                        }}
+                        className={`relative rounded-lg p-2 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-900 ${highlightsOpen ? 'text-orange-600 dark:text-orange-400' : 'text-neutral-600 dark:text-neutral-300'}`}
+                        aria-label="Saved highlights and notes"
+                        title="Highlights and notes"
+                    >
+                        <NotebookPen className="h-5 w-5" />
+                        {highlights.length > 0 && (
+                            <span className="absolute right-0.5 top-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-orange-600 px-0.5 text-[8px] font-bold text-white">
+                                {highlights.length}
+                            </span>
+                        )}
                     </button>
                     <button
                         onClick={toggleFullscreen}
@@ -1105,6 +1177,94 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                                         </button>
                                     );
                                 })
+                            )}
+                        </div>
+                    </div>
+                </div>
+                    )}
+
+                    {highlightsOpen && (
+                <div className="absolute inset-0 z-30">
+                    <div className="absolute inset-0 bg-neutral-950/40 backdrop-blur-sm" onClick={() => setHighlightsOpen(false)} />
+                    <div className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col border-l border-neutral-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-neutral-950">
+                        <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-neutral-800">
+                            <div>
+                                <span className="font-display text-sm font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-200">
+                                    Highlights
+                                </span>
+                                <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
+                                    Revisit passages and keep the thought attached.
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setHighlightsOpen(false)}
+                                className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-900 dark:hover:text-neutral-200"
+                                aria-label="Close highlights"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
+                        <div className="flex-1 space-y-3 overflow-y-auto p-3">
+                            {highlights.length === 0 ? (
+                                <div className="rounded-xl border border-dashed border-neutral-300 p-5 text-center dark:border-neutral-700">
+                                    <Highlighter className="mx-auto h-5 w-5 text-orange-500" />
+                                    <p className="mt-3 text-sm font-semibold text-neutral-700 dark:text-neutral-200">
+                                        No highlights yet
+                                    </p>
+                                    <p className="mt-1 text-xs leading-5 text-neutral-500 dark:text-neutral-400">
+                                        Select a passage in the book, choose a color, then add a note here.
+                                    </p>
+                                </div>
+                            ) : (
+                                highlights.map((highlight) => (
+                                    <article
+                                        key={highlight.cfiRange}
+                                        className="rounded-xl border border-neutral-200 bg-neutral-50 p-3 dark:border-neutral-800 dark:bg-neutral-900"
+                                    >
+                                        <button
+                                            onClick={() => goToHighlight(highlight)}
+                                            className="block w-full text-left"
+                                            title="Jump to highlighted passage"
+                                        >
+                                            <span
+                                                className="mb-2 block h-1 w-10 rounded-full"
+                                                style={{ background: HIGHLIGHT_COLORS[highlight.color].value }}
+                                            />
+                                            <p className="line-clamp-4 text-sm leading-6 text-neutral-700 dark:text-neutral-200">
+                                                “{highlight.text}”
+                                            </p>
+                                        </button>
+                                        <textarea
+                                            value={highlightNoteDrafts[highlight.cfiRange] ?? highlight.note}
+                                            onChange={(event) =>
+                                                setHighlightNoteDrafts((drafts) => ({
+                                                    ...drafts,
+                                                    [highlight.cfiRange]: event.target.value,
+                                                }))
+                                            }
+                                            rows={2}
+                                            className="mt-3 w-full resize-y rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-xs leading-5 text-neutral-700 outline-none transition focus:border-orange-400 focus:ring-1 focus:ring-orange-400 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-200"
+                                            placeholder="Add a note to remember why this matters..."
+                                            aria-label="Highlight note"
+                                        />
+                                        <div className="mt-2 flex items-center justify-between gap-2">
+                                            <button
+                                                onClick={() => removeHighlight(highlight)}
+                                                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-neutral-500 transition hover:bg-red-50 hover:text-red-600 dark:text-neutral-400 dark:hover:bg-red-950/30 dark:hover:text-red-300"
+                                            >
+                                                <Trash2 className="h-3.5 w-3.5" />
+                                                Delete
+                                            </button>
+                                            <button
+                                                onClick={() => saveHighlightNote(highlight)}
+                                                className="inline-flex items-center gap-1 rounded-md bg-orange-600 px-2.5 py-1.5 text-xs font-semibold text-white transition hover:bg-orange-500"
+                                            >
+                                                <Save className="h-3.5 w-3.5" />
+                                                Save note
+                                            </button>
+                                        </div>
+                                    </article>
+                                ))
                             )}
                         </div>
                     </div>

@@ -145,6 +145,11 @@ const articleMainNav = [
     no_footer={true}
     no_header={true}
 >
+    {
+        typeof post.id === "number" && (
+            <div id="article-reading-context" data-article-id={post.id} class="hidden" aria-hidden="true" />
+        )
+    }
     <!-- Smart Zen Navigation (Scroll-aware) -->
     <nav
         id="zen-nav"
@@ -791,6 +796,31 @@ const articleMainNav = [
                                             ></path>
                                         </svg>
                                     </button>
+                                    {
+                                        typeof post.id === "number" && (
+                                            <button
+                                                class="read-task-btn p-2 text-neutral-400 hover:text-violet-600 dark:hover:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-500/10 rounded-lg border border-transparent transition-all"
+                                                data-article-id={post.id}
+                                                data-article-title={post.data.title}
+                                                aria-label="Add article to today's tasks"
+                                                title="Add to today's tasks"
+                                            >
+                                                <svg
+                                                    class="w-5 h-5"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M12 6v6l4 2m5-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                    ></path>
+                                                </svg>
+                                            </button>
+                                        )
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -1614,6 +1644,7 @@ const articleMainNav = [
         checkBookmarkStatus,
     } from "../utils/bookmarks";
     import { showToast } from "../utils/toast";
+    import { createTask, updateArticleProgress } from "../lib/taskApi";
 
     function setupSaveButtons() {
         const saveBtns = document.querySelectorAll(".save-btn");
@@ -1703,6 +1734,73 @@ const articleMainNav = [
     // Initialize
     setupSaveButtons();
     document.addEventListener("astro:after-swap", setupSaveButtons);
+
+    function setupReadTaskButtons() {
+        document.querySelectorAll(".read-task-btn").forEach((button) => {
+            if (button.hasAttribute("data-bound")) return;
+            button.setAttribute("data-bound", "true");
+            button.addEventListener("click", async () => {
+                const articleId = button.getAttribute("data-article-id");
+                const title = button.getAttribute("data-article-title");
+                if (!articleId || !title) return;
+                const now = new Date();
+                const due = new Date();
+                due.setHours(18, 0, 0, 0);
+                if (due <= now) due.setTime(now.getTime() + 60 * 60 * 1000);
+                try {
+                    await createTask({
+                        title: `Read ${title}`,
+                        status: "todo",
+                        due_at: due.toISOString(),
+                        reminder_at: null,
+                        article_id: Number(articleId),
+                        target_type: "complete",
+                    });
+                    showToast("Article added to today's tasks", "success");
+                } catch (error) {
+                    showToast(
+                        error instanceof Error ? error.message : "Could not create reading task.",
+                        "error",
+                    );
+                }
+            });
+        });
+    }
+
+    setupReadTaskButtons();
+    document.addEventListener("astro:after-swap", setupReadTaskButtons);
+
+    function setupArticleProgressTracking() {
+        const context = document.getElementById("article-reading-context");
+        const articleId = Number(context?.getAttribute("data-article-id"));
+        if (!articleId || !localStorage.getItem("access_token")) return;
+
+        const trackingWindow = window as typeof window & {
+            __articleProgressHandler?: () => void;
+        };
+        if (trackingWindow.__articleProgressHandler) {
+            window.removeEventListener("scroll", trackingWindow.__articleProgressHandler);
+        }
+        let lastSent = -1;
+        const sendProgress = () => {
+            const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+            if (scrollable <= 0) return;
+            const percentage = Math.min(1, Math.max(0, window.scrollY / scrollable));
+            const bucket = Math.floor(percentage * 20);
+            if (bucket === lastSent) return;
+            lastSent = bucket;
+            updateArticleProgress(articleId, percentage).catch(() => {
+                // Reading should never be interrupted by progress sync.
+            });
+        };
+
+        trackingWindow.__articleProgressHandler = sendProgress;
+        window.addEventListener("scroll", sendProgress, { passive: true });
+        sendProgress();
+    }
+
+    setupArticleProgressTracking();
+    document.addEventListener("astro:after-swap", setupArticleProgressTracking);
 
     function setupPromoCards() {
         // Handle all Kumi AI buttons

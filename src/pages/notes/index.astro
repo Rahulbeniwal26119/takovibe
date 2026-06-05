@@ -1,10 +1,27 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import { NotesList } from "../../components/notes/NotesList";
+import NotesHub from "../../components/notes/NotesHub";
 ---
 
-<Layout title="My Notes | TakoVibe">
-    <div class="min-h-screen bg-stone-50 dark:bg-neutral-950">
-        <NotesList client:only="react" />
+<Layout
+    title="Notes | TakoVibe"
+    description="Capture diagrams, connect ideas from your reading, and return to the thoughts worth developing."
+    no_footer={true}
+    no_header={true}
+>
+    <style is:global>
+        #top-banner { display: none !important; }
+        :root { --top-banner-height: 0px !important; }
+    </style>
+    <div class="relative min-h-screen bg-stone-50 dark:bg-neutral-950">
+        <div class="fixed inset-0 z-0 pointer-events-none">
+            <div
+                class="absolute left-0 right-0 top-0 h-[420px] bg-gradient-to-b from-orange-50/80 via-stone-50/40 to-transparent dark:from-orange-950/20 dark:via-neutral-950/40 dark:to-transparent"
+            >
+            </div>
+        </div>
+        <div class="relative z-10">
+            <NotesHub client:only="react" />
+        </div>
     </div>
 </Layout>

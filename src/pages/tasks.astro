@@ -1,0 +1,25 @@
+---
+import Layout from "../layouts/Layout.astro";
+import TaskCenter from "../components/tasks/TaskCenter";
+---
+
+<Layout
+    title="Learning Tasks | TakoVibe"
+    description="Plan articles, continue ebooks, and turn your reading queue into a learning rhythm."
+    no_footer={true}
+    no_header={true}
+>
+    <style is:global>
+        #top-banner { display: none !important; }
+        :root { --top-banner-height: 0px !important; }
+    </style>
+    <div class="relative min-h-screen overflow-hidden bg-stone-50 dark:bg-neutral-950">
+        <div class="pointer-events-none fixed inset-0">
+            <div class="absolute left-0 right-0 top-0 h-[480px] bg-gradient-to-b from-orange-50/80 via-stone-50/30 to-transparent dark:from-orange-950/20 dark:via-neutral-950/30 dark:to-transparent"></div>
+            <div class="absolute -right-36 top-24 h-72 w-72 rounded-full bg-violet-200/20 blur-3xl dark:bg-violet-900/10"></div>
+        </div>
+        <div class="relative z-10">
+            <TaskCenter client:only="react" />
+        </div>
+    </div>
+</Layout>
