@@ -156,21 +156,22 @@ export default defineConfig({
         useShortDoctype: true,
         collapseWhitespace: true,
       },
-      Image: {
-        quality: 80,
-        avif: true,
-        webp: true,
-      },
-      JavaScript: {
-        compress: {
-          drop_console: true,
-          drop_debugger: true,
-          pure_funcs: ['console.log']
-        }
-      },
+      // Image re-encoding (avif/webp) is the build's heaviest CPU cost and the
+      // output isn't wired into HTML. Astro's own image pipeline handles formats.
+      Image: false,
+      // JS is already minified by vite/rollup — re-running terser over every
+      // chunk costs minutes for ~0% gain (see the 1–5 byte "reductions").
+      // console/debugger stripping moved to vite's esbuild pass below.
+      JavaScript: false,
       SVG: true,
     }),
     pwa({
+      // Winding down the PWA: ships a minimal service worker that unregisters
+      // itself and clears the old ~78 MB precache on returning visitors, and
+      // skips precache generation (kills the build-time hang). workbox/manifest
+      // below are ignored while this is true. Delete this integration entirely
+      // once most clients have updated (a few weeks).
+      selfDestroying: true,
       registerType: 'autoUpdate',
       manifest: {
         name: 'TakoVibe',
@@ -191,7 +192,11 @@ export default defineConfig({
       },
       workbox: {
         navigateFallback: '/',
-        globPatterns: ['**/*.{css,js,html,svg,png,jpg,jpeg,gif,webp}'],
+        // Precache only the app shell. Images are handled by runtimeCaching
+        // below, so don't bloat the SW manifest (was 78 MB / 429 entries).
+        globPatterns: ['**/*.{css,js,html,svg}'],
+        globIgnores: ['**/*.map'],
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -229,8 +234,13 @@ export default defineConfig({
     }
   },
   vite: {
+    // Strip console/debugger during the existing esbuild minify (prod only,
+    // so dev keeps its console). Replaces astro-compress's JS pass.
+    esbuild: process.env.NODE_ENV === 'production'
+      ? { drop: ['console', 'debugger'] }
+      : {},
     build: {
-      sourcemap: true, // Enable for better debugging and Lighthouse scores
+      sourcemap: false, // .map for 320 chunks bloats dist and slows rollup; no Lighthouse impact
       cssCodeSplit: true,
       rollupOptions: {
         output: {

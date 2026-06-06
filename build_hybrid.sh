@@ -15,7 +15,7 @@ NC='\033[0m'
 APP_NAME="takovibe"
 BUILD_DIR="dist"
 DEPLOY_DIR="/var/www/takovibe.com"
-NODE_ENTRY="$DEPLOY_DIR/server/entry.mjs"
+NODE_ENTRY="$DEPLOY_DIR/dist/server/entry.mjs"
 NPM_CACHE="/home/ubuntu/.npm-cache"
 
 log() { echo -e "${GREEN}[$(date '+%F %T')] $1${NC}"; }
@@ -86,27 +86,23 @@ deploy() {
 }
 
 restart_server() {
-  if [ -f "$NODE_ENTRY" ]; then
-    log "Restarting PM2..."
-    if pm2 list | grep -q "$APP_NAME"; then
-      pm2 restart "$APP_NAME" --update-env
-    else
-      pm2 start "$NODE_ENTRY" --name "$APP_NAME"
-    fi
-    pm2 save
+  # After a successful build+deploy the entry MUST exist. If it doesn't, the
+  # deploy is broken — fail loudly rather than serving stale code.
+  [ -f "$NODE_ENTRY" ] || error "Server entry not found ($NODE_ENTRY) — build/deploy is broken"
+
+  if pm2 list | grep -q "$APP_NAME"; then
+    log "Reloading PM2 (zero-downtime)..."
+    pm2 reload "$APP_NAME" --update-env
   else
-    warn "Server entry not found ($NODE_ENTRY)"
+    log "Starting PM2..."
+    pm2 start "$NODE_ENTRY" --name "$APP_NAME"
   fi
+  pm2 save
 }
 
 reload_nginx() {
   log "Reloading Nginx..."
   sudo nginx -t && sudo systemctl reload nginx || warn "Nginx reload failed"
-}
-
-reload_pm2() {
-  log "Reloading PM2"
-  pm2 restart takovibe
 }
 
 main() {
@@ -120,7 +116,6 @@ main() {
   deploy
   restart_server
   reload_nginx
-  reload_pm2
   log "✅ Finished in $(($(date +%s) - start))s"
   echo -e "${YELLOW}Live at https://takovibe.com${NC}"
 }
