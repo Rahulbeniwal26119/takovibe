@@ -19,12 +19,22 @@ const toolsNav = [
   { href: "https://codediff.takovibe.com/", label: "CodeDiff", description: "Also from TakoVibe" },
 ];
 
-const mobileNav = [...mainNav, ...toolsNav];
+const relatedNav = [
+  { href: "/why-takovibe", label: "Why TakoVibe", description: "What this place is built around" },
+  { href: "/changelog", label: "Changelog", description: "Recent product and site updates" },
+  { href: "/saved", label: "Saved Articles", description: "Return to bookmarked reads" },
+  { href: "/contact", label: "Contact", description: "Send feedback or ideas" },
+  { href: "/privacy", label: "Privacy", description: "How data is handled" },
+  { href: "/terms", label: "Terms", description: "Service rules and policies" },
+];
+
+const mobileNav = [...mainNav, ...toolsNav, ...relatedNav];
 
 const isActivePath = (href: string) =>
   href === "/" ? currentPath === "/" : href.startsWith("/") && currentPath.startsWith(href);
 
 const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
+const hasActiveRelatedItem = relatedNav.some((item) => isActivePath(item.href));
 ---
 
 <header
@@ -95,6 +105,42 @@ const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
             class="absolute left-1/2 top-full mt-3 hidden w-72 -translate-x-1/2 overflow-hidden rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 bg-neutral-50/95 dark:bg-neutral-950/95 shadow-xl shadow-neutral-900/10 dark:shadow-black/30 backdrop-blur-xl p-2"
           >
             {toolsNav.map((item) => (
+              <a
+                href={item.href}
+                role="menuitem"
+                class="block rounded-xl px-4 py-3 transition-colors text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800/50 hover:text-neutral-900 dark:hover:text-neutral-50"
+              >
+                <span class="block text-sm font-bold">{item.label}</span>
+                <span class="mt-0.5 block text-xs text-neutral-500 dark:text-neutral-500">{item.description}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+
+        <div class="relative">
+          <button
+            id="desktop-more-btn"
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded="false"
+            class={`px-4 py-2 text-sm font-semibold rounded-full transition-all duration-300 whitespace-nowrap inline-flex items-center gap-1.5 ${
+              hasActiveRelatedItem
+                ? "text-orange-600 dark:text-orange-400 bg-neutral-50 dark:bg-neutral-800/20"
+                : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-50 hover:bg-neutral-100/50 dark:hover:bg-neutral-800/[0.03]"
+            }`}
+          >
+            More
+            <svg class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+
+          <div
+            id="desktop-more-menu"
+            role="menu"
+            class="absolute left-1/2 top-full mt-3 hidden w-72 -translate-x-1/2 overflow-hidden rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 bg-neutral-50/95 dark:bg-neutral-950/95 shadow-xl shadow-neutral-900/10 dark:shadow-black/30 backdrop-blur-xl p-2"
+          >
+            {relatedNav.map((item) => (
               <a
                 href={item.href}
                 role="menuitem"
@@ -445,6 +491,8 @@ const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
     const closeBtn = document.querySelector("#closeDrawerBtn");
     const desktopToolsBtn = document.getElementById("desktop-tools-btn");
     const desktopToolsMenu = document.getElementById("desktop-tools-menu");
+    const desktopMoreBtn = document.getElementById("desktop-more-btn");
+    const desktopMoreMenu = document.getElementById("desktop-more-menu");
 
     // Search elements
     const searchTriggerBtn = document.getElementById("searchTriggerBtn");
@@ -480,6 +528,12 @@ const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
       desktopToolsBtn?.querySelector("svg")?.classList.remove("rotate-180");
     }
 
+    function closeDesktopMore() {
+      desktopMoreMenu?.classList.add("hidden");
+      desktopMoreBtn?.setAttribute("aria-expanded", "false");
+      desktopMoreBtn?.querySelector("svg")?.classList.remove("rotate-180");
+    }
+
     function toggleDesktopTools() {
       if (!desktopToolsMenu || !desktopToolsBtn) return;
 
@@ -487,6 +541,17 @@ const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
       desktopToolsMenu.classList.toggle("hidden", isOpen);
       desktopToolsBtn.setAttribute("aria-expanded", String(!isOpen));
       desktopToolsBtn.querySelector("svg")?.classList.toggle("rotate-180", !isOpen);
+      if (!isOpen) closeDesktopMore();
+    }
+
+    function toggleDesktopMore() {
+      if (!desktopMoreMenu || !desktopMoreBtn) return;
+
+      const isOpen = !desktopMoreMenu.classList.contains("hidden");
+      desktopMoreMenu.classList.toggle("hidden", isOpen);
+      desktopMoreBtn.setAttribute("aria-expanded", String(!isOpen));
+      desktopMoreBtn.querySelector("svg")?.classList.toggle("rotate-180", !isOpen);
+      if (!isOpen) closeDesktopTools();
     }
 
     function openSearch() {
@@ -545,6 +610,11 @@ const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
       toggleDesktopTools();
     });
 
+    desktopMoreBtn?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleDesktopMore();
+    });
+
     // Search Triggers
     searchTriggerBtn?.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -577,6 +647,15 @@ const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
         closeDesktopTools();
       }
 
+      if (
+        desktopMoreMenu &&
+        desktopMoreBtn &&
+        !desktopMoreMenu.contains(target) &&
+        !desktopMoreBtn.contains(target)
+      ) {
+        closeDesktopMore();
+      }
+
       // Close if clicking outside header when search is open
       const header = document.getElementById("site-header");
       const fullSearch = document.getElementById("full-header-search");
@@ -595,6 +674,7 @@ const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
         closeDrawer();
         closeSearch();
         closeDesktopTools();
+        closeDesktopMore();
       }
 
       if ((e.metaKey || e.ctrlKey) && e.key === "/") {

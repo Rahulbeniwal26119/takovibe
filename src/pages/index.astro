@@ -62,28 +62,6 @@ const workspacePowers = [
 const toolSuite = [
   {
     number: "01",
-    title: "ResumeVibe",
-    label: "Career tool",
-    href: "https://resumevibe.takovibe.com/",
-    cta: "Open ResumeVibe",
-    copy: "Audit the resume before a recruiter does. Tighten the story, expose weak bullets, and tune the version for the role.",
-    proof: "Score, gaps, rewrites, and role fit in one pass.",
-    items: ["ATS clarity", "Bullet rewrites", "Role match"],
-    accent: "from-orange-500/25 via-orange-400/5 to-transparent",
-  },
-  {
-    number: "02",
-    title: "CodeDiff",
-    label: "Review tool",
-    href: "https://codediff.takovibe.com/",
-    cta: "Open CodeDiff",
-    copy: "Make code review less noisy. Compare a patch, follow the reasoning, and turn a diff into a clearer engineering conversation.",
-    proof: "Side-by-side review with the important changes pulled forward.",
-    items: ["Patch focus", "Change notes", "Shareable review"],
-    accent: "from-sky-500/25 via-sky-400/5 to-transparent",
-  },
-  {
-    number: "03",
     title: "Reader",
     label: "Learning tool",
     href: "/reader",
@@ -94,7 +72,7 @@ const toolSuite = [
     accent: "from-emerald-500/20 via-emerald-400/5 to-transparent",
   },
   {
-    number: "04",
+    number: "02",
     title: "Sketch Notes",
     label: "Thinking tool",
     href: "/notes",
@@ -105,7 +83,18 @@ const toolSuite = [
     accent: "from-rose-500/20 via-rose-400/5 to-transparent",
   },
   {
-    number: "05",
+    number: "03",
+    title: "ResumeVibe",
+    label: "Career tool",
+    href: "https://resumevibe.takovibe.com/",
+    cta: "Open ResumeVibe",
+    copy: "Audit the resume before a recruiter does. Tighten the story, expose weak bullets, and tune the version for the role.",
+    proof: "Score, gaps, rewrites, and role fit in one pass.",
+    items: ["ATS clarity", "Bullet rewrites", "Role match"],
+    accent: "from-orange-500/25 via-orange-400/5 to-transparent",
+  },
+  {
+    number: "04",
     title: "Learning Tasks",
     label: "Planning tool",
     href: "/tasks",
@@ -116,7 +105,7 @@ const toolSuite = [
     accent: "from-violet-500/20 via-violet-400/5 to-transparent",
   },
   {
-    number: "06",
+    number: "05",
     title: "Playground",
     label: "Code tool",
     href: "/playground",
@@ -140,10 +129,10 @@ const toolSuite = [
     <section class="relative isolate overflow-hidden border-b border-black/10 dark:border-white/10">
       <div class="hero-grid absolute inset-0 -z-20 opacity-60 dark:opacity-35"></div>
 
-      <div class="mx-auto grid min-h-[calc(100vh-5rem)] max-w-[1440px] gap-10 px-5 pb-14 pt-16 sm:px-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(22rem,0.72fr)] lg:items-center lg:gap-16 lg:px-12 lg:pb-16 lg:pt-20 xl:grid-cols-[minmax(0,0.88fr)_minmax(28rem,0.68fr)]">
-        <div class="min-w-0 max-w-3xl">
+      <div class="mx-auto grid min-h-[calc(100vh-5rem)] max-w-[1440px] gap-10 px-5 pb-14 pt-16 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,0.66fr)] lg:items-center lg:gap-12 lg:px-12 lg:pb-16 lg:pt-20 xl:grid-cols-[minmax(0,1fr)_minmax(30rem,0.58fr)] xl:gap-16">
+        <div class="min-w-0 max-w-4xl">
           <p class="home-kicker home-rise">A publication for working engineers</p>
-          <h1 class="home-rise home-delay-1 mt-7 max-w-[9.5ch] font-display text-[clamp(3.25rem,6.4vw,6.7rem)] font-extrabold leading-[0.92]">
+          <h1 class="home-rise home-delay-1 mt-7 max-w-[9.5ch] font-display text-[clamp(3.25rem,5.7vw,6.1rem)] font-extrabold leading-[0.92] 2xl:text-[6.35rem]">
             <span class="block">The reasoning</span>
             <span class="block">behind real</span>
             <span class="block">systems.</span>
@@ -188,7 +177,7 @@ const toolSuite = [
 
         <div class="home-rise home-delay-2 min-w-0 lg:justify-self-end">
           {latestPost ? (
-            <a href={`/blog/${latestPost.slug}`} class="featured-article group block w-full max-w-[34rem] overflow-hidden rounded-[1.75rem] border border-black/10 bg-[#181713] text-stone-100 shadow-2xl shadow-orange-950/15 transition hover:-translate-y-1 hover:shadow-orange-950/25 dark:border-white/10">
+            <a href={`/blog/${latestPost.slug}`} class="featured-article group block w-full max-w-[32rem] overflow-hidden rounded-[1.75rem] border border-black/10 bg-[#181713] text-stone-100 shadow-2xl shadow-orange-950/15 transition hover:-translate-y-1 hover:shadow-orange-950/25 dark:border-white/10 2xl:max-w-[34rem]">
               {latestPost.image_url ? (
                 <img src={`${latestPost.image_url}?tr=w-800`} alt="" class="h-52 w-full object-cover opacity-85 transition duration-500 group-hover:opacity-100 sm:h-60 xl:h-72" />
               ) : (
