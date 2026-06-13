@@ -59,63 +59,13 @@ const workspacePowers = [
   },
 ];
 
-const toolSuite = [
-  {
-    number: "01",
-    title: "Reader",
-    label: "Learning tool",
-    href: "/reader",
-    cta: "Open Reader",
-    copy: "Read EPUBs in a calmer workspace with progress, colored highlights, translation, memory notes, and Kumi nearby.",
-    proof: "Books become a study surface instead of another forgotten tab.",
-    items: ["EPUB reading", "Highlights", "Kumi context"],
-    accent: "from-emerald-500/20 via-emerald-400/5 to-transparent",
-  },
-  {
-    number: "02",
-    title: "Sketch Notes",
-    label: "Thinking tool",
-    href: "/notes",
-    cta: "Open Notes",
-    copy: "Capture the system visually while you learn it. Keep diagrams close enough to the source that they still make sense later.",
-    proof: "Boxes, arrows, and notes for the model forming in your head.",
-    items: ["System maps", "Source memory", "Visual notes"],
-    accent: "from-rose-500/20 via-rose-400/5 to-transparent",
-  },
-  {
-    number: "03",
-    title: "ResumeVibe",
-    label: "Career tool",
-    href: "https://resumevibe.takovibe.com/",
-    cta: "Open ResumeVibe",
-    copy: "Audit the resume before a recruiter does. Tighten the story, expose weak bullets, and tune the version for the role.",
-    proof: "Score, gaps, rewrites, and role fit in one pass.",
-    items: ["ATS clarity", "Bullet rewrites", "Role match"],
-    accent: "from-orange-500/25 via-orange-400/5 to-transparent",
-  },
-  {
-    number: "04",
-    title: "Learning Tasks",
-    label: "Planning tool",
-    href: "/tasks",
-    cta: "Open Tasks",
-    copy: "Turn reading goals into a plan. Filter by priority, collection, and date, then log the hours you actually spent.",
-    proof: "A lightweight command center for deliberate technical practice.",
-    items: ["Priorities", "Collections", "Time logs"],
-    accent: "from-violet-500/20 via-violet-400/5 to-transparent",
-  },
-  {
-    number: "05",
-    title: "Playground",
-    label: "Code tool",
-    href: "/playground",
-    cta: "Open Playground",
-    copy: "Run Python, JavaScript, Go, Rust, or front-end experiments in the browser and share the result without setup.",
-    proof: "Small runnable artifacts for posts, demos, and quick checks.",
-    items: ["Multi-language", "Browser run", "Share output"],
-    accent: "from-amber-500/20 via-amber-400/5 to-transparent",
-  },
+const proofStats = [
+  { value: "Run", label: "code beside ideas" },
+  { value: "Sketch", label: "systems as they form" },
+  { value: "Ask", label: "without losing context" },
 ];
+
+const toolConstellation = ["Reader", "Notes", "Tasks", "Code", "Diff", "Resume"];
 ---
 
 <Layout
@@ -128,20 +78,32 @@ const toolSuite = [
   <div class="home-shell min-h-screen overflow-hidden bg-[#f4f0e8] text-neutral-950 dark:bg-[#11100e] dark:text-stone-100">
     <section class="relative isolate overflow-hidden border-b border-black/10 dark:border-white/10">
       <div class="hero-grid absolute inset-0 -z-20 opacity-60 dark:opacity-35"></div>
+      <svg class="home-hero-map absolute inset-0 -z-10 h-full w-full opacity-80 dark:opacity-55" viewBox="0 0 1440 860" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="home-hero-flow" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0" stop-color="#34d399"></stop>
+            <stop offset=".32" stop-color="#38bdf8"></stop>
+            <stop offset=".68" stop-color="#fb923c"></stop>
+            <stop offset="1" stop-color="#f43f5e"></stop>
+          </linearGradient>
+        </defs>
+        <path class="home-flow-line" d="M-80 232C164 80 252 438 472 260s322-250 550-58 280 180 518 18" fill="none" stroke="url(#home-hero-flow)" stroke-width="4"></path>
+        <path class="home-flow-line home-flow-delay" d="M-120 664C130 456 326 760 544 548s372-236 568-70 274 116 440-44" fill="none" stroke="url(#home-hero-flow)" stroke-width="4"></path>
+      </svg>
 
-      <div class="mx-auto grid min-h-[calc(100vh-5rem)] max-w-[1440px] gap-10 px-5 pb-14 pt-16 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,0.66fr)] lg:items-center lg:gap-12 lg:px-12 lg:pb-16 lg:pt-20 xl:grid-cols-[minmax(0,1fr)_minmax(30rem,0.58fr)] xl:gap-16">
+      <div class="mx-auto grid min-h-[calc(100vh-5rem)] max-w-[1440px] gap-8 px-5 pb-12 pt-14 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.56fr)] lg:items-center lg:gap-10 lg:px-12 lg:pb-16 lg:pt-20 xl:grid-cols-[minmax(0,1fr)_minmax(26rem,0.48fr)] xl:gap-14">
         <div class="min-w-0 max-w-4xl">
           <p class="home-kicker home-rise">A publication for working engineers</p>
-          <h1 class="home-rise home-delay-1 mt-7 max-w-[9.5ch] font-display text-[clamp(3.25rem,5.7vw,6.1rem)] font-extrabold leading-[0.92] 2xl:text-[6.35rem]">
+          <h1 class="home-rise home-delay-1 mt-7 max-w-[9.5ch] font-display text-[clamp(2.8rem,12vw,6.1rem)] font-extrabold leading-[0.92] sm:text-[clamp(3.25rem,5.7vw,6.1rem)] 2xl:text-[6.35rem]">
             <span class="block">The reasoning</span>
             <span class="block">behind real</span>
             <span class="block">systems.</span>
           </h1>
-          <p class="home-rise home-delay-2 mt-9 max-w-2xl text-lg leading-8 text-neutral-700 dark:text-stone-300 sm:text-xl sm:leading-9">
+          <p class="home-rise home-delay-2 mt-7 max-w-2xl text-base leading-7 text-neutral-700 dark:text-stone-300 sm:mt-9 sm:text-xl sm:leading-9">
             One deep technical piece at a time: the claim, the tradeoff, the
             runnable artifact, and the questions that make the system click.
           </p>
-          <form id="home-newsletter-form" class="home-rise home-delay-3 mt-9 max-w-xl">
+          <form id="home-newsletter-form" class="home-rise home-delay-3 mt-7 max-w-xl sm:mt-9">
             <label for="home-newsletter-email" class="sr-only">Email address</label>
             <div class="flex flex-col gap-3 rounded-2xl border border-black/10 bg-white/70 p-2 shadow-xl shadow-orange-950/5 backdrop-blur dark:border-white/10 dark:bg-white/[0.045] sm:flex-row">
               <input
@@ -173,29 +135,54 @@ const toolSuite = [
               Latest issue
             </a>
           </div>
+          <div class="home-rise home-delay-3 mt-8 grid max-w-2xl gap-px overflow-hidden rounded-lg border border-black/10 bg-black/10 dark:border-white/10 dark:bg-white/10 min-[520px]:grid-cols-3 sm:mt-10">
+            {proofStats.map((stat) => (
+              <div class="home-stat bg-[#f7f4ed]/90 p-4 backdrop-blur dark:bg-[#151412]/85">
+                <div class="font-display text-2xl font-bold text-neutral-950 dark:text-white">{stat.value}</div>
+                <div class="mt-1 text-xs font-bold uppercase tracking-[0.12em] text-neutral-500 dark:text-stone-500">{stat.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div class="home-rise home-delay-2 min-w-0 lg:justify-self-end">
           {latestPost ? (
-            <a href={`/blog/${latestPost.slug}`} class="featured-article group block w-full max-w-[32rem] overflow-hidden rounded-[1.75rem] border border-black/10 bg-[#181713] text-stone-100 shadow-2xl shadow-orange-950/15 transition hover:-translate-y-1 hover:shadow-orange-950/25 dark:border-white/10 2xl:max-w-[34rem]">
+            <a href={`/blog/${latestPost.slug}`} class="featured-article group relative mx-auto block w-full max-w-[23rem] overflow-hidden rounded-lg border border-black/10 bg-[#181713] text-stone-100 shadow-2xl shadow-orange-950/15 transition hover:-translate-y-1 hover:shadow-orange-950/25 dark:border-white/10 sm:max-w-[26rem] xl:max-w-[28rem]">
+              <svg class="absolute inset-0 h-full w-full opacity-45" viewBox="0 0 520 620" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                  <pattern id="featured-grid" width="34" height="34" patternUnits="userSpaceOnUse">
+                    <path d="M34 0H0v34" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="1"></path>
+                  </pattern>
+                </defs>
+                <rect width="520" height="620" fill="url(#featured-grid)"></rect>
+                <path class="home-flow-line" d="M-20 152C80 42 158 226 252 128s170-116 300 8" fill="none" stroke="#fb923c" stroke-width="3"></path>
+                <path class="home-flow-line home-flow-delay" d="M-30 478c112-118 198 48 310-70s160-90 278-12" fill="none" stroke="#38bdf8" stroke-width="3"></path>
+              </svg>
               {latestPost.image_url ? (
-                <img src={`${latestPost.image_url}?tr=w-800`} alt="" class="h-52 w-full object-cover opacity-85 transition duration-500 group-hover:opacity-100 sm:h-60 xl:h-72" />
+                <img src={`${latestPost.image_url}?tr=w-800`} alt="" class="relative h-40 w-full object-cover opacity-85 transition duration-500 group-hover:scale-[1.02] group-hover:opacity-100 sm:h-48 xl:h-52" />
               ) : (
-                <div class="h-52 bg-[radial-gradient(circle_at_30%_20%,rgba(249,115,22,0.35),transparent_28%),linear-gradient(135deg,#181713,#2b2119)] sm:h-60 xl:h-72"></div>
+                <div class="relative h-40 bg-[linear-gradient(135deg,#181713,#2b2119)] sm:h-48 xl:h-52"></div>
               )}
-              <div class="p-6 xl:p-7">
+              <div class="relative p-4 sm:p-5 xl:p-6">
                 <div class="flex flex-wrap gap-2 text-[10px] font-bold uppercase text-orange-300">
                   <span>Latest article</span>
                   <span class="text-stone-600">/</span>
                   <span>{latestPost.tags?.[0] || "Engineering"}</span>
                 </div>
-                <h2 class="mt-4 line-clamp-3 font-display text-3xl font-bold leading-tight xl:text-4xl">
+                <h2 class="mt-3 line-clamp-3 font-display text-2xl font-bold leading-tight sm:text-3xl">
                   {latestPost.title}
                 </h2>
-                <p class="mt-4 line-clamp-2 text-sm leading-6 text-stone-400">
+                <p class="mt-3 line-clamp-2 text-sm leading-6 text-stone-400">
                   {latestPost.description}
                 </p>
-                <span class="home-product-link mt-7 text-orange-300">
+                <div class="mt-5 grid gap-2 border-y border-white/10 py-3 min-[420px]:grid-cols-3">
+                  {toolConstellation.slice(0, 3).map((tool) => (
+                    <span class="rounded-lg border border-white/10 bg-white/[0.05] px-3 py-2 text-center text-[10px] font-black uppercase tracking-[0.14em] text-stone-300">
+                      {tool}
+                    </span>
+                  ))}
+                </div>
+                <span class="home-product-link mt-5 text-orange-300">
                   Read the piece
                   <svg viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M5 12h13m-5-5 5 5-5 5"></path>
@@ -208,6 +195,13 @@ const toolSuite = [
               <p class="home-kicker text-orange-700 dark:text-orange-300">Next issue</p>
               <h2 class="mt-5 font-display text-4xl font-bold">A deep-dive is being prepared.</h2>
               <p class="mt-4 text-neutral-600 dark:text-stone-400">Subscribe now and start with the full library while the next piece lands.</p>
+              <div class="mt-8 grid gap-2 sm:grid-cols-2">
+                {toolConstellation.map((tool) => (
+                  <span class="rounded-lg border border-black/10 bg-white/70 px-3 py-2 text-xs font-bold uppercase text-neutral-600 dark:border-white/10 dark:bg-white/[0.05] dark:text-stone-300">
+                    {tool}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -235,6 +229,10 @@ const toolSuite = [
           </div>
 
           <div class="workspace-frame relative overflow-hidden rounded-[1.75rem] border border-black/10 bg-[#181713] text-stone-100 shadow-2xl shadow-orange-950/15 dark:border-white/10">
+            <svg class="absolute inset-0 h-full w-full opacity-25" viewBox="0 0 980 620" preserveAspectRatio="none" aria-hidden="true">
+              <path class="home-flow-line" d="M-40 500C148 352 282 592 446 380s334-240 574-70" fill="none" stroke="#34d399" stroke-width="4"></path>
+              <path class="home-flow-line home-flow-delay" d="M-64 146C128 42 270 236 438 142s326-76 594 118" fill="none" stroke="#fb923c" stroke-width="4"></path>
+            </svg>
             <div class="flex items-center justify-between border-b border-white/10 px-4 py-3 sm:px-5">
               <div class="flex items-center gap-2">
                 <span class="h-2.5 w-2.5 rounded-full bg-orange-500"></span>
@@ -280,13 +278,15 @@ const toolSuite = [
                     <span class="text-orange-400">+</span>
                   </div>
                   <div class="mt-5 rounded-xl border border-white/10 bg-white/[0.035] p-4">
-                    <div class="flex items-center justify-between gap-2 text-[10px] font-bold uppercase text-stone-300">
-                      <span class="rounded-lg border border-orange-400/30 bg-orange-400/10 px-2 py-2">API</span>
-                      <span class="text-orange-400">-&gt;</span>
-                      <span class="rounded-lg border border-amber-400/30 bg-amber-400/10 px-2 py-2">Queue</span>
-                      <span class="text-orange-400">-&gt;</span>
-                      <span class="rounded-lg border border-white/10 px-2 py-2">Worker</span>
-                    </div>
+                    <svg class="h-28 w-full" viewBox="0 0 360 120" aria-hidden="true">
+                      <rect x="12" y="24" width="72" height="44" rx="9" fill="rgba(251,146,60,.12)" stroke="rgba(251,146,60,.62)"></rect>
+                      <rect x="144" y="50" width="78" height="44" rx="9" fill="rgba(245,158,11,.12)" stroke="rgba(245,158,11,.62)"></rect>
+                      <rect x="276" y="24" width="72" height="44" rx="9" fill="rgba(52,211,153,.1)" stroke="rgba(52,211,153,.56)"></rect>
+                      <path class="home-flow-line" d="M84 46C110 42 122 70 144 72M222 72c26 2 30-24 54-26" fill="none" stroke="#fb923c" stroke-width="3" stroke-linecap="round"></path>
+                      <text x="31" y="52" fill="#fdba74" font-size="12" font-weight="800">API</text>
+                      <text x="164" y="78" fill="#fcd34d" font-size="12" font-weight="800">Queue</text>
+                      <text x="292" y="52" fill="#6ee7b7" font-size="12" font-weight="800">Work</text>
+                    </svg>
                     <p class="mt-4 text-xs leading-5 text-stone-500">
                       Buffer the spike. Keep consumers moving at a sustainable rate.
                     </p>
@@ -332,6 +332,9 @@ queue.buffer(incoming - capacity);</code></pre>
           {workspacePowers.map((power, index) => (
             <div class="product-card relative min-h-[17rem] overflow-hidden bg-[#f4f0e8] p-5 dark:bg-[#12110f] sm:p-6">
               <div class="absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-orange-500/20 via-orange-400/5 to-transparent"></div>
+              <svg class="absolute inset-x-0 top-0 h-32 w-full opacity-60" viewBox="0 0 320 130" preserveAspectRatio="none" aria-hidden="true">
+                <path class="home-flow-line" d="M-30 84C48 18 108 128 178 62s104-48 176-2" fill="none" stroke={index % 2 === 0 ? "#fb923c" : "#38bdf8"} stroke-width="3"></path>
+              </svg>
               <div class="relative flex h-full flex-col">
                 <div class="flex items-center justify-between gap-3">
                   <span class="font-mono text-xs text-orange-700 dark:text-orange-300">0{index + 1}</span>
@@ -396,66 +399,57 @@ queue.buffer(incoming - capacity);</code></pre>
     </section>
 
     <section class="border-y border-black/10 bg-[#181713] px-5 py-20 text-stone-100 dark:border-white/10 sm:px-8 sm:py-28 lg:px-12">
-      <div class="mx-auto max-w-[1440px]">
-        <div class="grid gap-8 lg:grid-cols-[0.8fr_1fr] lg:items-end">
-          <div>
-            <p class="home-kicker text-orange-300">Tools worth showcasing</p>
-            <h2 class="mt-5 max-w-3xl font-display text-4xl font-extrabold leading-[0.98] sm:text-6xl">
-              Give the tools their own stage.
-            </h2>
-          </div>
-          <div class="max-w-2xl lg:justify-self-end">
-            <p class="text-base leading-7 text-stone-400">
-              The publication can stay focused on technical writing without
-              hiding the products around it. Each tool solves a different job:
-              career polish, code review, reading, visual thinking, planning,
-              and runnable experiments.
-            </p>
-            <div class="mt-6 flex flex-wrap gap-3">
-              <a class="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-bold text-orange-700 transition hover:bg-orange-50" href="/reader">
-                Start with Reader
-              </a>
-              <a class="inline-flex items-center justify-center rounded-full border border-white/20 px-6 py-3 text-sm font-bold text-white transition hover:bg-white/10" href="/playground">
-                Try Playground
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <div class="mt-12 grid gap-px overflow-hidden rounded-lg border border-white/10 bg-white/10 md:grid-cols-2 xl:grid-cols-3">
-          {toolSuite.map((tool) => (
-            <a href={tool.href} class="showcase-card group relative flex min-h-[24rem] flex-col overflow-hidden bg-[#11100e] p-5 transition hover:bg-[#1f1b17] sm:p-6">
-              <div class={`absolute inset-x-0 top-0 h-40 bg-gradient-to-b ${tool.accent}`}></div>
-              <div class="relative flex h-full flex-col">
-                <div class="flex items-center justify-between gap-4 text-[10px] font-bold uppercase text-orange-300">
-                  <span>{tool.number}</span>
-                  <span class="text-right text-stone-400">{tool.label}</span>
-                </div>
-                <h3 class="mt-14 font-display text-4xl font-bold leading-tight text-white">{tool.title}</h3>
-                <p class="mt-4 text-sm leading-6 text-stone-400">{tool.copy}</p>
-
-                <div class="mt-7 border-y border-white/10 py-4">
-                  <p class="text-xs font-bold uppercase text-stone-500">What it gives you</p>
-                  <div class="mt-3 flex flex-wrap gap-2">
-                    {tool.items.map((item) => (
-                      <span class="rounded-full border border-white/10 px-3 py-1.5 text-[10px] font-bold uppercase text-stone-300">
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <p class="mt-5 text-sm leading-6 text-stone-300">{tool.proof}</p>
-                <span class="home-product-link mt-auto pt-8 text-orange-300">
-                  {tool.cta}
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M5 12h13m-5-5 5 5-5 5"></path>
-                  </svg>
-                </span>
-              </div>
+      <div class="mx-auto grid max-w-[1440px] gap-10 lg:grid-cols-[0.82fr_1fr] lg:items-center">
+        <div>
+          <p class="home-kicker text-orange-300">Tools worth showcasing</p>
+          <h2 class="mt-5 max-w-3xl font-display text-4xl font-extrabold leading-[0.98] sm:text-6xl">
+            The tool suite has its own page now.
+          </h2>
+          <p class="mt-6 max-w-2xl text-base leading-7 text-stone-400">
+            Reader, Sketch Notes, ResumeVibe, Tasks, Playground, and CodeDiff
+            now live together with richer detail, product visuals, workflows,
+            and direct paths into each tool.
+          </p>
+          <div class="mt-8 flex flex-wrap gap-3">
+            <a class="home-button home-button-primary" href="/tools">
+              Explore tools
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 12h13m-5-5 5 5-5 5"></path>
+              </svg>
             </a>
-          ))}
+            <a class="inline-flex items-center justify-center rounded-full border border-white/20 px-6 py-3 text-sm font-bold text-white transition hover:bg-white/10" href="/playground">
+              Try Playground
+            </a>
+          </div>
         </div>
+
+        <a href="/tools" class="group relative min-h-[28rem] overflow-hidden rounded-lg border border-white/10 bg-[#0f1311] p-5 shadow-2xl shadow-black/30 transition hover:-translate-y-1 hover:border-orange-300/40 sm:p-7">
+          <div class="absolute inset-0 opacity-35">
+            <svg class="h-full w-full" viewBox="0 0 720 520" preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <pattern id="home-tools-grid" width="42" height="42" patternUnits="userSpaceOnUse">
+                  <path d="M42 0H0v42" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="1"></path>
+                </pattern>
+                <linearGradient id="home-tools-line" x1="0" x2="1" y1="0" y2="1">
+                  <stop offset="0" stop-color="#34d399"></stop>
+                  <stop offset=".45" stop-color="#fb923c"></stop>
+                  <stop offset="1" stop-color="#38bdf8"></stop>
+                </linearGradient>
+              </defs>
+              <rect width="720" height="520" fill="url(#home-tools-grid)"></rect>
+              <path class="home-tool-dash" d="M94 112C210 42 258 194 356 152s154-70 278 20" fill="none" stroke="url(#home-tools-line)" stroke-width="3"></path>
+              <path class="home-tool-dash home-tool-delay" d="M84 380c110-108 184 18 268-68s160-156 290-76" fill="none" stroke="url(#home-tools-line)" stroke-width="3"></path>
+            </svg>
+          </div>
+          <div class="relative grid h-full gap-3 sm:grid-cols-2">
+            {["Reader", "Notes", "ResumeVibe", "Tasks", "Playground", "CodeDiff"].map((tool, index) => (
+              <div class="flex min-h-28 flex-col justify-between rounded-lg border border-white/10 bg-white/[0.055] p-4 backdrop-blur">
+                <span class="font-mono text-xs text-orange-300">0{index + 1}</span>
+                <span class="font-display text-2xl font-bold text-white">{tool}</span>
+              </div>
+            ))}
+          </div>
+        </a>
       </div>
     </section>
 
@@ -609,6 +603,54 @@ queue.buffer(incoming - capacity);</code></pre>
     text-transform: uppercase;
   }
 
+  .home-flow-line {
+    stroke-dasharray: 18 20;
+    animation: homeSignal 20s linear infinite;
+  }
+
+  .home-flow-delay {
+    animation-delay: -8s;
+  }
+
+  .home-hero-map {
+    mask-image: linear-gradient(to bottom, transparent, black 16%, black 86%, transparent);
+  }
+
+  .featured-article::after,
+  .workspace-frame::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.08) 42%, transparent 58%);
+    transform: translateX(-120%);
+    transition: transform 720ms ease;
+  }
+
+  .featured-article:hover::after,
+  .workspace-frame:hover::after {
+    transform: translateX(120%);
+  }
+
+  .home-stat,
+  .product-card {
+    transition:
+      transform 220ms ease,
+      background-color 220ms ease,
+      box-shadow 220ms ease;
+  }
+
+  .home-stat:hover,
+  .product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 24px 70px rgba(28, 25, 23, 0.08);
+  }
+
+  :global(.dark) .home-stat:hover,
+  :global(.dark) .product-card:hover {
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+  }
+
   .article-row {
     transition: 220ms ease;
   }
@@ -628,6 +670,15 @@ queue.buffer(incoming - capacity);</code></pre>
     width: 0.25rem;
     border-radius: 999px;
     background: #f97316;
+  }
+
+  .home-tool-dash {
+    stroke-dasharray: 16 18;
+    animation: homeToolFlow 18s linear infinite;
+  }
+
+  .home-tool-delay {
+    animation-delay: -7s;
   }
 
   .home-rise {
@@ -666,10 +717,29 @@ queue.buffer(incoming - capacity);</code></pre>
     }
   }
 
+  @keyframes homeToolFlow {
+    to {
+      stroke-dashoffset: -420;
+    }
+  }
+
+  @keyframes homeSignal {
+    to {
+      stroke-dashoffset: -520;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .home-marquee,
-    .home-rise {
+    .home-rise,
+    .home-tool-dash,
+    .home-flow-line {
       animation: none;
+    }
+
+    .featured-article::after,
+    .workspace-frame::after {
+      display: none;
     }
   }
 </style>

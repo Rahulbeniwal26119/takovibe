@@ -31,7 +31,7 @@ export default function ReaderHeader() {
                         className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-bold text-neutral-600 transition-colors hover:border-orange-300 hover:text-orange-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:border-orange-800 dark:hover:text-orange-400"
                     >
                         <ListTodo className="h-4 w-4" />
-                        Learning Tasks
+                        Tasks
                     </a>
                 </nav>
             </div>

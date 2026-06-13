@@ -69,6 +69,7 @@ import { getUser } from '../../utils/auth';
 import Link from '@tiptap/extension-link';
 import Youtube from '@tiptap/extension-youtube';
 import CharacterCount from '@tiptap/extension-character-count';
+import Placeholder from '@tiptap/extension-placeholder';
 
 // Initialize lowlight with common languages
 const lowlight = createLowlight(common);
@@ -215,7 +216,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
     };
 
     const titleRef = useRef<HTMLTextAreaElement>(null);
-    const descriptionRef = useRef<HTMLTextAreaElement>(null);
+    const subtitleRef = useRef<HTMLTextAreaElement>(null);
 
     // Auto-resize textareas (Robust: handles content change + window resize)
     const adjustTextareaHeight = useCallback(() => {
@@ -223,9 +224,9 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
             titleRef.current.style.height = 'auto';
             titleRef.current.style.height = `${titleRef.current.scrollHeight}px`;
         }
-        if (descriptionRef.current) {
-            descriptionRef.current.style.height = 'auto';
-            descriptionRef.current.style.height = `${descriptionRef.current.scrollHeight}px`;
+        if (subtitleRef.current) {
+            subtitleRef.current.style.height = 'auto';
+            subtitleRef.current.style.height = `${subtitleRef.current.scrollHeight}px`;
         }
     }, [frontmatter.title, frontmatter.description]);
 
@@ -251,7 +252,6 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
     const validateFrontmatter = () => {
         const errors: string[] = [];
         if (!frontmatter.title.trim()) errors.push('title');
-        if (!frontmatter.description.trim()) errors.push('description');
         if (!frontmatter.author.trim()) errors.push('author');
         if (!frontmatter.date) errors.push('date');
         if (!frontmatter.slug.trim()) errors.push('slug');
@@ -432,6 +432,10 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                 nocookie: true,
             }),
             CharacterCount,
+            Placeholder.configure({
+                placeholder: 'Tell your story...',
+                showOnlyCurrent: false,
+            }),
             SlashCommand,
         ],
         content: initialContent?.content || initialContent || {
@@ -445,7 +449,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
         editorProps: {
             attributes: {
                 class:
-                    `prose prose-lg max-w-4xl mx-auto focus:outline-none h-full px-6 pb-4 dark:prose-invert light-mode-editor transition-all duration-500 ease-in-out`,
+                    `prose prose-lg max-w-none focus:outline-none min-h-[18rem] px-0 pb-4 dark:prose-invert light-mode-editor editor-writing-surface transition-all duration-500 ease-in-out`,
                 'data-gramm': 'false',
             },
             handleDrop: (view, event, slice, moved) => {
@@ -537,6 +541,11 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
     // Handle Save
     const handleSave = useCallback(async () => {
         if (!editor) return;
+        const description =
+            frontmatter.description.trim() ||
+            editor.getText().replace(/\s+/g, ' ').trim().slice(0, 180) ||
+            frontmatter.title.trim();
+        const frontmatterForSave = { ...frontmatter, description };
 
         // Validate before saving
         if (!validateFrontmatter()) {
@@ -548,7 +557,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
         setSaveError(null);
 
         try {
-            const data = { content: editor.getJSON(), frontmatter };
+            const data = { content: editor.getJSON(), frontmatter: frontmatterForSave };
 
             if (onSave) {
                 await onSave(data);
@@ -575,8 +584,8 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                 }
 
                 // Update frontmatter with server response (e.g. slug, date, id)
-                if (responseData.frontmatter) {
-                    setFrontmatter(prev => ({ ...prev, ...responseData.frontmatter }));
+            if (responseData.frontmatter) {
+                    setFrontmatter(prev => ({ ...prev, description, ...responseData.frontmatter }));
                 }
             }
 
@@ -602,8 +611,8 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
         if (!editor) return;
 
         // 1. Basic Content Validation
-        if (!frontmatter.title.trim() || !frontmatter.description.trim()) {
-            setSaveError("Please add a title and description.");
+        if (!frontmatter.title.trim() || !editor.getText().trim()) {
+            setSaveError("Please add a title and story.");
             setTimeout(() => setSaveError(null), 3000);
             return;
         }
@@ -800,11 +809,11 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
     const MenuButton = ({ onClick, icon: Icon, label }: any) => (
         <button
             onClick={onClick}
-            className="flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors w-full text-left text-neutral-600 dark:text-neutral-300 hover:bg-orange-50 hover:text-orange-700 dark:hover:bg-orange-950/30 dark:hover:text-orange-300"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-500 shadow-sm transition-colors hover:border-neutral-300 hover:text-neutral-900 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-400 dark:hover:border-neutral-600 dark:hover:text-neutral-100"
             title={label}
+            aria-label={label}
         >
             <Icon className="w-4 h-4" />
-            <span>{label}</span>
         </button>
     );
 
@@ -831,11 +840,11 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                 </div>
 
                 {/* Save Status Bar & Toolbar */}
-                <div className="sticky top-0 z-40 transition-all duration-500 backdrop-blur-xl border-b bg-stone-50/90 dark:bg-neutral-950/90 border-neutral-200 dark:border-neutral-800 opacity-100">
-                    <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
+                <div className="editor-top-shell fixed inset-x-0 top-0 z-40 px-4 pt-4 transition-all duration-500 pointer-events-none md:px-6">
+                    <div className="flex w-full items-start justify-between gap-4">
 
                         {/* Left: Logo & Status */}
-                        <div className="flex items-center gap-4">
+                        <div className="editor-top-island pointer-events-auto flex items-center gap-4">
                             <a href="/" className="flex items-center gap-2 group" title="Go to Dashboard">
                                 <img src="/images/logo.svg" alt="TakoVibe" className="w-8 h-8 rounded-full hover:rotate-12 transition-transform duration-300" />
                             </a>
@@ -866,7 +875,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                         </div>
 
                         {/* Right: Actions */}
-                        <div className="flex items-center gap-2 md:gap-3">
+                        <div className="editor-top-island pointer-events-auto flex items-center gap-2 md:gap-3">
 
                             {/* Shortcuts Toggle - Desktop Only */}
                             <button
@@ -928,7 +937,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                 {/* Scrollable Content Area */}
                 <div className="relative z-10 flex-1 overflow-y-auto w-full">
                     {/* Clean Title Input (Medium Style) */}
-                    <div className="max-w-4xl mx-auto w-full px-4 md:px-6 pt-10 pb-2 transition-all duration-500 ease-in-out">
+                    <div className="mx-auto w-full max-w-[860px] px-4 pt-8 pb-4 transition-all duration-500 ease-in-out md:px-6">
                         <textarea
                             ref={titleRef}
                             value={frontmatter.title}
@@ -937,21 +946,19 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                 setHasUnsavedChanges(true);
                                 if (validationErrors.includes('title')) setValidationErrors(prev => prev.filter(f => f !== 'title'));
                             }}
-                            className="w-full text-4xl md:text-5xl font-display font-bold bg-transparent border-none outline-none p-0 placeholder:text-neutral-300 dark:placeholder:text-neutral-700 text-neutral-900 dark:text-neutral-50 transition-all leading-tight mb-2 resize-none overflow-hidden"
+                            className="w-full bg-transparent border-none p-0 font-display text-4xl font-normal leading-tight text-neutral-900 outline-none placeholder:text-neutral-300 transition-all resize-none overflow-hidden dark:text-neutral-50 dark:placeholder:text-neutral-700 md:text-5xl"
                             placeholder="Title"
                             rows={1}
                         />
-
                         <textarea
-                            ref={descriptionRef}
+                            ref={subtitleRef}
                             value={frontmatter.description}
                             onChange={(e) => {
                                 setFrontmatter({ ...frontmatter, description: e.target.value });
                                 setHasUnsavedChanges(true);
-                                if (validationErrors.includes('description')) setValidationErrors(prev => prev.filter(f => f !== 'description'));
                             }}
-                            className="w-full text-xl bg-transparent border-none outline-none resize-none p-0 placeholder:text-neutral-400 dark:placeholder:text-neutral-600 text-neutral-600 dark:text-neutral-300 transition-all mb-4 resize-none overflow-hidden"
-                            placeholder="Tell your story..."
+                            className="mt-3 w-full resize-none overflow-hidden border-none bg-transparent p-0 text-xl leading-relaxed text-neutral-600 outline-none placeholder:text-neutral-400 transition-all dark:text-neutral-400 dark:placeholder:text-neutral-600 md:text-2xl"
+                            placeholder="Subtitle"
                             rows={1}
                         />
                     </div>
@@ -962,7 +969,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                         editor && (
                             <FloatingMenu
                                 editor={editor}
-                                tippyOptions={{ duration: 100 }}
+                                tippyOptions={{ duration: 100, placement: 'left-start', offset: [-8, 0] }}
                                 shouldShow={({ state }) => {
                                     const { selection } = state;
                                     const { $from } = selection;
@@ -974,17 +981,18 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                 <div className={`relative flex items-center ${isBodyUploading ? 'hidden' : ''}`}>
                                     <button
                                         onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                        className={`p-1 rounded-lg border transition-all duration-200 ${isMenuOpen
-                                            ? 'rotate-45 border-orange-300 text-orange-600 bg-white dark:bg-neutral-900 dark:text-orange-400 dark:border-orange-900/60'
-                                            : 'border-neutral-300 text-neutral-400 hover:border-orange-300 hover:text-orange-600 dark:border-neutral-700 dark:text-neutral-500 dark:hover:text-orange-400'
+                                        className={`flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-200 ${isMenuOpen
+                                            ? 'rotate-45 border-neutral-400 text-neutral-700 bg-white dark:border-neutral-500 dark:bg-neutral-950 dark:text-neutral-200'
+                                            : 'border-neutral-300 text-neutral-400 hover:border-neutral-400 hover:text-neutral-700 dark:border-neutral-700 dark:text-neutral-500 dark:hover:border-neutral-500 dark:hover:text-neutral-200'
                                             }`}
+                                        aria-label="Insert"
                                     >
                                         <Plus className="w-5 h-5" />
                                     </button>
 
                                     {isMenuOpen && (
-                                        <div className="absolute left-10 top-1/2 -translate-y-1/2 flex items-center gap-2 shadow-xl border rounded-lg p-2 animate-in fade-in slide-in-from-left-2 z-50 min-w-[200px] bg-white border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800">
-                                            <div className="flex flex-col gap-1 w-full">
+                                        <div className="absolute left-11 top-1/2 z-50 flex -translate-y-1/2 items-center gap-2 animate-in fade-in slide-in-from-left-2">
+                                            <div className="flex items-center gap-2">
                                                 <MenuButton onClick={() => openMediaInput('image')} icon={ImageIcon} label="Image" />
                                                 <MenuButton onClick={() => openMediaInput('video')} icon={YoutubeIcon} label="Embed Video" />
                                                 <MenuButton onClick={addQuiz} icon={HelpCircle} label="Quiz" />
@@ -1333,11 +1341,13 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                     )}
 
                     {/* Editor Content */}
-                    <EditorContent editor={editor} />
+                    <div className="editor-body-shell mx-auto w-full max-w-[860px] px-4 pt-8 md:px-6">
+                        <EditorContent editor={editor} />
+                    </div>
 
 
                     {/* Inline Status Info - Inside text flow */}
-                    <div className="max-w-4xl mx-auto w-full px-4 md:px-6 py-4 flex items-center gap-4 text-xs font-medium text-neutral-400 dark:text-neutral-500 transition-all duration-500 ease-in-out border-t border-neutral-200 dark:border-neutral-800 mt-8">
+                    <div className="mx-auto mt-10 flex w-full max-w-[860px] items-center gap-4 border-t border-neutral-200 px-4 py-4 text-xs font-medium text-neutral-400 transition-all duration-500 ease-in-out dark:border-neutral-800 dark:text-neutral-500 md:px-6">
                         {editor && (
                             <>
                                 <div className="flex items-center gap-1.5 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors">

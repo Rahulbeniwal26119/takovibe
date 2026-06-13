@@ -4,6 +4,7 @@ import { generateServerHtml } from "../utils/generateHtml";
 import Footer from "./Footer.astro";
 import RelatedPosts from "./RelatedPosts.astro";
 import MobileActionDock from "./MobileActionDock.astro";
+import ReaderToolbar from "./ReaderToolbar.astro";
 import TableOfContents from "./TableOfContents.astro";
 import SelectionPopover from "./SelectionPopover.astro";
 import DangerConfirmationModal from "./DangerConfirmationModal";
@@ -121,15 +122,6 @@ const breadcrumbStructuredData = {
     ],
 };
 
-const currentPath = Astro.url.pathname;
-const articleMainNav = [
-    { href: "/", label: "Home" },
-    { href: "/blog", label: "Blog" },
-    { href: "/series", label: "Series" },
-    { href: "/notes", label: "Notes" },
-    { href: "/playground", label: "Playground" },
-    { href: "https://resumevibe.takovibe.com/", label: "ResumeVibe" },
-];
 ---
 
 <Layout
@@ -148,85 +140,62 @@ const articleMainNav = [
             <div id="article-reading-context" data-article-id={post.id} class="hidden" aria-hidden="true" />
         )
     }
-    <!-- Smart Zen Navigation (Scroll-aware) -->
+    <!-- Floating island header (editor-style, scroll-aware) -->
     <nav
         id="zen-nav"
-        class="fixed left-0 right-0 top-0 z-[9999] pointer-events-auto px-3 pt-3 sm:px-5 sm:pt-5 transition-all duration-300 ease-in-out transform translate-y-0 opacity-100"
+        class="fixed inset-x-0 top-0 z-[9999] pointer-events-none px-4 pt-3 sm:px-6 sm:pt-5 transition-all duration-300 ease-in-out transform translate-y-0 opacity-100"
     >
-        <div class="relative isolate mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 rounded-lg border border-neutral-200/80 bg-stone-50/[0.96] px-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:border-neutral-800/80 dark:bg-neutral-950/[0.96] dark:shadow-black/20 sm:h-16 sm:px-3">
-            <!-- Trigger Button -->
-            <button
-                id="zen-menu-trigger"
-                class="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-neutral-200 bg-white text-neutral-900 transition-all duration-300 hover:border-orange-300 hover:text-orange-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white dark:hover:border-orange-700 dark:hover:text-orange-300 lg:hidden"
-                aria-label="Menu"
-            >
-                <svg
-                    class="w-5 h-5 text-current"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M4 6h16M4 12h16m-7 6h7"></path>
-                </svg>
-            </button>
-
+        <div class="mx-auto flex w-full max-w-[1500px] items-start justify-between gap-4">
+            <!-- Left island: brand -->
             <a
                 href="/"
-                class="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg px-1.5 py-1 transition-colors hover:bg-white/70 dark:hover:bg-neutral-900/70 sm:flex-none"
+                class="pointer-events-auto flex items-center gap-2.5 rounded-full border border-neutral-200/80 bg-stone-50/80 py-1.5 pl-1.5 pr-4 shadow-lg shadow-black/5 backdrop-blur-xl transition-colors hover:border-orange-300 dark:border-neutral-800/80 dark:bg-neutral-950/80 dark:shadow-black/20 dark:hover:border-orange-700"
                 aria-label="TakoVibe home"
             >
                 <img
                     src="/images/logo.svg"
                     alt=""
-                    class="h-8 w-8 shrink-0 rounded-full border border-neutral-200 bg-white object-cover dark:border-neutral-800"
+                    class="h-9 w-9 shrink-0 rounded-full border border-neutral-200 bg-white object-cover dark:border-neutral-800"
                 />
-                <div class="min-w-0">
-                    <div class="truncate text-sm font-bold leading-none text-neutral-950 dark:text-white sm:text-base">
+                <div class="hidden min-w-0 leading-none sm:block">
+                    <div class="truncate text-sm font-bold text-neutral-950 dark:text-white">
                         TakoVibe
                     </div>
-                    <div class="mt-1 hidden text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-500 sm:block">
+                    <div class="mt-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-500">
                         Article
                     </div>
                 </div>
             </a>
 
-            <div id="article-nav-links" class="hidden min-w-0 flex-1 items-center justify-center gap-1 px-3 lg:flex">
-                {
-                    articleMainNav.map((item) => (
-                        <a
-                            href={item.href}
-                            class={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
-                                item.href !== "https://resumevibe.takovibe.com/" &&
-                                (item.href === "/"
-                                    ? currentPath === "/"
-                                    : currentPath.startsWith(item.href))
-                                    ? "bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-300"
-                                    : "text-neutral-600 hover:bg-white hover:text-neutral-950 dark:text-neutral-300 dark:hover:bg-neutral-900 dark:hover:text-white"
-                            }`}
-                        >
-                            {item.label}
-                        </a>
-                    ))
-                }
-            </div>
-
-            <div id="article-nav-actions" class="flex shrink-0 items-center gap-2">
+            <!-- Right island: actions -->
+            <div class="pointer-events-auto relative flex items-center gap-1 rounded-full border border-neutral-200/80 bg-stone-50/80 px-1.5 py-1.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:border-neutral-800/80 dark:bg-neutral-950/80 dark:shadow-black/20">
                 <a
                     href="/post/new"
-                    class="hidden rounded-lg bg-orange-600 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-500 md:inline-flex"
+                    class="inline-flex items-center gap-1.5 rounded-full bg-orange-600 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-500"
                 >
-                    Write
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    <span class="hidden sm:inline">Write</span>
                 </a>
-            </div>
+
+                <div class="mx-0.5 h-6 w-px bg-neutral-200 dark:bg-neutral-800"></div>
+
+                <button
+                    id="zen-menu-trigger"
+                    class="grid h-9 w-9 shrink-0 place-items-center rounded-full text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-orange-600 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-orange-300"
+                    aria-label="Menu"
+                    aria-expanded="false"
+                >
+                    <svg class="w-5 h-5 text-current" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
 
             <!-- Dropdown Menu -->
             <div
                 id="zen-menu-dropdown"
-                class="absolute left-0 right-0 top-full z-[10000] mt-2 max-h-[calc(100vh-6rem)] overflow-y-auto rounded-lg border border-neutral-200 bg-white/[0.98] shadow-xl backdrop-blur-xl transform origin-top transition-all duration-200 opacity-0 scale-95 pointer-events-none dark:border-neutral-800 dark:bg-neutral-950/[0.98] sm:left-0 sm:right-auto sm:w-56 sm:origin-top-left"
+                class="absolute right-0 top-full z-[10000] mt-2 w-56 max-h-[calc(100vh-6rem)] overflow-y-auto rounded-2xl border border-neutral-200 bg-white/[0.98] shadow-xl backdrop-blur-xl transform origin-top-right transition-all duration-200 opacity-0 scale-95 pointer-events-none dark:border-neutral-800 dark:bg-neutral-950/[0.98]"
             >
                 <div class="grid gap-1 p-1.5 sm:block sm:space-y-1">
                     <a
@@ -460,6 +429,7 @@ const articleMainNav = [
                     </a>
                 </div>
             </div>
+            </div>
         </div>
     </nav>
 
@@ -491,15 +461,15 @@ const articleMainNav = [
             trigger.setAttribute("aria-expanded", String(isOpen));
         };
 
+        // The shell stays pointer-events-none so the gap between islands never
+        // blocks the article; only the islands themselves are interactive.
         const showNav = () => {
-            nav.classList.remove("-translate-y-24", "opacity-0", "pointer-events-none");
-            nav.classList.add("pointer-events-auto");
+            nav.classList.remove("-translate-y-24", "opacity-0");
         };
 
         const hideNav = () => {
             setMenuOpen(false);
-            nav.classList.add("-translate-y-24", "opacity-0", "pointer-events-none");
-            nav.classList.remove("pointer-events-auto");
+            nav.classList.add("-translate-y-24", "opacity-0");
         };
 
         trigger.addEventListener("click", (event) => {
@@ -618,86 +588,34 @@ const articleMainNav = [
                 </aside>
 
                     <!-- Main Article Content -->
-                    <article class="flex-1 min-w-0 max-w-4xl w-full" id="article">
+                    <article class="flex-1 min-w-0 w-full" id="article">
                     <!-- min-w-0 prevents flex overflow -->
 
                     <!-- Native Clean Header (No gradients) -->
-                    <header class="mb-10 pt-24 sm:pt-28 px-1 sm:px-0 border-b border-neutral-200 dark:border-neutral-800 pb-10">
-                        <div class="space-y-6">
-                            <!-- Series / Tags -->
-                            <div
-                                class="flex flex-wrap items-center gap-3 text-sm"
-                            >
-                                {
-                                    post.data.series && (
-                                        <a
-                                            href={`/series/${post.data.series.toLowerCase().replace(/\s+/g, "-")}`}
-                                            class="px-3 py-1 rounded-md bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300 font-medium hover:bg-orange-200 dark:hover:bg-orange-500/20 transition-colors"
-                                        >
-                                            {post.data.series}
-                                        </a>
-                                    )
-                                }
-
-                                <span
-                                    class="text-neutral-500 dark:text-neutral-400 font-mono text-xs uppercase tracking-wider"
-                                >
-                                    {
-                                        new Date(
-                                            post.data.date,
-                                        ).toLocaleDateString("en-US", {
-                                            month: "long",
-                                            day: "numeric",
-                                            year: "numeric",
-                                        })
-                                    }
-                                </span>
-                                <span class="text-neutral-300 dark:text-neutral-700"
-                                    >•</span
-                                >
-                                <span
-                                    class="text-neutral-500 dark:text-neutral-400 font-medium"
-                                >
-                                    {post.data.readingTime || "5 min read"}
-                                </span>
-
-                                <span class="text-neutral-300 dark:text-neutral-700">•</span>
-
-                                <!-- Immersive reading indicator + toggle (synced via data-focus-toggle) -->
-                                <button
-                                    type="button"
-                                    data-focus-toggle
-                                    aria-pressed="false"
-                                    aria-label="Immersive reading (press F)"
-                                    class="group relative inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-700 transition-colors hover:bg-orange-100 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-300 dark:hover:bg-orange-500/20"
-                                >
-                                    <svg class="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                    </svg>
-                                    <span>Immersive</span>
-                                    <kbd class="hidden sm:inline rounded bg-white/70 px-1 font-mono text-[10px] leading-4 text-orange-600 dark:bg-black/30 dark:text-orange-300">F</kbd>
-
-                                    <!-- Hover tooltip explaining what it does -->
-                                    <span
-                                        role="tooltip"
-                                        class="pointer-events-none absolute left-1/2 top-full z-20 mt-2 -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-lg bg-neutral-900 px-2.5 py-1.5 text-[11px] font-medium normal-case tracking-normal text-white opacity-0 shadow-xl transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100 dark:bg-neutral-800"
+                    <header class="mb-12 pt-24 sm:pt-28 px-1 sm:px-0">
+                        <div class="space-y-5">
+                            <!-- Series -->
+                            {
+                                post.data.series && (
+                                    <a
+                                        href={`/series/${post.data.series.toLowerCase().replace(/\s+/g, "-")}`}
+                                        class="inline-flex w-fit items-center rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700 transition-colors hover:bg-orange-100 dark:bg-orange-500/10 dark:text-orange-300 dark:hover:bg-orange-500/20"
                                     >
-                                        Distraction-free reading · press F
-                                    </span>
-                                </button>
-                            </div>
+                                        {post.data.series}
+                                    </a>
+                                )
+                            }
 
                             <!-- Title -->
                             <h1
-                                class="font-display text-[1.75rem] sm:text-[2rem] lg:text-[2.5rem] font-extrabold tracking-tight text-neutral-950 dark:text-neutral-50 leading-[1.1] mb-4 break-words"
+                                class="font-display text-4xl sm:text-5xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50 leading-[1.1] break-words"
                             >
                                 {post.data.title}
                             </h1>
 
                             {
                                 post.data.description && (
-                                    <p class="max-w-3xl text-base sm:text-lg leading-8 text-neutral-600 dark:text-neutral-400 line-clamp-3">
+                                    <p class="max-w-3xl text-xl sm:text-2xl leading-relaxed text-neutral-500 dark:text-neutral-400">
                                         {post.data.description}
                                     </p>
                                 )
@@ -719,10 +637,8 @@ const articleMainNav = [
                                 }
                             </div>
 
-                            <!-- Author Info (Reduced Prominence) -->
-                            <div
-                                class="flex items-center gap-4 pt-3"
-                            >
+                            <!-- Byline: author + meta on the left, reader actions on the right -->
+                            <div class="flex flex-wrap items-center justify-between gap-4 pt-1">
                                 <a
                                     href={`/profile/${post.authorUsername || post.data.author.toLowerCase().replace(/\s+/g, "-")}`}
                                     class="flex items-center gap-3 group/author"
@@ -732,47 +648,52 @@ const articleMainNav = [
                                     >
                                         {post.data.author.charAt(0)}
                                     </div>
-                                    <div class="flex flex-col text-left">
+                                    <div class="flex flex-col text-left leading-tight">
                                         <span
-                                            class="text-xs font-semibold text-neutral-900 dark:text-white group-hover/author:text-orange-500 transition-colors"
+                                            class="text-sm font-semibold text-neutral-900 dark:text-white group-hover/author:text-orange-500 transition-colors"
                                         >
                                             {post.data.author}
                                         </span>
-                                        <span
-                                            class="text-xs text-neutral-500 dark:text-neutral-400"
-                                        >
-                                            @{
-                                                post.authorUsername ||
-                                                    post.data.author
-                                                        .toLowerCase()
-                                                        .replace(/\s+/g, "")
+                                        <span class="text-xs text-neutral-500 dark:text-neutral-400">
+                                            {
+                                                new Date(
+                                                    post.data.date,
+                                                ).toLocaleDateString("en-US", {
+                                                    month: "long",
+                                                    day: "numeric",
+                                                    year: "numeric",
+                                                })
                                             }
+                                            {" · "}
+                                            {post.data.readingTime || "5 min read"}
                                         </span>
                                     </div>
                                 </a>
 
                                 <!-- Actions -->
-                                <div
-                                    class="ml-2 pl-4 border-l border-neutral-200 dark:border-neutral-800 flex items-center gap-2"
-                                >
+                                <div class="flex items-center gap-1">
+                                    <!-- Immersive reading toggle (synced via data-focus-toggle) -->
+                                    <button
+                                        type="button"
+                                        data-focus-toggle
+                                        aria-pressed="false"
+                                        aria-label="Immersive reading (press F)"
+                                        title="Immersive reading · press F"
+                                        class="p-2 text-neutral-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-500/10 rounded-lg border border-transparent transition-all"
+                                    >
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                    </button>
                                     <button
                                         class="save-btn p-2 text-neutral-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-500/10 rounded-lg border border-transparent transition-all"
                                         data-blog-id={post.slug}
                                         aria-label="Save for later"
                                         title="Save for Later"
                                     >
-                                        <svg
-                                            class="w-5 h-5"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
-                                            ></path>
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
                                         </svg>
                                     </button>
                                     {
@@ -784,18 +705,8 @@ const articleMainNav = [
                                                 aria-label="Add article to today's tasks"
                                                 title="Add to today's tasks"
                                             >
-                                                <svg
-                                                    class="w-5 h-5"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    viewBox="0 0 24 24"
-                                                >
-                                                    <path
-                                                        stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                        stroke-width="2"
-                                                        d="M12 6v6l4 2m5-2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                                    ></path>
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6l4 2m5-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                                 </svg>
                                             </button>
                                         )
@@ -874,6 +785,9 @@ const articleMainNav = [
                             </a>
                         </section>
 
+                        <!-- Support the author (revealed client-side when the author has a support link) -->
+                        <div id="support-sidebar-b-container" class="not-prose mt-4 hidden"></div>
+
                         <script>
                         async function loadSupportInfo() {
                             // Find username from profile link
@@ -897,7 +811,7 @@ const articleMainNav = [
                                 
                                 if (supportUrl) {
                                     // Render Sidebar Card
-                                    const sidebarContainers = document.querySelectorAll('#support-sidebar-container, #support-sidebar-b-container');
+                                    const sidebarContainers = document.querySelectorAll('#support-sidebar-b-container');
                                     sidebarContainers.forEach(container => {
                                         if (container) {
                                             container.innerHTML = `
@@ -931,141 +845,6 @@ const articleMainNav = [
                         document.addEventListener("astro:after-swap", loadSupportInfo);
                         </script>
                     </article>
-                    <!-- Footer (Moved outside for full width) -->
-
-
-                <aside
-                    id="article-tools-sidebar"
-                    class="sticky hidden max-h-[calc(100vh-8rem)] w-80 flex-shrink-0 overflow-y-auto px-1 text-left xl:block"
-                >
-                    {
-                        post.data.series ? (
-                            <div id="series-sidebar" class="space-y-6">
-                                <!-- Support Card (Revenue Focus - TOP LEVEL) -->
-                                <div id="support-sidebar-container" class="hidden"></div>
-
-                                <!-- Series Identity & Tools Hub -->
-                                <div class="relative group overflow-hidden rounded-lg border border-neutral-200/80 bg-white/60 dark:border-neutral-800 dark:bg-neutral-900/40">
-                                     <div class="p-4 pb-3">
-                                        <div class="flex items-center justify-between mb-3">
-                                            <span class="text-[9px] font-black uppercase tracking-[0.2em] text-orange-600 dark:text-orange-400">Series Context</span>
-                                            <span class="h-1.5 w-1.5 rounded-full bg-orange-500"></span>
-                                        </div>
-                                        <h3 class="text-sm font-bold text-neutral-900 dark:text-white leading-tight mb-4">
-                                            {post.data.series}
-                                        </h3>
-                                        <a
-                                            href={`/series/${post.data.series.toLowerCase().replace(/\s+/g, "-")}`}
-                                            class="inline-flex items-center gap-1.5 text-[10px] font-bold text-neutral-500 hover:text-orange-600 dark:text-neutral-400 dark:hover:text-orange-400 transition-colors uppercase tracking-wider"
-                                        >
-                                            Full Series Overview
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-                                            </svg>
-                                        </a>
-                                     </div>
-
-                                     <!-- Integrated Smart Toolbar -->
-                                     <div class="grid grid-cols-2 border-t border-neutral-200 dark:border-neutral-800 bg-stone-50/70 dark:bg-white/[0.02]">
-                                        <button
-                                            id="kumi-promo-card-series"
-                                            class="kumi-promo-trigger group flex items-center justify-center gap-2 py-2.5 px-3 border-r border-neutral-200 dark:border-neutral-800 hover:bg-orange-500/[0.06] transition-all active:scale-95"
-                                            title="Ask Kumi"
-                                        >
-                                            <svg class="h-3.5 w-3.5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8V4m0 4a4 4 0 014 4v1m-4-5a4 4 0 00-4 4v1m8 0h1a3 3 0 013 3v1a3 3 0 01-3 3H7a3 3 0 01-3-3v-1a3 3 0 013-3h1m8 0v2m-8-2v2m2 2h.01M14 17h.01"></path>
-                                            </svg>
-                                            <span class="text-[10px] font-black text-neutral-600 dark:text-neutral-400 group-hover:text-orange-600 dark:group-hover:text-orange-400 uppercase tracking-widest">Ask Kumi</span>
-                                        </button>
-
-                                        <button
-                                            id="notes-promo-card-series"
-                                            class="notes-promo-trigger group flex items-center justify-center gap-2 py-2.5 px-3 hover:bg-orange-500/[0.06] transition-all active:scale-95"
-                                            title="Open visual notes"
-                                        >
-                                            <svg class="h-3.5 w-3.5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 19.5V6a2 2 0 012-2h7l5 5v10.5a.5.5 0 01-.8.4L15 18.25l-2.2 1.65a.5.5 0 01-.6 0L10 18.25 7.8 19.9a.5.5 0 01-.6 0L5 18.25l-.2 1.65a.5.5 0 01-.8-.4z"></path>
-                                            </svg>
-                                            <span class="text-[10px] font-black text-neutral-600 dark:text-neutral-400 group-hover:text-orange-600 dark:group-hover:text-orange-400 uppercase tracking-widest">LLD Notes</span>
-                                        </button>
-                                     </div>
-                                </div>
-
-                                <!-- Series Timeline (Clean & Vertical) -->
-                                <div class="pt-2">
-                                    <h5 class="text-[10px] font-black text-neutral-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                                        <span class="w-1 h-1 rounded-full bg-orange-500"></span>
-                                        Learning Path
-                                    </h5>
-                                    <div id="series-articles-list" class="flex flex-col">
-                                        <!-- Dynamic Content -->
-                                    </div>
-                                </div>
-                            </div>
-                        ) : (
-                            <!-- Interactive Toolkit -->
-                            <div class="pl-5 border-l border-neutral-200/70 dark:border-neutral-800/70">
-                                <div class="rounded-lg border border-neutral-200/80 bg-white/60 dark:border-neutral-800 dark:bg-neutral-900/40">
-                                    <div class="border-b border-neutral-200/80 px-3 py-2.5 dark:border-neutral-800">
-                                        <div>
-                                            <h5 class="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-500 dark:text-neutral-400">
-                                                Reader tools
-                                            </h5>
-                                        </div>
-                                    </div>
-
-                                    <div class="p-1.5">
-                                        <button
-                                            id="kumi-promo-card"
-                                            class="group flex w-full items-center gap-2 rounded-md p-2 text-left transition-colors hover:bg-orange-50/70 dark:hover:bg-orange-500/10"
-                                            title="Ask Kumi"
-                                        >
-                                            <span class="text-orange-600 dark:text-orange-300">
-                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8V4m0 4a4 4 0 014 4v1m-4-5a4 4 0 00-4 4v1m8 0h1a3 3 0 013 3v1a3 3 0 01-3 3H7a3 3 0 01-3-3v-1a3 3 0 013-3h1m8 0v2m-8-2v2m2 2h.01M14 17h.01"></path>
-                                                </svg>
-                                            </span>
-                                            <span class="text-xs font-bold text-neutral-800 dark:text-neutral-200">Ask Kumi</span>
-                                        </button>
-
-                                        <div class="my-0.5 h-px bg-neutral-100 dark:bg-neutral-800"></div>
-
-                                        <div class="grid grid-cols-2 gap-1">
-                                            <button
-                                                id="code-promo-card"
-                                                class="group flex items-center gap-2 rounded-md p-2 text-left transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
-                                                title="Open code studio"
-                                            >
-                                                <span class="text-neutral-500 dark:text-neutral-400">
-                                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l-4 3 4 3m8-6l4 3-4 3M14 4l-4 16"></path>
-                                                    </svg>
-                                                </span>
-                                                <span class="text-[11px] font-bold text-neutral-700 dark:text-neutral-300">Code</span>
-                                            </button>
-
-                                            <button
-                                                id="notes-promo-card"
-                                                class="group flex items-center gap-2 rounded-md p-2 text-left transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
-                                                title="Open visual notes"
-                                            >
-                                                <span class="text-neutral-500 dark:text-neutral-400">
-                                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 19.5V6a2 2 0 012-2h7l5 5v10.5a.5.5 0 01-.8.4L15 18.25l-2.2 1.65a.5.5 0 01-.6 0L10 18.25 7.8 19.9a.5.5 0 01-.6 0L5 18.25l-.2 1.65a.5.5 0 01-.8-.4z"></path>
-                                                    </svg>
-                                                </span>
-                                                <span class="text-[11px] font-bold text-neutral-700 dark:text-neutral-300">Notes</span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Support Card (Client-side rendered) -->
-                                <div id="support-sidebar-b-container" class="mt-4 hidden"></div>
-                            </div>
-                        )
-                    }
-                </aside>
             </div>
 
             <!-- Related Posts (Global Width) -->
@@ -1081,8 +860,17 @@ const articleMainNav = [
     </main>
 </div>
 
+<!-- Floating Reader Toolbar (desktop) + bridges/drawers the mobile dock relies on -->
+<ReaderToolbar
+    headings={headings}
+    title={post.data.title}
+    description={post.data.description}
+    url={Astro.url.href}
+    slug={post.slug}
+/>
+
 <!-- Mobile Action Dock (Phase 1) -->
-{enableMobileDock && <MobileActionDock 
+{enableMobileDock && <MobileActionDock
     headings={headings}
     title={post.data.title}
     description={post.data.description}
@@ -1117,11 +905,6 @@ const articleMainNav = [
 
     #article-toc-sidebar {
         top: calc(var(--top-banner-height, 0px) + 7rem);
-    }
-
-    #article-tools-sidebar {
-        top: calc(var(--top-banner-height, 0px) + 7rem);
-        max-height: calc(100vh - var(--top-banner-height, 0px) - 8rem);
     }
 
     :global(#article-toc-sidebar .toc-container) {
@@ -1746,80 +1529,6 @@ const articleMainNav = [
 
     setupArticleProgressTracking();
     document.addEventListener("astro:after-swap", setupArticleProgressTracking);
-
-    function setupPromoCards() {
-        // Handle all Kumi AI buttons
-        const kumiCards = document.querySelectorAll('[id*="kumi-promo-card"], .kumi-promo-trigger');
-        kumiCards.forEach(kumiCard => {
-            if (kumiCard.hasAttribute('data-bound')) return;
-            kumiCard.setAttribute('data-bound', 'true');
-            kumiCard.addEventListener("click", () => {
-                const token = localStorage.getItem("access_token");
-                if (!token) {
-                    const event = new CustomEvent("show-login-prompt", {
-                        detail: {
-                            feature: "Kumi AI",
-                            next: window.location.pathname + window.location.search,
-                        },
-                    });
-                    window.dispatchEvent(event);
-                    return;
-                }
-                window.dispatchEvent(new CustomEvent("toggle-ai-chat"));
-            });
-        });
-
-
-        // Handle all Visual Notes buttons
-        const notesCards = document.querySelectorAll('[id*="notes-promo-card"], .notes-promo-trigger');
-        notesCards.forEach(notesCard => {
-            if (notesCard.hasAttribute('data-bound')) return;
-            notesCard.setAttribute('data-bound', 'true');
-            notesCard.addEventListener("click", () => {
-                const token = localStorage.getItem("access_token");
-                if (!token) {
-                    const event = new CustomEvent("show-login-prompt", {
-                        detail: {
-                            feature: "sketch notes",
-                            next: window.location.pathname + window.location.search,
-                        },
-                    });
-                    window.dispatchEvent(event);
-                    return;
-                }
-                window.dispatchEvent(new CustomEvent("toggle-excalidraw"));
-            });
-        });
-
-        // Handle Code Studio Promo Cards
-        const codeCards = document.querySelectorAll("#code-promo-card");
-        codeCards.forEach(codeCard => {
-            codeCard.addEventListener("click", () => {
-                const token = localStorage.getItem("access_token");
-                if (!token) {
-                    const event = new CustomEvent("show-login-prompt", {
-                        detail: {
-                            feature: "Code Studio",
-                            next: window.location.pathname + window.location.search,
-                        },
-                    });
-                    window.dispatchEvent(event);
-                    return;
-                }
-
-                window.dispatchEvent(
-                    new CustomEvent("open-code-studio", {
-                        detail: {
-                            code: "",
-                            language: "python",
-                        },
-                    }),
-                );
-            });
-        });
-    }
-    setupPromoCards();
-    document.addEventListener("astro:after-swap", setupPromoCards);
 
     // Series Navigation Loader
     async function loadSeriesArticles() {

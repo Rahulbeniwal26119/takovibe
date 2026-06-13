@@ -1,0 +1,663 @@
+---
+export const prerender = true;
+import Layout from "../layouts/Layout.astro";
+
+const tools = [
+  {
+    number: "01",
+    title: "Reader",
+    eyebrow: "Deep reading",
+    href: "/reader",
+    cta: "Open Reader",
+    summary:
+      "Read EPUBs in a focused workspace with progress, highlights, translation, memory notes, and Kumi nearby.",
+    promise:
+      "A book stops being a lonely file and becomes a study surface you can return to with context.",
+    visual: "reader",
+    accent: "emerald",
+    tags: ["EPUB reader", "Highlights", "Kumi context", "Progress memory"],
+    details: [
+      "Upload and continue books without rebuilding your place every session.",
+      "Mark important passages with color and keep small notes close to the text.",
+      "Use contextual help when a paragraph needs translation, summary, or explanation.",
+    ],
+    workflow: ["Open a book", "Highlight a passage", "Ask Kumi", "Return with memory"],
+  },
+  {
+    number: "02",
+    title: "Sketch Notes",
+    eyebrow: "Visual thinking",
+    href: "/notes",
+    cta: "Open Notes",
+    summary:
+      "Capture diagrams, system maps, and source-linked notes while the idea is still forming.",
+    promise:
+      "Boxes, arrows, and short notes keep the mental model alive after the article or book is closed.",
+    visual: "notes",
+    accent: "rose",
+    tags: ["System maps", "Visual notes", "Source memory", "Diagrams"],
+    details: [
+      "Use a drawing-first workspace for the parts of a system that words flatten.",
+      "Keep the visual note connected to the idea that caused it.",
+      "Build small explainable diagrams instead of giant documents nobody revisits.",
+    ],
+    workflow: ["Capture the shape", "Connect the parts", "Attach the source", "Revisit later"],
+  },
+  {
+    number: "03",
+    title: "ResumeVibe",
+    eyebrow: "Career polish",
+    href: "https://resumevibe.takovibe.com/",
+    cta: "Open ResumeVibe",
+    summary:
+      "Audit the resume before a recruiter does. Tighten weak bullets, expose gaps, and tune the story for the role.",
+    promise:
+      "Score, role fit, rewrite guidance, and presentation checks arrive in one focused pass.",
+    visual: "resume",
+    accent: "amber",
+    tags: ["ATS clarity", "Bullet rewrites", "Role match", "Signal cleanup"],
+    details: [
+      "Find vague bullets and replace them with measurable, role-aware claims.",
+      "Spot missing signals before sending the resume into a real hiring process.",
+      "Compare the resume against a job description and tune the version intentionally.",
+    ],
+    workflow: ["Upload resume", "Add role", "Review gaps", "Rewrite with proof"],
+  },
+  {
+    number: "04",
+    title: "Tasks",
+    eyebrow: "Daily planning",
+    href: "/tasks",
+    cta: "Open Tasks",
+    summary:
+      "Plan your day with natural-language quick-add, Markdown notes, checklists, tags, sorting, grouping, and daily carry-over.",
+    promise:
+      "A fast command center for work that moves between today, later, and done without losing detail.",
+    visual: "tasks",
+    accent: "violet",
+    tags: ["Quick-add", "Markdown notes", "Checklists", "Daily carry-over"],
+    details: [
+      "Write tasks the way you think, then let tags, dates, and collections organize the surface.",
+      "Keep rich notes and checklist steps inside the task instead of scattering them elsewhere.",
+      "Carry unfinished items forward so the system remembers what the day did not finish.",
+    ],
+    workflow: ["Quick add", "Tag and date", "Work the checklist", "Carry forward"],
+  },
+  {
+    number: "05",
+    title: "Playground",
+    eyebrow: "Runnable code",
+    href: "/playground",
+    cta: "Open Playground",
+    summary:
+      "Run Python, JavaScript, Go, Rust, HTML, CSS, and front-end experiments in the browser without setup.",
+    promise:
+      "Small runnable artifacts make posts, demos, checks, and explanations easier to trust.",
+    visual: "playground",
+    accent: "sky",
+    tags: ["Multi-language", "Browser run", "Share output", "Article demos"],
+    details: [
+      "Try small programs without leaving the page or bootstrapping a local project.",
+      "Use the output pane to prove a claim while the surrounding explanation is still visible.",
+      "Share a compact runnable example when a static snippet is not enough.",
+    ],
+    workflow: ["Choose language", "Run snippet", "Inspect output", "Share the result"],
+  },
+  {
+    number: "06",
+    title: "CodeDiff",
+    eyebrow: "Change review",
+    href: "https://codediff.takovibe.com/",
+    cta: "Open CodeDiff",
+    summary:
+      "Compare code, inspect patches, and share clean anonymous diff links with teammates, reviewers, or readers.",
+    promise:
+      "Changes become easier to discuss when the before and after are presented without clutter.",
+    visual: "diff",
+    accent: "lime",
+    tags: ["Side-by-side diff", "Patch import", "Anonymous links", "Review flow"],
+    details: [
+      "Compare snippets in a clear side-by-side or inline review surface.",
+      "Bring in GitHub PRs, commits, or raw patch links when the change already exists elsewhere.",
+      "Share a compact anonymous URL for quick review handoff.",
+    ],
+    workflow: ["Paste code", "Import patch", "Inspect changes", "Share review"],
+  },
+];
+
+const accentClasses = {
+  emerald: {
+    text: "text-emerald-300",
+    border: "border-emerald-400/30",
+    bg: "bg-emerald-400/10",
+    line: "stroke-emerald-300",
+    fill: "fill-emerald-300",
+  },
+  rose: {
+    text: "text-rose-300",
+    border: "border-rose-400/30",
+    bg: "bg-rose-400/10",
+    line: "stroke-rose-300",
+    fill: "fill-rose-300",
+  },
+  amber: {
+    text: "text-amber-300",
+    border: "border-amber-400/30",
+    bg: "bg-amber-400/10",
+    line: "stroke-amber-300",
+    fill: "fill-amber-300",
+  },
+  violet: {
+    text: "text-violet-300",
+    border: "border-violet-400/30",
+    bg: "bg-violet-400/10",
+    line: "stroke-violet-300",
+    fill: "fill-violet-300",
+  },
+  sky: {
+    text: "text-sky-300",
+    border: "border-sky-400/30",
+    bg: "bg-sky-400/10",
+    line: "stroke-sky-300",
+    fill: "fill-sky-300",
+  },
+  lime: {
+    text: "text-lime-300",
+    border: "border-lime-400/30",
+    bg: "bg-lime-400/10",
+    line: "stroke-lime-300",
+    fill: "fill-lime-300",
+  },
+};
+
+const workflowSteps = [
+  {
+    title: "Learn",
+    copy: "Start in the article or Reader. Keep the hard idea in view while you test, ask, and annotate.",
+  },
+  {
+    title: "Model",
+    copy: "Move the shape into Sketch Notes, Tasks, or a runnable snippet so the concept becomes workable.",
+  },
+  {
+    title: "Share",
+    copy: "Use Playground, CodeDiff, or ResumeVibe when the work needs to leave your own head and meet another person.",
+  },
+];
+---
+
+<Layout
+  title="TakoVibe Tools - Reader, Notes, Tasks, Playground, ResumeVibe, CodeDiff"
+  description="Explore the full TakoVibe tool suite for deep reading, visual notes, daily planning, runnable code, resume review, and code diffs."
+  type="website"
+  author="Rahul Beniwal"
+  tags={["TakoVibe tools", "developer tools", "reader", "code playground", "tasks"]}
+>
+  <main class="tools-shell min-h-screen overflow-hidden bg-[#f7f4ed] text-neutral-950 dark:bg-[#0f100e] dark:text-stone-100">
+    <section class="relative isolate border-b border-black/10 dark:border-white/10">
+      <div class="tools-grid absolute inset-0 -z-10 opacity-70 dark:opacity-35"></div>
+      <div class="mx-auto grid min-h-[calc(100vh-5rem)] max-w-[1440px] gap-10 px-5 pb-16 pt-16 sm:px-8 lg:grid-cols-[0.86fr_1fr] lg:items-center lg:px-12 lg:py-20">
+        <div class="tools-rise max-w-4xl">
+          <p class="tools-kicker text-orange-700 dark:text-orange-300">TakoVibe tool suite</p>
+          <h1 class="mt-6 max-w-[10ch] font-display text-[clamp(3.2rem,7vw,7rem)] font-extrabold leading-[0.88]">
+            Tools for the work around the article.
+          </h1>
+          <p class="mt-8 max-w-2xl text-lg leading-8 text-neutral-700 dark:text-stone-300">
+            Read deeply, sketch the system, run the code, plan the day, review the change, and polish the proof you send into the world.
+          </p>
+          <div class="mt-9 flex flex-wrap gap-3">
+            <a href="#tool-stack" class="tools-button bg-orange-600 text-white hover:bg-orange-700">
+              Explore the stack
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 12h13m-5-5 5 5-5 5"></path>
+              </svg>
+            </a>
+            <a href="/reader" class="tools-button border border-black/10 bg-white/70 text-neutral-900 hover:border-orange-300 dark:border-white/10 dark:bg-white/[0.045] dark:text-white dark:hover:border-orange-300/40">
+              Start with Reader
+            </a>
+          </div>
+        </div>
+
+        <div class="tools-rise tools-delay-1 relative min-h-[34rem] lg:min-h-[42rem]">
+          <div class="absolute inset-0 rounded-lg border border-black/10 bg-white/65 shadow-2xl shadow-orange-950/10 backdrop-blur dark:border-white/10 dark:bg-white/[0.045] dark:shadow-black/30"></div>
+          <svg class="absolute inset-0 h-full w-full p-5 sm:p-7" viewBox="0 0 760 660" role="img" aria-label="Animated map of TakoVibe tools connected by workflows">
+            <defs>
+              <linearGradient id="tools-flow" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0" stop-color="#34d399"></stop>
+                <stop offset=".22" stop-color="#38bdf8"></stop>
+                <stop offset=".46" stop-color="#fb7185"></stop>
+                <stop offset=".72" stop-color="#f59e0b"></stop>
+                <stop offset="1" stop-color="#a3e635"></stop>
+              </linearGradient>
+            </defs>
+            <rect x="30" y="28" width="700" height="604" rx="18" fill="rgba(15,16,14,.92)" stroke="rgba(255,255,255,.14)"></rect>
+            <path class="flow-line" d="M155 158C255 88 328 172 381 252s151 54 221 135" fill="none" stroke="url(#tools-flow)" stroke-width="5"></path>
+            <path class="flow-line flow-line-alt" d="M144 480c90-122 183-78 262-164 82-89 135-132 222-84" fill="none" stroke="url(#tools-flow)" stroke-width="5"></path>
+            <g class="tool-node node-one">
+              <rect x="78" y="96" width="168" height="112" rx="14" fill="#10231d" stroke="rgba(52,211,153,.42)"></rect>
+              <text x="102" y="136" fill="#6ee7b7" font-size="13" font-weight="800" letter-spacing="2">READER</text>
+              <rect x="102" y="158" width="94" height="8" rx="4" fill="rgba(255,255,255,.42)"></rect>
+              <rect x="102" y="178" width="118" height="8" rx="4" fill="rgba(255,255,255,.22)"></rect>
+            </g>
+            <g class="tool-node node-two">
+              <rect x="468" y="84" width="178" height="124" rx="14" fill="#1f1820" stroke="rgba(251,113,133,.42)"></rect>
+              <text x="494" y="126" fill="#fda4af" font-size="13" font-weight="800" letter-spacing="2">NOTES</text>
+              <path d="M510 170h42l28-28h42" fill="none" stroke="#fda4af" stroke-width="4" stroke-linecap="round"></path>
+              <circle cx="510" cy="170" r="8" fill="#fda4af"></circle>
+              <circle cx="622" cy="142" r="8" fill="#fda4af"></circle>
+            </g>
+            <g class="tool-node node-three">
+              <rect x="286" y="270" width="188" height="128" rx="14" fill="#201d12" stroke="rgba(251,191,36,.42)"></rect>
+              <text x="314" y="312" fill="#fcd34d" font-size="13" font-weight="800" letter-spacing="2">PLAYGROUND</text>
+              <text x="316" y="350" fill="rgba(255,255,255,.74)" font-family="monospace" font-size="16">run(code)</text>
+              <rect x="316" y="368" width="96" height="10" rx="5" fill="rgba(252,211,77,.55)"></rect>
+            </g>
+            <g class="tool-node node-four">
+              <rect x="88" y="438" width="176" height="124" rx="14" fill="#171629" stroke="rgba(167,139,250,.42)"></rect>
+              <text x="116" y="480" fill="#c4b5fd" font-size="13" font-weight="800" letter-spacing="2">TASKS</text>
+              <path d="M118 514l14 14 34-36" fill="none" stroke="#c4b5fd" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+              <rect x="188" y="504" width="46" height="10" rx="5" fill="rgba(255,255,255,.32)"></rect>
+            </g>
+            <g class="tool-node node-five">
+              <rect x="510" y="432" width="164" height="120" rx="14" fill="#102016" stroke="rgba(163,230,53,.42)"></rect>
+              <text x="536" y="474" fill="#bef264" font-size="13" font-weight="800" letter-spacing="2">DIFF</text>
+              <path d="M544 514h88M544 494h52" stroke="#bef264" stroke-width="7" stroke-linecap="round"></path>
+              <path d="M544 534h72" stroke="rgba(255,255,255,.36)" stroke-width="7" stroke-linecap="round"></path>
+            </g>
+            <g class="tool-node node-six">
+              <rect x="300" y="500" width="154" height="96" rx="14" fill="#21170e" stroke="rgba(251,146,60,.45)"></rect>
+              <text x="324" y="540" fill="#fdba74" font-size="13" font-weight="800" letter-spacing="2">RESUME</text>
+              <circle cx="406" cy="558" r="18" fill="none" stroke="#fdba74" stroke-width="6"></circle>
+              <text x="396" y="564" fill="#fdba74" font-size="15" font-weight="900">92</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section id="tool-stack" class="px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
+      <div class="mx-auto max-w-[1440px]">
+        <div class="grid gap-8 lg:grid-cols-[0.7fr_1fr] lg:items-end">
+          <div>
+            <p class="tools-kicker text-orange-700 dark:text-orange-300">All tools</p>
+            <h2 class="mt-5 max-w-3xl font-display text-4xl font-extrabold leading-[0.95] sm:text-6xl">
+              One suite, six different jobs.
+            </h2>
+          </div>
+          <p class="max-w-2xl text-base leading-7 text-neutral-600 dark:text-stone-400">
+            Each tool keeps a different part of the engineering loop close to the reading surface: learning, mapping, planning, experimenting, reviewing, and presenting.
+          </p>
+        </div>
+
+        <div class="mt-14 grid gap-5 lg:grid-cols-2">
+          {tools.map((tool) => {
+            const accent = accentClasses[tool.accent];
+            return (
+              <article class="tool-card group relative overflow-hidden rounded-lg border border-black/10 bg-white/82 p-5 shadow-xl shadow-neutral-950/[0.04] transition duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-neutral-950/[0.08] dark:border-white/10 dark:bg-[#151513] dark:shadow-black/20 sm:p-6">
+                <div class="relative grid h-full gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+                  <div class="flex min-h-[24rem] flex-col">
+                    <div class="flex items-center justify-between gap-3">
+                      <span class={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] ${accent.border} ${accent.bg} ${accent.text}`}>
+                        {tool.eyebrow}
+                      </span>
+                      <span class="font-mono text-xs text-neutral-400 dark:text-stone-500">{tool.number}</span>
+                    </div>
+                    <h3 class="mt-8 font-display text-4xl font-bold leading-tight text-neutral-950 dark:text-white">
+                      {tool.title}
+                    </h3>
+                    <p class="mt-4 text-sm leading-6 text-neutral-600 dark:text-stone-400">
+                      {tool.summary}
+                    </p>
+                    <p class="mt-5 border-l-2 border-orange-500/80 pl-4 text-sm leading-6 text-neutral-800 dark:text-stone-200">
+                      {tool.promise}
+                    </p>
+                    <div class="mt-6 flex flex-wrap gap-2">
+                      {tool.tags.map((tag) => (
+                        <span class="rounded-full border border-black/10 bg-neutral-50 px-3 py-1.5 text-[10px] font-bold uppercase text-neutral-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-stone-300">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                    <a href={tool.href} class={`mt-auto inline-flex w-fit items-center gap-2 pt-8 text-xs font-black uppercase tracking-[0.16em] transition group-hover:gap-3 ${accent.text}`}>
+                      {tool.cta}
+                      <svg class="h-4 w-4 fill-none stroke-current" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h13m-5-5 5 5-5 5"></path>
+                      </svg>
+                    </a>
+                  </div>
+
+                  <div class="relative overflow-hidden rounded-lg border border-black/10 bg-[#11100e] p-4 text-stone-100 dark:border-white/10">
+                    <div class="absolute inset-0 tools-panel-grid opacity-35"></div>
+                    <div class="relative">
+                      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                        <div class="flex items-center gap-2">
+                          <span class={`h-2.5 w-2.5 rounded-full ${accent.bg}`}></span>
+                          <span class="tools-kicker text-stone-500">{tool.title}</span>
+                        </div>
+                        <span class={`rounded-full border px-2.5 py-1 text-[9px] font-black uppercase ${accent.border} ${accent.text}`}>
+                          Live
+                        </span>
+                      </div>
+
+                      <div class="mt-5 min-h-[15rem]">
+                        {tool.visual === "reader" && (
+                          <div class="rounded-lg border border-white/10 bg-white/[0.035] p-5">
+                            <div class="tools-kicker text-emerald-300">Chapter 04</div>
+                            <h4 class="mt-4 font-display text-3xl font-bold leading-tight">Backpressure is a promise.</h4>
+                            <div class="mt-5 space-y-3 text-sm leading-6 text-stone-400">
+                              <p>When traffic rises, the queue gives the system somewhere honest to put pressure.</p>
+                              <p class="border-l-2 border-emerald-300 bg-emerald-300/10 px-3 py-2 text-stone-200">Memory note attached</p>
+                            </div>
+                            <div class="mt-6 h-2 overflow-hidden rounded-full bg-white/10">
+                              <div class="progress-run h-full w-[64%] rounded-full bg-emerald-300"></div>
+                            </div>
+                          </div>
+                        )}
+
+                        {tool.visual === "notes" && (
+                          <svg class="h-64 w-full" viewBox="0 0 420 260" aria-hidden="true">
+                            <rect x="28" y="30" width="98" height="58" rx="10" fill="rgba(251,113,133,.14)" stroke="rgba(251,113,133,.72)"></rect>
+                            <rect x="162" y="104" width="106" height="58" rx="10" fill="rgba(255,255,255,.06)" stroke="rgba(255,255,255,.18)"></rect>
+                            <rect x="298" y="172" width="94" height="56" rx="10" fill="rgba(251,113,133,.14)" stroke="rgba(251,113,133,.72)"></rect>
+                            <path class="flow-line" d="M126 60C164 58 172 98 194 104M268 134c42 4 42 42 62 42" fill="none" stroke="#fda4af" stroke-width="4" stroke-linecap="round"></path>
+                            <text x="52" y="66" fill="#fda4af" font-size="13" font-weight="800">API</text>
+                            <text x="188" y="140" fill="#e7e5e4" font-size="13" font-weight="800">Queue</text>
+                            <text x="318" y="206" fill="#fda4af" font-size="13" font-weight="800">Worker</text>
+                          </svg>
+                        )}
+
+                        {tool.visual === "resume" && (
+                          <div class="grid gap-3">
+                            <div class="rounded-lg border border-amber-300/25 bg-amber-300/10 p-4">
+                              <div class="flex items-center justify-between">
+                                <span class="text-xs font-black uppercase tracking-[0.18em] text-amber-300">Role fit</span>
+                                <span class="font-display text-3xl font-bold text-amber-200">92</span>
+                              </div>
+                              <div class="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
+                                <div class="progress-run h-full w-[92%] rounded-full bg-amber-300"></div>
+                              </div>
+                            </div>
+                            {["Add impact metric to backend scaling bullet", "Reduce generic ownership language", "Mirror job keywords where they are truthful"].map((item) => (
+                              <div class="flex items-start gap-3 rounded-lg border border-white/10 bg-white/[0.04] p-3 text-sm text-stone-300">
+                                <svg class="mt-0.5 h-4 w-4 shrink-0 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span>{item}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {tool.visual === "tasks" && (
+                          <div class="space-y-3">
+                            {["Ship tools page", "Review task carry-over", "Draft queue article"].map((item, index) => (
+                              <div class="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.04] p-3">
+                                <span class={`h-5 w-5 rounded-md border ${index === 0 ? "border-violet-300 bg-violet-300/30" : "border-white/20"}`}></span>
+                                <span class="flex-1 text-sm font-semibold text-stone-200">{item}</span>
+                                <span class="rounded-full border border-violet-300/30 bg-violet-300/10 px-2 py-1 text-[10px] font-bold uppercase text-violet-200">Today</span>
+                              </div>
+                            ))}
+                            <div class="rounded-lg border border-violet-300/25 bg-violet-300/10 p-3 font-mono text-xs text-violet-100">
+                              add "test mobile layout" tomorrow #site
+                            </div>
+                          </div>
+                        )}
+
+                        {tool.visual === "playground" && (
+                          <div class="overflow-hidden rounded-lg border border-white/10 bg-black/25">
+                            <div class="flex items-center justify-between border-b border-white/10 px-4 py-3">
+                              <span class="font-mono text-xs text-sky-300">main.py</span>
+                              <span class="rounded-md bg-sky-300 px-2 py-1 text-[10px] font-black text-sky-950">Run</span>
+                            </div>
+                            <pre class="m-0 p-4 text-sm leading-7 text-stone-300"><code><span class="text-sky-300">def</span> explain(queue):
+    pressure = queue.incoming - queue.capacity
+    <span class="text-sky-300">return</span> max(pressure, 0)
+
+print(explain(system))</code></pre>
+                            <div class="border-t border-white/10 bg-sky-300/10 px-4 py-3 font-mono text-xs text-sky-100">output: 240</div>
+                          </div>
+                        )}
+
+                        {tool.visual === "diff" && (
+                          <div class="grid overflow-hidden rounded-lg border border-white/10 md:grid-cols-2">
+                            <div class="bg-red-950/20 p-4">
+                              <div class="text-xs font-black uppercase tracking-[0.18em] text-red-300">Before</div>
+                              <pre class="mt-4 text-xs leading-6 text-stone-300"><code>- plan: "free"
+- diffs: 3</code></pre>
+                            </div>
+                            <div class="bg-lime-950/20 p-4">
+                              <div class="text-xs font-black uppercase tracking-[0.18em] text-lime-300">After</div>
+                              <pre class="mt-4 text-xs leading-6 text-stone-200"><code>+ plan: "pro"
++ diffs: 50
++ patches: true</code></pre>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div class="mt-6 grid gap-2">
+                        {tool.details.map((detail) => (
+                          <div class="flex gap-3 rounded-lg border border-white/10 bg-white/[0.035] p-3 text-sm leading-6 text-stone-300">
+                            <svg class={`mt-1 h-4 w-4 shrink-0 fill-none stroke-current ${accent.text}`} viewBox="0 0 24 24" aria-hidden="true">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>{detail}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+
+    <section class="border-y border-black/10 bg-[#171713] px-5 py-20 text-stone-100 dark:border-white/10 sm:px-8 sm:py-28 lg:px-12">
+      <div class="mx-auto max-w-[1440px]">
+        <div class="grid gap-8 lg:grid-cols-[0.7fr_1fr] lg:items-end">
+          <div>
+            <p class="tools-kicker text-orange-300">How they fit</p>
+            <h2 class="mt-5 max-w-3xl font-display text-4xl font-extrabold leading-[0.95] sm:text-6xl">
+              A workflow, not a drawer of random apps.
+            </h2>
+          </div>
+          <p class="max-w-2xl text-base leading-7 text-stone-400">
+            The tools are arranged around the way ideas move: from reading, to modeling, to execution, to something another person can review.
+          </p>
+        </div>
+
+        <div class="mt-14 grid gap-px overflow-hidden rounded-lg border border-white/10 bg-white/10 lg:grid-cols-3">
+          {workflowSteps.map((step, index) => (
+            <div class="relative min-h-[20rem] overflow-hidden bg-[#10100e] p-6">
+              <svg class="absolute inset-x-0 top-0 h-32 w-full opacity-70" viewBox="0 0 420 130" preserveAspectRatio="none" aria-hidden="true">
+                <path class="flow-line" d="M-20 82C80 10 160 138 252 64S372 30 440 88" fill="none" stroke={index === 0 ? "#34d399" : index === 1 ? "#fb7185" : "#38bdf8"} stroke-width="3"></path>
+              </svg>
+              <div class="relative">
+                <span class="font-mono text-xs text-orange-300">0{index + 1}</span>
+                <h3 class="mt-20 font-display text-4xl font-bold text-white">{step.title}</h3>
+                <p class="mt-5 text-sm leading-6 text-stone-400">{step.copy}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
+      <div class="mx-auto max-w-[1440px] overflow-hidden rounded-lg border border-black/10 bg-neutral-950 text-white shadow-2xl shadow-neutral-950/15 dark:border-white/10">
+        <div class="relative grid gap-10 p-6 sm:p-10 lg:grid-cols-[1fr_auto] lg:items-center lg:p-12">
+          <svg class="absolute inset-0 h-full w-full opacity-25" viewBox="0 0 1100 320" preserveAspectRatio="none" aria-hidden="true">
+            <path class="flow-line" d="M-60 190C110 40 276 296 460 132s302-34 424 56 182 82 276-18" fill="none" stroke="url(#cta-gradient)" stroke-width="5"></path>
+            <defs>
+              <linearGradient id="cta-gradient" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0" stop-color="#34d399"></stop>
+                <stop offset=".5" stop-color="#fb923c"></stop>
+                <stop offset="1" stop-color="#38bdf8"></stop>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="relative">
+            <p class="tools-kicker text-orange-300">Start anywhere</p>
+            <h2 class="mt-4 max-w-4xl font-display text-4xl font-extrabold leading-tight sm:text-6xl">
+              Pick the tool closest to the job in front of you.
+            </h2>
+            <p class="mt-5 max-w-2xl text-base leading-7 text-stone-400">
+              The suite is broad on purpose: some days you need a clean reading surface, some days a runnable proof, and some days a sharper artifact to share.
+            </p>
+          </div>
+          <div class="relative flex flex-col gap-3 sm:flex-row lg:flex-col">
+            <a href="/reader" class="tools-button justify-center bg-white text-neutral-950 hover:bg-stone-200">Open Reader</a>
+            <a href="/playground" class="tools-button justify-center border border-white/20 text-white hover:bg-white/10">Try Playground</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</Layout>
+
+<style>
+  .tools-shell {
+    --line: rgba(28, 25, 23, 0.13);
+  }
+
+  :global(.dark) .tools-shell {
+    --line: rgba(255, 255, 255, 0.1);
+  }
+
+  .tools-kicker {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+
+  .tools-grid,
+  .tools-panel-grid {
+    background-image:
+      linear-gradient(to right, var(--line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--line) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+
+  .tools-panel-grid {
+    --line: rgba(255, 255, 255, 0.1);
+    background-size: 32px 32px;
+  }
+
+  .tools-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    border-radius: 999px;
+    padding: 0.85rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 800;
+    transition: 180ms ease;
+  }
+
+  .tools-button:hover {
+    transform: translateY(-2px);
+  }
+
+  .tools-button svg {
+    height: 1rem;
+    width: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+  }
+
+  .tools-rise {
+    animation: toolsRise 720ms both cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .tools-delay-1 {
+    animation-delay: 120ms;
+  }
+
+  .flow-line {
+    stroke-dasharray: 18 20;
+    animation: toolsFlow 20s linear infinite;
+  }
+
+  .flow-line-alt {
+    animation-delay: -9s;
+  }
+
+  .tool-node {
+    transform-origin: center;
+    animation: toolFloat 7s ease-in-out infinite;
+  }
+
+  .node-two,
+  .node-five {
+    animation-delay: -1.6s;
+  }
+
+  .node-three,
+  .node-six {
+    animation-delay: -3s;
+  }
+
+  .node-four {
+    animation-delay: -4.4s;
+  }
+
+  .progress-run {
+    animation: progressPulse 2.8s ease-in-out infinite;
+    transform-origin: left;
+  }
+
+  @keyframes toolsRise {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes toolsFlow {
+    to {
+      stroke-dashoffset: -500;
+    }
+  }
+
+  @keyframes toolFloat {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes progressPulse {
+    0%,
+    100% {
+      transform: scaleX(0.92);
+    }
+    50% {
+      transform: scaleX(1);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tools-rise,
+    .flow-line,
+    .tool-node,
+    .progress-run {
+      animation: none;
+    }
+  }
+</style>

@@ -29,6 +29,22 @@ export interface LearningCollection {
     updated_at: string;
 }
 
+export interface Tag {
+    id: string;
+    name: string;
+    color: string;
+    task_count: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface ChecklistItem {
+    id: string;
+    text: string;
+    is_done: boolean;
+    position: number;
+}
+
 export interface Task {
     id: string;
     title: string;
@@ -41,11 +57,17 @@ export interface Task {
     position: number;
     time_logged_minutes: number;
     collection: LearningCollection | null;
+    tags: Tag[];
+    checklist_items: ChecklistItem[];
     attachment: TaskAttachment | null;
     is_attached: boolean;
     recurrence_rule: string;
     target_type: 'complete' | 'percentage' | 'chapter';
     target_value: string;
+    google_event_id?: string;
+    calendar_start_at?: string | null;
+    calendar_duration_minutes?: number;
+    calendar_attendees?: string[];
     created_at: string;
     updated_at: string;
 }
@@ -67,7 +89,7 @@ function requestLogin(): void {
     window.dispatchEvent(
         new CustomEvent('show-login-prompt', {
             detail: {
-                feature: 'your learning task manager',
+                feature: 'your task manager',
                 next: '/tasks',
             },
         }),
@@ -78,7 +100,7 @@ async function apiFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
     const token = localStorage.getItem('access_token');
     if (!token) {
         requestLogin();
-        throw new TaskApiError('Please log in to manage your learning tasks.', 401);
+        throw new TaskApiError('Please log in to manage your tasks.', 401);
     }
 
     const headers = new Headers(options.headers);
@@ -118,14 +140,120 @@ export function hasTaskAccount(): boolean {
     return typeof localStorage !== 'undefined' && Boolean(localStorage.getItem('access_token'));
 }
 
-export function listTasks(view: TaskView, collectionId?: string): Promise<Task[]> {
+export function listTasks(view: TaskView, collectionId?: string, tagId?: string): Promise<Task[]> {
     const params = new URLSearchParams({ view });
     if (collectionId) params.set('collection', collectionId);
+    if (tagId) params.set('tag', tagId);
     return listAll(`${API_BASE}/tasks/?${params.toString()}`);
+}
+
+/** The non-done working set, in a single request. Bounded, safe to load on every page view. */
+export function listActiveTasks(): Promise<Task[]> {
+    return apiFetch(`${API_BASE}/tasks/active/`);
+}
+
+export interface DateSummary {
+    today: string;
+    overdue: number;
+    no_date: { active: number; done: number };
+    dates: Array<{ date: string; active: number; done: number }>;
+}
+
+/** Counts of tasks per due date (active + done) so the sidebar shows only dates that have tasks. */
+export function getDateSummary(): Promise<DateSummary> {
+    return apiFetch(`${API_BASE}/tasks/date-summary/`);
+}
+
+/** All tasks (active + done) for a single date bucket: 'YYYY-MM-DD', 'overdue', or 'no_date'. */
+export function listTasksByDate(due: string): Promise<Task[]> {
+    return listAll(`${API_BASE}/tasks/?due=${encodeURIComponent(due)}`);
+}
+
+/** All tasks (active + done) in a collection, so completed items show in the collection view. */
+export function listTasksByCollection(collectionId: string): Promise<Task[]> {
+    return listAll(`${API_BASE}/tasks/?collection=${encodeURIComponent(collectionId)}`);
+}
+
+/** One page of completed tasks. Pass `next` from the previous page to load more. */
+export async function listDoneTasks(pageUrl?: string): Promise<{ results: Task[]; next: string | null }> {
+    const url = pageUrl
+        ? (import.meta.env.DEV
+            ? `${BACKEND_URL}${new URL(pageUrl, window.location.origin).pathname}${new URL(pageUrl, window.location.origin).search}`
+            : pageUrl)
+        : `${API_BASE}/tasks/?view=done`;
+    const page = await apiFetch<PaginatedResponse<Task> | Task[]>(url);
+    return Array.isArray(page) ? { results: page, next: null } : { results: page.results, next: page.next };
 }
 
 export function listCollections(): Promise<LearningCollection[]> {
     return listAll(`${API_BASE}/collections/`);
+}
+
+export function listTags(): Promise<Tag[]> {
+    return listAll(`${API_BASE}/tags/`);
+}
+
+export interface CalendarStatus {
+    configured: boolean;
+    connected: boolean;
+    email: string;
+    sync_enabled: boolean;
+    calendar_id: string;
+    last_synced_at: string | null;
+    last_error: string;
+    synced?: number;
+    failed?: number;
+}
+
+export function getCalendarStatus(): Promise<CalendarStatus> {
+    return apiFetch(`${API_BASE}/tasks/calendar/status/`);
+}
+
+export function getCalendarConnectUrl(): Promise<{ auth_url: string }> {
+    return apiFetch(`${API_BASE}/tasks/calendar/connect/`);
+}
+
+export function disconnectCalendar(): Promise<CalendarStatus> {
+    return apiFetch(`${API_BASE}/tasks/calendar/disconnect/`, { method: 'POST' });
+}
+
+export function updateCalendarSettings(data: { sync_enabled?: boolean; calendar_id?: string }): Promise<CalendarStatus> {
+    return apiFetch(`${API_BASE}/tasks/calendar/settings/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+    });
+}
+
+export function syncCalendarNow(): Promise<CalendarStatus> {
+    return apiFetch(`${API_BASE}/tasks/calendar/sync/`, { method: 'POST' });
+}
+
+/**
+ * Manually push a single task to Google Calendar. Optionally set the event start
+ * (ISO) and duration, which persist on the task. Returns the task with its google_event_id.
+ */
+export function syncTaskToCalendar(
+    id: string,
+    opts?: { start?: string | null; duration_minutes?: number; attendees?: string[] },
+): Promise<Task> {
+    return apiFetch(`${API_BASE}/tasks/${id}/calendar-sync/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(opts || {}),
+    });
+}
+
+export function createTag(data: { name: string; color?: string }): Promise<Tag> {
+    return apiFetch(`${API_BASE}/tags/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+    });
+}
+
+export function deleteTag(id: string): Promise<void> {
+    return apiFetch(`${API_BASE}/tags/${id}/`, { method: 'DELETE' });
 }
 
 export function listContinueReading(): Promise<TaskAttachment[]> {

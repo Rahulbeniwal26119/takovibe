@@ -27,6 +27,46 @@ export interface ChangeLogEntry {
 
 export const changelogData: ChangeLogEntry[] = [
     {
+        "date": "2026-06-13",
+        "version": "Tasks Revamp",
+        "title": "A real daily task manager",
+        "description": "Learning Tasks is now just Tasks — and it grew from a basic to-do list into a fast daily planner. Capture in one line, write rich notes, break work into steps, organize with tags, and let unfinished items carry themselves forward.",
+        "changes": [
+            {
+                "type": "new",
+                "text": "Natural-language quick-add: type \"Submit report tomorrow 5pm #office !high\" and Tasks parses the date, time, tags, and priority for you."
+            },
+            {
+                "type": "new",
+                "text": "Markdown descriptions: give a task rich notes — headings, lists, links, and code — rendered right on the task."
+            },
+            {
+                "type": "new",
+                "text": "Checklists: break a task into steps and tick them off inline or in the editor, with live progress."
+            },
+            {
+                "type": "new",
+                "text": "Tags with autocomplete: organize across collections with colored tags, type-ahead suggestions, and one-click filtering."
+            },
+            {
+                "type": "new",
+                "text": "Daily carry-over: unfinished tasks roll forward to today instead of silently going overdue."
+            },
+            {
+                "type": "new",
+                "text": "Date sidebar: jump to any day that actually has tasks, with open and completed counts at a glance."
+            },
+            {
+                "type": "improvement",
+                "text": "Group and sort: cluster tasks by collection, tag, or creation date, and sort by due date, priority, or recency."
+            },
+            {
+                "type": "improvement",
+                "text": "Faster to load: only your active tasks load up front, with completed history fetched on demand — so it stays quick even after years of tasks."
+            }
+        ]
+    },
+    {
         "date": "2026-05-30",
         "version": "Revamp Complete",
         "title": "Complete Site Revamp Done",
