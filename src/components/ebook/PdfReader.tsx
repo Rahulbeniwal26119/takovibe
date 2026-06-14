@@ -9,15 +9,15 @@ import React, {
 } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { Loader2 } from 'lucide-react';
+import PdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?worker';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
-// Bundle the worker with the app (Vite resolves this to a hashed asset URL) so
-// the reader keeps working offline instead of depending on a CDN.
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-    'pdfjs-dist/build/pdf.worker.min.mjs',
-    import.meta.url,
-).toString();
+// Run the PDF.js worker as a Vite-bundled Web Worker (emitted as a .js chunk)
+// rather than a .mjs URL asset. This keeps it offline-friendly and avoids hosts
+// that serve .mjs with the wrong MIME type, which browsers reject for module
+// scripts/workers.
+pdfjs.GlobalWorkerOptions.workerPort = new PdfjsWorker();
 
 export type PdfTheme = 'light' | 'sepia' | 'dark';
 
