@@ -130,10 +130,30 @@ function cfiRangesOverlap(a: string, b: string): boolean {
     return cfi.compare(ae.start, be.end) < 0 && cfi.compare(be.start, ae.end) < 0;
 }
 
+// PDF highlights reuse the EPUB highlight storage by encoding their locator
+// (page + normalized rectangles) as JSON in the `cfiRange`/`epub_cfi_range` field.
+interface PdfLocator {
+    page: number;
+    rects: { x: number; y: number; w: number; h: number }[];
+}
+
+function parsePdfLocator(value: string): PdfLocator | null {
+    try {
+        const parsed = JSON.parse(value);
+        if (parsed && typeof parsed.page === 'number' && Array.isArray(parsed.rects)) {
+            return parsed as PdfLocator;
+        }
+    } catch {
+        /* Not a PDF locator (likely an EPUB CFI). */
+    }
+    return null;
+}
+
 export default function EbookReaderView({ bookId, onClose }: Props) {
     const rootRef = useRef<HTMLDivElement>(null);
     const viewerRef = useRef<HTMLDivElement>(null);
     const pdfReaderRef = useRef<PdfReaderHandle>(null);
+    const selectionPopoverRef = useRef<HTMLDivElement>(null);
     const bookRef = useRef<any>(null);
     const renditionRef = useRef<any>(null);
     const pdfObjectUrlRef = useRef<string | null>(null);
@@ -368,6 +388,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
     const clearSelection = () => {
         try {
             selectionWinRef.current?.getSelection()?.removeAllRanges();
+            window.getSelection()?.removeAllRanges();
         } catch {
             /* ignore */
         }
@@ -375,6 +396,21 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
         setSelectionText(null);
         setSelectionCfiRange(null);
     };
+
+    // Dismiss the selection popover once the selection is dropped — i.e. the
+    // reader points anywhere outside the popover itself. The popover's own
+    // controls (colors, Ask Kumi, language select) keep working because their
+    // pointer-downs land inside the popover and are ignored here.
+    useEffect(() => {
+        if (!selectionText) return;
+        const handlePointerDown = (event: PointerEvent) => {
+            if (!selectionPopoverRef.current?.contains(event.target as Node)) {
+                clearSelection();
+            }
+        };
+        document.addEventListener('pointerdown', handlePointerDown);
+        return () => document.removeEventListener('pointerdown', handlePointerDown);
+    }, [selectionText]);
 
     const addHighlight = (color: HighlightColor) => {
         if (!selectionCfiRange || !selectionText) return;
@@ -422,7 +458,12 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
     };
 
     const goToHighlight = (highlight: StoredHighlight) => {
-        renditionRef.current?.display(highlight.cfiRange);
+        const locator = parsePdfLocator(highlight.cfiRange);
+        if (locator) {
+            pdfReaderRef.current?.seekToPage(locator.page);
+        } else {
+            renditionRef.current?.display(highlight.cfiRange);
+        }
         setHighlightsOpen(false);
     };
 
@@ -601,6 +642,9 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                     setProgress(meta?.progress || 0);
                     setChapter('PDF document');
                     setReady(true);
+                    // Highlights restore from local cache immediately, then sync with the cloud.
+                    setHighlights(loadHighlights());
+                    refreshHighlightsFromCloud();
                     return;
                 }
 
@@ -672,6 +716,12 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                         },
                         { passive: true },
                     );
+                    // Dismiss the selection popover when the reader points anywhere
+                    // in the book again (which drops the selection). The popover
+                    // lives in the parent document, so clicking its controls never
+                    // fires this and they keep working; starting a fresh selection
+                    // re-opens it via the 'selected' event.
+                    doc.addEventListener('pointerdown', () => clearSelection());
                 };
                 rendition.hooks.content.register(bindTouchNavigation);
                 rendition.getContents().forEach(bindTouchNavigation);
@@ -832,6 +882,21 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
     const pageBg = THEMES[theme].bg;
     const pct = Math.round(progress * 100);
     const isPdf = Boolean(pdfUrl);
+    // Decode stored PDF highlights into page-anchored overlays for the renderer.
+    const pdfOverlays = isPdf
+        ? highlights.flatMap((highlight) => {
+              const locator = parsePdfLocator(highlight.cfiRange);
+              if (!locator) return [];
+              return [
+                  {
+                      id: highlight.cfiRange,
+                      page: locator.page,
+                      rects: locator.rects,
+                      color: HIGHLIGHT_COLORS[highlight.color].value,
+                  },
+              ];
+          })
+        : [];
     const pageTurnActive = pageTurnPhase !== 'idle';
     const pageTransform = {
         idle: 'translateX(0) scale(1)',
@@ -965,7 +1030,6 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                         <List className="h-5 w-5" />
                     </button>
                     )}
-                    {!isPdf && (
                     <button
                         onClick={() => {
                             setHighlightsOpen((open) => !open);
@@ -983,7 +1047,6 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                             </span>
                         )}
                     </button>
-                    )}
                     <button
                         onClick={toggleFullscreen}
                         className="rounded-lg p-2 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-orange-600 dark:text-neutral-300 dark:hover:bg-neutral-900 dark:hover:text-orange-400"
@@ -1024,10 +1087,16 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                         fileUrl={pdfUrl}
                         theme={theme}
                         initialFraction={progress}
+                        highlights={pdfOverlays}
                         onProgress={({ fraction, page: current, numPages }) => {
                             setProgress(fraction);
                             setPage({ current, total: numPages });
                             saveProgress(bookId, `pdf:${fraction.toFixed(4)}`, fraction, '', 'PDF document');
+                        }}
+                        onSelect={({ page: selPage, rects, text }) => {
+                            resetTranslation();
+                            setSelectionText(text);
+                            setSelectionCfiRange(JSON.stringify({ page: selPage, rects }));
                         }}
                         onLoadError={(message) => setLoadError(message)}
                     />
@@ -1117,8 +1186,8 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                     </footer>
 
                     {/* Selected passages can be attached to the dedicated reading companion. */}
-                    {!isPdf && selectionText && (
-                <div className="absolute bottom-16 left-1/2 z-40 w-[min(94%,600px)] -translate-x-1/2 rounded-2xl border border-neutral-200 bg-white p-3 shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-200 dark:border-neutral-800 dark:bg-neutral-900">
+                    {selectionText && (
+                <div ref={selectionPopoverRef} className="absolute bottom-16 left-1/2 z-40 w-[min(94%,600px)] -translate-x-1/2 rounded-2xl border border-neutral-200 bg-white p-3 shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-200 dark:border-neutral-800 dark:bg-neutral-900">
                     <p className="mb-2 line-clamp-2 border-l-2 border-orange-500 pl-2 text-xs italic text-neutral-500 dark:text-neutral-400">
                         “{selectionText}”
                     </p>
@@ -1248,7 +1317,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                 </div>
                     )}
 
-                    {!isPdf && highlightsOpen && (
+                    {highlightsOpen && (
                 <div className="absolute inset-0 z-30">
                     <div className="absolute inset-0 bg-neutral-950/40 backdrop-blur-sm" onClick={() => setHighlightsOpen(false)} />
                     <div className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col border-l border-neutral-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-neutral-950">

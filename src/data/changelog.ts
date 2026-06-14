@@ -27,6 +27,38 @@ export interface ChangeLogEntry {
 
 export const changelogData: ChangeLogEntry[] = [
     {
+        "date": "2026-06-14",
+        "version": "PDF Reader Parity",
+        "title": "PDFs get the full reader treatment",
+        "description": "PDFs in the Reader used to be a bare preview. Now they share everything the EPUB reader has — color highlights with notes, light/sepia/dark themes, and reading progress that saves and restores right where you left off. Every open document also gets its own shareable link.",
+        "changes": [
+            {
+                "type": "new",
+                "text": "PDF highlights: select text in a PDF, pick a color, and attach a note — saved on your device and synced to your account, then restored every time you reopen the document."
+            },
+            {
+                "type": "new",
+                "text": "PDF dark & sepia modes: the page now follows your reader theme instead of being stuck on white, so PDFs are comfortable to read at night."
+            },
+            {
+                "type": "new",
+                "text": "PDF progress memory: your place is tracked as you scroll and restored on reopen, and you can drag the progress bar to jump anywhere in the document."
+            },
+            {
+                "type": "new",
+                "text": "Shareable document links: opening a book now updates the address to /reader/<id>, so you can bookmark or share a document and land straight back inside it."
+            },
+            {
+                "type": "improvement",
+                "text": "Native PDF rendering: we replaced the embedded browser PDF viewer with our own renderer (windowed for large files), which is what unlocks highlights, theming, and selection actions like Ask Kumi and Translate on PDFs."
+            },
+            {
+                "type": "improvement",
+                "text": "Cleaner selection popover: the highlight/translate popover now closes as soon as you drop the selection, in both PDFs and EPUBs."
+            }
+        ]
+    },
+    {
         "date": "2026-06-13",
         "version": "Tasks Revamp",
         "title": "A real daily task manager",
