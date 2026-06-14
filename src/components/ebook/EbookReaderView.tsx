@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import ePub, { EpubCFI } from 'epubjs';
 import {
     ArrowLeft,
+    Download,
     ChevronLeft,
     ChevronRight,
     List,
@@ -21,7 +22,7 @@ import {
     Save,
     Trash2,
 } from 'lucide-react';
-import { flushBookProgress, getBookFile, getBookMeta, saveProgress } from '../../lib/ebookLibrary';
+import { flushBookProgress, getBookFile, getBookMeta, isPdfContentType, saveProgress } from '../../lib/ebookLibrary';
 import {
     createRemoteHighlight,
     deleteRemoteHighlight,
@@ -133,6 +134,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
     const viewerRef = useRef<HTMLDivElement>(null);
     const bookRef = useRef<any>(null);
     const renditionRef = useRef<any>(null);
+    const pdfObjectUrlRef = useRef<string | null>(null);
     const locationsReady = useRef(false);
     const initialSiteDarkRef = useRef<boolean | null>(null);
     const pageTurnBusyRef = useRef(false);
@@ -142,6 +144,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
     const [title, setTitle] = useState('');
     const [ready, setReady] = useState(false);
     const [loadError, setLoadError] = useState('');
+    const [pdfUrl, setPdfUrl] = useState<string | null>(null);
     const [progress, setProgress] = useState(0);
     const [chapter, setChapter] = useState('');
     const [activeTocHref, setActiveTocHref] = useState('');
@@ -313,6 +316,13 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
     };
 
     const seekToProgress = (fraction: number) => {
+        if (pdfUrl) {
+            const clamped = Math.max(0, Math.min(1, fraction));
+            setProgress(clamped);
+            setScrubLocation(null);
+            saveProgress(bookId, `pdf:${clamped.toFixed(4)}`, clamped, '', 'PDF document');
+            return;
+        }
         const rendition = renditionRef.current;
         const book = bookRef.current;
         if (!rendition) return;
@@ -571,15 +581,25 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
         };
     }, []);
 
-    // Boot epub.js once per book
+    // Boot the selected reader once per book.
     useEffect(() => {
         let destroyed = false;
         (async () => {
             try {
                 const [buf, meta] = await Promise.all([getBookFile(bookId), getBookMeta(bookId)]);
                 if (destroyed || !viewerRef.current) return;
-                if (!buf) throw new Error('The EPUB file is not available on this device.');
+                if (!buf) throw new Error('The reader file is not available on this device.');
                 setTitle(meta?.title || '');
+                if (isPdfContentType(meta?.contentType)) {
+                    const blob = new Blob([buf], { type: 'application/pdf' });
+                    const objectUrl = URL.createObjectURL(blob);
+                    pdfObjectUrlRef.current = objectUrl;
+                    setPdfUrl(objectUrl);
+                    setProgress(meta?.progress || 0);
+                    setChapter('PDF document');
+                    setReady(true);
+                    return;
+                }
 
                 const book: any = ePub(buf);
                 bookRef.current = book;
@@ -740,8 +760,8 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                     });
             } catch (error) {
                 if (!destroyed) {
-                    console.error('Failed to open EPUB', error);
-                    setLoadError(error instanceof Error ? error.message : 'The EPUB could not be opened.');
+                    console.error('Failed to open reader file', error);
+                    setLoadError(error instanceof Error ? error.message : 'The reader file could not be opened.');
                 }
             }
         })();
@@ -753,6 +773,11 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
             const book = bookRef.current;
             renditionRef.current = null;
             bookRef.current = null;
+            if (pdfObjectUrlRef.current) {
+                URL.revokeObjectURL(pdfObjectUrlRef.current);
+                pdfObjectUrlRef.current = null;
+            }
+            setPdfUrl(null);
             try {
                 rendition?.destroy();
                 book?.destroy();
@@ -803,6 +828,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
 
     const pageBg = THEMES[theme].bg;
     const pct = Math.round(progress * 100);
+    const isPdf = Boolean(pdfUrl);
     const pageTurnActive = pageTurnPhase !== 'idle';
     const pageTransform = {
         idle: 'translateX(0) scale(1)',
@@ -852,6 +878,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                     >
                         {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                     </button>
+                    {!isPdf && (
                     <div className="relative">
                         <button
                             onClick={() => {
@@ -910,6 +937,19 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                             </div>
                         )}
                     </div>
+                    )}
+                    {isPdf && pdfUrl && (
+                        <a
+                            href={pdfUrl}
+                            download={`${title || 'document'}.pdf`}
+                            className="rounded-lg p-2 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-orange-600 dark:text-neutral-300 dark:hover:bg-neutral-900 dark:hover:text-orange-400"
+                            aria-label="Download PDF"
+                            title="Download PDF"
+                        >
+                            <Download className="h-5 w-5" />
+                        </a>
+                    )}
+                    {!isPdf && (
                     <button
                             onClick={() => {
                                 setTocOpen((s) => !s);
@@ -921,6 +961,8 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                     >
                         <List className="h-5 w-5" />
                     </button>
+                    )}
+                    {!isPdf && (
                     <button
                         onClick={() => {
                             setHighlightsOpen((open) => !open);
@@ -938,6 +980,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                             </span>
                         )}
                     </button>
+                    )}
                     <button
                         onClick={toggleFullscreen}
                         className="rounded-lg p-2 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-orange-600 dark:text-neutral-300 dark:hover:bg-neutral-900 dark:hover:text-orange-400"
@@ -972,6 +1015,15 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                         )}
                     </div>
                 )}
+                {isPdf && pdfUrl ? (
+                    <div className="mx-auto h-full w-full max-w-5xl px-2 py-2 sm:px-5 sm:py-4">
+                        <iframe
+                            src={`${pdfUrl}#toolbar=1&navpanes=0&view=FitH`}
+                            title={title || 'PDF document'}
+                            className="h-full w-full rounded-lg border border-neutral-200 bg-white shadow-sm dark:border-neutral-800"
+                        />
+                    </div>
+                ) : (
                 <div
                     className="mx-auto h-full w-full max-w-3xl transform-gpu transition-[transform,opacity,filter] duration-300 ease-[cubic-bezier(0.22,0.61,0.36,1)] motion-reduce:transition-none"
                     style={{
@@ -982,8 +1034,11 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                 >
                     <div ref={viewerRef} className="h-full w-full" />
                 </div>
+                )}
 
                 {/* Persistent page-turn controls */}
+                {!isPdf && (
+                <>
                 <button
                     onClick={prev}
                     className="absolute left-1 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-neutral-200/80 bg-white/75 text-neutral-600 shadow-sm backdrop-blur transition-colors hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:border-neutral-800 dark:bg-neutral-900/75 dark:text-neutral-300 dark:hover:border-orange-900 dark:hover:bg-orange-950/60 dark:hover:text-orange-300 md:left-3 md:h-10 md:w-10"
@@ -1000,6 +1055,8 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                 >
                     <ChevronRight className="h-5 w-5" />
                 </button>
+                </>
+                )}
                     </div>
 
                     {/* Bottom progress bar */}
@@ -1038,7 +1095,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                                 onKeyUp={(event) => seekToProgress(Number(event.currentTarget.value) / 100)}
                                 className="h-1.5 w-full cursor-pointer accent-orange-500"
                                 aria-label="Jump to position"
-                                title={locationsGenerated ? 'Drag to jump to a page' : 'Drag to jump to a section'}
+                                title={isPdf ? 'Save reading progress' : locationsGenerated ? 'Drag to jump to a page' : 'Drag to jump to a section'}
                             />
                             <span className="w-12 shrink-0 text-right font-mono text-[10px] tabular-nums text-neutral-400">
                                 {scrubLocation !== null
@@ -1052,7 +1109,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                     </footer>
 
                     {/* Selected passages can be attached to the dedicated reading companion. */}
-                    {selectionText && (
+                    {!isPdf && selectionText && (
                 <div className="absolute bottom-16 left-1/2 z-40 w-[min(94%,600px)] -translate-x-1/2 rounded-2xl border border-neutral-200 bg-white p-3 shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-200 dark:border-neutral-800 dark:bg-neutral-900">
                     <p className="mb-2 line-clamp-2 border-l-2 border-orange-500 pl-2 text-xs italic text-neutral-500 dark:text-neutral-400">
                         “{selectionText}”
@@ -1136,7 +1193,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                     )}
 
                     {/* TOC drawer */}
-                    {tocOpen && (
+                    {!isPdf && tocOpen && (
                 <div className="absolute inset-0 z-30">
                     <div className="absolute inset-0 bg-neutral-950/40 backdrop-blur-sm" onClick={() => setTocOpen(false)} />
                     <div className="absolute inset-y-0 left-0 flex w-full max-w-sm flex-col border-r border-neutral-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-neutral-950">
@@ -1183,7 +1240,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                 </div>
                     )}
 
-                    {highlightsOpen && (
+                    {!isPdf && highlightsOpen && (
                 <div className="absolute inset-0 z-30">
                     <div className="absolute inset-0 bg-neutral-950/40 backdrop-blur-sm" onClick={() => setHighlightsOpen(false)} />
                     <div className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col border-l border-neutral-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-neutral-950">

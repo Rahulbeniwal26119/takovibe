@@ -3,6 +3,11 @@ const BACKEND_URL = import.meta.env.DEV
     : import.meta.env.PUBLIC_API_URL || 'https://backend.takovibe.com';
 const API_BASE = `${BACKEND_URL}/api/ebooks`;
 const EPUB_CONTENT_TYPE = 'application/epub+zip';
+export const PDF_CONTENT_TYPE = 'application/pdf';
+export const READER_CONTENT_TYPES = {
+    epub: EPUB_CONTENT_TYPE,
+    pdf: PDF_CONTENT_TYPE,
+} as const;
 
 export interface RemoteReadingProgress {
     epub_cfi: string;
@@ -149,13 +154,14 @@ function normalizePaginatedUrl(url: string | null): string | null {
 }
 
 export function requestUploadUrl(file: File): Promise<UploadUrlResponse> {
+    const contentType = file.name.toLowerCase().endsWith('.pdf') ? PDF_CONTENT_TYPE : EPUB_CONTENT_TYPE;
     return apiFetch(`${API_BASE}/books/upload-url/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             filename: file.name,
             file_size: file.size,
-            content_type: file.type || EPUB_CONTENT_TYPE,
+            content_type: contentType,
         }),
     });
 }
@@ -180,13 +186,13 @@ export function uploadToS3(
                 resolve();
                 return;
             }
-            reject(new EbookApiError('The EPUB could not be uploaded to storage.', request.status));
+            reject(new EbookApiError('The reader file could not be uploaded to storage.', request.status));
         });
         request.addEventListener('error', () => {
-            reject(new EbookApiError('The EPUB could not be uploaded to storage.', request.status || 0));
+            reject(new EbookApiError('The reader file could not be uploaded to storage.', request.status || 0));
         });
         request.addEventListener('abort', () => {
-            reject(new EbookApiError('The EPUB upload was cancelled.', 0));
+            reject(new EbookApiError('The reader file upload was cancelled.', 0));
         });
         request.send(file);
     });
@@ -209,7 +215,7 @@ export async function downloadRemoteBook(id: string): Promise<Blob> {
     });
     const response = await fetch(signed.download_url);
     if (!response.ok) {
-        throw new EbookApiError('The EPUB could not be downloaded from storage.', response.status);
+        throw new EbookApiError('The reader file could not be downloaded from storage.', response.status);
     }
     return response.blob();
 }

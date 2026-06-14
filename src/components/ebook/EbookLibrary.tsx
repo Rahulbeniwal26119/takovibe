@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ePub from 'epubjs';
-import { BookOpen, Upload, Trash2, Loader2, Plus, CalendarPlus, Check } from 'lucide-react';
-import { deleteBook, syncLibrary, uploadBook, type BookMeta } from '../../lib/ebookLibrary';
-import { EbookApiError, hasReaderAccount, requestReaderLogin } from '../../lib/ebookApi';
+import { BookOpen, Upload, Trash2, Loader2, Plus, CalendarPlus, Check, FileText } from 'lucide-react';
+import { deleteBook, isPdfContentType, syncLibrary, uploadBook, type BookMeta } from '../../lib/ebookLibrary';
+import { EbookApiError, hasReaderAccount, requestReaderLogin, READER_CONTENT_TYPES } from '../../lib/ebookApi';
 import { createTask } from '../../lib/taskApi';
 
 interface Props {
@@ -15,6 +15,15 @@ interface UploadState {
     stage: 'preparing' | 'uploading' | 'verifying';
     current: number;
     total: number;
+}
+
+function isReaderFile(file: File): boolean {
+    const name = file.name.toLowerCase();
+    return name.endsWith('.epub') || name.endsWith('.pdf');
+}
+
+function filenameTitle(file: File): string {
+    return file.name.replace(/\.(epub|pdf)$/i, '');
 }
 
 async function objectUrlToDataUrl(url: string): Promise<string | null> {
@@ -66,7 +75,7 @@ export default function EbookLibrary({ onOpen }: Props) {
     }, []);
 
     const importFiles = async (files: FileList | File[]) => {
-        const list = Array.from(files).filter((f) => f.name.toLowerCase().endsWith('.epub'));
+        const list = Array.from(files).filter(isReaderFile);
         if (!list.length) return;
         if (!hasReaderAccount()) {
             requestReaderLogin();
@@ -84,22 +93,30 @@ export default function EbookLibrary({ onOpen }: Props) {
                     current: index + 1,
                     total: list.length,
                 });
-                const buf = await file.arrayBuffer();
-                book = ePub(buf);
-                await book.ready;
-                const md = book.packaging?.metadata || {};
+                const isPdf = file.name.toLowerCase().endsWith('.pdf');
+                let title = filenameTitle(file);
+                let author = isPdf ? 'PDF document' : 'Unknown author';
                 let cover: string | null = null;
-                try {
-                    const coverUrl = await book.coverUrl();
-                    if (coverUrl) cover = await objectUrlToDataUrl(coverUrl);
-                } catch {
-                    /* no cover */
+                if (!isPdf) {
+                    const buf = await file.arrayBuffer();
+                    book = ePub(buf);
+                    await book.ready;
+                    const md = book.packaging?.metadata || {};
+                    title = md.title || title;
+                    author = md.creator || author;
+                    try {
+                        const coverUrl = await book.coverUrl();
+                        if (coverUrl) cover = await objectUrlToDataUrl(coverUrl);
+                    } catch {
+                        /* no cover */
+                    }
                 }
                 setUploadState((state) => (state ? { ...state, stage: 'uploading' } : state));
                 await uploadBook({
-                    title: md.title || file.name.replace(/\.epub$/i, ''),
-                    author: md.creator || 'Unknown author',
+                    title,
+                    author,
                     cover,
+                    contentType: isPdf ? READER_CONTENT_TYPES.pdf : READER_CONTENT_TYPES.epub,
                     addedAt: Date.now(),
                     updatedAt: Date.now(),
                     location: null,
@@ -179,7 +196,7 @@ export default function EbookLibrary({ onOpen }: Props) {
             <input
                 ref={inputRef}
                 type="file"
-                accept=".epub,application/epub+zip"
+                accept=".epub,.pdf,application/epub+zip,application/pdf"
                 multiple
                 className="hidden"
                 onChange={(e) => e.target.files && importFiles(e.target.files)}
@@ -192,7 +209,7 @@ export default function EbookLibrary({ onOpen }: Props) {
                         Library
                     </h1>
                     <p className="mt-2 max-w-xl text-neutral-500 dark:text-neutral-400">
-                        Your private EPUB shelf. Upload a book and pick up right where you left off on any device.
+                        Your private reader shelf. Upload EPUBs or PDFs and pick up right where you left off on any device.
                     </p>
                 </div>
                 <button
@@ -201,7 +218,7 @@ export default function EbookLibrary({ onOpen }: Props) {
                     className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-orange-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-orange-500 disabled:opacity-60"
                 >
                     {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                    {importing ? 'Importing…' : 'Upload EPUB'}
+                    {importing ? 'Importing…' : 'Upload file'}
                 </button>
             </div>
 
@@ -228,7 +245,7 @@ export default function EbookLibrary({ onOpen }: Props) {
                             </div>
                             <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
                                 {uploadState.total > 1 && `File ${uploadState.current} of ${uploadState.total} · `}
-                                {uploadState.stage === 'preparing' && 'Reading EPUB details...'}
+                                {uploadState.stage === 'preparing' && 'Reading file details...'}
                                 {uploadState.stage === 'uploading' && 'Uploading securely to your private library...'}
                                 {uploadState.stage === 'verifying' && 'Verifying upload...'}
                             </p>
@@ -263,7 +280,7 @@ export default function EbookLibrary({ onOpen }: Props) {
                         Your shelf is empty
                     </span>
                     <span className="text-sm text-neutral-500 dark:text-neutral-400">
-                        Drop an <span className="font-mono">.epub</span> here or click to upload
+                        Drop an <span className="font-mono">.epub</span> or <span className="font-mono">.pdf</span> here or click to upload
                     </span>
                 </button>
             ) : (
@@ -284,7 +301,11 @@ export default function EbookLibrary({ onOpen }: Props) {
                                     />
                                 ) : (
                                     <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-4 text-center">
-                                        <BookOpen className="h-8 w-8 text-orange-500/70" />
+                                        {isPdfContentType(book.contentType) ? (
+                                            <FileText className="h-8 w-8 text-orange-500/70" />
+                                        ) : (
+                                            <BookOpen className="h-8 w-8 text-orange-500/70" />
+                                        )}
                                         <span className="line-clamp-3 text-xs font-semibold text-neutral-600 dark:text-neutral-300">
                                             {book.title}
                                         </span>
@@ -322,6 +343,9 @@ export default function EbookLibrary({ onOpen }: Props) {
                                         />
                                     </div>
                                 )}
+                                <span className="absolute bottom-2 right-2 rounded-md bg-white/90 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-neutral-500 shadow-sm dark:bg-neutral-900/90 dark:text-neutral-300">
+                                    {isPdfContentType(book.contentType) ? 'PDF' : 'EPUB'}
+                                </span>
                             </div>
 
                             <span className="mt-2 line-clamp-2 text-sm font-semibold text-neutral-900 dark:text-neutral-100">

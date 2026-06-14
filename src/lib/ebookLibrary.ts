@@ -8,6 +8,7 @@ import {
     requestUploadUrl,
     syncRemoteProgress,
     uploadToS3,
+    READER_CONTENT_TYPES,
     type RemoteEbook,
     type RemoteReadingProgress,
 } from './ebookApi';
@@ -19,6 +20,7 @@ export interface BookMeta {
     title: string;
     author: string;
     cover: string | null;
+    contentType: string;
     addedAt: number;
     updatedAt: number;
     location: string | null;
@@ -44,6 +46,10 @@ const syncingProgress = new Set<string>();
 
 function normalizeProgress(progress: number): number {
     return Math.min(1, Math.max(0, Math.round(progress * 10000) / 10000));
+}
+
+export function isPdfContentType(contentType: string | null | undefined): boolean {
+    return contentType === READER_CONTENT_TYPES.pdf;
 }
 
 function openDB(): Promise<IDBDatabase> {
@@ -87,6 +93,7 @@ function normalizeMeta(meta: Partial<BookMeta> & Pick<BookMeta, 'id' | 'title'>)
         title: meta.title,
         author: meta.author || 'Unknown author',
         cover: meta.cover || null,
+        contentType: meta.contentType || READER_CONTENT_TYPES.epub,
         addedAt: meta.addedAt || Date.now(),
         updatedAt: meta.updatedAt || Date.now(),
         location: meta.location || null,
@@ -118,6 +125,7 @@ function remoteToMeta(remote: RemoteEbook, cached?: BookMeta): BookMeta {
         title: remote.title,
         author: remote.author,
         cover: remote.cover_url || cached?.cover || null,
+        contentType: remote.content_type || cached?.contentType || READER_CONTENT_TYPES.epub,
         addedAt: Date.parse(remote.created_at) || cached?.addedAt || Date.now(),
         updatedAt: Date.parse(remote.updated_at) || Date.now(),
         storage: 'cloud',
