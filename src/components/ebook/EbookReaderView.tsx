@@ -22,6 +22,7 @@ import {
     Save,
     Trash2,
 } from 'lucide-react';
+import PdfReader, { type PdfReaderHandle } from './PdfReader';
 import { flushBookProgress, getBookFile, getBookMeta, isPdfContentType, saveProgress } from '../../lib/ebookLibrary';
 import {
     createRemoteHighlight,
@@ -132,6 +133,7 @@ function cfiRangesOverlap(a: string, b: string): boolean {
 export default function EbookReaderView({ bookId, onClose }: Props) {
     const rootRef = useRef<HTMLDivElement>(null);
     const viewerRef = useRef<HTMLDivElement>(null);
+    const pdfReaderRef = useRef<PdfReaderHandle>(null);
     const bookRef = useRef<any>(null);
     const renditionRef = useRef<any>(null);
     const pdfObjectUrlRef = useRef<string | null>(null);
@@ -320,6 +322,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
             const clamped = Math.max(0, Math.min(1, fraction));
             setProgress(clamped);
             setScrubLocation(null);
+            pdfReaderRef.current?.seekToFraction(clamped);
             saveProgress(bookId, `pdf:${clamped.toFixed(4)}`, clamped, '', 'PDF document');
             return;
         }
@@ -1016,13 +1019,18 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                     </div>
                 )}
                 {isPdf && pdfUrl ? (
-                    <div className="mx-auto h-full w-full max-w-5xl px-2 py-2 sm:px-5 sm:py-4">
-                        <iframe
-                            src={`${pdfUrl}#toolbar=1&navpanes=0&view=FitH`}
-                            title={title || 'PDF document'}
-                            className="h-full w-full rounded-lg border border-neutral-200 bg-white shadow-sm dark:border-neutral-800"
-                        />
-                    </div>
+                    <PdfReader
+                        ref={pdfReaderRef}
+                        fileUrl={pdfUrl}
+                        theme={theme}
+                        initialFraction={progress}
+                        onProgress={({ fraction, page: current, numPages }) => {
+                            setProgress(fraction);
+                            setPage({ current, total: numPages });
+                            saveProgress(bookId, `pdf:${fraction.toFixed(4)}`, fraction, '', 'PDF document');
+                        }}
+                        onLoadError={(message) => setLoadError(message)}
+                    />
                 ) : (
                 <div
                     className="mx-auto h-full w-full max-w-3xl transform-gpu transition-[transform,opacity,filter] duration-300 ease-[cubic-bezier(0.22,0.61,0.36,1)] motion-reduce:transition-none"
@@ -1095,7 +1103,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                                 onKeyUp={(event) => seekToProgress(Number(event.currentTarget.value) / 100)}
                                 className="h-1.5 w-full cursor-pointer accent-orange-500"
                                 aria-label="Jump to position"
-                                title={isPdf ? 'Save reading progress' : locationsGenerated ? 'Drag to jump to a page' : 'Drag to jump to a section'}
+                                title={isPdf ? 'Drag to jump through the PDF' : locationsGenerated ? 'Drag to jump to a page' : 'Drag to jump to a section'}
                             />
                             <span className="w-12 shrink-0 text-right font-mono text-[10px] tabular-nums text-neutral-400">
                                 {scrubLocation !== null

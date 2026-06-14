@@ -65,6 +65,7 @@
     "react-dom": "18.3.1",
     "react-hot-toast": "^2.6.0",
     "react-markdown": "^10.1.0",
+    "react-pdf": "^9",
     "rehype-highlight": "^7.0.2",
     "rehype-katex": "^7.0.1",
     "remark-gfm": "^4.0.1",
