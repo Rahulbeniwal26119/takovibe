@@ -1,0 +1,293 @@
+---
+const privacyEmail = "rahul@takovibe.com";
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>FocusLock / ZenMode Privacy Policy</title>
+        <meta
+            name="description"
+            content="Privacy policy for the FocusLock / ZenMode Android app by TakoVibe."
+        />
+        <style>
+            body {
+                max-width: 760px;
+                margin: 2rem auto;
+                padding: 0 1rem;
+                font-family: system-ui, -apple-system, sans-serif;
+                line-height: 1.6;
+                color: #222;
+            }
+            h1 { font-size: 2.2rem; margin-top: 1rem; }
+            h2 { font-size: 1.6rem; margin-top: 2.5rem; }
+            h3 { font-size: 1.2rem; margin-top: 1.75rem; }
+            code {
+                background: #f2f2f2;
+                padding: 1px 5px;
+                border-radius: 3px;
+                font-size: 0.9em;
+            }
+            a { color: #c2410c; }
+        </style>
+    </head>
+    <body>
+        <h1>Privacy Policy for FocusLock / ZenMode</h1>
+        <p>Last updated: June 22, 2026</p>
+
+        <p>
+            FocusLock, also referred to as ZenMode by its Android package name
+            <code>com.takovibe.zenmode</code>, is a focus and app-locking app developed by TakoVibe.
+            This Privacy Policy explains what information FocusLock accesses, collects, uses,
+            shares, and retains.
+        </p>
+
+        <p>
+            Privacy contact: <a href={`mailto:${privacyEmail}`}>{privacyEmail}</a>
+        </p>
+
+        <h2>Summary</h2>
+        <p>
+            FocusLock is designed to help you start and protect focus sessions. We do not sell
+            personal or sensitive user data. We do not use your selected app list, accessibility
+            events, focus sessions, or device permission data for advertising.
+        </p>
+        <p>
+            Most FocusLock data stays on your device unless you choose to sign in for cloud backup,
+            use Google Play purchases, or use Google services that are part of the app such as
+            Firebase Analytics, Remote Config, in-app updates, or in-app review prompts.
+        </p>
+
+        <h2>Information FocusLock Accesses or Collects</h2>
+
+        <h3>Focus session and settings data</h3>
+        <p>FocusLock stores the settings and session data needed to run the app, including:</p>
+        <ul>
+            <li>focus session start and end times;</li>
+            <li>session duration, completion status, streaks, and focus statistics;</li>
+            <li>focus profiles and schedules;</li>
+            <li>selected available apps, blocked apps, and emergency apps;</li>
+            <li>
+                preferences such as Do Not Disturb behavior, strict protection, break settings,
+                always-on display settings, scene choices, and ambient player settings.
+            </li>
+        </ul>
+        <p>
+            This data is used to run focus sessions, show progress and insights, restore app state,
+            and keep your configured routines working.
+        </p>
+
+        <h3>Installed app information</h3>
+        <p>
+            FocusLock shows a list of launchable apps on your device so you can choose which apps
+            are available, blocked, or treated as emergency apps during focus sessions. On Android
+            11 and later, FocusLock uses scoped package visibility through manifest
+            <code>&lt;queries&gt;</code> for launcher and essential app intents. FocusLock does not
+            request the broad <code>QUERY_ALL_PACKAGES</code> permission.
+        </p>
+        <p>
+            The app names and package names you select may be stored locally. If you sign in and
+            enable cloud backup, selected package names and profile data are backed up to Firebase
+            Firestore so they can be restored on your devices. We do not sell installed-app
+            information, and we do not share it for advertising or analytics monetization.
+        </p>
+
+        <h3>Accessibility Service data</h3>
+        <p>
+            FocusLock uses Android's Accessibility Service only when you enable it and only to
+            support focus blocking. During an active Light Mode focus session, the service observes
+            foreground-app change events so FocusLock can return you to the focus screen if you open
+            an app that is not allowed for that session.
+        </p>
+        <p>FocusLock's Accessibility Service:</p>
+        <ul>
+            <li>reads the package name of the app that comes to the foreground during an active session;</li>
+            <li>does not retrieve or read screen text or screen content;</li>
+            <li>does not record audio, capture screenshots, or log keystrokes;</li>
+            <li>does not use accessibility data for advertising;</li>
+            <li>does not sell or share accessibility data.</li>
+        </ul>
+        <p>The Accessibility Service is used only for the user-facing focus-lock feature described in the app.</p>
+
+        <h3>Device Admin</h3>
+        <p>
+            FocusLock may offer optional Device Admin protection for strict focus sessions. If you
+            enable it, Device Admin is used to make it harder to remove the app during a protected
+            focus session. FocusLock does not use Device Admin to erase your device, change your
+            device password, or manage your device for enterprise purposes.
+        </p>
+        <p>
+            You can disable Device Admin from Android system settings when a protected session is
+            not preventing removal.
+        </p>
+
+        <h3>Do Not Disturb, notifications, battery, boot, widget, and quick settings access</h3>
+        <p>FocusLock may request or use these Android permissions and APIs:</p>
+        <ul>
+            <li>Notification permission, to show focus session status and timer notifications.</li>
+            <li>Notification Policy Access, to enable Do Not Disturb during a session if you choose that setting.</li>
+            <li>Foreground Service, to keep an active focus session running.</li>
+            <li>Ignore Battery Optimizations, to reduce the chance that Android stops a long focus session.</li>
+            <li>Receive Boot Completed, to re-arm scheduled focus sessions after your device restarts.</li>
+            <li>App Widget and Quick Settings Tile APIs, to let you start or view focus sessions from Android surfaces.</li>
+        </ul>
+        <p>These permissions are used only for FocusLock's core focus-session functionality.</p>
+
+        <h3>Account and cloud backup data</h3>
+        <p>
+            If you choose to sign in with Google, FocusLock uses Google Sign-In and Firebase
+            Authentication. We may receive your Firebase user ID, display name, email address, and
+            profile photo URL from Google Sign-In. This is used to authenticate you and connect your
+            app data to your backup account.
+        </p>
+        <p>
+            When cloud backup is active, FocusLock stores backup data in Firebase Firestore,
+            including settings, profiles, selected app package names, schedules, focus statistics,
+            and recent session history. Raw session history stored in the cloud is limited by the
+            app to approximately one year. Other account backup data is kept until it is deleted as
+            described below.
+        </p>
+        <p>
+            Signing out stops account sync on that device, but it may not automatically delete cloud
+            backup data already stored for your account.
+        </p>
+
+        <h3>Analytics and diagnostics</h3>
+        <p>
+            FocusLock uses Firebase Analytics for coarse product analytics, such as onboarding
+            progress, whether key permissions were granted, app selection counts, first session
+            start/completion/abandonment, session duration, commitment level, and launch source.
+            These events are used to understand app reliability and improve the onboarding and focus
+            experience.
+        </p>
+        <p>
+            FocusLock analytics are intentionally coarse. We do not send the actual list of apps you
+            selected to Firebase Analytics.
+        </p>
+        <p>
+            FocusLock may also use Firebase Remote Config to fetch app configuration such as update
+            messages, feature limits, pricing presentation, or minimum supported app version.
+        </p>
+
+        <h3>Purchases</h3>
+        <p>
+            FocusLock uses Google Play Billing for Pro upgrades, subscriptions, lifetime purchases,
+            and any optional paid early-exit purchase if that feature is enabled. Google Play
+            processes payment information. FocusLock receives purchase status, product IDs, purchase
+            tokens, and entitlement state from Google Play so the app can unlock paid features,
+            restore purchases, or consume eligible one-time products.
+        </p>
+        <p>FocusLock does not collect or store your credit card number or full payment details.</p>
+
+        <h3>Updates and reviews</h3>
+        <p>
+            FocusLock may use Google Play's in-app update and in-app review APIs. These services are
+            provided by Google Play and are used to help keep the app updated and to request reviews
+            at appropriate moments.
+        </p>
+
+        <h3>Android and Google backup</h3>
+        <p>
+            FocusLock allows Android backup. Depending on your device settings and Android version,
+            Android or Google system backup may back up local app data so it can be restored later.
+            This is separate from FocusLock's optional Firebase cloud backup.
+        </p>
+
+        <h2>How We Use Information</h2>
+        <p>We use information to:</p>
+        <ul>
+            <li>run and protect focus sessions;</li>
+            <li>enforce your selected available, blocked, and emergency app rules;</li>
+            <li>show progress, streaks, and insights;</li>
+            <li>support schedules, widgets, quick settings, notifications, and Do Not Disturb settings;</li>
+            <li>provide optional cloud backup and restore;</li>
+            <li>authenticate Google sign-in;</li>
+            <li>process purchases and restore paid entitlements;</li>
+            <li>improve app reliability, onboarding, and feature design;</li>
+            <li>provide app updates, app review prompts, support, security, and fraud prevention;</li>
+            <li>comply with legal obligations.</li>
+        </ul>
+
+        <h2>Sharing</h2>
+        <p>We do not sell personal or sensitive user data.</p>
+        <p>We may share or process data with service providers only as needed to operate the app:</p>
+        <ul>
+            <li>Google Firebase Authentication, Firestore, Analytics, and Remote Config;</li>
+            <li>Google Sign-In;</li>
+            <li>Google Play Billing;</li>
+            <li>Google Play in-app updates and reviews;</li>
+            <li>Android system services required for permissions, notifications, accessibility, Device Admin, widgets, quick settings, and Do Not Disturb.</li>
+        </ul>
+        <p>
+            These providers process data under their own terms and privacy policies. We may also
+            disclose information if required by law, legal process, security needs, or to protect
+            users, the app, or the public.
+        </p>
+
+        <h2>Security</h2>
+        <p>
+            We use platform and service-provider security controls to protect data. Cloud data is
+            transmitted using modern encrypted connections such as HTTPS/TLS. Local data is stored
+            in Android app-private storage where Android app sandbox protections apply.
+        </p>
+        <p>
+            No method of storage or transmission is completely secure, but we limit data access and
+            collection to what is needed for FocusLock's disclosed functionality.
+        </p>
+
+        <h2>Retention and Deletion</h2>
+        <p>
+            Local app data remains on your device until you delete it in the app if a deletion
+            option is available, clear app storage, uninstall FocusLock, or use Android system
+            controls that remove app data.
+        </p>
+        <p>
+            If you use cloud backup, account backup data remains in Firebase until it is deleted.
+            Raw cloud session history is limited by the app to approximately one year. To request
+            deletion of cloud backup data associated with your FocusLock account, contact
+            <a href={`mailto:${privacyEmail}`}>{privacyEmail}</a> from the Google account email used
+            for FocusLock sign-in. We may retain limited records where required for legal, security,
+            fraud prevention, tax, accounting, or purchase dispute purposes.
+        </p>
+        <p>
+            Google Play purchase records are managed by Google Play and may be retained by Google
+            according to Google's policies. Firebase Analytics events and aggregated reports may be
+            retained according to the analytics retention settings configured for the Firebase
+            project and may not identify you directly.
+        </p>
+
+        <h2>Your Choices</h2>
+        <p>You can:</p>
+        <ul>
+            <li>decline optional permissions, although some focus-lock features may not work without the permissions they require;</li>
+            <li>disable Accessibility Service access in Android settings;</li>
+            <li>disable Device Admin access in Android settings when allowed by the current protection state;</li>
+            <li>change or disable Do Not Disturb behavior in FocusLock settings and Android settings;</li>
+            <li>disable notifications in Android settings;</li>
+            <li>sign out of Google account sync in the app;</li>
+            <li>clear local data or uninstall FocusLock;</li>
+            <li>request deletion of cloud backup data by contacting the privacy contact above.</li>
+        </ul>
+
+        <h2>Children</h2>
+        <p>
+            FocusLock is not directed to children. If you believe a child has provided personal
+            information through FocusLock, contact us so we can review and delete it where
+            appropriate.
+        </p>
+
+        <h2>Changes to This Policy</h2>
+        <p>
+            We may update this Privacy Policy when the app, our data practices, or legal
+            requirements change. The updated policy will show a new "Last updated" date.
+        </p>
+
+        <h2>Contact</h2>
+        <p>
+            For privacy questions or deletion requests, contact:
+            <a href={`mailto:${privacyEmail}`}>{privacyEmail}</a>
+        </p>
+    </body>
+</html>
