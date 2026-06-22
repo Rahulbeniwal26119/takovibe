@@ -1,0 +1,100 @@
+---
+const privacyEmail = "rahul@takovibe.com";
+const mailtoHref = `mailto:${privacyEmail}?subject=ZenMode%20account%20deletion%20request&body=Please%20delete%20my%20ZenMode%20account%20and%20all%20associated%20data.%20My%20account%20email%20is%3A%20`;
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Delete Your ZenMode Account & Data</title>
+        <meta
+            name="description"
+            content="Request deletion of your ZenMode (com.takovibe.zenmode) account and all associated data."
+        />
+        <style>
+            body {
+                max-width: 760px;
+                margin: 2rem auto;
+                padding: 0 1rem;
+                font-family: system-ui, -apple-system, sans-serif;
+                line-height: 1.6;
+                color: #222;
+            }
+            h1 { font-size: 2.2rem; margin-top: 1rem; }
+            h2 { font-size: 1.6rem; margin-top: 2.5rem; }
+            code {
+                background: #f2f2f2;
+                padding: 1px 5px;
+                border-radius: 3px;
+                font-size: 0.9em;
+            }
+            a { color: #c2410c; }
+            a.btn {
+                display: inline-block;
+                background: #c2410c;
+                color: #fff;
+                font-weight: 600;
+                text-decoration: none;
+                padding: 10px 18px;
+                border-radius: 8px;
+                margin-top: 8px;
+            }
+            a.btn:hover { background: #9a330a; }
+            footer { margin-top: 3rem; color: #666; font-size: 0.9rem; }
+        </style>
+    </head>
+    <body>
+        <h1>Delete your ZenMode account and data</h1>
+        <p>
+            ZenMode: Focus & App Blocker — package <code>com.takovibe.zenmode</code>
+        </p>
+
+        <h2>How to request deletion</h2>
+        <p>
+            To delete your ZenMode account and all associated data, email us from the address
+            associated with your account:
+        </p>
+        <a class="btn" href={mailtoHref}>Request account deletion</a>
+        <p>
+            Or email <a href={`mailto:${privacyEmail}`}>{privacyEmail}</a> with the subject
+            "ZenMode account deletion request" and include the email address of the Google account
+            you signed in with.
+        </p>
+
+        <h2>What gets deleted</h2>
+        <p>When you request deletion, we permanently remove:</p>
+        <ul>
+            <li>Your account identity (the email address and name from your Google sign-in)</li>
+            <li>Your focus session history and weekly statistics</li>
+            <li>Your synced settings and app preferences (cloud backup)</li>
+        </ul>
+        <p>
+            All of the above is stored in our cloud backup (Google Firebase) and is deleted along
+            with your authentication record.
+        </p>
+
+        <h2>What we keep, and for how long</h2>
+        <p>
+            We do not retain any personal data after deletion, except where required by law (for
+            example, transaction records related to subscription purchases, which are held by Google
+            Play, not by us).
+        </p>
+        <p>
+            Deletion requests are processed within <strong>30 days</strong> of receipt. Data held in
+            routine backups is purged on our standard backup rotation.
+        </p>
+
+        <h2>Using the app without an account</h2>
+        <p>
+            Signing in is optional in ZenMode. If you never signed in, no personal data was sent to
+            our servers — your settings and history stay on your device and are removed when you
+            uninstall the app.
+        </p>
+
+        <footer>
+            Questions? <a href={`mailto:${privacyEmail}`}>{privacyEmail}</a>
+        </footer>
+    </body>
+</html>
