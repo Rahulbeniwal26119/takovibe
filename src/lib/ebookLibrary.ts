@@ -5,6 +5,7 @@ import {
     downloadRemoteBook,
     hasReaderAccount,
     listRemoteBooks,
+    moveRemoteBook,
     requestUploadUrl,
     syncRemoteProgress,
     uploadToS3,
@@ -13,8 +14,8 @@ import {
     type RemoteReadingProgress,
 } from './ebookApi';
 
-// IndexedDB remains the local cache. Django owns cloud metadata and reading
-// progress; S3 owns EPUB bytes. Cached files avoid repeat downloads.
+// IndexedDB is the reader's local source of truth. Signed-in cloud sync mirrors
+// metadata/progress to Django and bytes to S3, while guests read locally.
 export interface BookMeta {
     id: string;
     title: string;
@@ -31,6 +32,7 @@ export interface BookMeta {
     progressVersion: number;
     storage: 'local' | 'cloud';
     uploadStatus: 'pending' | 'ready' | 'failed';
+    folderId: string | null;
 }
 
 const DB_NAME = 'takovibe-ebooks';
@@ -104,6 +106,7 @@ function normalizeMeta(meta: Partial<BookMeta> & Pick<BookMeta, 'id' | 'title'>)
         progressVersion: meta.progressVersion || 1,
         storage: meta.storage || 'local',
         uploadStatus: meta.uploadStatus || 'ready',
+        folderId: meta.folderId || null,
     };
 }
 
@@ -130,6 +133,7 @@ function remoteToMeta(remote: RemoteEbook, cached?: BookMeta): BookMeta {
         updatedAt: Date.parse(remote.updated_at) || Date.now(),
         storage: 'cloud',
         uploadStatus: remote.upload_status,
+        folderId: remote.folder_id || null,
         ...remoteProgress,
     });
 }
@@ -145,6 +149,11 @@ async function putFile(id: string, file: Blob): Promise<void> {
 async function deleteCachedBook(id: string): Promise<void> {
     await tx(META_STORE, 'readwrite', (s) => s.delete(id));
     await tx(FILE_STORE, 'readwrite', (s) => s.delete(id));
+}
+
+function createLocalBookId(): string {
+    if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID();
+    return `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
 export async function listBooks(): Promise<BookMeta[]> {
@@ -195,10 +204,24 @@ export async function getBookFile(id: string): Promise<ArrayBuffer | undefined> 
 }
 
 export async function uploadBook(
-    meta: Omit<BookMeta, 'id' | 'storage' | 'uploadStatus' | 'progressVersion'>,
+    meta: Omit<BookMeta, 'id' | 'storage' | 'uploadStatus' | 'progressVersion' | 'folderId'> & { folderId?: string | null },
     file: File,
     onProgress?: (percentage: number) => void,
 ) {
+    if (!hasReaderAccount()) {
+        onProgress?.(100);
+        const saved = normalizeMeta({
+            ...meta,
+            id: createLocalBookId(),
+            storage: 'local',
+            uploadStatus: 'ready',
+            progressVersion: 1,
+            folderId: null,
+        });
+        await Promise.all([putMeta(saved), putFile(saved.id, file)]);
+        return saved;
+    }
+
     const upload = await requestUploadUrl(file);
     try {
         await uploadToS3(file, upload, onProgress);
@@ -212,6 +235,7 @@ export async function uploadBook(
             storage: 'cloud',
             uploadStatus: 'ready',
             progressVersion: 1,
+            folderId: meta.folderId || null,
         });
         await Promise.all([putMeta(saved), putFile(saved.id, file)]);
         return saved;
@@ -229,6 +253,23 @@ export async function deleteBook(id: string): Promise<void> {
     const meta = await getBookMeta(id);
     if (meta?.storage === 'cloud') await deleteRemoteBook(id);
     await deleteCachedBook(id);
+}
+
+export async function moveBookToFolder(id: string, folderId: string | null): Promise<BookMeta | undefined> {
+    const meta = await getBookMeta(id);
+    if (!meta) return undefined;
+
+    if (meta.storage === 'cloud' && hasReaderAccount()) {
+        const remote = await moveRemoteBook(id, folderId);
+        const saved = remoteToMeta(remote, meta);
+        await putMeta(saved);
+        return saved;
+    }
+
+    meta.folderId = folderId;
+    meta.updatedAt = Date.now();
+    await putMeta(meta);
+    return meta;
 }
 
 export async function saveProgress(

@@ -26,8 +26,17 @@ export interface RemoteEbook {
     file_size: number;
     content_type: string;
     cover_url: string;
+    folder_id: string | null;
     upload_status: 'pending' | 'ready' | 'failed';
     progress: RemoteReadingProgress | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface RemoteEbookFolder {
+    id: string;
+    name: string;
+    book_count: number;
     created_at: string;
     updated_at: string;
 }
@@ -86,7 +95,7 @@ export function requestReaderLogin(): void {
     window.dispatchEvent(
         new CustomEvent('show-login-prompt', {
             detail: {
-                feature: 'your synced ebook library',
+                feature: 'syncing Vellora across devices',
                 next: '/reader',
             },
         }),
@@ -113,7 +122,7 @@ async function apiFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
     const token = localStorage.getItem('access_token');
     if (!token) {
         requestReaderLogin();
-        throw new EbookApiError('Please log in to use your synced ebook library.', 401);
+        throw new EbookApiError('Sign in to sync Vellora across devices.', 401);
     }
 
     const headers = new Headers(options.headers);
@@ -145,6 +154,35 @@ export async function listRemoteBooks(): Promise<RemoteEbook[]> {
     }
 
     return books;
+}
+
+export async function listRemoteFolders(): Promise<RemoteEbookFolder[]> {
+    const folders: RemoteEbookFolder[] = [];
+    let next: string | null = `${API_BASE}/folders/`;
+
+    while (next) {
+        const page: PaginatedResponse<RemoteEbookFolder> | RemoteEbookFolder[] = await apiFetch(next);
+        if (Array.isArray(page)) {
+            folders.push(...page);
+            break;
+        }
+        folders.push(...page.results);
+        next = normalizePaginatedUrl(page.next);
+    }
+
+    return folders;
+}
+
+export function createRemoteFolder(name: string): Promise<RemoteEbookFolder> {
+    return apiFetch(`${API_BASE}/folders/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+    });
+}
+
+export function deleteRemoteFolder(id: string): Promise<void> {
+    return apiFetch(`${API_BASE}/folders/${id}/`, { method: 'DELETE' });
 }
 
 function normalizePaginatedUrl(url: string | null): string | null {
@@ -222,6 +260,14 @@ export async function downloadRemoteBook(id: string): Promise<Blob> {
 
 export function deleteRemoteBook(id: string): Promise<void> {
     return apiFetch(`${API_BASE}/books/${id}/`, { method: 'DELETE' });
+}
+
+export function moveRemoteBook(id: string, folderId: string | null): Promise<RemoteEbook> {
+    return apiFetch(`${API_BASE}/books/${id}/move/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ folder_id: folderId }),
+    });
 }
 
 export async function syncRemoteProgress(

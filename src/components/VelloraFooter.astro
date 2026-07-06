@@ -1,0 +1,183 @@
+---
+const currentYear = new Date().getFullYear();
+
+const primaryLinks = [
+  { href: "/vellora", label: "Features" },
+  { href: "/reader", label: "Open Vellora" },
+  { href: "/tools", label: "More tools" },
+  { href: "/blog", label: "Articles" },
+  { href: "/notes", label: "Notes" },
+];
+
+const productLinks = [
+  { href: "/reader", label: "Local shelf", copy: "Drop EPUBs and PDFs into a private library on this device." },
+  { href: "/reader", label: "Folders", copy: "Group books by subject, course, project, or reading queue." },
+  { href: "/reader", label: "Highlights", copy: "Keep passages, notes, and reading memory attached to the book." },
+  { href: "/reader", label: "Kumi", copy: "Ask, translate, and unpack a selected passage without leaving the page." },
+];
+
+const smallLinks = [
+  { href: "/terms", label: "Terms" },
+  { href: "/privacy", label: "Privacy" },
+];
+---
+
+<footer class="vellora-footer relative overflow-hidden border-t border-stone-300/30 bg-[#181713] text-stone-100 dark:border-white/10">
+  <div class="absolute inset-0 opacity-45" aria-hidden="true">
+    <div class="footer-grid h-full w-full"></div>
+    <svg class="absolute inset-0 h-full w-full" viewBox="0 0 1440 720" preserveAspectRatio="none">
+      <path class="footer-signal" d="M-80 164C150 22 266 318 486 174s350-188 558-24 262 130 506 4" fill="none" stroke="#d97706" stroke-width="3"></path>
+      <path class="footer-signal footer-signal-delay" d="M-120 560C96 386 252 668 486 484s366-210 580-48 266 118 504-36" fill="none" stroke="#d97706" stroke-width="3"></path>
+    </svg>
+  </div>
+
+  <div class="relative mx-auto max-w-[1440px] px-5 py-16 sm:px-8 lg:px-12 lg:py-20">
+    <div class="grid gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
+      <div>
+        <p class="vellora-kicker text-amber-300">Vellora</p>
+        <h2 class="mt-5 max-w-3xl font-display text-4xl font-extrabold leading-[0.96] text-white sm:text-6xl">
+          Read with Kumi.
+        </h2>
+        <p class="mt-6 max-w-2xl text-base leading-7 text-stone-400 sm:text-lg sm:leading-8">
+          Vellora is the standalone reader for EPUBs and PDFs: local-first by
+          default, calm while reading, and joined by Kumi when you need help.
+        </p>
+
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a class="vellora-button vellora-button-primary" href="/reader">
+            Open reader
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 12h13m-5-5 5 5-5 5"></path>
+            </svg>
+          </a>
+          <a class="vellora-button border border-white/15 text-white hover:border-amber-300 hover:text-amber-200" href="/login?next=/reader">
+            Sign in to sync
+          </a>
+        </div>
+      </div>
+
+      <div class="grid gap-px overflow-hidden rounded-lg border border-white/10 bg-white/10 sm:grid-cols-2">
+        {productLinks.map((link) => (
+          <a
+            href={link.href}
+            class="group min-h-36 bg-[#201d18]/90 p-5 transition hover:bg-[#27231d] focus:outline-none focus:ring-2 focus:ring-amber-300"
+          >
+            <span class="flex items-center justify-between gap-4">
+              <span class="font-display text-2xl font-bold text-white">{link.label}</span>
+              <svg class="h-4 w-4 shrink-0 text-amber-300 transition group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M5 12h14"></path>
+                <path d="m13 6 6 6-6 6"></path>
+              </svg>
+            </span>
+            <span class="mt-4 block max-w-xs text-sm leading-6 text-stone-400">{link.copy}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+
+    <div class="mt-14 flex flex-col gap-8 border-t border-white/10 pt-8 lg:flex-row lg:items-end lg:justify-between">
+      <div>
+        <nav class="flex flex-wrap gap-x-6 gap-y-3" aria-label="Vellora footer navigation">
+          {primaryLinks.map((link) => (
+            <a class="text-sm font-bold text-stone-200 transition hover:text-amber-300" href={link.href}>
+              {link.label}
+            </a>
+          ))}
+        </nav>
+        <div class="mt-5 flex flex-wrap gap-x-5 gap-y-2">
+          {smallLinks.map((link) => (
+            <a class="text-sm text-stone-500 transition hover:text-stone-300" href={link.href}>
+              {link.label}
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-3 text-sm text-stone-500 sm:items-end">
+        <div class="flex flex-wrap gap-4">
+          <a class="transition hover:text-stone-300" href="https://github.com/orgs/TakoVibe">GitHub</a>
+          <a class="transition hover:text-stone-300" href="https://www.linkedin.com/company/takovibe/">LinkedIn</a>
+          <a class="transition hover:text-stone-300" href="https://www.linkedin.com/in/rahulbeniwal26119/">Rahul Beniwal</a>
+        </div>
+        <p>© {currentYear} Vellora.</p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .vellora-kicker {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+
+  .vellora-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    border-radius: 999px;
+    padding: 0.8rem 1.2rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    transition: 180ms ease;
+  }
+
+  .vellora-button svg {
+    height: 1rem;
+    width: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+    transition: transform 180ms ease;
+  }
+
+  .vellora-button:hover svg {
+    transform: translateX(0.25rem);
+  }
+
+  .vellora-button-primary {
+    background: #b45309;
+    color: white;
+  }
+
+  .vellora-button-primary:hover {
+    background: #92400e;
+    transform: translateY(-2px);
+  }
+
+  .footer-grid {
+    background-image:
+      linear-gradient(to right, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+    background-size: 52px 52px;
+    mask-image: linear-gradient(to bottom, black, transparent 82%);
+  }
+
+  .footer-signal {
+    stroke-dasharray: 20 22;
+    animation: footerSignal 24s linear infinite;
+    opacity: 0.62;
+  }
+
+  .footer-signal-delay {
+    animation-delay: -10s;
+  }
+
+  @keyframes footerSignal {
+    to {
+      stroke-dashoffset: -560;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .footer-signal {
+      animation: none;
+    }
+  }
+</style>

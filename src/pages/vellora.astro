@@ -1,0 +1,455 @@
+---
+export const prerender = true;
+
+import Layout from "../layouts/Layout.astro";
+import VelloraFooter from "../components/VelloraFooter.astro";
+
+const coreFeatures = [
+  {
+    title: "Drop-in reading",
+    text: "Open EPUBs and PDFs from a local-first shelf without building a project, importing metadata by hand, or signing in first.",
+  },
+  {
+    title: "Folders",
+    text: "Create folders for subjects, courses, projects, or reading queues, then move books between them from the shelf.",
+  },
+  {
+    title: "EPUB and PDF parity",
+    text: "Both formats support progress, themes, selection actions, highlights, notes, and a direct document URL.",
+  },
+  {
+    title: "Kumi beside the text",
+    text: "Ask Kumi about a selected passage, translate it, or unpack a dense paragraph without leaving the page.",
+  },
+  {
+    title: "Highlights with notes",
+    text: "Mark passages in color, attach short notes, and return to saved highlights from inside the reader.",
+  },
+  {
+    title: "Manual size controls",
+    text: "Use visible controls and a slider to increase EPUB text or PDF page size without relying on browser zoom.",
+  },
+  {
+    title: "Paper themes",
+    text: "Read in Paper, Cream, Ink, or Matcha themes so the page feels closer to a reading surface than a dashboard.",
+  },
+  {
+    title: "Progress memory",
+    text: "Vellora remembers where you stopped, the current chapter or page, and the last time a book was opened.",
+  },
+  {
+    title: "Guest-first storage",
+    text: "Books, progress, and highlights can stay on this device first. Sign in only when you want sync.",
+  },
+  {
+    title: "Sync controls",
+    text: "Sign in from Vellora to sync across devices, and sign out from the reader surface when you are done.",
+  },
+  {
+    title: "Reading tasks",
+    text: "Send a book into today's tasks when reading needs to become a planned session.",
+  },
+  {
+    title: "Direct book links",
+    text: "Opened documents get their own /reader/<id> URL so returning to the exact book is simple.",
+  },
+];
+
+const flow = [
+  { label: "Import", text: "Drop an EPUB or PDF into the shelf." },
+  { label: "Organize", text: "Move books into folders that match how you study." },
+  { label: "Read", text: "Use quiet typography, paper themes, and progress memory." },
+  { label: "Ask Kumi", text: "Select text for explanation, translation, or highlighting." },
+];
+---
+
+<Layout
+  title="Vellora - EPUB and PDF reader with Kumi"
+  description="Vellora is a standalone EPUB and PDF reader with folders, local-first storage, highlights, progress memory, typography controls, and Kumi beside the text."
+  type="website"
+  author="Rahul Beniwal"
+  tags={["Vellora", "EPUB reader", "PDF reader", "Kumi", "book folders", "highlights"]}
+  no_footer={true}
+>
+  <main class="vellora-page overflow-hidden bg-[#f8f1e5] text-stone-950 dark:bg-[#181510] dark:text-stone-50">
+    <section class="relative isolate min-h-[86vh] overflow-hidden border-b border-[#deceb5] dark:border-white/10">
+      <div class="vellora-scene" aria-hidden="true">
+        <div class="shelf">
+          <div class="shelf-top">
+            <span></span><span></span><span></span>
+          </div>
+          <div class="folder-row">
+            <i></i><i></i><i></i>
+          </div>
+          <div class="book-grid">
+            <b></b><b></b><b></b><b></b><b></b><b></b>
+          </div>
+        </div>
+        <div class="page-preview">
+          <div class="page-lines">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <div class="selection-pill">
+            <span>Ask</span><span>Translate</span><span>Highlight</span>
+          </div>
+        </div>
+        <div class="kumi-panel">
+          <strong>Kumi</strong>
+          <p>What does this passage imply?</p>
+          <span></span>
+        </div>
+      </div>
+
+      <div class="relative z-10 mx-auto flex min-h-[86vh] max-w-[1440px] flex-col justify-center px-5 py-20 sm:px-8 lg:px-12">
+        <p class="vellora-kicker text-[#7c5b32] dark:text-[#e7cfa5]">Vellora</p>
+        <h1 class="mt-5 max-w-[9ch] font-serif text-[clamp(4rem,12vw,9rem)] font-black leading-[0.86] tracking-[-0.03em] text-stone-950 dark:text-stone-50">
+          Vellora
+        </h1>
+        <p class="mt-7 max-w-2xl text-lg leading-8 text-stone-700 dark:text-stone-300 sm:text-xl sm:leading-9">
+          A standalone EPUB and PDF reader with folders, highlights, progress memory, and Kumi reading beside you.
+        </p>
+        <div class="mt-9 flex flex-wrap gap-3">
+          <a href="/reader" class="vellora-action vellora-action-primary">
+            Open Vellora
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13m-5-5 5 5-5 5"></path></svg>
+          </a>
+          <a href="#features" class="vellora-action vellora-action-secondary">See features</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="px-5 py-16 sm:px-8 sm:py-24 lg:px-12">
+      <div class="mx-auto max-w-[1440px]">
+        <div class="grid gap-6 border-b border-[#deceb5] pb-8 dark:border-white/10 lg:grid-cols-[0.7fr_1fr] lg:items-end">
+          <div>
+            <p class="vellora-kicker text-[#7c5b32] dark:text-[#e7cfa5]">All features</p>
+            <h2 class="mt-4 max-w-3xl font-serif text-4xl font-black leading-tight sm:text-6xl">Everything around the book.</h2>
+          </div>
+          <p class="max-w-2xl text-base leading-7 text-stone-600 dark:text-stone-400">
+            Vellora keeps the chrome quiet while still giving readers the controls they expect: organization, context, typography, memory, and optional sync.
+          </p>
+        </div>
+
+        <div class="mt-10 grid gap-px overflow-hidden rounded-lg border border-[#deceb5] bg-[#deceb5] dark:border-white/10 dark:bg-white/10 sm:grid-cols-2 xl:grid-cols-3">
+          {coreFeatures.map((feature, index) => (
+            <article class="min-h-52 bg-[#fffaf2] p-5 dark:bg-[#211d18] sm:p-6">
+              <span class="font-mono text-xs font-bold text-[#7c5b32] dark:text-[#e7cfa5]">{String(index + 1).padStart(2, "0")}</span>
+              <h3 class="mt-7 font-serif text-2xl font-bold text-stone-950 dark:text-stone-50">{feature.title}</h3>
+              <p class="mt-3 text-sm leading-6 text-stone-600 dark:text-stone-400">{feature.text}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="border-y border-[#deceb5] bg-[#eee0c9] px-5 py-16 dark:border-white/10 dark:bg-[#211d18] sm:px-8 sm:py-24 lg:px-12">
+      <div class="mx-auto max-w-[1440px]">
+        <div class="grid gap-10 lg:grid-cols-[0.7fr_1fr] lg:items-start">
+          <div>
+            <p class="vellora-kicker text-[#7c5b32] dark:text-[#e7cfa5]">Reading flow</p>
+            <h2 class="mt-4 max-w-xl font-serif text-4xl font-black leading-tight sm:text-6xl">From file to remembered reading.</h2>
+          </div>
+          <div class="grid gap-px overflow-hidden rounded-lg border border-[#d2bd99] bg-[#d2bd99] dark:border-white/10 dark:bg-white/10 sm:grid-cols-2">
+            {flow.map((step, index) => (
+              <div class="bg-[#f8f1e5] p-6 dark:bg-[#181510]">
+                <span class="font-mono text-xs font-bold text-stone-500">0{index + 1}</span>
+                <h3 class="mt-8 font-serif text-3xl font-bold">{step.label}</h3>
+                <p class="mt-3 text-sm leading-6 text-stone-600 dark:text-stone-400">{step.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="px-5 py-16 sm:px-8 sm:py-24 lg:px-12">
+      <div class="mx-auto grid max-w-[1440px] gap-8 rounded-lg border border-[#deceb5] bg-[#fffaf2] p-6 dark:border-white/10 dark:bg-[#211d18] sm:p-10 lg:grid-cols-[1fr_auto] lg:items-center">
+        <div>
+          <p class="vellora-kicker text-[#7c5b32] dark:text-[#e7cfa5]">Start reading</p>
+          <h2 class="mt-4 font-serif text-4xl font-black leading-tight sm:text-5xl">Open a book in five seconds.</h2>
+          <p class="mt-4 max-w-2xl text-base leading-7 text-stone-600 dark:text-stone-400">
+            Start as a guest, build a shelf, then sign in only when sync becomes useful.
+          </p>
+        </div>
+        <a href="/reader" class="vellora-action vellora-action-primary justify-center">Open Vellora</a>
+      </div>
+    </section>
+  </main>
+  <VelloraFooter />
+</Layout>
+
+<style>
+  .vellora-kicker {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+
+  .vellora-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    border-radius: 999px;
+    padding: 0.85rem 1.25rem;
+    font-size: 0.92rem;
+    font-weight: 800;
+    transition: 180ms ease;
+  }
+
+  .vellora-action svg {
+    height: 1rem;
+    width: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+  }
+
+  .vellora-action-primary {
+    background: #7c5b32;
+    color: #fffaf2;
+  }
+
+  .vellora-action-primary:hover {
+    background: #664a28;
+    transform: translateY(-2px);
+  }
+
+  .vellora-action-secondary {
+    border: 1px solid #d2bd99;
+    background: rgba(255, 250, 242, 0.68);
+    color: #3f3428;
+  }
+
+  :global(.dark) .vellora-action-secondary {
+    border-color: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.045);
+    color: #f5efe6;
+  }
+
+  .vellora-scene {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    opacity: 0.92;
+  }
+
+  .shelf,
+  .page-preview,
+  .kumi-panel {
+    position: absolute;
+    border: 1px solid rgba(124, 91, 50, 0.2);
+    background: rgba(255, 250, 242, 0.72);
+    box-shadow: 0 26px 90px rgba(63, 52, 40, 0.13);
+    backdrop-filter: blur(18px);
+  }
+
+  .shelf {
+    right: clamp(1rem, 7vw, 7rem);
+    top: 12%;
+    width: min(42rem, 54vw);
+    min-height: 24rem;
+    border-radius: 1rem;
+    padding: 1rem;
+    transform: rotate(-2deg);
+  }
+
+  .shelf-top {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 1px solid rgba(124, 91, 50, 0.16);
+    padding-bottom: 0.9rem;
+  }
+
+  .shelf-top span,
+  .folder-row i {
+    display: block;
+    height: 2.25rem;
+    border-radius: 0.55rem;
+    background: #eadcc5;
+  }
+
+  .shelf-top span {
+    width: 7rem;
+  }
+
+  .folder-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .book-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .book-grid b {
+    display: block;
+    aspect-ratio: 2 / 3;
+    border-radius: 0.55rem;
+    background: linear-gradient(145deg, #7c5b32, #d2bd99);
+  }
+
+  .book-grid b:nth-child(2n) {
+    background: linear-gradient(145deg, #3f3428, #b99a6a);
+  }
+
+  .page-preview {
+    right: clamp(2rem, 18vw, 18rem);
+    bottom: 6%;
+    width: min(31rem, 44vw);
+    min-height: 19rem;
+    border-radius: 1rem;
+    padding: 2rem;
+  }
+
+  .page-lines {
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  .page-lines span {
+    display: block;
+    height: 0.75rem;
+    border-radius: 999px;
+    background: rgba(63, 52, 40, 0.18);
+  }
+
+  .page-lines span:nth-child(2) {
+    width: 86%;
+  }
+
+  .page-lines span:nth-child(3) {
+    width: 74%;
+    background: rgba(124, 91, 50, 0.32);
+  }
+
+  .page-lines span:nth-child(4) {
+    width: 92%;
+  }
+
+  .page-lines span:nth-child(5) {
+    width: 64%;
+  }
+
+  .selection-pill {
+    display: inline-flex;
+    gap: 0.35rem;
+    margin-top: 2rem;
+    border-radius: 999px;
+    border: 1px solid rgba(124, 91, 50, 0.22);
+    background: rgba(255, 250, 242, 0.86);
+    padding: 0.35rem;
+    color: #6f522e;
+    font-size: 0.72rem;
+    font-weight: 800;
+  }
+
+  .selection-pill span {
+    border-radius: 999px;
+    padding: 0.45rem 0.65rem;
+  }
+
+  .selection-pill span:first-child {
+    background: #7c5b32;
+    color: #fffaf2;
+  }
+
+  .kumi-panel {
+    right: clamp(1rem, 5vw, 4rem);
+    bottom: 16%;
+    width: min(18rem, 32vw);
+    border-radius: 1rem;
+    padding: 1rem;
+  }
+
+  .kumi-panel strong {
+    color: #6f522e;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .kumi-panel p {
+    margin-top: 0.75rem;
+    color: #3f3428;
+    font-weight: 700;
+    line-height: 1.45;
+  }
+
+  .kumi-panel span {
+    display: block;
+    margin-top: 0.9rem;
+    height: 0.45rem;
+    width: 70%;
+    border-radius: 999px;
+    background: #d2bd99;
+  }
+
+  :global(.dark) .shelf,
+  :global(.dark) .page-preview,
+  :global(.dark) .kumi-panel {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(33, 29, 24, 0.72);
+    box-shadow: 0 26px 90px rgba(0, 0, 0, 0.28);
+  }
+
+  :global(.dark) .shelf-top span,
+  :global(.dark) .folder-row i {
+    background: #3a2c20;
+  }
+
+  :global(.dark) .page-lines span {
+    background: rgba(245, 239, 230, 0.14);
+  }
+
+  :global(.dark) .page-lines span:nth-child(3) {
+    background: rgba(231, 207, 165, 0.28);
+  }
+
+  :global(.dark) .selection-pill {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(33, 29, 24, 0.9);
+    color: #e7cfa5;
+  }
+
+  :global(.dark) .selection-pill span:first-child {
+    background: #e7cfa5;
+    color: #181510;
+  }
+
+  :global(.dark) .kumi-panel strong,
+  :global(.dark) .kumi-panel p {
+    color: #e7cfa5;
+  }
+
+  @media (max-width: 900px) {
+    .vellora-scene {
+      opacity: 0.32;
+    }
+
+    .shelf {
+      right: -8rem;
+      width: 36rem;
+    }
+
+    .page-preview {
+      right: -4rem;
+      width: 28rem;
+    }
+
+    .kumi-panel {
+      right: 1rem;
+      width: 15rem;
+    }
+  }
+</style>

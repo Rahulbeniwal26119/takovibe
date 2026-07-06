@@ -27,6 +27,42 @@ export interface ChangeLogEntry {
 
 export const changelogData: ChangeLogEntry[] = [
     {
+        "date": "2026-07-06",
+        "version": "Vellora",
+        "title": "Vellora becomes a standalone shelf",
+        "description": "Vellora now has a clearer product surface, while Kumi stays the AI companion inside the reading experience. The shelf is local-first for guests, supports folders, and uses a calmer paper-friendly palette.",
+        "changes": [
+            {
+                "type": "new",
+                "text": "Folder-based shelf: create folders for subjects, courses, projects, or reading queues, then move EPUBs and PDFs between them from the Vellora library."
+            },
+            {
+                "type": "new",
+                "text": "Guest-first importing: drop an EPUB or PDF into Vellora and start reading without a login; local books, progress, and highlights live on the device first."
+            },
+            {
+                "type": "new",
+                "text": "Vellora account controls: sign in when you want sync, and sign out directly from the standalone reading surface."
+            },
+            {
+                "type": "new",
+                "text": "Vellora feature page: the product now has a dedicated /vellora page that explains folders, local-first reading, Kumi, highlights, themes, progress memory, and sync."
+            },
+            {
+                "type": "improvement",
+                "text": "Kumi naming is back where it belongs: Vellora is the product, and Kumi remains the AI companion for asking, translating, and explaining selected passages."
+            },
+            {
+                "type": "improvement",
+                "text": "Manual reading size controls: Vellora now includes a visible slider and controls for increasing text or PDF page size without relying on browser zoom shortcuts."
+            },
+            {
+                "type": "improvement",
+                "text": "Reader-friendly palette: the Vellora landing surface now uses quieter paper, stone, and amber tones instead of mixed bright product colors."
+            }
+        ]
+    },
+    {
         "date": "2026-06-14",
         "version": "PDF Reader Parity",
         "title": "PDFs get the full reader treatment",

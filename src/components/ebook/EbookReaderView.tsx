@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import ePub, { EpubCFI } from 'epubjs';
 import {
     ArrowLeft,
@@ -23,6 +23,7 @@ import {
     Trash2,
 } from 'lucide-react';
 import PdfReader, { type PdfReaderHandle } from './PdfReader';
+import ReaderAccountControls from './ReaderAccountControls';
 import { flushBookProgress, getBookFile, getBookMeta, isPdfContentType, saveProgress } from '../../lib/ebookLibrary';
 import {
     createRemoteHighlight,
@@ -38,7 +39,7 @@ interface Props {
     onClose: () => void;
 }
 
-type ThemeName = 'light' | 'sepia' | 'dark';
+type ThemeName = 'light' | 'sepia' | 'dark' | 'matcha';
 type PageTurnDirection = 'next' | 'prev';
 type PageTurnPhase = 'idle' | 'out-next' | 'out-prev' | 'in-next' | 'in-prev';
 type HighlightColor = 'yellow' | 'green' | 'blue' | 'pink';
@@ -53,9 +54,10 @@ interface StoredHighlight {
 }
 
 const THEMES: Record<ThemeName, { bg: string; color: string; link: string; label: string }> = {
-    light: { bg: '#fafaf9', color: '#1c1917', link: '#ea580c', label: 'Light' },
-    sepia: { bg: '#f4ecd8', color: '#4b3f2f', link: '#b45309', label: 'Sepia' },
-    dark: { bg: '#0a0a0a', color: '#cfccc9', link: '#fb923c', label: 'Dark' },
+    light: { bg: '#fbfaf6', color: '#1c1917', link: '#b45309', label: 'Paper' },
+    sepia: { bg: '#f4ecd8', color: '#4b3f2f', link: '#9a5b18', label: 'Cream' },
+    dark: { bg: '#0f1110', color: '#d8d3cc', link: '#86efac', label: 'Ink' },
+    matcha: { bg: '#14231a', color: '#e7eadf', link: '#a7f3d0', label: 'Matcha' },
 };
 
 const FONT_MIN = 80;
@@ -87,7 +89,7 @@ function applyTheme(rendition: any, theme: ThemeName, fontSize: number) {
     if (!rendition) return;
     const t = THEMES[theme];
     // Broad selectors so book CSS can't leave text unreadable on dark/sepia.
-    rendition.themes.register('tako', {
+    rendition.themes.register('vellora', {
         body: {
             background: `${t.bg} !important`,
             color: `${t.color} !important`,
@@ -100,7 +102,7 @@ function applyTheme(rendition: any, theme: ThemeName, fontSize: number) {
         '::selection': { background: 'rgba(234,88,12,0.25)' },
         img: { 'max-width': '100% !important' },
     });
-    rendition.themes.select('tako');
+    rendition.themes.select('vellora');
     rendition.themes.fontSize(`${fontSize}%`);
 }
 
@@ -225,6 +227,27 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
         pageTurnTimersRef.current = [];
     };
 
+    const handleFontShortcut = useCallback((event: KeyboardEvent) => {
+        if (!(event.ctrlKey || event.metaKey) || event.altKey) return false;
+        const key = event.key.toLowerCase();
+        if (key === '+' || key === '=' || key === 'add') {
+            event.preventDefault();
+            setFontSize((f) => Math.min(FONT_MAX, f + 10));
+            return true;
+        }
+        if (key === '-' || key === '_' || key === 'subtract') {
+            event.preventDefault();
+            setFontSize((f) => Math.max(FONT_MIN, f - 10));
+            return true;
+        }
+        if (key === '0') {
+            event.preventDefault();
+            setFontSize(110);
+            return true;
+        }
+        return false;
+    }, []);
+
     const resizeRendition = () => {
         const rendition = renditionRef.current;
         if (!rendition?.manager) return;
@@ -289,7 +312,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
             highlight.cfiRange,
             { color: highlight.color },
             undefined,
-            `tako-highlight-${highlight.color}`,
+            `vellora-highlight-${highlight.color}`,
             {
                 fill: HIGHLIGHT_COLORS[highlight.color].value,
                 'fill-opacity': '0.48',
@@ -581,7 +604,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
     }, []);
 
     useEffect(() => {
-        document.documentElement.classList.toggle('dark', theme === 'dark');
+        document.documentElement.classList.toggle('dark', theme === 'dark' || theme === 'matcha');
     }, [theme]);
 
     useEffect(() => {
@@ -682,8 +705,8 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                 // to be bound inside each content document.
                 const bindTouchNavigation = (contents: any) => {
                     const doc = contents?.document;
-                    if (!doc || doc.documentElement.dataset.takoTouchNav === 'true') return;
-                    doc.documentElement.dataset.takoTouchNav = 'true';
+                    if (!doc || doc.documentElement.dataset.velloraTouchNav === 'true') return;
+                    doc.documentElement.dataset.velloraTouchNav = 'true';
                     doc.addEventListener(
                         'touchstart',
                         (event: TouchEvent) => {
@@ -722,6 +745,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                     // fires this and they keep working; starting a fresh selection
                     // re-opens it via the 'selected' event.
                     doc.addEventListener('pointerdown', () => clearSelection());
+                    doc.addEventListener('keydown', handleFontShortcut);
                 };
                 rendition.hooks.content.register(bindTouchNavigation);
                 rendition.getContents().forEach(bindTouchNavigation);
@@ -840,7 +864,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
             locationsReady.current = false;
             setLocationsGenerated(false);
         };
-    }, [bookId]);
+    }, [bookId, handleFontShortcut]);
 
     // Re-apply theme / font on change + persist
     useEffect(() => {
@@ -860,13 +884,15 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
             else if (e.key === 'Escape') onClose();
         };
         const onResize = () => resizeRendition();
+        window.addEventListener('keydown', handleFontShortcut);
         window.addEventListener('keyup', onKey);
         window.addEventListener('resize', onResize);
         return () => {
+            window.removeEventListener('keydown', handleFontShortcut);
             window.removeEventListener('keyup', onKey);
             window.removeEventListener('resize', onResize);
         };
-    }, [onClose]);
+    }, [handleFontShortcut, onClose]);
 
     // The paginated view needs a recalculation when the available height changes
     useEffect(() => {
@@ -938,15 +964,15 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                         <Sparkles className="h-4 w-4" />
                         <span className="hidden sm:inline">Kumi</span>
                     </button>
+                    <ReaderAccountControls compact />
                     <button
                         onClick={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))}
                         className="rounded-lg p-2 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-orange-600 dark:text-neutral-300 dark:hover:bg-neutral-900 dark:hover:text-orange-400"
-                        aria-label={theme === 'dark' ? 'Switch reader to light mode' : 'Switch reader to dark mode'}
-                        title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+                        aria-label={theme === 'dark' || theme === 'matcha' ? 'Switch reader to Paper theme' : 'Switch reader to Ink theme'}
+                        title={theme === 'dark' || theme === 'matcha' ? 'Paper theme' : 'Ink theme'}
                     >
-                        {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                        {theme === 'dark' || theme === 'matcha' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                     </button>
-                    {!isPdf && (
                     <div className="relative">
                         <button
                             onClick={() => {
@@ -962,12 +988,13 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                             <div className="absolute right-0 top-full mt-2 w-60 rounded-xl border border-neutral-200 bg-white p-3 shadow-2xl dark:border-neutral-800 dark:bg-neutral-900">
                                 <div className="mb-3">
                                     <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-neutral-400">
-                                        Font size
+                                        {isPdf ? 'Page size' : 'Font size'}
                                     </span>
                                     <div className="flex items-center justify-between rounded-lg border border-neutral-200 dark:border-neutral-700">
                                         <button
                                             onClick={() => setFontSize((f) => Math.max(FONT_MIN, f - 10))}
                                             className="flex h-9 w-12 items-center justify-center rounded-l-lg text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                                            aria-label="Decrease reader font size"
                                         >
                                             <Minus className="h-4 w-4" />
                                         </button>
@@ -975,15 +1002,30 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                                         <button
                                             onClick={() => setFontSize((f) => Math.min(FONT_MAX, f + 10))}
                                             className="flex h-9 w-12 items-center justify-center rounded-r-lg text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                                            aria-label="Increase reader font size"
                                         >
                                             <Plus className="h-4 w-4" />
                                         </button>
+                                    </div>
+                                    <div className="mt-3 flex items-center gap-3">
+                                        <Type className="h-3.5 w-3.5 shrink-0 text-neutral-400" />
+                                        <input
+                                            type="range"
+                                            min={FONT_MIN}
+                                            max={FONT_MAX}
+                                            step={5}
+                                            value={fontSize}
+                                            onChange={(event) => setFontSize(Number(event.target.value))}
+                                            className="h-2 w-full cursor-pointer accent-orange-600"
+                                            aria-label={isPdf ? 'PDF page size' : 'Reader font size'}
+                                        />
+                                        <Type className="h-5 w-5 shrink-0 text-neutral-500 dark:text-neutral-300" />
                                     </div>
                                 </div>
                                 <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-widest text-neutral-400">
                                     Theme
                                 </span>
-                                <div className="grid grid-cols-3 gap-2">
+                                <div className="grid grid-cols-2 gap-2">
                                     {(Object.keys(THEMES) as ThemeName[]).map((name) => (
                                         <button
                                             key={name}
@@ -1005,7 +1047,6 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                             </div>
                         )}
                     </div>
-                    )}
                     {isPdf && pdfUrl && (
                         <a
                             href={pdfUrl}
@@ -1086,6 +1127,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                         ref={pdfReaderRef}
                         fileUrl={pdfUrl}
                         theme={theme}
+                        zoomPercent={fontSize}
                         initialFraction={progress}
                         highlights={pdfOverlays}
                         onProgress={({ fraction, page: current, numPages }) => {

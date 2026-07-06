@@ -19,7 +19,7 @@ import 'react-pdf/dist/Page/TextLayer.css';
 // scripts/workers.
 pdfjs.GlobalWorkerOptions.workerPort = new PdfjsWorker();
 
-export type PdfTheme = 'light' | 'sepia' | 'dark';
+export type PdfTheme = 'light' | 'sepia' | 'dark' | 'matcha';
 
 // Normalized rectangle (0-1, relative to the page box) so a highlight survives
 // zoom / width changes.
@@ -57,6 +57,7 @@ interface PdfProgress {
 interface PdfReaderProps {
     fileUrl: string;
     theme: PdfTheme;
+    zoomPercent?: number;
     initialFraction?: number;
     highlights?: PdfHighlightOverlay[];
     onProgress?: (info: PdfProgress) => void;
@@ -77,10 +78,11 @@ const THEME_FILTER: Record<PdfTheme, string> = {
     light: 'none',
     sepia: 'sepia(0.45) saturate(1.05) brightness(0.97)',
     dark: 'invert(0.9) hue-rotate(180deg) brightness(1.05) contrast(0.95)',
+    matcha: 'invert(0.88) hue-rotate(145deg) brightness(0.9) saturate(0.8)',
 };
 
 const PdfReader = forwardRef<PdfReaderHandle, PdfReaderProps>(function PdfReader(
-    { fileUrl, theme, initialFraction = 0, highlights = [], onProgress, onSelect, onLoadError },
+    { fileUrl, theme, zoomPercent = 110, initialFraction = 0, highlights = [], onProgress, onSelect, onLoadError },
     ref,
 ) {
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -118,13 +120,14 @@ const PdfReader = forwardRef<PdfReaderHandle, PdfReaderProps>(function PdfReader
         const el = scrollRef.current;
         if (!el) return;
         const measure = () => {
-            setPageWidth(Math.min(MAX_PAGE_WIDTH, Math.max(280, el.clientWidth - 32)));
+            const baseWidth = Math.min(MAX_PAGE_WIDTH, Math.max(280, el.clientWidth - 32));
+            setPageWidth(Math.round(baseWidth * (zoomPercent / 110)));
         };
         measure();
         const observer = new ResizeObserver(measure);
         observer.observe(el);
         return () => observer.disconnect();
-    }, []);
+    }, [zoomPercent]);
 
     const computeWindow = useCallback(() => {
         const el = scrollRef.current;
@@ -286,7 +289,7 @@ const PdfReader = forwardRef<PdfReaderHandle, PdfReaderProps>(function PdfReader
             onScroll={handleScroll}
             onMouseUp={handleSelection}
             onTouchEnd={handleSelection}
-            className="h-full w-full overflow-y-auto overscroll-contain"
+            className="h-full w-full overflow-auto overscroll-contain"
         >
             <Document
                 file={fileUrl}

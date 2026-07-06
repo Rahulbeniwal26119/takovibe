@@ -5,24 +5,25 @@ import Layout from "../layouts/Layout.astro";
 const tools = [
   {
     number: "01",
-    title: "Reader",
+    title: "Vellora",
     eyebrow: "Deep reading",
-    href: "/reader",
-    cta: "Open Reader",
+    href: "/vellora",
+    cta: "Explore Vellora",
     summary:
-      "Read EPUBs and PDFs in a focused workspace with synced progress, memory notes, and Kumi nearby.",
+      "Read EPUBs and PDFs in a focused workspace with folders, synced progress, memory notes, and Kumi nearby.",
     promise:
       "A book stops being a lonely file and becomes a study surface you can return to with context.",
     visual: "reader",
-    accent: "emerald",
-    tags: ["EPUB/PDF reader", "Highlights", "Kumi context", "Progress memory"],
+    accent: "amber",
+    tags: ["Vellora", "Folders", "Highlights", "Progress memory"],
     details: [
       "Upload and continue books without rebuilding your place every session.",
+      "Create folders for subjects, courses, or projects, then move books between them from the shelf.",
       "Mark important passages with color and keep small notes close to the text.",
       "PDFs and EPUBs alike: highlights, light/sepia/dark themes, and saved progress now work the same in both.",
       "Use contextual help when a paragraph needs translation, summary, or explanation.",
     ],
-    workflow: ["Open a book", "Highlight a passage", "Ask Kumi", "Return with memory"],
+    workflow: ["Open Vellora", "Create folders", "Ask Kumi", "Return with memory"],
   },
   {
     number: "02",
@@ -174,7 +175,7 @@ const accentClasses = {
 const workflowSteps = [
   {
     title: "Learn",
-    copy: "Start in the article or Reader. Keep the hard idea in view while you test, ask, and annotate.",
+    copy: "Start in the article or Vellora. Keep the hard idea in view while you test, ask, and annotate.",
   },
   {
     title: "Model",
@@ -188,7 +189,7 @@ const workflowSteps = [
 ---
 
 <Layout
-  title="TakoVibe Tools - Reader, Notes, Tasks, Playground, ResumeVibe, CodeDiff"
+  title="TakoVibe Tools - Vellora, Notes, Tasks, Playground, ResumeVibe, CodeDiff"
   description="Explore the full TakoVibe tool suite for deep reading, visual notes, daily planning, runnable code, resume review, and code diffs."
   type="website"
   author="Rahul Beniwal"
@@ -213,8 +214,8 @@ const workflowSteps = [
                 <path d="M5 12h13m-5-5 5 5-5 5"></path>
               </svg>
             </a>
-            <a href="/reader" class="tools-button border border-black/10 bg-white/70 text-neutral-900 hover:border-orange-300 dark:border-white/10 dark:bg-white/[0.045] dark:text-white dark:hover:border-orange-300/40">
-              Start with Reader
+            <a href="/vellora" class="tools-button border border-black/10 bg-white/70 text-neutral-900 hover:border-orange-300 dark:border-white/10 dark:bg-white/[0.045] dark:text-white dark:hover:border-orange-300/40">
+              Start with Vellora
             </a>
           </div>
         </div>
@@ -343,14 +344,14 @@ const workflowSteps = [
                       <div class="mt-5 min-h-[15rem]">
                         {tool.visual === "reader" && (
                           <div class="rounded-lg border border-white/10 bg-white/[0.035] p-5">
-                            <div class="tools-kicker text-emerald-300">Chapter 04</div>
+                            <div class="tools-kicker text-amber-300">Chapter 04</div>
                             <h4 class="mt-4 font-display text-3xl font-bold leading-tight">Backpressure is a promise.</h4>
                             <div class="mt-5 space-y-3 text-sm leading-6 text-stone-400">
                               <p>When traffic rises, the queue gives the system somewhere honest to put pressure.</p>
-                              <p class="border-l-2 border-emerald-300 bg-emerald-300/10 px-3 py-2 text-stone-200">Memory note attached</p>
+                              <p class="border-l-2 border-amber-300 bg-amber-300/10 px-3 py-2 text-stone-200">Memory note attached</p>
                             </div>
                             <div class="mt-6 h-2 overflow-hidden rounded-full bg-white/10">
-                              <div class="progress-run h-full w-[64%] rounded-full bg-emerald-300"></div>
+                              <div class="progress-run h-full w-[64%] rounded-full bg-amber-300"></div>
                             </div>
                           </div>
                         )}
@@ -510,7 +511,7 @@ print(explain(system))</code></pre>
             </p>
           </div>
           <div class="relative flex flex-col gap-3 sm:flex-row lg:flex-col">
-            <a href="/reader" class="tools-button justify-center bg-white text-neutral-950 hover:bg-stone-200">Open Reader</a>
+            <a href="/reader" class="tools-button justify-center bg-white text-neutral-950 hover:bg-stone-200">Open Vellora</a>
             <a href="/playground" class="tools-button justify-center border border-white/20 text-white hover:bg-white/10">Try Playground</a>
           </div>
         </div>
