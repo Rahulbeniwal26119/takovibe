@@ -1,0 +1,721 @@
+---
+export const prerender = true;
+
+import Layout from "../layouts/Layout.astro";
+
+const DEMO_URL = "https://runo.takovibe.com";
+const GITHUB_URL = "https://github.com/Takovibe/runo";
+
+const dockerCmd = `docker run -d --name runo \\
+  -p 9700:9700 \\
+  -v runo-data:/data \\
+  -e RUNO_ADMIN_PASSWORD=change-me \\
+  ghcr.io/takovibe/runo:latest`;
+
+const heroSignals = ["Git-native", "Self-hosted", "Browser-first", "Server-side requests"];
+
+const apiWorkflows = [
+  {
+    label: "Design & build",
+    title: "Shape requests where the team can see them",
+    text: "Create collections, group endpoints, switch environments, and keep the working API surface visible from any signed-in browser.",
+  },
+  {
+    label: "Test & validate",
+    title: "Run from the network that matters",
+    text: "Send requests from the Runo server so staging hosts, private services, and internal DNS are reachable without browser-side workarounds.",
+  },
+  {
+    label: "Manage & operate",
+    title: "Keep state under your control",
+    text: "Accounts, cookies, secrets, OAuth tokens, mounted volumes, and collection folders stay inside the infrastructure you operate.",
+  },
+  {
+    label: "Collaborate via files",
+    title: "Review API work like code",
+    text: "Collections live as plain files, so teams can use git history, pull requests, editor search, and existing repo permissions.",
+  },
+];
+
+const coreFeatures = [
+  {
+    title: "Postman-style client, self-hosted",
+    text: "Build requests, organize collections, switch environments, and inspect responses from a familiar API client surface that runs from your own server.",
+  },
+  {
+    title: "Server-side execution",
+    text: "Requests run on the server, so they reach internal hosts and private networks a signed-in user's browser could never touch directly.",
+  },
+  {
+    title: "Browser UI, Node runner",
+    text: "The browser talks to Runo over WebSocket while the Node server owns execution, file access, auth state, cookies, and response streaming.",
+  },
+  {
+    title: "Plain-file collections",
+    text: "Collections are stored as ordinary .bru files on disk. Version them with git, review them in a PR, or edit them by hand.",
+  },
+  {
+    title: "One-command deploy",
+    text: "A single docker run brings up the server on port 9700. Everything it writes lives under one mounted /data volume.",
+  },
+  {
+    title: "Accounts and admin mode",
+    text: "Set RUNO_ADMIN_PASSWORD to require sign-in, then add and manage teammates from the built-in /admin page.",
+  },
+  {
+    title: "Per-account isolation",
+    text: "Each signed-in account keeps its own cookies, secrets, OAuth2 tokens and environments. Collections stay shared across the team by design.",
+  },
+  {
+    title: "Sandboxed scripts",
+    text: "Collection scripts run in a restricted QuickJS sandbox. Server-side Node access is off on web, with no opt-out.",
+  },
+  {
+    title: "Live file sync",
+    text: "File watchers pick up edits on disk, so a change to a shared collection appears live for everyone connected.",
+  },
+];
+
+const flow = [
+  { label: "Deploy", text: "Run the Docker image with a data volume and an admin password." },
+  { label: "Invite", text: "Sign in as admin and add teammates from the /admin page." },
+  { label: "Add collections", text: "Point RUNO_COLLECTIONS_DIR at a folder, or import from the UI." },
+  { label: "Send requests", text: "The server executes each request and streams the response to your browser." },
+];
+---
+
+<Layout
+  title="Runo - free self-hosted Postman alternative"
+  description="Runo is a free, self-hostable Postman-style API client for teams: run requests from your server, keep collections as files, and use any browser as the UI."
+  type="website"
+  author="Rahul Beniwal"
+  tags={["Runo", "Postman alternative", "API client", "self-hosted", "REST client", "open source"]}
+>
+  <main class="runo-page overflow-hidden bg-white text-slate-950 dark:bg-[#0b0d12] dark:text-slate-50">
+    <!-- Hero -->
+    <section class="relative isolate min-h-[86vh] overflow-hidden border-b border-slate-200 dark:border-white/10">
+      <div class="runo-scene" aria-hidden="true">
+        <div class="req-panel">
+          <div class="req-bar">
+            <span class="req-method">GET</span>
+            <span class="req-url">/internal/users/:id</span>
+            <span class="req-send">Send</span>
+          </div>
+          <div class="req-lines">
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <div class="req-tabs">
+            <span>Params</span><span>Headers</span><span>Auth</span>
+          </div>
+        </div>
+        <div class="res-panel">
+          <div class="res-status"><b>200</b> OK</div>
+          <div class="res-lines">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+        <div class="git-panel">
+          <strong>git diff</strong>
+          <span>collections/internal.bru</span>
+          <code>+ header Authorization</code>
+        </div>
+      </div>
+
+      <div class="relative z-10 mx-auto flex min-h-[86vh] max-w-[1440px] flex-col justify-center px-5 py-20 sm:px-8 lg:px-12">
+        <p class="runo-kicker text-amber-700 dark:text-amber-400">Git-native / self-hosted / browser-first</p>
+        <h1 class="mt-5 max-w-[9ch] font-serif text-[clamp(4rem,12vw,9rem)] font-black leading-[0.86] tracking-[-0.03em]">
+          Runo
+        </h1>
+        <p class="mt-7 max-w-2xl text-lg leading-8 text-slate-600 dark:text-slate-300 sm:text-xl sm:leading-9">
+          A free, self-hostable Postman-style API client for teams that want browser access, server-side requests, shared collections, and plain files without handing the workspace to another cloud platform.
+        </p>
+        <div class="mt-7 flex max-w-3xl flex-wrap gap-2">
+          {heroSignals.map((signal) => (
+            <span class="rounded-full border border-slate-200 bg-white/72 px-3 py-1.5 font-mono text-xs font-bold uppercase tracking-[0.12em] text-slate-700 backdrop-blur dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-200">
+              {signal}
+            </span>
+          ))}
+        </div>
+        <div class="mt-9 flex flex-wrap gap-3">
+          <a href={DEMO_URL} class="runo-action runo-action-primary" target="_blank" rel="noopener">
+            Try the demo
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13m-5-5 5 5-5 5"></path></svg>
+          </a>
+          <a href={GITHUB_URL} class="runo-action runo-action-secondary" target="_blank" rel="noopener">View on GitHub</a>
+          <a href="#features" class="runo-action runo-action-ghost">See features</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- API lifecycle -->
+    <section class="border-b border-slate-200 bg-slate-50 px-5 py-16 dark:border-white/10 dark:bg-[#12151c] sm:px-8 sm:py-24 lg:px-12">
+      <div class="mx-auto max-w-[1440px]">
+        <div class="grid gap-10 lg:grid-cols-[0.7fr_1fr] lg:items-start">
+          <div>
+            <p class="runo-kicker text-amber-700 dark:text-amber-400">API lifecycle</p>
+            <h2 class="mt-4 max-w-xl font-serif text-4xl font-black leading-tight sm:text-6xl">The useful parts of an API platform, without the platform gravity.</h2>
+            <p class="mt-5 max-w-lg text-base leading-7 text-slate-600 dark:text-slate-400">
+              Modern API platforms show the breadth of the workflow. Git-native tools show why developers still want plain files, local control, and reviewable changes. Runo brings those ideas into a self-hosted team workspace.
+            </p>
+          </div>
+          <div class="grid gap-px overflow-hidden rounded-lg border border-slate-300 bg-slate-300 dark:border-white/10 dark:bg-white/10 sm:grid-cols-2">
+            {apiWorkflows.map((workflow, index) => (
+              <article class="bg-slate-50 p-6 dark:bg-[#0b0d12]">
+                <span class="font-mono text-xs font-bold text-amber-700 dark:text-amber-400">{String(index + 1).padStart(2, "0")} / {workflow.label}</span>
+                <h3 class="mt-8 font-serif text-3xl font-bold leading-tight">{workflow.title}</h3>
+                <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">{workflow.text}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Live demo -->
+    <section id="demo" class="border-b border-slate-200 px-5 py-16 dark:border-white/10 sm:px-8 sm:py-24 lg:px-12">
+      <div class="mx-auto max-w-[1440px]">
+        <div class="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p class="runo-kicker text-amber-700 dark:text-amber-400">Live demo</p>
+            <h2 class="mt-4 font-serif text-4xl font-black leading-tight sm:text-5xl">A real API workspace, running right here.</h2>
+          </div>
+          <a href={DEMO_URL} class="runo-action runo-action-secondary" target="_blank" rel="noopener">
+            Open full screen
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5h5v5m0-5-7 7M10 5H5v14h14v-5"></path></svg>
+          </a>
+        </div>
+        <div class="runo-embed mt-6">
+          <div class="runo-embed-bar">
+            <span class="runo-embed-dots"><i></i><i></i><i></i></span>
+            <span class="runo-embed-url">runo.takovibe.com</span>
+          </div>
+          <iframe
+            src={DEMO_URL}
+            title="Runo live demo"
+            class="runo-embed-frame"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
+        <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">
+          Interacting inside the frame? For the full experience, <a href={DEMO_URL} target="_blank" rel="noopener" class="underline decoration-amber-500/50 underline-offset-2 hover:text-amber-700 dark:hover:text-amber-400">open it in a new tab</a>.
+        </p>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features" class="px-5 py-16 sm:px-8 sm:py-24 lg:px-12">
+      <div class="mx-auto max-w-[1440px]">
+        <div class="grid gap-6 border-b border-slate-200 pb-8 dark:border-white/10 lg:grid-cols-[0.7fr_1fr] lg:items-end">
+          <div>
+            <p class="runo-kicker text-amber-700 dark:text-amber-400">What you get</p>
+            <h2 class="mt-4 max-w-3xl font-serif text-4xl font-black leading-tight sm:text-6xl">A serious API workspace, made a team server.</h2>
+          </div>
+          <p class="max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-400">
+            Runo keeps the Postman-like request workflow, then moves the expensive parts into your own Node process: execution, collection files, account state, environments, cookies, OAuth tokens, and live sync.
+          </p>
+        </div>
+
+        <div class="mt-10 grid gap-px overflow-hidden rounded-lg border border-slate-200 bg-slate-200 dark:border-white/10 dark:bg-white/10 sm:grid-cols-2 xl:grid-cols-3">
+          {coreFeatures.map((feature, index) => (
+            <article class="min-h-52 bg-white p-5 dark:bg-[#12151c] sm:p-6">
+              <span class="font-mono text-xs font-bold text-amber-700 dark:text-amber-400">{String(index + 1).padStart(2, "0")}</span>
+              <h3 class="mt-7 font-serif text-2xl font-bold">{feature.title}</h3>
+              <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">{feature.text}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section class="border-y border-slate-200 bg-slate-50 px-5 py-16 dark:border-white/10 dark:bg-[#12151c] sm:px-8 sm:py-24 lg:px-12">
+      <div class="mx-auto max-w-[1440px]">
+        <div class="grid gap-10 lg:grid-cols-[0.7fr_1fr] lg:items-start">
+          <div>
+            <p class="runo-kicker text-amber-700 dark:text-amber-400">How it works</p>
+            <h2 class="mt-4 max-w-xl font-serif text-4xl font-black leading-tight sm:text-6xl">From docker run to first request.</h2>
+          </div>
+          <div class="grid gap-px overflow-hidden rounded-lg border border-slate-300 bg-slate-300 dark:border-white/10 dark:bg-white/10 sm:grid-cols-2">
+            {flow.map((step, index) => (
+              <div class="bg-slate-50 p-6 dark:bg-[#0b0d12]">
+                <span class="font-mono text-xs font-bold text-slate-500">0{index + 1}</span>
+                <h3 class="mt-8 font-serif text-3xl font-bold">{step.label}</h3>
+                <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">{step.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick start -->
+    <section class="px-5 py-16 sm:px-8 sm:py-24 lg:px-12">
+      <div class="mx-auto max-w-[1440px]">
+        <div class="grid gap-8 lg:grid-cols-[0.7fr_1fr] lg:items-center">
+          <div>
+            <p class="runo-kicker text-amber-700 dark:text-amber-400">Quick start</p>
+            <h2 class="mt-4 font-serif text-4xl font-black leading-tight sm:text-5xl">Up in one command.</h2>
+            <p class="mt-4 max-w-md text-base leading-7 text-slate-600 dark:text-slate-400">
+              No clone, no build. Run the image, open <span class="font-mono text-sm">localhost:9700</span>, and sign in as <span class="font-mono text-sm">admin</span> with the password you set.
+            </p>
+          </div>
+          <div class="runo-code">
+            <div class="runo-code-bar"><span></span><span></span><span></span></div>
+            <pre><code>{dockerCmd}</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="px-5 pb-20 sm:px-8 lg:px-12">
+      <div class="mx-auto grid max-w-[1440px] gap-8 rounded-lg border border-slate-200 bg-slate-50 p-6 dark:border-white/10 dark:bg-[#12151c] sm:p-10 lg:grid-cols-[1fr_auto] lg:items-center">
+        <div>
+          <p class="runo-kicker text-amber-700 dark:text-amber-400">See it live</p>
+          <h2 class="mt-4 font-serif text-4xl font-black leading-tight sm:text-5xl">Try the hosted demo.</h2>
+          <p class="mt-4 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-400">
+            Poke around a running instance, then grab the image and host your own.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-3 lg:justify-end">
+          <a href={DEMO_URL} class="runo-action runo-action-primary justify-center" target="_blank" rel="noopener">Open the demo</a>
+          <a href={GITHUB_URL} class="runo-action runo-action-secondary justify-center" target="_blank" rel="noopener">GitHub &amp; docs</a>
+        </div>
+      </div>
+    </section>
+  </main>
+</Layout>
+
+<style>
+  .runo-kicker {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+
+  .runo-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    border-radius: 999px;
+    padding: 0.85rem 1.25rem;
+    font-size: 0.92rem;
+    font-weight: 800;
+    transition: 180ms ease;
+  }
+
+  .runo-action svg {
+    height: 1rem;
+    width: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+  }
+
+  .runo-action-primary {
+    background: #d97706;
+    color: #fff;
+  }
+
+  .runo-action-primary:hover {
+    background: #b45f04;
+    transform: translateY(-2px);
+  }
+
+  .runo-action-secondary {
+    border: 1px solid #cbd5e1;
+    background: rgba(255, 255, 255, 0.7);
+    color: #1e293b;
+  }
+
+  .runo-action-secondary:hover {
+    transform: translateY(-2px);
+  }
+
+  .runo-action-ghost {
+    color: #64748b;
+  }
+
+  .runo-action-ghost:hover {
+    color: #d97706;
+  }
+
+  :global(.dark) .runo-action-secondary {
+    border-color: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.045);
+    color: #e2e8f0;
+  }
+
+  :global(.dark) .runo-action-ghost {
+    color: #94a3b8;
+  }
+
+  :global(.dark) .runo-action-ghost:hover {
+    color: #fbbf24;
+  }
+
+  /* Code block */
+  .runo-code {
+    overflow: hidden;
+    border-radius: 0.9rem;
+    border: 1px solid #e2e8f0;
+    background: #0b0d12;
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.16);
+  }
+
+  :global(.dark) .runo-code {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .runo-code-bar {
+    display: flex;
+    gap: 0.4rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 0.75rem 1rem;
+  }
+
+  .runo-code-bar span {
+    height: 0.7rem;
+    width: 0.7rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+  }
+
+  .runo-code-bar span:first-child {
+    background: #f59e0b;
+  }
+
+  .runo-code pre {
+    margin: 0;
+    overflow-x: auto;
+    padding: 1.25rem 1.35rem;
+  }
+
+  .runo-code code {
+    color: #e2e8f0;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    white-space: pre;
+  }
+
+  /* Embedded live demo */
+  .runo-embed {
+    overflow: hidden;
+    border-radius: 0.9rem;
+    border: 1px solid #e2e8f0;
+    background: #0b0d12;
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.16);
+  }
+
+  :global(.dark) .runo-embed {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .runo-embed-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 0.7rem 1rem;
+  }
+
+  .runo-embed-dots {
+    display: inline-flex;
+    gap: 0.4rem;
+  }
+
+  .runo-embed-dots i {
+    height: 0.7rem;
+    width: 0.7rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+  }
+
+  .runo-embed-dots i:first-child {
+    background: #f59e0b;
+  }
+
+  .runo-embed-url {
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    padding: 0.3rem 0.9rem;
+    color: #94a3b8;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.75rem;
+  }
+
+  .runo-embed-frame {
+    display: block;
+    width: 100%;
+    height: min(80vh, 760px);
+    min-height: 420px;
+    border: 0;
+    background: #fff;
+  }
+
+  /* Hero decorative scene */
+  .runo-scene {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    opacity: 0.9;
+  }
+
+  .req-panel,
+  .res-panel,
+  .git-panel {
+    position: absolute;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    background: rgba(255, 255, 255, 0.72);
+    box-shadow: 0 26px 90px rgba(15, 23, 42, 0.12);
+    backdrop-filter: blur(18px);
+    border-radius: 1rem;
+  }
+
+  .req-panel {
+    right: clamp(1rem, 8vw, 8rem);
+    top: 14%;
+    width: min(38rem, 50vw);
+    padding: 1.1rem;
+    transform: rotate(-2deg);
+    animation: runo-float-a 9s ease-in-out infinite;
+  }
+
+  .req-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .req-method {
+    border-radius: 0.5rem;
+    background: #d97706;
+    color: #fff;
+    padding: 0.4rem 0.7rem;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.72rem;
+    font-weight: 800;
+  }
+
+  .req-url {
+    flex: 1;
+    border-radius: 0.5rem;
+    background: linear-gradient(90deg, rgba(148, 163, 184, 0.18), rgba(217, 119, 6, 0.16), rgba(148, 163, 184, 0.18));
+    background-size: 220% 100%;
+    color: #334155;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.78rem;
+    font-weight: 700;
+    min-width: 0;
+    overflow: hidden;
+    padding: 0.46rem 0.75rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    animation: runo-shimmer 5.5s linear infinite;
+  }
+
+  .req-send {
+    border-radius: 0.5rem;
+    border: 1px solid rgba(217, 119, 6, 0.4);
+    color: #b45f04;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+  }
+
+  .req-lines {
+    display: grid;
+    gap: 0.7rem;
+    margin-top: 1.1rem;
+  }
+
+  .req-lines span {
+    height: 0.7rem;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.2);
+    animation: runo-line-pulse 3.8s ease-in-out infinite;
+  }
+
+  .req-lines span:nth-child(2) { width: 82%; }
+  .req-lines span:nth-child(3) { width: 68%; animation-delay: 0.35s; }
+  .req-lines span:nth-child(4) { width: 90%; animation-delay: 0.7s; }
+
+  .req-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 1.2rem;
+  }
+
+  .req-tabs span {
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    background: rgba(255, 255, 255, 0.48);
+    color: #64748b;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 0.32rem 0.58rem;
+  }
+
+  .req-tabs span:first-child {
+    border-color: rgba(217, 119, 6, 0.34);
+    background: rgba(217, 119, 6, 0.12);
+    color: #b45f04;
+  }
+
+  .res-panel {
+    right: clamp(2rem, 20vw, 20rem);
+    bottom: 8%;
+    width: min(28rem, 42vw);
+    padding: 1.35rem;
+    animation: runo-float-b 10.5s ease-in-out infinite;
+  }
+
+  .res-status {
+    color: #64748b;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  .res-status b {
+    color: #16a34a;
+  }
+
+  .res-lines {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .res-lines span {
+    height: 0.65rem;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.22);
+    animation: runo-line-pulse 4.2s ease-in-out infinite;
+  }
+
+  .res-lines span:nth-child(1) { width: 70%; animation-delay: 0.25s; }
+  .res-lines span:nth-child(3) { width: 88%; background: rgba(217, 119, 6, 0.3); animation-delay: 0.5s; }
+  .res-lines span:nth-child(4) { width: 60%; animation-delay: 0.75s; }
+  .res-lines span:nth-child(5) { width: 78%; animation-delay: 1s; }
+
+  .git-panel {
+    right: clamp(1rem, 7vw, 7rem);
+    bottom: 31%;
+    display: grid;
+    gap: 0.45rem;
+    width: min(18rem, 30vw);
+    padding: 1rem;
+    transform: rotate(2.5deg);
+    animation: runo-float-c 11s ease-in-out infinite;
+  }
+
+  .git-panel strong {
+    color: #b45f04;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .git-panel span,
+  .git-panel code {
+    border-radius: 0.5rem;
+    background: rgba(148, 163, 184, 0.14);
+    color: #475569;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.45rem 0.55rem;
+  }
+
+  .git-panel code {
+    background: rgba(22, 163, 74, 0.12);
+    color: #15803d;
+  }
+
+  :global(.dark) .req-panel,
+  :global(.dark) .res-panel,
+  :global(.dark) .git-panel {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(18, 21, 28, 0.72);
+    box-shadow: 0 26px 90px rgba(0, 0, 0, 0.32);
+  }
+
+  :global(.dark) .req-url {
+    color: #e2e8f0;
+  }
+
+  :global(.dark) .req-tabs span {
+    background: rgba(255, 255, 255, 0.05);
+    color: #94a3b8;
+  }
+
+  :global(.dark) .req-tabs span:first-child {
+    background: rgba(251, 191, 36, 0.12);
+    color: #fbbf24;
+  }
+
+  :global(.dark) .git-panel span,
+  :global(.dark) .git-panel code {
+    background: rgba(255, 255, 255, 0.07);
+    color: #cbd5e1;
+  }
+
+  :global(.dark) .git-panel code {
+    background: rgba(34, 197, 94, 0.12);
+    color: #86efac;
+  }
+
+  @keyframes runo-float-a {
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(-2deg); }
+    50% { transform: translate3d(-0.8rem, 0.7rem, 0) rotate(-1.2deg); }
+  }
+
+  @keyframes runo-float-b {
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+    50% { transform: translate3d(0.7rem, -0.6rem, 0) rotate(1deg); }
+  }
+
+  @keyframes runo-float-c {
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(2.5deg); }
+    50% { transform: translate3d(0.6rem, 0.8rem, 0) rotate(1.3deg); }
+  }
+
+  @keyframes runo-shimmer {
+    0% { background-position: 180% 0; }
+    100% { background-position: -40% 0; }
+  }
+
+  @keyframes runo-line-pulse {
+    0%, 100% { opacity: 0.62; transform: scaleX(1); }
+    50% { opacity: 1; transform: scaleX(0.96); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .req-panel,
+    .res-panel,
+    .git-panel,
+    .req-url,
+    .req-lines span,
+    .res-lines span {
+      animation: none;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .runo-scene { opacity: 0.28; }
+    .req-panel { right: -6rem; width: 34rem; }
+    .res-panel { right: -3rem; width: 26rem; }
+    .git-panel { right: 1rem; width: 15rem; }
+  }
+</style>

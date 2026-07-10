@@ -107,23 +107,23 @@ const tools = [
   },
   {
     number: "06",
-    title: "CodeDiff",
-    eyebrow: "Change review",
-    href: "https://codediff.takovibe.com/",
-    cta: "Open CodeDiff",
+    title: "Runo",
+    eyebrow: "API workspace",
+    href: "/runo",
+    cta: "Open Runo",
     summary:
-      "Compare code, inspect patches, and share clean anonymous diff links with teammates, reviewers, or readers.",
+      "Self-host a Postman-style API client with browser access, server-side requests, shared collections, and plain files.",
     promise:
-      "Changes become easier to discuss when the before and after are presented without clutter.",
-    visual: "diff",
+      "API work becomes easier to share when the client runs in a browser and the collections stay under your control.",
+    visual: "runo",
     accent: "lime",
-    tags: ["Side-by-side diff", "Patch import", "Anonymous links", "Review flow"],
+    tags: ["Self-hosted", "API client", "Server runner", "Plain files"],
     details: [
-      "Compare snippets in a clear side-by-side or inline review surface.",
-      "Bring in GitHub PRs, commits, or raw patch links when the change already exists elsewhere.",
-      "Share a compact anonymous URL for quick review handoff.",
+      "Run requests from your server so internal services and private networks are reachable from a signed-in browser.",
+      "Keep collections as files that can be reviewed, versioned, or edited with normal developer tools.",
+      "Use accounts, admin mode, isolated cookies, secrets, OAuth tokens, and environments for team access.",
     ],
-    workflow: ["Paste code", "Import patch", "Inspect changes", "Share review"],
+    workflow: ["Deploy Runo", "Add collections", "Invite team", "Send requests"],
   },
 ];
 
@@ -183,14 +183,14 @@ const workflowSteps = [
   },
   {
     title: "Share",
-    copy: "Use Playground, CodeDiff, or ResumeVibe when the work needs to leave your own head and meet another person.",
+    copy: "Use Playground, Runo, or ResumeVibe when the work needs to leave your own head and meet another person.",
   },
 ];
 ---
 
 <Layout
-  title="TakoVibe Tools - Vellora, Notes, Tasks, Playground, ResumeVibe, CodeDiff"
-  description="Explore the full TakoVibe tool suite for deep reading, visual notes, daily planning, runnable code, resume review, and code diffs."
+  title="TakoVibe Tools - Vellora, Notes, Tasks, Playground, ResumeVibe, Runo"
+  description="Explore the full TakoVibe tool suite for deep reading, visual notes, daily planning, runnable code, resume review, and self-hosted API workflows."
   type="website"
   author="Rahul Beniwal"
   tags={["TakoVibe tools", "developer tools", "reader", "code playground", "tasks"]}
@@ -262,9 +262,9 @@ const workflowSteps = [
             </g>
             <g class="tool-node node-five">
               <rect x="510" y="432" width="164" height="120" rx="14" fill="#102016" stroke="rgba(163,230,53,.42)"></rect>
-              <text x="536" y="474" fill="#bef264" font-size="13" font-weight="800" letter-spacing="2">DIFF</text>
-              <path d="M544 514h88M544 494h52" stroke="#bef264" stroke-width="7" stroke-linecap="round"></path>
-              <path d="M544 534h72" stroke="rgba(255,255,255,.36)" stroke-width="7" stroke-linecap="round"></path>
+              <text x="536" y="474" fill="#bef264" font-size="13" font-weight="800" letter-spacing="2">RUNO</text>
+              <path d="M544 500h78M544 522h102M544 544h58" stroke="#bef264" stroke-width="7" stroke-linecap="round"></path>
+              <circle cx="638" cy="500" r="12" fill="none" stroke="rgba(255,255,255,.46)" stroke-width="5"></circle>
             </g>
             <g class="tool-node node-six">
               <rect x="300" y="500" width="154" height="96" rx="14" fill="#21170e" stroke="rgba(251,146,60,.45)"></rect>
@@ -287,7 +287,7 @@ const workflowSteps = [
             </h2>
           </div>
           <p class="max-w-2xl text-base leading-7 text-neutral-600 dark:text-stone-400">
-            Each tool keeps a different part of the engineering loop close to the reading surface: learning, mapping, planning, experimenting, reviewing, and presenting.
+            Each tool keeps a different part of the engineering loop close to the reading surface: learning, mapping, planning, experimenting, API testing, and presenting.
           </p>
         </div>
 
@@ -420,18 +420,25 @@ print(explain(system))</code></pre>
                           </div>
                         )}
 
-                        {tool.visual === "diff" && (
-                          <div class="grid overflow-hidden rounded-lg border border-white/10 md:grid-cols-2">
-                            <div class="bg-red-950/20 p-4">
-                              <div class="text-xs font-black uppercase tracking-[0.18em] text-red-300">Before</div>
-                              <pre class="mt-4 text-xs leading-6 text-stone-300"><code>- plan: "free"
-- diffs: 3</code></pre>
+                        {tool.visual === "runo" && (
+                          <div class="overflow-hidden rounded-lg border border-white/10 bg-black/25">
+                            <div class="flex items-center gap-2 border-b border-white/10 px-4 py-3">
+                              <span class="rounded-md bg-lime-300 px-2 py-1 text-[10px] font-black text-lime-950">GET</span>
+                              <span class="min-w-0 flex-1 truncate font-mono text-xs text-stone-300">/internal/users/:id</span>
+                              <span class="rounded-md border border-lime-300/30 px-2 py-1 text-[10px] font-black uppercase text-lime-200">Send</span>
                             </div>
-                            <div class="bg-lime-950/20 p-4">
-                              <div class="text-xs font-black uppercase tracking-[0.18em] text-lime-300">After</div>
-                              <pre class="mt-4 text-xs leading-6 text-stone-200"><code>+ plan: "pro"
-+ diffs: 50
-+ patches: true</code></pre>
+                            <div class="grid gap-3 p-4">
+                              <div class="rounded-lg border border-lime-300/20 bg-lime-300/10 p-3">
+                                <div class="font-mono text-xs font-bold text-lime-200">200 OK</div>
+                                <div class="mt-3 space-y-2">
+                                  <div class="h-2 w-3/4 rounded-full bg-white/24"></div>
+                                  <div class="h-2 w-5/6 rounded-full bg-lime-300/35"></div>
+                                  <div class="h-2 w-2/3 rounded-full bg-white/18"></div>
+                                </div>
+                              </div>
+                              <div class="rounded-lg border border-white/10 bg-white/[0.04] p-3 font-mono text-xs text-stone-300">
+                                collections/internal.bru
+                              </div>
                             </div>
                           </div>
                         )}
