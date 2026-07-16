@@ -9,6 +9,7 @@ interface User {
     username?: string;
     manage_contact_us?: boolean;
     is_superuser?: boolean;
+    is_staff?: boolean;
     is_author?: boolean;
     client_type?: string;
 }
@@ -121,6 +122,7 @@ const UserAuthContent: React.FC = () => {
                             image: userData.profile_image || userData.image || userData.avatar || '',
                             username: userData.username,
                             manage_contact_us: userData.can_manage_contact_us || userData.manage_contact_us || false,
+                            is_staff: userData.is_staff || false,
                             is_superuser: userData.is_superuser || false,
                             is_author: userData.is_author || false,
                             client_type: userData.client_type || 'Reader'

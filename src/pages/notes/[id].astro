@@ -7,8 +7,8 @@ export const prerender = false;
 const { id } = Astro.params;
 ---
 
-<Layout title="Edit Note | TakoVibe" no_header={true} no_footer={true}>
-    <div class="fixed inset-0 z-50 bg-neutral-100 dark:bg-neutral-950">
+<Layout title="Visual Note Workspace | TakoVibe" description="Open a visual note, map a system, and keep the context close to your reading." no_header={true} no_footer={true}>
+    <div class="fixed inset-0 z-50 bg-[#efede9] dark:bg-neutral-950">
         <NoteEditor client:only="react" noteId={id} />
     </div>
 </Layout>

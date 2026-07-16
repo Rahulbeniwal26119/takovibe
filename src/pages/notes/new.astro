@@ -3,8 +3,8 @@ import Layout from "../../layouts/Layout.astro";
 import { NoteEditor } from "../../components/notes/NoteEditor";
 ---
 
-<Layout title="New Note | TakoVibe" no_header={true} no_footer={true}>
-    <div class="fixed inset-0 z-50 bg-neutral-100 dark:bg-neutral-950">
+<Layout title="New Visual Note | TakoVibe" description="Create a visual note and turn a rough thought into an explainable diagram." no_header={true} no_footer={true}>
+    <div class="fixed inset-0 z-50 bg-[#efede9] dark:bg-neutral-950">
         <NoteEditor client:only="react" />
     </div>
 </Layout>

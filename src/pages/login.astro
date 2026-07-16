@@ -333,6 +333,7 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                                         userObj.avatar ||
                                         "",
                                     is_author: userObj.is_author || false,
+                                    is_staff: userObj.is_staff || false,
                                     is_superuser: userObj.is_superuser || false,
                                     client_type:
                                         userObj.client_type || "Reader",
@@ -373,6 +374,8 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                                             username: userData.username,
                                             is_author:
                                                 userData.is_author || false,
+                                            is_staff:
+                                                userData.is_staff || false,
                                             is_superuser:
                                                 userData.is_superuser || false,
                                             client_type:
@@ -401,6 +404,7 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                                             image: "",
                                             username: data.username,
                                             is_author: false,
+                                            is_staff: false,
                                             is_superuser: false,
                                             client_type: "Reader",
                                         };
@@ -606,6 +610,7 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                                         "",
                                     username: userData.username,
                                     is_author: userData.is_author || false,
+                                    is_staff: userData.is_staff || false,
                                     is_superuser:
                                         userData.is_superuser || false,
                                     client_type:
@@ -622,6 +627,7 @@ import TurnstileWidget from "../components/TurnstileWidget.astro";
                         userObj = {
                             ...userObj,
                             is_author: !!userObj.is_author,
+                            is_staff: !!userObj.is_staff,
                             is_superuser: !!userObj.is_superuser,
                             client_type: userObj.client_type || "Reader",
                         };

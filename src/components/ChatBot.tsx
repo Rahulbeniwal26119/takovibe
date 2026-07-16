@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, Suspense } from 'react';
-import { X, Send, Sparkles, User, Minimize2, Maximize2, Minus, Mic, MicOff, Trash2, Check, Code2, FileText, Lightbulb, Brain, PanelRight, PanelRightClose } from 'lucide-react';
+import { X, Send, Sparkles, User, Minimize2, Maximize2, Minus, Mic, MicOff, Trash2, Check, Code2, FileText, Lightbulb, Brain, PanelRight, PanelRightClose, ShieldCheck } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
@@ -23,6 +23,29 @@ interface Message {
     content: string;
     mode?: string;
     displayContent?: string;
+}
+
+const KUMI_MODELS = [
+    { id: 'gpt-5-mini', label: 'GPT-5 mini', hint: 'Default' },
+    { id: 'gpt-5.6-luna', label: 'GPT-5.6 Luna', hint: 'Cost efficient' },
+    { id: 'gpt-5.6-terra', label: 'GPT-5.6 Terra', hint: 'Balanced' },
+] as const;
+
+type KumiModel = typeof KUMI_MODELS[number]['id'];
+const DEFAULT_KUMI_MODEL: KumiModel = 'gpt-5-mini';
+
+function isKumiModel(value: string | null): value is KumiModel {
+    return KUMI_MODELS.some((model) => model.id === value);
+}
+
+function readAdminStatus(): boolean {
+    if (typeof window === 'undefined') return false;
+    try {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        return Boolean(user.is_superuser || user.is_staff || String(user.client_type || '').toLowerCase() === 'admin');
+    } catch {
+        return false;
+    }
 }
 
 function parseQuizContent(raw: string): any | null {
@@ -69,6 +92,20 @@ export default function ChatBot({
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const [isPremium, setIsPremium] = useState(false); // Mock/State for Premium Feature
+    const [isAdmin, setIsAdmin] = useState(() => readAdminStatus());
+    const [selectedModel, setSelectedModel] = useState<KumiModel>(() => {
+        if (typeof window === 'undefined') return DEFAULT_KUMI_MODEL;
+        const stored = localStorage.getItem('kumi_admin_model');
+        return isKumiModel(stored) ? stored : DEFAULT_KUMI_MODEL;
+    });
+
+    useEffect(() => {
+        setIsAdmin(readAdminStatus());
+    }, []);
+
+    useEffect(() => {
+        if (isAdmin) localStorage.setItem('kumi_admin_model', selectedModel);
+    }, [isAdmin, selectedModel]);
 
     const scrollToBottom = (instant = false) => {
         if (shouldAutoScrollRef.current) {
@@ -477,15 +514,20 @@ export default function ChatBot({
         setIsLoading(true);
 
         try {
+            const token = localStorage.getItem('access_token');
             const response = await fetch('/api/ai/chat', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Token ${token}` } : {}),
+                },
                 body: JSON.stringify({
                     messages: newMessages
                         .filter(m => m.role !== 'assistant' || m.content !== `Hi! I'm your AI assistant. I can help you understand "${articleTitle || 'this article'}" better. Ask me anything!`)
                         .map(m => ({ role: m.role, content: m.content })),
                     article_context: articleContext,
-                    mode: options?.mode // Pass mode to API
+                    mode: options?.mode,
+                    ...(isAdmin ? { model: selectedModel } : {}),
                 })
             });
 
@@ -621,6 +663,24 @@ export default function ChatBot({
         return (
             <div className="flex h-full flex-col overflow-hidden bg-white dark:bg-neutral-950">
                 <div className="flex-1 flex flex-col overflow-hidden">
+                    {isAdmin && (
+                        <div className="flex h-10 shrink-0 items-center gap-2 border-b border-stone-200 bg-white px-3 dark:border-neutral-800 dark:bg-neutral-950">
+                            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-orange-600 dark:text-orange-400">
+                                <ShieldCheck className="h-3.5 w-3.5" /> Admin model
+                            </span>
+                            <select
+                                value={selectedModel}
+                                onChange={(event) => setSelectedModel(event.target.value as KumiModel)}
+                                disabled={isLoading}
+                                className="ml-auto h-7 min-w-0 max-w-[190px] rounded-lg border border-stone-200 bg-stone-50 px-2 text-xs font-bold text-stone-700 outline-none transition focus:border-orange-400 disabled:opacity-60 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200"
+                                aria-label="Kumi model"
+                            >
+                                {KUMI_MODELS.map((model) => (
+                                    <option key={model.id} value={model.id}>{model.label} · {model.hint}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
                     <div
                         ref={chatContainerRef}
                         onScroll={handleScroll}
@@ -832,6 +892,21 @@ export default function ChatBot({
                         <div className="flex items-center gap-1 text-neutral-400">
                             {!isMinimized && (
                                 <>
+                                    {isAdmin && (
+                                        <select
+                                            value={selectedModel}
+                                            onChange={(event) => setSelectedModel(event.target.value as KumiModel)}
+                                            onClick={(event) => event.stopPropagation()}
+                                            disabled={isLoading}
+                                            className="mr-1 hidden h-8 max-w-[150px] rounded-lg border border-stone-200 bg-stone-50 px-2 text-[11px] font-bold text-stone-700 outline-none focus:border-orange-400 disabled:opacity-60 sm:block dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200"
+                                            aria-label="Kumi model"
+                                            title="Admin model selection"
+                                        >
+                                            {KUMI_MODELS.map((model) => (
+                                                <option key={model.id} value={model.id}>{model.label}</option>
+                                            ))}
+                                        </select>
+                                    )}
                                     {!confirmClear ? (
                                         <button
                                             onClick={(e) => { e.stopPropagation(); setConfirmClear(true); }}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Excalidraw, WelcomeScreen, MainMenu, getSceneVersion, convertToExcalidrawElements } from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css";
-import { ArrowLeft, Loader2, Cloud, CloudOff, Lock, Unlock, Wand2, X, Play, Code, Sparkles, Trash2, AlertTriangle, ListTodo } from 'lucide-react';
+import { ArrowLeft, Loader2, Cloud, CloudOff, Lock, Unlock, Wand2, X, Play, Code, Sparkles, Trash2, AlertTriangle, ListTodo, Image as ImageIcon, PanelRightOpen, Share2, Shapes, Maximize2, Minimize2, Command } from 'lucide-react';
 import { parseMermaidToExcalidraw } from "@excalidraw/mermaid-to-excalidraw";
 import { fetchWithAuth } from '../../utils/api';
 import { showToast } from '../../utils/toast';
@@ -59,6 +59,8 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
     const [isCreatingTask, setIsCreatingTask] = useState(false);
     const [taskTitle, setTaskTitle] = useState("");
     const [taskDueAt, setTaskDueAt] = useState("");
+    const [isImmersive, setIsImmersive] = useState(false);
+    const [isCommandMenuOpen, setIsCommandMenuOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
         return localStorage.getItem('is_sidebar_open') === 'true';
     });
@@ -79,6 +81,8 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
     const [isReadOnly, setIsReadOnly] = useState(false); // Default false, set to true if guest or not owner
 
     const titleRef = useRef(title);
+    const workspaceRef = useRef<HTMLDivElement | null>(null);
+    const sidebarBeforeImmersiveRef = useRef(false);
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const lastSavedVersionRef = useRef(0);
     const drawingIdRef = useRef(noteId);
@@ -112,6 +116,68 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
             window.removeEventListener('mouseup', stopResizing);
         };
     }, [isResizing, resize, stopResizing]);
+
+    const setImmersiveMode = useCallback(async (enabled: boolean) => {
+        setIsCommandMenuOpen(false);
+        setIsImmersive(enabled);
+
+        if (enabled) {
+            sidebarBeforeImmersiveRef.current = isSidebarOpen;
+            setIsSidebarOpen(false);
+            try {
+                if (!document.fullscreenElement && workspaceRef.current?.requestFullscreen) {
+                    await workspaceRef.current.requestFullscreen();
+                }
+            } catch {
+                // The distraction-free layout still works when browser fullscreen is blocked.
+            }
+            return;
+        }
+
+        setIsSidebarOpen(sidebarBeforeImmersiveRef.current);
+        try {
+            if (document.fullscreenElement && document.exitFullscreen) await document.exitFullscreen();
+        } catch {
+            // Fullscreen state can already be changing through the browser's Escape handling.
+        }
+    }, [isSidebarOpen]);
+
+    useEffect(() => {
+        const onFullscreenChange = () => {
+            if (!document.fullscreenElement) {
+                setIsImmersive(false);
+                setIsSidebarOpen(sidebarBeforeImmersiveRef.current);
+            }
+        };
+        const onKeyDown = (event: KeyboardEvent) => {
+            const target = event.target as HTMLElement | null;
+            const isTyping = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA' || target?.isContentEditable;
+
+            if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+                event.preventDefault();
+                setIsCommandMenuOpen((open) => !open);
+                return;
+            }
+
+            if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === 'f') {
+                event.preventDefault();
+                void setImmersiveMode(!isImmersive);
+                return;
+            }
+
+            if (event.key === 'Escape' && !isTyping) {
+                if (isCommandMenuOpen) setIsCommandMenuOpen(false);
+                else if (isImmersive && !document.fullscreenElement) void setImmersiveMode(false);
+            }
+        };
+
+        document.addEventListener('fullscreenchange', onFullscreenChange);
+        window.addEventListener('keydown', onKeyDown);
+        return () => {
+            document.removeEventListener('fullscreenchange', onFullscreenChange);
+            window.removeEventListener('keydown', onKeyDown);
+        };
+    }, [isCommandMenuOpen, isImmersive, setImmersiveMode]);
 
     useEffect(() => { if (drawingData?.id) drawingIdRef.current = drawingData.id; }, [drawingData?.id]);
 
@@ -838,41 +904,69 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
     };
 
     return (
-        <div className="h-screen flex flex-col bg-neutral-100 text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50">
-            {/* Header */}
-            <div className="h-16 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between gap-3 px-3 sm:px-5 bg-white/95 dark:bg-neutral-950/95 backdrop-blur z-10 transition-colors">
-                <div className="flex items-center gap-2 sm:gap-4 min-w-0">
-                    <a href={isAuthenticated ? "/notes#private" : "/notes#public"} className="h-9 w-9 inline-flex items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-600 transition-colors hover:border-orange-300 hover:text-orange-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:border-orange-500/40 dark:hover:text-orange-300 flex-shrink-0">
-                        <ArrowLeft className="w-4 h-4" />
+        <div ref={workspaceRef} className="flex h-screen flex-col bg-[#efede9] text-stone-950 dark:bg-neutral-950 dark:text-neutral-50">
+            {/* SaaS workspace header */}
+            {!isImmersive && <header className="relative z-20 flex h-16 shrink-0 items-center gap-2 border-b border-stone-200 bg-[#fbfaf8]/95 px-2.5 shadow-[0_1px_2px_rgba(28,25,23,0.03)] backdrop-blur-xl dark:border-neutral-800 dark:bg-neutral-950/95 sm:px-4">
+                <div className="flex min-w-0 items-center gap-2 border-r border-stone-200 pr-2.5 dark:border-neutral-800 sm:gap-3 sm:pr-4">
+                    <a href={isAuthenticated ? "/notes#private" : "/notes#community"} className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-500 shadow-sm transition hover:border-orange-200 hover:bg-orange-50 hover:text-orange-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400 dark:hover:border-orange-900 dark:hover:bg-orange-950/40 dark:hover:text-orange-300" aria-label="Back to notes">
+                        <ArrowLeft className="h-4 w-4" />
                     </a>
-                    <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="text"
-                                value={title}
-                                disabled={isReadOnly}
-                                onChange={(e) => {
-                                    setTitle(e.target.value);
-                                    titleRef.current = e.target.value;
-                                    if (!isReadOnly) setHasUnsavedChanges(true);
-                                }}
-                                onBlur={() => handleManualSave()}
-                                className={`min-w-0 w-40 sm:w-72 lg:w-[420px] bg-transparent text-neutral-950 dark:text-white font-black text-base sm:text-lg focus:outline-none border-b border-transparent transition-colors ${isReadOnly ? 'opacity-80 cursor-default' : 'hover:border-neutral-300 focus:border-orange-500 dark:hover:border-neutral-700'}`}
-                            />
-                            {isReadOnly && (
-                                <span className="px-2 py-0.5 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 text-xs rounded-md font-semibold flex items-center gap-1 flex-shrink-0">
-                                    <Lock className="w-3 h-3" /> <span className="hidden sm:inline">Read only</span>
-                                </span>
-                            )}
+                    <a href="/notes" className="hidden items-center gap-2.5 lg:flex">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-orange-600 text-white shadow-sm shadow-orange-600/20"><Shapes className="h-4 w-4" /></span>
+                        <div className="leading-tight">
+                            <div className="text-xs font-black tracking-[-0.02em]">Tako Notes</div>
+                            <div className="text-[9px] font-bold uppercase tracking-[0.14em] text-stone-400">Canvas</div>
                         </div>
-                        <div className="hidden sm:flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
-                            <span>Sketch Notes</span>
-                            <span className="h-1 w-1 rounded-full bg-orange-400"></span>
-                            <span>{isPublic ? "Public" : "Private"}</span>
-                        </div>
+                    </a>
+                </div>
+
+                <div className="min-w-0 flex-1 px-1 sm:px-2">
+                    <div className="flex min-w-0 items-center gap-2">
+                        <input
+                            type="text"
+                            value={title}
+                            disabled={isReadOnly}
+                            aria-label="Note title"
+                            onChange={(e) => {
+                                setTitle(e.target.value);
+                                titleRef.current = e.target.value;
+                                if (!isReadOnly) setHasUnsavedChanges(true);
+                            }}
+                            onBlur={() => handleManualSave()}
+                            className={`min-w-0 w-full max-w-[420px] truncate border-b border-transparent bg-transparent text-sm font-black tracking-[-0.01em] text-stone-950 outline-none transition sm:text-[15px] dark:text-white ${isReadOnly ? 'cursor-default opacity-80' : 'hover:border-stone-300 focus:border-orange-500 dark:hover:border-neutral-700'}`}
+                        />
+                        {isReadOnly && (
+                            <span className="hidden shrink-0 items-center gap-1 rounded-full bg-stone-100 px-2 py-1 text-[10px] font-bold text-stone-500 dark:bg-neutral-800 dark:text-neutral-400 sm:inline-flex">
+                                <Lock className="h-3 w-3" /> Read only
+                            </span>
+                        )}
+                    </div>
+                    <div className="mt-0.5 hidden items-center gap-1.5 text-[10px] font-medium text-stone-400 sm:flex">
+                        <span>My workspace</span><span>/</span><span>{isPublic ? 'Shared note' : 'Private note'}</span>
                     </div>
                 </div>
-                <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+
+                <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
+                    <div className="mr-1 hidden items-center gap-1.5 rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-stone-500 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400 md:flex">
+                        {isSaving ? (
+                            <><Loader2 className="h-3 w-3 animate-spin text-orange-500" /><span>Saving</span></>
+                        ) : hasUnsavedChanges ? (
+                            <><CloudOff className="h-3 w-3 text-amber-500" /><span>Unsaved</span></>
+                        ) : (
+                            <><Cloud className="h-3 w-3 text-emerald-500" /><span>Saved</span></>
+                        )}
+                    </div>
+
+                    <button
+                        onClick={() => setIsCommandMenuOpen(true)}
+                        className="hidden h-9 items-center gap-2 rounded-lg border border-stone-200 bg-white px-2.5 text-[11px] font-bold text-stone-500 shadow-sm transition hover:border-stone-300 hover:text-stone-900 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400 dark:hover:text-white xl:inline-flex"
+                        title="Open quick actions"
+                    >
+                        <Command className="h-3.5 w-3.5" />
+                        <span>Actions</span>
+                        <kbd className="rounded border border-stone-200 bg-stone-50 px-1.5 py-0.5 font-mono text-[9px] text-stone-400 dark:border-neutral-700 dark:bg-neutral-800">⌘K</kbd>
+                    </button>
+
                     <button
                         onClick={() => {
                             if (!isAuthenticated) {
@@ -885,21 +979,21 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                             }
                             setIsMermaidModalOpen(true);
                         }}
-                        className="h-9 px-2 min-[925px]:px-3 rounded-lg transition-colors inline-flex items-center gap-1.5 text-sm font-semibold text-neutral-600 hover:bg-neutral-100 hover:text-orange-600 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-orange-300"
+                        className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-bold text-stone-500 transition hover:bg-stone-100 hover:text-orange-700 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-orange-300 min-[1100px]:px-3"
                         title="Text to Diagram"
                     >
-                        <Wand2 className="w-4 h-4" />
-                        <span className="hidden min-[925px]:inline">Diagram</span>
+                        <Wand2 className="h-4 w-4" />
+                        <span className="hidden min-[1100px]:inline">AI diagram</span>
                     </button>
 
                     <button
                         onClick={openTaskComposer}
                         disabled={isCreatingTask || isLoading}
-                        className="h-9 px-2 min-[925px]:px-3 rounded-lg transition-colors inline-flex items-center gap-1.5 text-sm font-semibold text-neutral-600 hover:bg-neutral-100 hover:text-orange-600 disabled:pointer-events-none disabled:opacity-60 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-orange-300"
+                        className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-bold text-stone-500 transition hover:bg-stone-100 hover:text-orange-700 disabled:pointer-events-none disabled:opacity-60 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-orange-300 min-[1100px]:px-3"
                         title="Create attached task"
                     >
-                        {isCreatingTask ? <Loader2 className="w-4 h-4 animate-spin" /> : <ListTodo className="w-4 h-4" />}
-                        <span className="hidden min-[925px]:inline">Task</span>
+                        {isCreatingTask ? <Loader2 className="h-4 w-4 animate-spin" /> : <ListTodo className="h-4 w-4" />}
+                        <span className="hidden min-[1100px]:inline">Task</span>
                     </button>
 
                     {!isReadOnly && (
@@ -919,14 +1013,13 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                                 }}
                             />
 
-                            {/* VISIBLE UPLOAD IMAGE BUTTON */}
                             <button
                                 onClick={() => document.getElementById('custom-image-upload-standalone')?.click()}
-                                className="h-9 px-2 min-[925px]:px-3 text-xs font-semibold rounded-lg bg-neutral-100 text-neutral-700 hover:bg-orange-50 hover:text-orange-700 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-orange-500/10 dark:hover:text-orange-300 transition-colors flex items-center gap-1.5 border border-neutral-200 dark:border-neutral-800"
+                                className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-bold text-stone-500 transition hover:bg-stone-100 hover:text-orange-700 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-orange-300 min-[1100px]:px-3"
                                 title="Insert Custom Image"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                                <span className="hidden min-[925px]:inline">Image</span>
+                                <ImageIcon className="h-4 w-4" />
+                                <span className="hidden min-[1100px]:inline">Image</span>
                             </button>
 
                             <button
@@ -937,56 +1030,96 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                                     }
                                     setIsSidebarOpen(becomingOpen);
                                 }}
-                                className={`h-9 px-2 min-[925px]:px-3 rounded-lg transition-colors flex items-center gap-1.5 text-sm font-semibold ${isSidebarOpen ? 'text-orange-700 bg-orange-50 dark:bg-orange-500/10 dark:text-orange-300' : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-900'}`}
+                                className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-bold transition min-[1100px]:px-3 ${isSidebarOpen ? 'bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300' : 'text-stone-500 hover:bg-stone-100 hover:text-orange-700 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-orange-300'}`}
                                 title="Toggle Learning Tools"
                             >
-                                <Code className="w-4 h-4" />
-                                <span className="hidden min-[925px]:inline flex items-center gap-2">
-                                    Tools
-                                </span>
-                            </button>
-
-
-                            <button
-                                onClick={togglePublic}
-                                className={`h-9 px-2 min-[925px]:px-3 rounded-lg transition-colors flex items-center gap-1.5 text-sm font-semibold ${isPublic ? 'text-emerald-700 bg-emerald-50 dark:bg-emerald-500/10 dark:text-emerald-300' : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-900'}`}
-                                title={isPublic ? "Make Private" : "Make Public"}
-                            >
-                                {isPublic ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-                                <span className="hidden min-[925px]:inline">{isPublic ? "Public" : "Private"}</span>
+                                <PanelRightOpen className="h-4 w-4" />
+                                <span className="hidden min-[1100px]:inline">Tools</span>
                             </button>
                         </>
                     )}
+                    <button
+                        onClick={() => void setImmersiveMode(true)}
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-stone-500 transition hover:bg-stone-100 hover:text-orange-700 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-orange-300"
+                        title="Enter immersive mode (⌘⇧F)"
+                        aria-label="Enter immersive mode"
+                    >
+                        <Maximize2 className="h-4 w-4" />
+                    </button>
                     {!isReadOnly && (
                         <>
                             {isAutoSavePaused && (
-                                <button onClick={handleManualSave} className="text-xs bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-300 px-3 py-1.5 rounded-lg font-bold animate-pulse">
+                                <button onClick={handleManualSave} className="animate-pulse rounded-lg bg-red-50 px-2.5 py-1.5 text-xs font-bold text-red-600 dark:bg-red-500/10 dark:text-red-300">
                                     Retry Save
                                 </button>
                             )}
-                            <div className="hidden sm:flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-xs font-semibold text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">
-                                {isSaving ? (
-                                    <><Loader2 className="w-3 h-3 animate-spin" /><span>Saving...</span></>
-                                ) : hasUnsavedChanges ? (
-                                    <><CloudOff className="w-3 h-3" /><span>Unsaved</span></>
-                                ) : (
-                                    <><Cloud className="w-3 h-3" /><span>Saved</span></>
-                                )}
-                            </div>
+                            {noteId && (
+                                <button onClick={() => setIsDeleteModalOpen(true)} className="hidden h-9 w-9 items-center justify-center rounded-lg text-stone-400 transition hover:bg-red-50 hover:text-red-600 xl:inline-flex dark:hover:bg-red-950/40 dark:hover:text-red-400" title="Delete note"><Trash2 className="h-4 w-4" /></button>
+                            )}
+                            <span className="mx-0.5 hidden h-5 w-px bg-stone-200 sm:block dark:bg-neutral-800" />
+                            <button
+                                onClick={togglePublic}
+                                className={`inline-flex h-9 items-center gap-1.5 rounded-xl px-2.5 text-xs font-bold shadow-sm transition sm:px-3.5 ${isPublic ? 'border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300' : 'bg-stone-900 text-white hover:bg-stone-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200'}`}
+                                title={isPublic ? 'Make private' : 'Share note'}
+                            >
+                                {isPublic ? <Unlock className="h-3.5 w-3.5" /> : <Share2 className="h-3.5 w-3.5" />}
+                                <span className="hidden xs:inline">{isPublic ? 'Public' : 'Share'}</span>
+                            </button>
                         </>
                     )}
                     {!isAuthenticated && (
-                        <a href={`/login?next=/notes/${noteId || ''}`} className="text-sm font-bold text-orange-600 dark:text-orange-300 hover:text-orange-700">
-                            Log In to Edit
+                        <a href={`/login?next=/notes/${noteId || ''}`} className="rounded-xl bg-orange-600 px-3 py-2 text-xs font-bold text-white hover:bg-orange-700">
+                            Log in to edit
                         </a>
                     )}
                 </div>
-            </div>
+            </header>}
+
+            {isImmersive && (
+                <div className="pointer-events-none fixed bottom-4 left-1/2 z-[1000] -translate-x-1/2">
+                    <div className="pointer-events-auto flex items-center gap-1 rounded-2xl border border-stone-200/80 bg-white/90 p-1.5 shadow-xl backdrop-blur-xl dark:border-neutral-700 dark:bg-neutral-900/90">
+                        <div className="hidden items-center gap-1.5 px-2 text-[10px] font-bold text-stone-400 sm:flex">
+                            {isSaving ? <Loader2 className="h-3 w-3 animate-spin text-orange-500" /> : <span className={`h-2 w-2 rounded-full ${hasUnsavedChanges ? 'bg-amber-500' : 'bg-emerald-500'}`} />}
+                            {isSaving ? 'Saving' : hasUnsavedChanges ? 'Unsaved' : 'Saved'}
+                        </div>
+                        <span className="hidden h-5 w-px bg-stone-200 sm:block dark:bg-neutral-700" />
+                        <button
+                            onClick={() => {
+                                const becomingOpen = !isSidebarOpen;
+                                if (becomingOpen) setSidebarWidth(Math.min(Math.max(window.innerWidth / 2, 380), 640));
+                                setIsSidebarOpen(becomingOpen);
+                            }}
+                            className={`inline-flex h-9 items-center gap-2 rounded-xl px-3 text-xs font-bold transition ${isSidebarOpen ? 'bg-orange-50 text-orange-700 dark:bg-orange-950/50 dark:text-orange-300' : 'text-stone-600 hover:bg-stone-100 hover:text-orange-700 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-orange-300'}`}
+                            title="Toggle workspace tools"
+                        >
+                            <PanelRightOpen className="h-4 w-4" />
+                            <span className="hidden sm:inline">Tools</span>
+                        </button>
+                        <button
+                            onClick={() => setIsCommandMenuOpen(true)}
+                            className="inline-flex h-9 items-center gap-2 rounded-xl px-3 text-xs font-bold text-stone-600 transition hover:bg-stone-100 hover:text-orange-700 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-orange-300"
+                            title="Open workspace actions"
+                        >
+                            <Command className="h-4 w-4" />
+                            <span className="hidden sm:inline">Actions</span>
+                        </button>
+                        <span className="h-5 w-px bg-stone-200 dark:bg-neutral-700" />
+                        <button
+                            onClick={() => void setImmersiveMode(false)}
+                            className="inline-flex h-9 items-center gap-2 rounded-xl bg-stone-900 px-3 text-xs font-bold text-white transition hover:bg-stone-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200"
+                            title="Exit immersive mode"
+                        >
+                            <Minimize2 className="h-4 w-4" />
+                            <span className="hidden sm:inline">Exit focus</span>
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Editor */}
-            <div className="flex-1 w-full h-full relative overflow-hidden flex bg-neutral-100 dark:bg-neutral-950">
+            <div className={`relative flex h-full w-full flex-1 overflow-hidden bg-[#efede9] dark:bg-neutral-950 ${isImmersive ? 'p-0' : 'p-1.5 sm:p-2'}`}>
                 <div
-                    className="flex-1 h-full relative overflow-hidden"
+                    className={`relative h-full flex-1 overflow-hidden bg-white dark:bg-neutral-950 ${isImmersive ? 'rounded-none border-0 shadow-none' : 'rounded-xl border border-stone-200 shadow-[0_2px_8px_rgba(28,25,23,0.05)] dark:border-neutral-800'}`}
                     onMouseMove={(e) => {
                         const rect = e.currentTarget.getBoundingClientRect();
                         lastMousePos.current = {
@@ -997,7 +1130,7 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                 >
                     {isLoading ? (
                         <div className="flex h-full items-center justify-center bg-white dark:bg-neutral-950">
-                            <div className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-white px-4 py-3 text-sm font-bold text-neutral-600 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300">
+                            <div className="flex items-center gap-3 rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm font-bold text-stone-600 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300">
                                 <Loader2 className="h-4 w-4 animate-spin text-orange-500" />
                                 Loading note
                             </div>
@@ -1083,7 +1216,7 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                                 left: `${selectionCoords.x}px`,
                                 top: `${selectionCoords.y}px`
                             }}
-                            className="fixed z-[999] px-4 py-2 bg-orange-500 text-white rounded-lg shadow-2xl font-bold text-sm flex items-center gap-2 hover:bg-orange-400 active:scale-95 transition-all animate-in zoom-in-50 duration-200 whitespace-nowrap"
+                            className="fixed z-[999] flex items-center gap-2 whitespace-nowrap rounded-xl bg-orange-600 px-4 py-2 text-sm font-bold text-white shadow-2xl transition-all hover:bg-orange-700 active:scale-95 animate-in zoom-in-50 duration-200"
                         >
                             <Sparkles className="w-4 h-4" />
                             Analyze with AI
@@ -1094,11 +1227,11 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                     <>
                         <div
                             onMouseDown={startResizing}
-                            className={`w-1 transition-all cursor-col-resize bg-neutral-200 dark:bg-neutral-800 hover:bg-orange-500/50 z-50 ${isResizing ? 'bg-orange-500/70' : ''}`}
+                            className={`ml-1.5 w-1 cursor-col-resize rounded-full bg-stone-300 transition-all hover:bg-orange-500/60 dark:bg-neutral-800 ${isResizing ? 'bg-orange-500/80' : ''}`}
                         />
                         <div
                             style={{ width: Math.min(sidebarWidth, window.innerWidth * 0.92) }}
-                            className="transition-[width] duration-300 ease-out"
+                            className="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-[0_2px_8px_rgba(28,25,23,0.05)] transition-[width] duration-300 ease-out dark:border-neutral-800 dark:bg-neutral-950"
                         >
                             <NoteEditorSidebar
                                 onClose={() => setIsSidebarOpen(false)}
@@ -1110,6 +1243,54 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                     </>
                 )}
             </div>
+
+            {/* Workspace command palette */}
+            {isCommandMenuOpen && (
+                <div className="fixed inset-0 z-[1100] flex items-start justify-center bg-stone-950/30 px-4 pt-[12vh] backdrop-blur-sm" onMouseDown={() => setIsCommandMenuOpen(false)}>
+                    <div className="w-full max-w-lg overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-neutral-950" onMouseDown={(event) => event.stopPropagation()} role="dialog" aria-modal="true" aria-label="Workspace actions">
+                        <div className="flex items-center gap-3 border-b border-stone-200 px-4 py-3 dark:border-neutral-800">
+                            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-50 text-orange-600 dark:bg-orange-950/40 dark:text-orange-400"><Command className="h-4 w-4" /></span>
+                            <div className="min-w-0 flex-1">
+                                <h2 className="text-sm font-black text-stone-900 dark:text-white">Workspace actions</h2>
+                                <p className="text-[11px] text-stone-400">Move quickly without leaving the canvas</p>
+                            </div>
+                            <button onClick={() => setIsCommandMenuOpen(false)} className="rounded-lg p-2 text-stone-400 transition hover:bg-stone-100 hover:text-stone-700 dark:hover:bg-neutral-900 dark:hover:text-white" aria-label="Close actions"><X className="h-4 w-4" /></button>
+                        </div>
+
+                        <div className="p-2">
+                            <p className="px-2 pb-1.5 pt-1 text-[10px] font-bold uppercase tracking-[0.15em] text-stone-400">Canvas</p>
+                            <button onClick={() => void setImmersiveMode(!isImmersive)} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-stone-50 dark:hover:bg-neutral-900">
+                                <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 bg-white text-stone-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">{isImmersive ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}</span>
+                                <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-stone-800 dark:text-neutral-100">{isImmersive ? 'Exit immersive canvas' : 'Enter immersive canvas'}</span><span className="block text-[11px] text-stone-400">{isImmersive ? 'Restore the workspace header' : 'Hide the header and use the full screen'}</span></span>
+                                <kbd className="rounded-md border border-stone-200 px-2 py-1 font-mono text-[9px] text-stone-400 dark:border-neutral-700">⌘⇧F</kbd>
+                            </button>
+                            <button onClick={() => { setIsCommandMenuOpen(false); setIsMermaidModalOpen(true); }} disabled={isReadOnly} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-neutral-900">
+                                <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 bg-white text-orange-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-orange-400"><Wand2 className="h-4 w-4" /></span>
+                                <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-stone-800 dark:text-neutral-100">Generate a diagram</span><span className="block text-[11px] text-stone-400">Create editable shapes from a prompt</span></span>
+                            </button>
+
+                            <p className="px-2 pb-1.5 pt-3 text-[10px] font-bold uppercase tracking-[0.15em] text-stone-400">Workflow</p>
+                            <button onClick={() => { setIsCommandMenuOpen(false); openTaskComposer(); }} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-stone-50 dark:hover:bg-neutral-900">
+                                <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 bg-white text-stone-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400"><ListTodo className="h-4 w-4" /></span>
+                                <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-stone-800 dark:text-neutral-100">Create attached task</span><span className="block text-[11px] text-stone-400">Turn this sketch into a follow-up</span></span>
+                            </button>
+                            <button onClick={() => { setIsCommandMenuOpen(false); const becomingOpen = !isSidebarOpen; if (becomingOpen) setSidebarWidth(Math.min(Math.max(window.innerWidth / 2, 380), 640)); setIsSidebarOpen(becomingOpen); }} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-stone-50 dark:hover:bg-neutral-900">
+                                <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 bg-white text-stone-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400"><PanelRightOpen className="h-4 w-4" /></span>
+                                <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-stone-800 dark:text-neutral-100">{isSidebarOpen ? 'Close learning tools' : 'Open learning tools'}</span><span className="block text-[11px] text-stone-400">Code Studio and Kumi beside the canvas</span></span>
+                            </button>
+                            <button onClick={() => { setIsCommandMenuOpen(false); void togglePublic(); }} disabled={isReadOnly} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-neutral-900">
+                                <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 bg-white text-stone-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">{isPublic ? <Lock className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}</span>
+                                <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-stone-800 dark:text-neutral-100">{isPublic ? 'Make note private' : 'Share with the community'}</span><span className="block text-[11px] text-stone-400">{isPublic ? 'Only you will be able to access it' : 'Publish this visual note for others'}</span></span>
+                            </button>
+                        </div>
+
+                        <div className="flex items-center justify-between border-t border-stone-200 bg-stone-50 px-4 py-2.5 text-[10px] text-stone-400 dark:border-neutral-800 dark:bg-neutral-900/60">
+                            <span>Quick actions are available anywhere in the editor</span>
+                            <span><kbd className="font-mono">Esc</kbd> to close</span>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Task Modal */}
             {isTaskModalOpen && (

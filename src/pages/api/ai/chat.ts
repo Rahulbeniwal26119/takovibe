@@ -25,6 +25,36 @@ export const prerender = false;
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
 const MAX_REQUESTS_PER_WINDOW = 10; // 10 requests per minute per IP
+const DEFAULT_KUMI_MODEL = 'gpt-5-mini';
+const ADMIN_KUMI_MODELS = new Set([
+    DEFAULT_KUMI_MODEL,
+    'gpt-5.6-luna',
+    'gpt-5.6-terra',
+]);
+
+const isAdminRequest = async (request: Request): Promise<boolean> => {
+    const authorization = request.headers.get('authorization');
+    if (!authorization?.startsWith('Token ')) return false;
+
+    const apiUrl = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
+    try {
+        const response = await fetch(`${apiUrl}/api/users/me/`, {
+            headers: { Authorization: authorization },
+        });
+        if (!response.ok) return false;
+
+        const payload = await response.json();
+        const user = payload.data || payload;
+        return Boolean(
+            user.is_superuser ||
+            user.is_staff ||
+            String(user.client_type || '').toLowerCase() === 'admin'
+        );
+    } catch (error) {
+        console.warn('Kumi admin verification failed:', error);
+        return false;
+    }
+};
 
 // Hash IP for privacy - we don't need to store raw IPs
 const hashIP = (ip: string): string => {
@@ -109,6 +139,21 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
         }
 
         const { messages, article_context, mode } = body;
+        const requestedModel = typeof body.model === 'string' ? body.model : DEFAULT_KUMI_MODEL;
+
+        if (!ADMIN_KUMI_MODELS.has(requestedModel)) {
+            return new Response(JSON.stringify({ error: 'Unsupported model' }), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+
+        if (requestedModel !== DEFAULT_KUMI_MODEL && !(await isAdminRequest(request))) {
+            return new Response(JSON.stringify({ error: 'Admin access required for model selection' }), {
+                status: 403,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
 
         // Validate messages (though for visualize mode, messages might just be the one request?)
         // Assuming the frontend sends the "selection" as the last user message or part of context.
@@ -173,7 +218,7 @@ Guidelines:
         }
 
         const stream = await openai.chat.completions.create({
-            model: 'gpt-5-mini',
+            model: requestedModel,
             messages: [
                 { role: 'system', content: systemPrompt },
                 ...recentMessages
@@ -205,6 +250,7 @@ Guidelines:
                 'Content-Type': 'text/event-stream',
                 'Cache-Control': 'no-cache',
                 'Connection': 'keep-alive',
+                'X-Kumi-Model': requestedModel,
             },
         });
     } catch (error) {

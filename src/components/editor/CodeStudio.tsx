@@ -36,7 +36,6 @@ export const CodeStudio: React.FC<CodeStudioProps> = ({
             <div className="flex-1 overflow-auto bg-stone-50 dark:bg-neutral-950 relative">
                 <div className="h-full p-4">
                     <CodePlayground
-                        key={Date.now()}
                         initialLanguage={language}
                         initialCode={code}
                         initialHtml={code}

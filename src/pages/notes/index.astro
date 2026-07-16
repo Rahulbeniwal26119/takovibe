@@ -13,15 +13,5 @@ import NotesHub from "../../components/notes/NotesHub";
         #top-banner { display: none !important; }
         :root { --top-banner-height: 0px !important; }
     </style>
-    <div class="relative min-h-screen bg-stone-50 dark:bg-neutral-950">
-        <div class="fixed inset-0 z-0 pointer-events-none">
-            <div
-                class="absolute left-0 right-0 top-0 h-[420px] bg-gradient-to-b from-orange-50/80 via-stone-50/40 to-transparent dark:from-orange-950/20 dark:via-neutral-950/40 dark:to-transparent"
-            >
-            </div>
-        </div>
-        <div class="relative z-10">
-            <NotesHub client:only="react" />
-        </div>
-    </div>
+    <NotesHub client:only="react" />
 </Layout>
