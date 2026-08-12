@@ -1,0 +1,517 @@
+{
+  "directed": false,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "label": "NoteEditor.tsx",
+      "file_type": "code",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "noteeditor",
+      "community": 1,
+      "norm_label": "noteeditor.tsx"
+    },
+    {
+      "label": "GlobalStyles()",
+      "file_type": "code",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L13",
+      "_origin": "ast",
+      "id": "noteeditor_globalstyles",
+      "community": 1,
+      "norm_label": "globalstyles()"
+    },
+    {
+      "label": "initialLibraryItems",
+      "file_type": "code",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L22",
+      "_origin": "ast",
+      "id": "noteeditor_initiallibraryitems",
+      "community": 1,
+      "norm_label": "initiallibraryitems"
+    },
+    {
+      "label": "NoteEditorProps",
+      "file_type": "code",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L27",
+      "_origin": "ast",
+      "id": "noteeditor_noteeditorprops",
+      "community": 1,
+      "norm_label": "noteeditorprops"
+    },
+    {
+      "label": "NoteEditor()",
+      "file_type": "code",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L31",
+      "_origin": "ast",
+      "id": "noteeditor_noteeditor",
+      "community": 1,
+      "norm_label": "noteeditor()"
+    },
+    {
+      "label": "NoteEditorInner()",
+      "file_type": "code",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L40",
+      "_origin": "ast",
+      "id": "noteeditor_noteeditorinner",
+      "community": 1,
+      "norm_label": "noteeditorinner()"
+    },
+    {
+      "label": "NoteEditorSidebar.tsx",
+      "file_type": "code",
+      "source_file": "NoteEditorSidebar.tsx",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "noteeditorsidebar",
+      "community": 2,
+      "norm_label": "noteeditorsidebar.tsx"
+    },
+    {
+      "label": "NoteEditorSidebarProps",
+      "file_type": "code",
+      "source_file": "NoteEditorSidebar.tsx",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "noteeditorsidebar_noteeditorsidebarprops",
+      "community": 2,
+      "norm_label": "noteeditorsidebarprops"
+    },
+    {
+      "label": "ToolTab",
+      "file_type": "code",
+      "source_file": "NoteEditorSidebar.tsx",
+      "source_location": "L13",
+      "_origin": "ast",
+      "id": "noteeditorsidebar_tooltab",
+      "community": 2,
+      "norm_label": "tooltab"
+    },
+    {
+      "label": "LockedOverlay()",
+      "file_type": "code",
+      "source_file": "NoteEditorSidebar.tsx",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "noteeditorsidebar_lockedoverlay",
+      "community": 2,
+      "norm_label": "lockedoverlay()"
+    },
+    {
+      "label": "NoteEditorSidebar()",
+      "file_type": "code",
+      "source_file": "NoteEditorSidebar.tsx",
+      "source_location": "L34",
+      "_origin": "ast",
+      "id": "noteeditorsidebar_noteeditorsidebar",
+      "community": 2,
+      "norm_label": "noteeditorsidebar()"
+    },
+    {
+      "label": "NotesHub.tsx",
+      "file_type": "code",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "noteshub",
+      "community": 0,
+      "norm_label": "noteshub.tsx"
+    },
+    {
+      "label": "Note",
+      "file_type": "code",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L27",
+      "_origin": "ast",
+      "id": "noteshub_note",
+      "community": 0,
+      "norm_label": "note"
+    },
+    {
+      "label": "NotesView",
+      "file_type": "code",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L39",
+      "_origin": "ast",
+      "id": "noteshub_notesview",
+      "community": 0,
+      "norm_label": "notesview"
+    },
+    {
+      "label": "formatDate()",
+      "file_type": "code",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L41",
+      "_origin": "ast",
+      "id": "noteshub_formatdate",
+      "community": 0,
+      "norm_label": "formatdate()"
+    },
+    {
+      "label": "relativeDate()",
+      "file_type": "code",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L48",
+      "_origin": "ast",
+      "id": "noteshub_relativedate",
+      "community": 0,
+      "norm_label": "relativedate()"
+    },
+    {
+      "label": "noteTitle()",
+      "file_type": "code",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L59",
+      "_origin": "ast",
+      "id": "noteshub_notetitle",
+      "community": 0,
+      "norm_label": "notetitle()"
+    },
+    {
+      "label": "NotePreview()",
+      "file_type": "code",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L63",
+      "_origin": "ast",
+      "id": "noteshub_notepreview",
+      "community": 0,
+      "norm_label": "notepreview()"
+    },
+    {
+      "label": "NoteCard()",
+      "file_type": "code",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L108",
+      "_origin": "ast",
+      "id": "noteshub_notecard",
+      "community": 0,
+      "norm_label": "notecard()"
+    },
+    {
+      "label": "NotesHub()",
+      "file_type": "code",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L154",
+      "_origin": "ast",
+      "id": "noteshub_noteshub",
+      "community": 0,
+      "norm_label": "noteshub()"
+    },
+    {
+      "label": "NotesList.tsx",
+      "file_type": "code",
+      "source_file": "NotesList.tsx",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "noteslist",
+      "community": 3,
+      "norm_label": "noteslist.tsx"
+    },
+    {
+      "label": "Note",
+      "file_type": "code",
+      "source_file": "NotesList.tsx",
+      "source_location": "L16",
+      "_origin": "ast",
+      "id": "noteslist_note",
+      "community": 3,
+      "norm_label": "note"
+    },
+    {
+      "label": "formatDate()",
+      "file_type": "code",
+      "source_file": "NotesList.tsx",
+      "source_location": "L29",
+      "_origin": "ast",
+      "id": "noteslist_formatdate",
+      "community": 3,
+      "norm_label": "formatdate()"
+    },
+    {
+      "label": "NotesList()",
+      "file_type": "code",
+      "source_file": "NotesList.tsx",
+      "source_location": "L41",
+      "_origin": "ast",
+      "id": "noteslist_noteslist",
+      "community": 3,
+      "norm_label": "noteslist()"
+    }
+  ],
+  "links": [
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "noteeditor",
+      "target": "noteeditor_globalstyles",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L22",
+      "weight": 1.0,
+      "source": "noteeditor",
+      "target": "noteeditor_initiallibraryitems",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L31",
+      "weight": 1.0,
+      "source": "noteeditor",
+      "target": "noteeditor_noteeditor",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L40",
+      "weight": 1.0,
+      "source": "noteeditor",
+      "target": "noteeditor_noteeditorinner",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L27",
+      "weight": 1.0,
+      "source": "noteeditor",
+      "target": "noteeditor_noteeditorprops",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "noteeditor",
+      "target": "noteeditorsidebar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "noteeditor",
+      "target": "noteeditorsidebar_noteeditorsidebar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditorSidebar.tsx",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "noteeditorsidebar",
+      "target": "noteeditorsidebar_lockedoverlay",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditorSidebar.tsx",
+      "source_location": "L34",
+      "weight": 1.0,
+      "source": "noteeditorsidebar",
+      "target": "noteeditorsidebar_noteeditorsidebar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditorSidebar.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "noteeditorsidebar",
+      "target": "noteeditorsidebar_noteeditorsidebarprops",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditorSidebar.tsx",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "noteeditorsidebar",
+      "target": "noteeditorsidebar_tooltab",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L41",
+      "weight": 1.0,
+      "source": "noteshub",
+      "target": "noteshub_formatdate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L27",
+      "weight": 1.0,
+      "source": "noteshub",
+      "target": "noteshub_note",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L108",
+      "weight": 1.0,
+      "source": "noteshub",
+      "target": "noteshub_notecard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L63",
+      "weight": 1.0,
+      "source": "noteshub",
+      "target": "noteshub_notepreview",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L154",
+      "weight": 1.0,
+      "source": "noteshub",
+      "target": "noteshub_noteshub",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L39",
+      "weight": 1.0,
+      "source": "noteshub",
+      "target": "noteshub_notesview",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L59",
+      "weight": 1.0,
+      "source": "noteshub",
+      "target": "noteshub_notetitle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L48",
+      "weight": 1.0,
+      "source": "noteshub",
+      "target": "noteshub_relativedate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L56",
+      "weight": 1.0,
+      "source": "noteshub_relativedate",
+      "target": "noteshub_formatdate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L130",
+      "weight": 1.0,
+      "source": "noteshub_notecard",
+      "target": "noteshub_relativedate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L119",
+      "weight": 1.0,
+      "source": "noteshub_notecard",
+      "target": "noteshub_notetitle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L406",
+      "weight": 1.0,
+      "source": "noteshub_noteshub",
+      "target": "noteshub_notetitle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesList.tsx",
+      "source_location": "L29",
+      "weight": 1.0,
+      "source": "noteslist",
+      "target": "noteslist_formatdate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesList.tsx",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "noteslist",
+      "target": "noteslist_note",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesList.tsx",
+      "source_location": "L41",
+      "weight": 1.0,
+      "source": "noteslist",
+      "target": "noteslist_noteslist",
+      "confidence_score": 1.0
+    }
+  ],
+  "hyperedges": [],
+  "built_at_commit": "70b39cecd6366f171c39087a3e6c26a07fba8899"
+}

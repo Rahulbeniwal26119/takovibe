@@ -1,0 +1,701 @@
+{
+  "nodes": [
+    {
+      "id": "noteeditor",
+      "label": "NoteEditor.tsx",
+      "file_type": "code",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "noteeditor_globalstyles",
+      "label": "GlobalStyles()",
+      "file_type": "code",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L13",
+      "_origin": "ast"
+    },
+    {
+      "id": "noteeditor_initiallibraryitems",
+      "label": "initialLibraryItems",
+      "file_type": "code",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L22",
+      "_origin": "ast"
+    },
+    {
+      "id": "noteeditor_noteeditorprops",
+      "label": "NoteEditorProps",
+      "file_type": "code",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L27",
+      "_origin": "ast"
+    },
+    {
+      "id": "noteeditor_noteeditor",
+      "label": "NoteEditor()",
+      "file_type": "code",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L31",
+      "_origin": "ast"
+    },
+    {
+      "id": "noteeditor_noteeditorinner",
+      "label": "NoteEditorInner()",
+      "file_type": "code",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L40",
+      "_origin": "ast"
+    },
+    {
+      "id": "noteeditorsidebar",
+      "label": "NoteEditorSidebar.tsx",
+      "file_type": "code",
+      "source_file": "NoteEditorSidebar.tsx",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "noteeditorsidebar_noteeditorsidebarprops",
+      "label": "NoteEditorSidebarProps",
+      "file_type": "code",
+      "source_file": "NoteEditorSidebar.tsx",
+      "source_location": "L6",
+      "_origin": "ast"
+    },
+    {
+      "id": "noteeditorsidebar_tooltab",
+      "label": "ToolTab",
+      "file_type": "code",
+      "source_file": "NoteEditorSidebar.tsx",
+      "source_location": "L13",
+      "_origin": "ast"
+    },
+    {
+      "id": "noteeditorsidebar_lockedoverlay",
+      "label": "LockedOverlay()",
+      "file_type": "code",
+      "source_file": "NoteEditorSidebar.tsx",
+      "source_location": "L15",
+      "_origin": "ast"
+    },
+    {
+      "id": "noteeditorsidebar_noteeditorsidebar",
+      "label": "NoteEditorSidebar()",
+      "file_type": "code",
+      "source_file": "NoteEditorSidebar.tsx",
+      "source_location": "L34",
+      "_origin": "ast"
+    },
+    {
+      "id": "noteshub",
+      "label": "NotesHub.tsx",
+      "file_type": "code",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "noteshub_note",
+      "label": "Note",
+      "file_type": "code",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L27",
+      "_origin": "ast"
+    },
+    {
+      "id": "noteshub_notesview",
+      "label": "NotesView",
+      "file_type": "code",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L39",
+      "_origin": "ast"
+    },
+    {
+      "id": "noteshub_formatdate",
+      "label": "formatDate()",
+      "file_type": "code",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L41",
+      "_origin": "ast"
+    },
+    {
+      "id": "noteshub_relativedate",
+      "label": "relativeDate()",
+      "file_type": "code",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L48",
+      "_origin": "ast"
+    },
+    {
+      "id": "noteshub_notetitle",
+      "label": "noteTitle()",
+      "file_type": "code",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L59",
+      "_origin": "ast"
+    },
+    {
+      "id": "noteshub_notepreview",
+      "label": "NotePreview()",
+      "file_type": "code",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L63",
+      "_origin": "ast"
+    },
+    {
+      "id": "noteshub_notecard",
+      "label": "NoteCard()",
+      "file_type": "code",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L108",
+      "_origin": "ast"
+    },
+    {
+      "id": "noteshub_noteshub",
+      "label": "NotesHub()",
+      "file_type": "code",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L154",
+      "_origin": "ast"
+    },
+    {
+      "id": "noteslist",
+      "label": "NotesList.tsx",
+      "file_type": "code",
+      "source_file": "NotesList.tsx",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "noteslist_note",
+      "label": "Note",
+      "file_type": "code",
+      "source_file": "NotesList.tsx",
+      "source_location": "L16",
+      "_origin": "ast"
+    },
+    {
+      "id": "noteslist_formatdate",
+      "label": "formatDate()",
+      "file_type": "code",
+      "source_file": "NotesList.tsx",
+      "source_location": "L29",
+      "_origin": "ast"
+    },
+    {
+      "id": "noteslist_noteslist",
+      "label": "NotesList()",
+      "file_type": "code",
+      "source_file": "NotesList.tsx",
+      "source_location": "L41",
+      "_origin": "ast"
+    }
+  ],
+  "edges": [
+    {
+      "source": "noteeditor",
+      "target": "react",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "noteeditor",
+      "target": "excalidraw",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "noteeditor",
+      "target": "index_css",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "noteeditor",
+      "target": "lucide_react",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "noteeditor",
+      "target": "mermaid_to_excalidraw",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "noteeditor",
+      "target": "users_rahulbeniwal_takovibe_blog_src_utils_api_ts",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "noteeditor",
+      "target": "users_rahulbeniwal_takovibe_blog_src_utils_api_fetchwithauth",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "noteeditor",
+      "target": "users_rahulbeniwal_takovibe_blog_src_utils_toast_ts",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "noteeditor",
+      "target": "users_rahulbeniwal_takovibe_blog_src_utils_toast_showtoast",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "noteeditor",
+      "target": "users_rahulbeniwal_takovibe_blog_src_lib_taskapi_ts",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "noteeditor",
+      "target": "users_rahulbeniwal_takovibe_blog_src_lib_taskapi_createtask",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "noteeditor",
+      "target": "users_rahulbeniwal_takovibe_blog_src_data_libraries_drwnio_json",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "noteeditor",
+      "target": "users_rahulbeniwal_takovibe_blog_src_data_libraries_system_design_json",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "noteeditor",
+      "target": "noteeditorsidebar",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "noteeditor",
+      "target": "noteeditorsidebar_noteeditorsidebar",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "noteeditor",
+      "target": "noteeditor_globalstyles",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "noteeditor",
+      "target": "noteeditor_initiallibraryitems",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "noteeditor",
+      "target": "noteeditor_noteeditorprops",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "noteeditor",
+      "target": "noteeditor_noteeditor",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "noteeditor",
+      "target": "noteeditor_noteeditorinner",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditor.tsx",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "noteeditorsidebar",
+      "target": "react",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditorSidebar.tsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "noteeditorsidebar",
+      "target": "lucide_react",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditorSidebar.tsx",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "noteeditorsidebar",
+      "target": "users_rahulbeniwal_takovibe_blog_src_components_editor_codestudio_tsx",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditorSidebar.tsx",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "noteeditorsidebar",
+      "target": "users_rahulbeniwal_takovibe_blog_src_components_editor_codestudio_codestudio",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditorSidebar.tsx",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "noteeditorsidebar",
+      "target": "users_rahulbeniwal_takovibe_blog_src_components_chatbot_tsx",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditorSidebar.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "noteeditorsidebar",
+      "target": "noteeditorsidebar_noteeditorsidebarprops",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditorSidebar.tsx",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "noteeditorsidebar",
+      "target": "noteeditorsidebar_tooltab",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditorSidebar.tsx",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "noteeditorsidebar",
+      "target": "noteeditorsidebar_lockedoverlay",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditorSidebar.tsx",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "noteeditorsidebar",
+      "target": "noteeditorsidebar_noteeditorsidebar",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NoteEditorSidebar.tsx",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "noteshub",
+      "target": "react",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "noteshub",
+      "target": "lucide_react",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "noteshub",
+      "target": "users_rahulbeniwal_takovibe_blog_src_utils_api_ts",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "noteshub",
+      "target": "users_rahulbeniwal_takovibe_blog_src_utils_api_fetchwithauth",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "noteshub",
+      "target": "noteshub_note",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "noteshub",
+      "target": "noteshub_notesview",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "noteshub",
+      "target": "noteshub_formatdate",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "noteshub",
+      "target": "noteshub_relativedate",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "noteshub",
+      "target": "noteshub_notetitle",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L59",
+      "weight": 1.0
+    },
+    {
+      "source": "noteshub",
+      "target": "noteshub_notepreview",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "noteshub",
+      "target": "noteshub_notecard",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L108",
+      "weight": 1.0
+    },
+    {
+      "source": "noteshub",
+      "target": "noteshub_noteshub",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L154",
+      "weight": 1.0
+    },
+    {
+      "source": "noteshub_relativedate",
+      "target": "noteshub_formatdate",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L56",
+      "weight": 1.0
+    },
+    {
+      "source": "noteshub_notecard",
+      "target": "noteshub_notetitle",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L119",
+      "weight": 1.0
+    },
+    {
+      "source": "noteshub_notecard",
+      "target": "noteshub_relativedate",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L130",
+      "weight": 1.0
+    },
+    {
+      "source": "noteshub_noteshub",
+      "target": "noteshub_notetitle",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesHub.tsx",
+      "source_location": "L406",
+      "weight": 1.0
+    },
+    {
+      "source": "noteslist",
+      "target": "react",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesList.tsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "noteslist",
+      "target": "users_rahulbeniwal_takovibe_blog_src_utils_api_ts",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesList.tsx",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "noteslist",
+      "target": "users_rahulbeniwal_takovibe_blog_src_utils_api_fetchwithauth",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesList.tsx",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "noteslist",
+      "target": "lucide_react",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesList.tsx",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "noteslist",
+      "target": "noteslist_note",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesList.tsx",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "noteslist",
+      "target": "noteslist_formatdate",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesList.tsx",
+      "source_location": "L29",
+      "weight": 1.0
+    },
+    {
+      "source": "noteslist",
+      "target": "noteslist_noteslist",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "NotesList.tsx",
+      "source_location": "L41",
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": [],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

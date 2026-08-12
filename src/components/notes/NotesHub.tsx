@@ -287,8 +287,8 @@ export default function NotesHub() {
                 </a>
                 <div className="mt-2 rounded-xl bg-stone-900 p-3.5 text-white dark:bg-neutral-900">
                     <div className="flex items-center gap-2 text-xs font-bold"><Sparkles className="h-3.5 w-3.5 text-orange-400" /> Think in systems</div>
-                    <p className="mt-1.5 text-[11px] leading-4 text-stone-400">Turn a rough thought into a diagram you can explain.</p>
-                    <a href="/notes/new" className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-bold text-orange-300 hover:text-orange-200">Start a canvas <ArrowUpRight className="h-3 w-3" /></a>
+                    <p className="mt-1.5 text-[11px] leading-4 text-stone-400">Pin PDFs, connect evidence, and ask AI without leaving your canvas.</p>
+                    <a href="/notes/new" className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-bold text-orange-300 hover:text-orange-200">Start a research note <ArrowUpRight className="h-3 w-3" /></a>
                 </div>
             </div>
         </>
@@ -334,8 +334,8 @@ export default function NotesHub() {
                     <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
                         <div>
                             <div className="mb-2 flex items-center gap-2 text-xs font-bold text-orange-700 dark:text-orange-400"><Grid2X2 className="h-3.5 w-3.5" /> Workspace overview</div>
-                            <h1 className="font-display text-3xl font-bold tracking-[-0.04em] text-stone-950 dark:text-white sm:text-4xl">Your visual notes</h1>
-                            <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-500 dark:text-neutral-400">Capture an idea, map the system, and keep the context close to your reading.</p>
+                            <h1 className="font-display text-3xl font-bold tracking-[-0.04em] text-stone-950 dark:text-white sm:text-4xl">Your spatial notes</h1>
+                            <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-500 dark:text-neutral-400">Pin PDFs beside sketches and cards, highlight evidence, then ask Kumi across the selected context.</p>
                         </div>
                         <div className="inline-flex self-start rounded-xl border border-stone-200 bg-white p-1 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                             <button onClick={() => changeView('mine')} className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition ${view === 'mine' ? 'bg-stone-900 text-white shadow-sm dark:bg-white dark:text-neutral-950' : 'text-stone-500 hover:text-stone-900 dark:text-neutral-400 dark:hover:text-white'}`}><Lock className="h-3.5 w-3.5" /> My notes</button>

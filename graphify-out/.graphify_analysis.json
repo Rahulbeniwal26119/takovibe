@@ -1,0 +1,102 @@
+{
+  "communities": {
+    "0": [
+      "noteshub",
+      "noteshub_formatdate",
+      "noteshub_note",
+      "noteshub_notecard",
+      "noteshub_notepreview",
+      "noteshub_noteshub",
+      "noteshub_notesview",
+      "noteshub_notetitle",
+      "noteshub_relativedate"
+    ],
+    "1": [
+      "noteeditor",
+      "noteeditor_globalstyles",
+      "noteeditor_initiallibraryitems",
+      "noteeditor_noteeditor",
+      "noteeditor_noteeditorinner",
+      "noteeditor_noteeditorprops"
+    ],
+    "2": [
+      "noteeditorsidebar",
+      "noteeditorsidebar_lockedoverlay",
+      "noteeditorsidebar_noteeditorsidebar",
+      "noteeditorsidebar_noteeditorsidebarprops",
+      "noteeditorsidebar_tooltab"
+    ],
+    "3": [
+      "noteslist",
+      "noteslist_formatdate",
+      "noteslist_note",
+      "noteslist_noteslist"
+    ]
+  },
+  "cohesion": {
+    "0": 0.3333333333333333,
+    "1": 0.3333333333333333,
+    "2": 0.4,
+    "3": 0.5
+  },
+  "gods": [
+    {
+      "id": "noteshub_relativedate",
+      "label": "relativeDate()",
+      "degree": 3
+    },
+    {
+      "id": "noteshub_notetitle",
+      "label": "noteTitle()",
+      "degree": 3
+    },
+    {
+      "id": "noteshub_notecard",
+      "label": "NoteCard()",
+      "degree": 3
+    },
+    {
+      "id": "noteeditorsidebar_noteeditorsidebar",
+      "label": "NoteEditorSidebar()",
+      "degree": 2
+    },
+    {
+      "id": "noteshub_formatdate",
+      "label": "formatDate()",
+      "degree": 2
+    },
+    {
+      "id": "noteshub_noteshub",
+      "label": "NotesHub()",
+      "degree": 2
+    },
+    {
+      "id": "noteeditor_initiallibraryitems",
+      "label": "initialLibraryItems",
+      "degree": 1
+    },
+    {
+      "id": "noteeditor_noteeditorprops",
+      "label": "NoteEditorProps",
+      "degree": 1
+    },
+    {
+      "id": "noteeditorsidebar_noteeditorsidebarprops",
+      "label": "NoteEditorSidebarProps",
+      "degree": 1
+    },
+    {
+      "id": "noteeditorsidebar_tooltab",
+      "label": "ToolTab",
+      "degree": 1
+    }
+  ],
+  "surprises": [],
+  "questions": [
+    {
+      "type": "isolated_nodes",
+      "question": "What connects `initialLibraryItems`, `NoteEditorProps`, `NoteEditorSidebarProps` to the rest of the system?",
+      "why": "7 weakly-connected nodes found - possible documentation gaps or missing edges."
+    }
+  ]
+}

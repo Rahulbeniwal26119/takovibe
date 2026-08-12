@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Excalidraw, WelcomeScreen, MainMenu, getSceneVersion, convertToExcalidrawElements } from "@excalidraw/excalidraw";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { CaptureUpdateAction, Excalidraw, WelcomeScreen, MainMenu, getSceneVersion, convertToExcalidrawElements, sceneCoordsToViewportCoords } from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css";
-import { ArrowLeft, Loader2, Cloud, CloudOff, Lock, Unlock, Wand2, X, Play, Code, Sparkles, Trash2, AlertTriangle, ListTodo, Image as ImageIcon, PanelRightOpen, Share2, Shapes, Maximize2, Minimize2, Command } from 'lucide-react';
+import { ArrowLeft, Loader2, Cloud, CloudOff, Lock, Unlock, Wand2, X, Play, Code, Sparkles, Trash2, AlertTriangle, ListTodo, Image as ImageIcon, PanelRightOpen, Share2, Shapes, Maximize2, Minimize2, Command, FilePlus2, TextSelect } from 'lucide-react';
 import { parseMermaidToExcalidraw } from "@excalidraw/mermaid-to-excalidraw";
 import { fetchWithAuth } from '../../utils/api';
 import { showToast } from '../../utils/toast';
@@ -9,12 +9,25 @@ import { createTask } from '../../lib/taskApi';
 import drwnioLib from '../../data/libraries/drwnio.json';
 import systemDesignLib from '../../data/libraries/system-design.json';
 import { NoteEditorSidebar } from './NoteEditorSidebar';
+import SpatialPdfNode, { type SpatialHighlight, type WorkspaceChunk } from '../workspace/SpatialPdfNode';
+import { getSpatialPdf, saveSpatialPdf } from '../../lib/spatialPdfStore';
+import type { PaperLayoutNode, PaperLayoutResult, PaperNodeType } from '../../lib/paperLayout';
+import { extractPdfTextGeometry, renderPdfToNativePages } from '../../lib/nativePdfPages';
+import NativePdfTextLayer, { type NativePdfTextPageLayer } from '../workspace/NativePdfTextLayer';
 
 const GlobalStyles = () => (
     <style>{`
         @keyframes shimmer {
             0% { transform: translateX(-100%) skewX(-15deg); }
             100% { transform: translateX(200%) skewX(-15deg); }
+        }
+        .excalidraw__embeddable__outer,
+        .excalidraw__embeddable {
+            border: 0 !important;
+        }
+        .native-pdf-text-item::selection {
+            background: rgba(59, 130, 246, 0.32);
+            color: transparent;
         }
     `}</style>
 );
@@ -26,6 +39,51 @@ const initialLibraryItems = [
 
 interface NoteEditorProps {
     noteId?: string;
+}
+
+interface PassageContext {
+    elementId: string;
+    filename: string;
+    page: number;
+    text: string;
+}
+
+interface FocusedPaperAnchor {
+    elementId: string;
+    page: number;
+    bbox: { x: number; y: number; w: number; h: number };
+    nonce: number;
+}
+
+const PAPER_CARD_COLORS: Record<PaperNodeType, { background: string; stroke: string; label: string }> = {
+    text: { background: '#fff7ed', stroke: '#ea580c', label: 'TEXT' },
+    formula: { background: '#f5f3ff', stroke: '#7c3aed', label: 'FORMULA' },
+    diagram: { background: '#ecfeff', stroke: '#0891b2', label: 'DIAGRAM' },
+    pseudocode: { background: '#ecfdf5', stroke: '#059669', label: 'PSEUDOCODE' },
+    table: { background: '#eff6ff', stroke: '#2563eb', label: 'TABLE' },
+};
+
+function spatialId(prefix: string) {
+    return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+function chunkNativePdfText(text: string, page: number, documentId: string, source: string): WorkspaceChunk[] {
+    const words = text.replace(/\s+/g, ' ').trim().split(' ').filter(Boolean);
+    const chunks: WorkspaceChunk[] = [];
+    const size = 180;
+    const overlap = 35;
+    for (let start = 0; start < words.length; start += size - overlap) {
+        const value = words.slice(start, start + size).join(' ');
+        if (value.length < 20) continue;
+        chunks.push({
+            id: `${documentId}-${page}-${start}`,
+            resourceId: documentId,
+            source,
+            page,
+            text: value,
+        });
+    }
+    return chunks;
 }
 
 export const NoteEditor: React.FC<NoteEditorProps> = ({ noteId }) => {
@@ -74,7 +132,24 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
     const [selectionMessage, setSelectionMessage] = useState<string | null>(null);
     const [selectionCoords, setSelectionCoords] = useState<{ x: number, y: number } | null>(null);
     const [pendingKumiMessage, setPendingKumiMessage] = useState<string | null>(null);
+    const [selectedCards, setSelectedCards] = useState<string[]>([]);
+    const [selectedPdfIds, setSelectedPdfIds] = useState<string[]>([]);
+    const [selectedPassage, setSelectedPassage] = useState<PassageContext | null>(null);
+    const [pdfChunks, setPdfChunks] = useState<Record<string, WorkspaceChunk[]>>({});
+    const [pdfHighlights, setPdfHighlights] = useState<Record<string, SpatialHighlight[]>>({});
+    const [isAddingPdf, setIsAddingPdf] = useState(false);
+    const [pdfImportProgress, setPdfImportProgress] = useState<{ completed: number; total: number } | null>(null);
+    const [isPdfTextSelectionMode, setIsPdfTextSelectionMode] = useState(false);
+    const [isPreparingPdfText, setIsPreparingPdfText] = useState(false);
+    const [nativePdfTextLayers, setNativePdfTextLayers] = useState<NativePdfTextPageLayer[]>([]);
+    const [hasNativePdfTextPages, setHasNativePdfTextPages] = useState(false);
+    const [deconstructingPdfIds, setDeconstructingPdfIds] = useState<Record<string, boolean>>({});
+    const [focusedPaperAnchor, setFocusedPaperAnchor] = useState<FocusedPaperAnchor | null>(null);
     const lastMousePos = useRef({ x: 0, y: 0 });
+    const pdfInputRef = useRef<HTMLInputElement>(null);
+    const selectionFingerprintRef = useRef('');
+    const nativePdfTextLayerFingerprintRef = useRef('');
+    const hasNativePdfTextPagesRef = useRef(false);
 
     // Auth State
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -227,6 +302,29 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                         id: data.id,
                         owner: data.owner
                     });
+                    setPdfHighlights(
+                        Object.fromEntries(
+                            elements
+                                .filter((element: any) => element.type === 'embeddable' && element.customData?.spatialPdfId)
+                                .map((element: any) => [element.id, element.customData?.highlights || []]),
+                        ),
+                    );
+                    const restoredPdfChunks: Record<string, WorkspaceChunk[]> = {};
+                    elements
+                        .filter((element: any) => element.type === 'image' && element.customData?.pdfDocumentId)
+                        .sort((a: any, b: any) => Number(a.customData.pdfPage) - Number(b.customData.pdfPage))
+                        .forEach((element: any) => {
+                            const documentId = element.customData.pdfDocumentId;
+                            const page = Number(element.customData.pdfPage || 1);
+                            const chunks = chunkNativePdfText(
+                                element.customData.pdfText || '',
+                                page,
+                                documentId,
+                                element.customData.pdfFilename || 'PDF',
+                            );
+                            restoredPdfChunks[documentId] = [...(restoredPdfChunks[documentId] || []), ...chunks];
+                        });
+                    setPdfChunks(restoredPdfChunks);
 
                     setIsPublic(data.is_public);
 
@@ -421,7 +519,161 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
         return null;
     };
 
+    const ensureNativePdfTextGeometry = useCallback(async () => {
+        if (!excalidrawAPI) return false;
+        const elements = excalidrawAPI.getSceneElements();
+        const hasSelectableText = elements.some((element: any) =>
+            element.type === 'image'
+            && element.customData?.pdfDocumentId
+            && Array.isArray(element.customData.pdfTextItems)
+            && element.customData.pdfTextItems.length > 0,
+        );
+        const missingDocumentIds = Array.from(new Set<string>(
+            elements
+                .filter((element: any) =>
+                    element.type === 'image'
+                    && element.customData?.pdfDocumentId
+                    && element.customData.pdfTextLayerReady !== true
+                    && (!Array.isArray(element.customData.pdfTextItems) || element.customData.pdfTextItems.length === 0),
+                )
+                .map((element: any) => element.customData.pdfDocumentId as string),
+        ));
+        if (missingDocumentIds.length === 0) {
+            if (!hasSelectableText) {
+                showToast('This PDF has no embedded text. OCR is required for scanned pages.', 'error');
+            }
+            return hasSelectableText;
+        }
+
+        const geometryByDocument = new Map<string, Awaited<ReturnType<typeof extractPdfTextGeometry>>>();
+        for (const documentId of missingDocumentIds) {
+            const pdf = await getSpatialPdf(documentId);
+            if (!pdf) continue;
+            geometryByDocument.set(documentId, await extractPdfTextGeometry(pdf));
+        }
+        if (geometryByDocument.size === 0) {
+            if (hasSelectableText) return true;
+            showToast('The original PDF is unavailable. Re-import it to select text.', 'error');
+            return false;
+        }
+
+        const updatedAt = Date.now();
+        const updatedElements = elements.map((element: any) => {
+            const documentId = element.customData?.pdfDocumentId;
+            const pages = documentId ? geometryByDocument.get(documentId) : null;
+            const page = pages?.find((candidate) => candidate.page === Number(element.customData?.pdfPage || 1));
+            if (!page) return element;
+            return {
+                ...element,
+                customData: {
+                    ...element.customData,
+                    pdfText: page.text,
+                    pdfTextItems: page.textItems,
+                    pdfTextLayerReady: true,
+                },
+                version: element.version + 1,
+                versionNonce: Math.floor(Math.random() * 2_000_000_000),
+                updated: updatedAt,
+            };
+        });
+        excalidrawAPI.updateScene({ elements: updatedElements, captureUpdate: CaptureUpdateAction.NEVER });
+        setHasUnsavedChanges(true);
+        const hydratedSelectableText = Array.from(geometryByDocument.values()).some((pages) =>
+            pages.some((page) => page.textItems.length > 0),
+        );
+        if (!hasSelectableText && !hydratedSelectableText) {
+            showToast('This PDF has no embedded text. OCR is required for scanned pages.', 'error');
+            return false;
+        }
+        return true;
+    }, [excalidrawAPI]);
+
+    const updateNativePdfTextLayers = useCallback((elements: readonly any[], appState: any) => {
+        if (!isPdfTextSelectionMode) {
+            if (nativePdfTextLayerFingerprintRef.current) {
+                nativePdfTextLayerFingerprintRef.current = '';
+                setNativePdfTextLayers([]);
+            }
+            return;
+        }
+
+        const layers = elements.flatMap<NativePdfTextPageLayer>((element: any) => {
+            const metadata = element.customData;
+            if (
+                element.isDeleted
+                || element.type !== 'image'
+                || !metadata?.pdfDocumentId
+                || !Array.isArray(metadata.pdfTextItems)
+                || metadata.pdfTextItems.length === 0
+                || Math.abs(element.angle || 0) > 0.001
+            ) return [];
+
+            const topLeft = sceneCoordsToViewportCoords(
+                { sceneX: element.x, sceneY: element.y },
+                appState,
+            );
+            const bottomRight = sceneCoordsToViewportCoords(
+                { sceneX: element.x + element.width, sceneY: element.y + element.height },
+                appState,
+            );
+            const width = bottomRight.x - topLeft.x;
+            const height = bottomRight.y - topLeft.y;
+            if (
+                width < 24
+                || height < 24
+                || bottomRight.x < 0
+                || bottomRight.y < 0
+                || topLeft.x > window.innerWidth
+                || topLeft.y > window.innerHeight
+            ) return [];
+
+            return [{
+                elementId: element.id,
+                documentId: metadata.pdfDocumentId,
+                filename: metadata.pdfFilename || 'PDF',
+                page: Number(metadata.pdfPage || 1),
+                left: topLeft.x,
+                top: topLeft.y,
+                width,
+                height,
+                textItems: metadata.pdfTextItems,
+            }];
+        });
+        const fingerprint = layers.map((layer) =>
+            `${layer.elementId}:${Math.round(layer.left)}:${Math.round(layer.top)}:${Math.round(layer.width)}:${Math.round(layer.height)}`,
+        ).join('|');
+        if (fingerprint === nativePdfTextLayerFingerprintRef.current) return;
+        nativePdfTextLayerFingerprintRef.current = fingerprint;
+        setNativePdfTextLayers(layers);
+    }, [isPdfTextSelectionMode]);
+
+    useEffect(() => {
+        if (!excalidrawAPI) return;
+        updateNativePdfTextLayers(excalidrawAPI.getSceneElements(), excalidrawAPI.getAppState());
+    }, [excalidrawAPI, isPdfTextSelectionMode, updateNativePdfTextLayers]);
+
+    useEffect(() => {
+        if (!excalidrawAPI || !isPdfTextSelectionMode) return;
+        const refreshLayers = () => updateNativePdfTextLayers(
+            excalidrawAPI.getSceneElements(),
+            excalidrawAPI.getAppState(),
+        );
+        window.addEventListener('resize', refreshLayers);
+        return () => window.removeEventListener('resize', refreshLayers);
+    }, [excalidrawAPI, isPdfTextSelectionMode, updateNativePdfTextLayers]);
+
     const handleChange = useCallback((elements: any, appState: any, files: any) => {
+        const hasSelectablePdf = elements.some((element: any) =>
+            !element.isDeleted
+            && element.type === 'image'
+            && Boolean(element.customData?.pdfDocumentId),
+        );
+        if (hasSelectablePdf !== hasNativePdfTextPagesRef.current) {
+            hasNativePdfTextPagesRef.current = hasSelectablePdf;
+            setHasNativePdfTextPages(hasSelectablePdf);
+            if (!hasSelectablePdf) setIsPdfTextSelectionMode(false);
+        }
+        updateNativePdfTextLayers(elements, appState);
         // Background ImageKit Uploader (for images inserted via Excalidraw's native path)
         if (files) {
             for (const [fileId, fileData] of Object.entries<any>(files)) {
@@ -439,8 +691,35 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                 }
             }
         }
+        // Keep text cards and pinned PDFs available as contextual AI sources.
+        const selectedIds = Object.keys(appState.selectedElementIds || {}).filter((id) => appState.selectedElementIds[id]);
+        const selectionFingerprint = selectedIds.slice().sort().join('|');
+        if (selectionFingerprint !== selectionFingerprintRef.current) {
+            selectionFingerprintRef.current = selectionFingerprint;
+            const elementsById = new Map(elements.map((element: any) => [element.id, element]));
+            const textIds = new Set<string>();
+            const nextPdfIds = new Set<string>();
+            selectedIds.forEach((id) => {
+                const element: any = elementsById.get(id);
+                if (!element) return;
+                if (element.type === 'text') textIds.add(id);
+                if (element.type === 'embeddable' && element.customData?.spatialPdfId) nextPdfIds.add(id);
+                if (element.type === 'image' && element.customData?.pdfDocumentId) {
+                    nextPdfIds.add(element.customData.pdfDocumentId);
+                }
+                element.boundElements?.forEach((bound: any) => {
+                    if (bound.type === 'text') textIds.add(bound.id);
+                });
+            });
+            setSelectedCards(
+                Array.from(textIds)
+                    .map((id) => (elementsById.get(id) as any)?.text)
+                    .filter((text): text is string => Boolean(text?.trim())),
+            );
+            setSelectedPdfIds(Array.from(nextPdfIds));
+        }
+
         // Handle selection for "Ask Kumi" - only update if actually changed
-        const selectedIds = Object.keys(appState.selectedElementIds || {});
         if (selectedIds.length > 0) {
             const selectedElements = elements.filter((el: any) => appState.selectedElementIds[el.id]);
             const textElements = selectedElements.filter((el: any) => el.type === 'text' || (el.text && el.text.trim() !== ''));
@@ -480,7 +759,7 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                 );
             }
         }, 3000);
-    }, [isAutoSavePaused, isReadOnly, isPublic, excalidrawAPI]);
+    }, [isAutoSavePaused, isReadOnly, isPublic, excalidrawAPI, updateNativePdfTextLayers]);
 
     const handleManualSave = () => {
         if (!isReadOnly && excalidrawAPI) {
@@ -736,7 +1015,7 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                         ...excalidrawAPI.getSceneElements(),
                         ...newElements
                     ],
-                    commitToHistory: true
+                    captureUpdate: CaptureUpdateAction.IMMEDIATELY
                 });
 
                 // Auto-scroll
@@ -891,7 +1170,7 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
 
                 excalidrawAPI.updateScene({
                     elements: [...excalidrawAPI.getSceneElements(), imgElement],
-                    commitToHistory: true
+                    captureUpdate: CaptureUpdateAction.IMMEDIATELY
                 });
                 setHasUnsavedChanges(true);
             } else {
@@ -903,8 +1182,427 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
         }
     };
 
+    const addPdfToCanvas = useCallback(async (file: File) => {
+        if (!file || !excalidrawAPI || isReadOnly) return;
+        if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+            showToast('Please choose a PDF file.', 'error');
+            return;
+        }
+        if (file.size > 50 * 1024 * 1024) {
+            showToast('PDFs are limited to 50 MB.', 'error');
+            return;
+        }
+
+        setIsAddingPdf(true);
+        setPdfImportProgress({ completed: 0, total: 0 });
+        try {
+            const documentId = spatialId('pdf-document');
+            const groupId = spatialId('pdf-group');
+            await saveSpatialPdf(documentId, file);
+            const pages = await renderPdfToNativePages(file, (completed, total) => {
+                setPdfImportProgress({ completed, total });
+            });
+            if (pages.length === 0) throw new Error('The PDF did not contain any pages.');
+
+            const appState = excalidrawAPI.getAppState();
+            const zoom = appState.zoom?.value || 1;
+            const centerX = -appState.scrollX + appState.width / zoom / 2;
+            const centerY = -appState.scrollY + appState.height / zoom / 2;
+
+            const pageWidth = 720;
+            const pageGap = 48;
+            const startX = centerX - pageWidth / 2;
+            let pageY = centerY - (pageWidth * pages[0].aspectRatio) / 2;
+            const files: any[] = [];
+            const pageSkeletons = pages.map((page) => {
+                const fileId = spatialId(`pdf-page-file-${page.page}`);
+                const elementId = spatialId(`pdf-page-${page.page}`);
+                const height = pageWidth * page.aspectRatio;
+                files.push({
+                    id: fileId,
+                    dataURL: page.dataURL as any,
+                    mimeType: 'image/png' as any,
+                    created: Date.now(),
+                    lastRetrieved: Date.now(),
+                });
+                const skeleton = {
+                    id: elementId,
+                    type: 'image',
+                    fileId,
+                    x: startX,
+                    y: pageY,
+                    width: pageWidth,
+                    height,
+                    locked: true,
+                    status: 'saved',
+                    scale: [1, 1],
+                    crop: null,
+                    groupIds: [groupId],
+                    strokeColor: 'transparent',
+                    backgroundColor: 'transparent',
+                    customData: {
+                        pdfDocumentId: documentId,
+                        pdfResourceId: documentId,
+                        pdfFilename: file.name,
+                        pdfPage: page.page,
+                        pdfPageCount: pages.length,
+                        pdfText: page.text,
+                        pdfTextItems: page.textItems,
+                        pdfTextLayerReady: true,
+                        pdfNaturalWidth: page.naturalWidth,
+                        pdfNaturalHeight: page.naturalHeight,
+                    },
+                };
+                pageY += height + pageGap;
+                return skeleton;
+            });
+            const pageElements = convertToExcalidrawElements(
+                pageSkeletons as any,
+                { regenerateIds: false },
+            );
+
+            files.forEach((fileData) => uploadingFilesRef.current.add(fileData.id));
+            excalidrawAPI.addFiles(files);
+            excalidrawAPI.updateScene({
+                elements: [...excalidrawAPI.getSceneElements(), ...pageElements],
+                appState: { selectedElementIds: {} },
+                captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+            });
+            setPdfChunks((current) => ({
+                ...current,
+                [documentId]: pages.flatMap((page) =>
+                    chunkNativePdfText(page.text, page.page, documentId, file.name),
+                ),
+            }));
+            setHasUnsavedChanges(true);
+            window.setTimeout(() => {
+                excalidrawAPI.scrollToContent(pageElements.slice(0, 1), { fitToContent: true, animate: true });
+            }, 80);
+            showToast(`${pages.length} PDF pages added as native Excalidraw elements.`, 'success');
+
+            const uploads = files.map(async (fileData) => {
+                const fileId = fileData.id as string;
+                const url = await uploadImageToImageKit(fileData, fileId);
+                if (url) {
+                    ikUrlsRef.current[fileId] = url;
+                }
+                return url;
+            });
+            void Promise.all(uploads).then((urls) => {
+                if (!urls.some(Boolean) || !excalidrawAPI) return;
+                const uploadedAt = Date.now();
+                const updatedElements = excalidrawAPI.getSceneElements().map((element: any) =>
+                    element.customData?.pdfDocumentId === documentId
+                        ? {
+                              ...element,
+                              customData: { ...element.customData, pdfFilesUploadedAt: uploadedAt },
+                              version: element.version + 1,
+                              versionNonce: Math.floor(Math.random() * 2_000_000_000),
+                              updated: uploadedAt,
+                          }
+                        : element,
+                );
+                excalidrawAPI.updateScene({ elements: updatedElements, captureUpdate: CaptureUpdateAction.NEVER });
+            });
+        } catch (error) {
+            console.error('PDF insert failed:', error);
+            showToast(error instanceof Error ? error.message : 'Could not convert this PDF.', 'error');
+        } finally {
+            setIsAddingPdf(false);
+            setPdfImportProgress(null);
+            if (pdfInputRef.current) pdfInputRef.current.value = '';
+        }
+    }, [excalidrawAPI, isReadOnly]);
+
+    const updatePdfHighlights = useCallback((elementId: string, highlights: SpatialHighlight[]) => {
+        if (!excalidrawAPI || isReadOnly) return;
+        setPdfHighlights((current) => ({ ...current, [elementId]: highlights }));
+        const elements = excalidrawAPI.getSceneElements().map((element: any) =>
+            element.id === elementId
+                ? {
+                      ...element,
+                      customData: { ...element.customData, highlights },
+                      version: element.version + 1,
+                      versionNonce: Math.floor(Math.random() * 2_000_000_000),
+                      updated: Date.now(),
+                  }
+                : element,
+        );
+        excalidrawAPI.updateScene({ elements, captureUpdate: CaptureUpdateAction.IMMEDIATELY });
+        setHasUnsavedChanges(true);
+    }, [excalidrawAPI, isReadOnly]);
+
+    const updatePdfChunks = useCallback((elementId: string, chunks: WorkspaceChunk[]) => {
+        setPdfChunks((current) => ({ ...current, [elementId]: chunks }));
+    }, []);
+
+    const requestPaperLayout = useCallback(async (resourceId: string, filename: string): Promise<PaperLayoutResult> => {
+        const blob = await getSpatialPdf(resourceId);
+        if (!blob) throw new Error('The PDF is no longer available in this browser.');
+        const form = new FormData();
+        form.append('file', new File([blob], filename, { type: blob.type || 'application/pdf' }));
+        const start = await fetch('/api/ai/parse-paper', { method: 'POST', body: form });
+        if (!start.ok) {
+            const body = await start.json().catch(() => ({}));
+            throw new Error(body.code === 'PARSER_NOT_CONFIGURED' ? 'PARSER_NOT_CONFIGURED' : body.error || 'Document parser failed');
+        }
+        const job = await start.json();
+        for (let attempt = 0; attempt < 45; attempt += 1) {
+            const response = await fetch(`/api/ai/parse-paper?jobId=${encodeURIComponent(job.jobId)}`);
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(result.error || 'Document parser failed');
+            if (result.status === 'COMPLETED') return { provider: 'llamaparse', nodes: result.nodes || [] };
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+        }
+        throw new Error('Document analysis timed out.');
+    }, []);
+
+    const explodePaperNodes = useCallback((sourceElementId: string, result: PaperLayoutResult) => {
+        if (!excalidrawAPI) return;
+        const sceneElements = excalidrawAPI.getSceneElements();
+        const source = sceneElements.find((element: any) => element.id === sourceElementId);
+        if (!source) return;
+
+        const seen = new Set<string>();
+        const unique = result.nodes.filter((node) => {
+            const key = `${node.page}:${node.type}:${node.text.slice(0, 160).toLowerCase()}`;
+            if (seen.has(key) || node.text.trim().length < 8) return false;
+            seen.add(key);
+            return true;
+        });
+        const structural = unique.filter((node) => node.type !== 'text').slice(0, 18);
+        const prose = unique.filter((node) => node.type === 'text');
+        const proseStride = Math.max(1, Math.ceil(prose.length / 18));
+        const selectedNodes = [...structural, ...prose.filter((_, index) => index % proseStride === 0).slice(0, 18)]
+            .sort((a, b) => a.page - b.page || a.bbox.y - b.bbox.y);
+        if (selectedNodes.length === 0) {
+            showToast('No structural blocks could be extracted from this PDF.', 'error');
+            return;
+        }
+
+        const existingSourceNodeIds = new Set(
+            sceneElements
+                .map((element: any) => element.customData?.paperAnchor?.sourceNodeId)
+                .filter(Boolean),
+        );
+        const pendingNodes = selectedNodes.filter((node) => !existingSourceNodeIds.has(node.id));
+        if (pendingNodes.length === 0) {
+            showToast('This paper is already deconstructed on the canvas.', 'success');
+            return;
+        }
+
+        const cardWidth = 310;
+        const horizontalGap = 54;
+        const verticalGap = 24;
+        const generated: any[] = [];
+        pendingNodes.forEach((node, index) => {
+            const side = index % 2 === 0 ? -1 : 1;
+            const row = Math.floor(index / 2);
+            const cleanText = node.text.replace(/\s+/g, ' ').trim();
+            const lineEstimate = Math.max(3, Math.min(9, Math.ceil(cleanText.length / 46)));
+            const cardHeight = Math.max(132, 76 + lineEstimate * 19);
+            const x = side < 0
+                ? source.x - cardWidth - horizontalGap
+                : source.x + source.width + horizontalGap;
+            const y = source.y + row * (212 + verticalGap);
+            const colors = PAPER_CARD_COLORS[node.type];
+            const cardId = spatialId('paper-chunk');
+            const paperAnchor = {
+                sourcePdfElementId: sourceElementId,
+                resourceId: source.customData?.spatialPdfId,
+                sourceNodeId: node.id,
+                provider: result.provider,
+                type: node.type,
+                page: node.page,
+                bbox: node.bbox,
+                pageWidth: node.pageWidth,
+                pageHeight: node.pageHeight,
+            };
+            const converted = convertToExcalidrawElements(
+                [{
+                    id: cardId,
+                    type: 'rectangle',
+                    x,
+                    y,
+                    width: cardWidth,
+                    height: cardHeight,
+                    backgroundColor: colors.background,
+                    strokeColor: colors.stroke,
+                    fillStyle: 'solid',
+                    roundness: { type: 3 },
+                    customData: { paperAnchor },
+                    label: {
+                        text: `${colors.label} · PAGE ${node.page}\n${cleanText.slice(0, 760)}${cleanText.length > 760 ? '…' : ''}`,
+                        fontSize: node.type === 'formula' ? 17 : 15,
+                    },
+                }] as any,
+                { regenerateIds: false },
+            ) as any[];
+            generated.push(...converted.map((element: any) =>
+                element.type === 'text' ? { ...element, customData: { ...element.customData, paperAnchor } } : element,
+            ));
+        });
+
+        const updatedScene = sceneElements.map((element: any) =>
+            element.id === sourceElementId
+                ? {
+                      ...element,
+                      customData: {
+                          ...element.customData,
+                          deconstruction: { provider: result.provider, nodeCount: selectedNodes.length, updatedAt: Date.now() },
+                      },
+                      version: element.version + 1,
+                      versionNonce: Math.floor(Math.random() * 2_000_000_000),
+                      updated: Date.now(),
+                  }
+                : element,
+        );
+        excalidrawAPI.updateScene({
+            elements: [...updatedScene, ...generated],
+            appState: {
+                selectedElementIds: generated.reduce((ids: Record<string, boolean>, element: any) => {
+                    if (element.type !== 'text') ids[element.id] = true;
+                    return ids;
+                }, {}),
+            },
+            captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+        });
+        setHasUnsavedChanges(true);
+        window.setTimeout(() => excalidrawAPI.scrollToContent(generated.slice(0, 4), { fitToContent: true, animate: true }), 80);
+        showToast(`${pendingNodes.length} anchored paper blocks added.`, 'success');
+    }, [excalidrawAPI]);
+
+    const deconstructPaper = useCallback(async ({ elementId, resourceId, filename, fallbackNodes }: { elementId: string; resourceId: string; filename: string; fallbackNodes: PaperLayoutNode[] }) => {
+        setDeconstructingPdfIds((current) => ({ ...current, [elementId]: true }));
+        try {
+            let result: PaperLayoutResult;
+            try {
+                result = await requestPaperLayout(resourceId, filename);
+                if (result.nodes.length === 0) throw new Error('The parser returned no structural blocks.');
+            } catch (error) {
+                console.warn('Using local PDF layout fallback:', error);
+                result = { provider: 'pdfjs', nodes: fallbackNodes };
+                showToast('Using local layout analysis; configure LLAMA_CLOUD_API_KEY for vision parsing.', 'success');
+            }
+            explodePaperNodes(elementId, result);
+        } finally {
+            setDeconstructingPdfIds((current) => ({ ...current, [elementId]: false }));
+        }
+    }, [explodePaperNodes, requestPaperLayout]);
+
+    const togglePdfLock = useCallback((elementId: string) => {
+        if (!excalidrawAPI || isReadOnly) return;
+        const elements = excalidrawAPI.getSceneElements().map((element: any) =>
+            element.id === elementId
+                ? {
+                      ...element,
+                      locked: !element.locked,
+                      version: element.version + 1,
+                      versionNonce: Math.floor(Math.random() * 2_000_000_000),
+                      updated: Date.now(),
+                  }
+                : element,
+        );
+        excalidrawAPI.updateScene({ elements, captureUpdate: CaptureUpdateAction.IMMEDIATELY });
+        setHasUnsavedChanges(true);
+    }, [excalidrawAPI, isReadOnly]);
+
+    const renderPdfEmbeddable = useCallback((element: any) => {
+        const resourceId = element.customData?.spatialPdfId;
+        if (!resourceId) return null;
+        return (
+            <SpatialPdfNode
+                elementId={element.id}
+                resourceId={resourceId}
+                filename={element.customData?.filename || 'Pinned PDF'}
+                locked={Boolean(element.locked)}
+                readOnly={isReadOnly}
+                highlights={pdfHighlights[element.id] || element.customData?.highlights || []}
+                onHighlightsChange={updatePdfHighlights}
+                onSelection={(value) => {
+                    setSelectedPassage(
+                        value
+                            ? {
+                                  elementId: value.elementId,
+                                  filename: value.filename,
+                                  page: value.selection.page,
+                                  text: value.selection.text,
+                              }
+                            : null,
+                    );
+                    if (value) {
+                        setSidebarWidth(Math.min(Math.max(window.innerWidth / 2, 380), 640));
+                        setIsSidebarOpen(true);
+                    }
+                }}
+                onTextChunks={updatePdfChunks}
+                onToggleLock={togglePdfLock}
+                onDeconstruct={deconstructPaper}
+                deconstructing={Boolean(deconstructingPdfIds[element.id])}
+                focusTarget={focusedPaperAnchor?.elementId === element.id ? focusedPaperAnchor : null}
+            />
+        );
+    }, [deconstructPaper, deconstructingPdfIds, focusedPaperAnchor, isReadOnly, pdfHighlights, togglePdfLock, updatePdfChunks, updatePdfHighlights]);
+
+    const activePdfChunks = useMemo(() => {
+        const ids = selectedPdfIds.length > 0 ? selectedPdfIds : Object.keys(pdfChunks);
+        return ids.flatMap((id) => pdfChunks[id] || []);
+    }, [pdfChunks, selectedPdfIds]);
+
+    const handleCanvasPointerUp = useCallback((_activeTool: any, pointerState: any) => {
+        if (!excalidrawAPI) return;
+        if (pointerState?.drag?.hasOccurred) return;
+        const hit = pointerState?.hit?.element;
+        if (!hit) return;
+        const scene = excalidrawAPI.getSceneElements();
+        const byId = new Map(scene.map((element: any) => [element.id, element]));
+
+        const anchorFor = (element: any) => {
+            if (!element) return null;
+            if (element.customData?.paperAnchor) return element.customData.paperAnchor;
+            if (element.type === 'text' && element.containerId) return (byId.get(element.containerId) as any)?.customData?.paperAnchor || null;
+            return null;
+        };
+
+        let anchor = anchorFor(hit);
+        if (!anchor && hit.type === 'arrow') {
+            const endElement = hit.endBinding?.elementId ? byId.get(hit.endBinding.elementId) : null;
+            const startElement = hit.startBinding?.elementId ? byId.get(hit.startBinding.elementId) : null;
+            anchor = anchorFor(endElement) || anchorFor(startElement);
+        }
+        if (!anchor?.sourcePdfElementId || !anchor?.bbox) return;
+
+        setFocusedPaperAnchor({
+            elementId: anchor.sourcePdfElementId,
+            page: Number(anchor.page || 1),
+            bbox: anchor.bbox,
+            nonce: Date.now(),
+        });
+        const sourcePdf = byId.get(anchor.sourcePdfElementId);
+        if (sourcePdf) {
+            excalidrawAPI.updateScene({ appState: { selectedElementIds: { [anchor.sourcePdfElementId]: true } } });
+            window.setTimeout(() => excalidrawAPI.scrollToContent([sourcePdf], { fitToContent: false, animate: true }), 30);
+        }
+    }, [excalidrawAPI]);
+
     return (
         <div ref={workspaceRef} className="flex h-screen flex-col bg-[#efede9] text-stone-950 dark:bg-neutral-950 dark:text-neutral-50">
+            {isPdfTextSelectionMode && (
+                <NativePdfTextLayer
+                    pages={nativePdfTextLayers}
+                    onSelect={(selection) => {
+                        setSelectedPdfIds([selection.documentId]);
+                        setSelectedPassage({
+                            elementId: selection.elementId,
+                            filename: selection.filename,
+                            page: selection.page,
+                            text: selection.text,
+                        });
+                        setSidebarWidth(Math.min(Math.max(window.innerWidth / 2, 380), 640));
+                        setIsSidebarOpen(true);
+                    }}
+                />
+            )}
             {/* SaaS workspace header */}
             {!isImmersive && <header className="relative z-20 flex h-16 shrink-0 items-center gap-2 border-b border-stone-200 bg-[#fbfaf8]/95 px-2.5 shadow-[0_1px_2px_rgba(28,25,23,0.03)] backdrop-blur-xl dark:border-neutral-800 dark:bg-neutral-950/95 sm:px-4">
                 <div className="flex min-w-0 items-center gap-2 border-r border-stone-200 pr-2.5 dark:border-neutral-800 sm:gap-3 sm:pr-4">
@@ -1022,6 +1720,30 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                                 <span className="hidden min-[1100px]:inline">Image</span>
                             </button>
 
+                            <input
+                                ref={pdfInputRef}
+                                type="file"
+                                accept="application/pdf,.pdf"
+                                className="hidden"
+                                onChange={(event) => {
+                                    const file = event.target.files?.[0];
+                                    if (file) void addPdfToCanvas(file);
+                                }}
+                            />
+                            <button
+                                onClick={() => pdfInputRef.current?.click()}
+                                disabled={isAddingPdf}
+                                className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-bold text-stone-500 transition hover:bg-stone-100 hover:text-orange-700 disabled:pointer-events-none disabled:opacity-60 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-orange-300 min-[1100px]:px-3"
+                                title="Convert a PDF into native canvas pages"
+                            >
+                                {isAddingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <FilePlus2 className="h-4 w-4" />}
+                                <span className="hidden min-[1100px]:inline">
+                                    {pdfImportProgress?.total
+                                        ? `PDF ${pdfImportProgress.completed}/${pdfImportProgress.total}`
+                                        : 'PDF'}
+                                </span>
+                            </button>
+
                             <button
                                 onClick={() => {
                                     const becomingOpen = !isSidebarOpen;
@@ -1038,6 +1760,33 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                             </button>
                         </>
                     )}
+                    <button
+                        type="button"
+                        onClick={async () => {
+                            window.getSelection()?.removeAllRanges();
+                            if (isPdfTextSelectionMode) {
+                                setIsPdfTextSelectionMode(false);
+                                return;
+                            }
+                            setIsPreparingPdfText(true);
+                            try {
+                                if (await ensureNativePdfTextGeometry()) {
+                                    setIsPdfTextSelectionMode(true);
+                                }
+                            } catch (error) {
+                                console.error('Could not prepare native PDF text selection:', error);
+                                showToast('Could not prepare PDF text selection.', 'error');
+                            } finally {
+                                setIsPreparingPdfText(false);
+                            }
+                        }}
+                        disabled={!hasNativePdfTextPages || isPreparingPdfText}
+                        className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-bold transition disabled:pointer-events-none disabled:opacity-35 min-[1100px]:px-3 ${isPdfTextSelectionMode ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-900' : 'text-stone-500 hover:bg-stone-100 hover:text-blue-700 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-blue-300'}`}
+                        title={hasNativePdfTextPages ? 'Select text from native PDF pages' : 'Import a PDF to enable text selection'}
+                    >
+                        {isPreparingPdfText ? <Loader2 className="h-4 w-4 animate-spin" /> : <TextSelect className="h-4 w-4" />}
+                        <span className="hidden min-[1100px]:inline">{isPreparingPdfText ? 'Preparing text' : isPdfTextSelectionMode ? 'Selecting PDF' : 'PDF text'}</span>
+                    </button>
                     <button
                         onClick={() => void setImmersiveMode(true)}
                         className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-stone-500 transition hover:bg-stone-100 hover:text-orange-700 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-orange-300"
@@ -1120,6 +1869,21 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
             <div className={`relative flex h-full w-full flex-1 overflow-hidden bg-[#efede9] dark:bg-neutral-950 ${isImmersive ? 'p-0' : 'p-1.5 sm:p-2'}`}>
                 <div
                     className={`relative h-full flex-1 overflow-hidden bg-white dark:bg-neutral-950 ${isImmersive ? 'rounded-none border-0 shadow-none' : 'rounded-xl border border-stone-200 shadow-[0_2px_8px_rgba(28,25,23,0.05)] dark:border-neutral-800'}`}
+                    onDragOver={(event) => {
+                        if (!isReadOnly && Array.from(event.dataTransfer.items).some((item) => item.type === 'application/pdf')) {
+                            event.preventDefault();
+                        }
+                    }}
+                    onDrop={(event) => {
+                        if (isReadOnly) return;
+                        const file = Array.from(event.dataTransfer.files).find(
+                            (candidate) => candidate.type === 'application/pdf' || candidate.name.toLowerCase().endsWith('.pdf'),
+                        );
+                        if (file) {
+                            event.preventDefault();
+                            void addPdfToCanvas(file);
+                        }
+                    }}
                     onMouseMove={(e) => {
                         const rect = e.currentTarget.getBoundingClientRect();
                         lastMousePos.current = {
@@ -1147,7 +1911,19 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                                 libraryItems: initialLibraryItems as any
                             }}
                             onChange={(elements, appState, files) => handleChange(elements, appState, files)}
+                            onPointerUp={handleCanvasPointerUp}
+                            onScrollChange={() => {
+                                if (!excalidrawAPI || !isPdfTextSelectionMode) return;
+                                window.requestAnimationFrame(() => {
+                                    updateNativePdfTextLayers(
+                                        excalidrawAPI.getSceneElements(),
+                                        excalidrawAPI.getAppState(),
+                                    );
+                                });
+                            }}
                             excalidrawAPI={(api) => setExcalidrawAPI(api)}
+                            validateEmbeddable={(link) => Boolean(link?.startsWith('spatial-pdf://'))}
+                            renderEmbeddable={renderPdfEmbeddable}
                             theme={document.documentElement.classList.contains('dark') ? 'dark' : 'light'}
                             viewModeEnabled={isReadOnly}
                             UIOptions={{
@@ -1238,6 +2014,14 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                                 initialChatMessage={pendingKumiMessage || undefined}
                                 onMessageProcessed={() => setPendingKumiMessage(null)}
                                 isAuthenticated={isAuthenticated}
+                                workspaceChunks={activePdfChunks}
+                                selectedCards={selectedCards}
+                                selectedPassage={selectedPassage ? {
+                                    text: selectedPassage.text,
+                                    filename: selectedPassage.filename,
+                                    page: selectedPassage.page,
+                                } : null}
+                                onClearPassage={() => setSelectedPassage(null)}
                             />
                         </div>
                     </>
