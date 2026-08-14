@@ -81,6 +81,8 @@
     "build": "npm run clean && astro build",
     "build:clean": "npm run clean && NODE_ENV=production astro build",
     "clean": "rm -rf dist .astro",
+    "test:spatial-pdf": "node --test src/lib/spatialPaper.test.mjs",
+    "test:pdf-pages": "node --test src/lib/pdfRenderQuality.test.mjs src/lib/spatialPaper.test.mjs",
     "preview": "astro preview",
     "astro": "astro",
     "fix-brackets": "./fix-brackets.sh"

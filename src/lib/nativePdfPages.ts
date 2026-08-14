@@ -1,5 +1,6 @@
 import { pdfjs } from 'react-pdf';
 import PdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?worker';
+import { calculatePdfRenderScale } from './pdfRenderQuality';
 
 if (!pdfjs.GlobalWorkerOptions.workerPort) {
     pdfjs.GlobalWorkerOptions.workerPort = new PdfjsWorker();
@@ -29,8 +30,6 @@ export interface NativePdfTextGeometryPage {
     text: string;
     textItems: NativePdfTextItem[];
 }
-
-const MAX_RENDER_WIDTH = 1600;
 
 async function extractPageTextGeometry(page: any, viewport: any, scale: number): Promise<NativePdfTextGeometryPage> {
     const content = await page.getTextContent();
@@ -86,7 +85,7 @@ export async function renderPdfToNativePages(
         for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
             const page = await document.getPage(pageNumber);
             const baseViewport = page.getViewport({ scale: 1 });
-            const renderScale = Math.min(2, MAX_RENDER_WIDTH / baseViewport.width);
+            const renderScale = calculatePdfRenderScale(baseViewport);
             const viewport = page.getViewport({ scale: renderScale });
             const canvas = window.document.createElement('canvas');
             canvas.width = Math.ceil(viewport.width);

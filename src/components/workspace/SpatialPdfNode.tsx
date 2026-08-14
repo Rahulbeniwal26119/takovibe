@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Boxes, FileText, Highlighter, Loader2, Lock, Unlock, X } from 'lucide-react';
+import { Boxes, FileText, Highlighter, Loader2, Lock, Trash2, Unlock, X } from 'lucide-react';
 import { pdfjs } from 'react-pdf';
 import PdfReader, {
     type PdfHighlightOverlay,
@@ -32,6 +32,7 @@ interface Props {
     onSelection: (value: { elementId: string; filename: string; selection: PdfSelection } | null) => void;
     onTextChunks: (elementId: string, chunks: WorkspaceChunk[]) => void;
     onToggleLock: (elementId: string) => void;
+    onRemove: (elementId: string) => void;
     onDeconstruct?: (value: { elementId: string; resourceId: string; filename: string; fallbackNodes: PaperLayoutNode[] }) => void;
     deconstructing?: boolean;
     focusTarget?: { page: number; bbox: { x: number; y: number; w: number; h: number }; nonce: number } | null;
@@ -69,6 +70,7 @@ export default function SpatialPdfNode({
     onSelection,
     onTextChunks,
     onToggleLock,
+    onRemove,
     onDeconstruct,
     deconstructing = false,
     focusTarget = null,
@@ -174,14 +176,18 @@ export default function SpatialPdfNode({
                 <div className="min-w-0 flex-1">
                     <p className="truncate text-xs font-semibold">{filename}</p>
                     <p className="text-[9px] uppercase tracking-widest text-neutral-400">
-                        {indexing ? 'Mapping document layout…' : `Ready · ${layoutNodes.length} structural blocks`}
+                        {indexing
+                            ? 'Mapping document layout…'
+                            : layoutNodes.length > 0
+                              ? `Ready · ${layoutNodes.length} structural blocks`
+                              : 'Ready for vision analysis'}
                     </p>
                 </div>
                 {indexing && <Loader2 className="h-3.5 w-3.5 animate-spin text-orange-500" />}
                 {!readOnly && onDeconstruct && (
                     <button
                         type="button"
-                        disabled={indexing || deconstructing || layoutNodes.length === 0}
+                        disabled={indexing || deconstructing || !fileUrl}
                         onClick={() => onDeconstruct({ elementId, resourceId, filename, fallbackNodes: layoutNodes })}
                         className="inline-flex items-center gap-1.5 rounded-md bg-orange-50 px-2 py-1.5 text-[10px] font-bold text-orange-700 hover:bg-orange-100 disabled:pointer-events-none disabled:opacity-50"
                         title="Break this paper into anchored canvas cards"
@@ -191,15 +197,26 @@ export default function SpatialPdfNode({
                     </button>
                 )}
                 {!readOnly && (
-                    <button
-                        type="button"
-                        onClick={() => onToggleLock(elementId)}
-                        className="rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100"
-                        aria-label={locked ? 'Unlock PDF node' : 'Lock PDF node'}
-                        title={locked ? 'Unlock PDF node' : 'Lock PDF node'}
-                    >
-                        {locked ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}
-                    </button>
+                    <div className="flex items-center gap-0.5">
+                        <button
+                            type="button"
+                            onClick={() => onToggleLock(elementId)}
+                            className="rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100"
+                            aria-label={locked ? 'Unlock PDF node' : 'Lock PDF node'}
+                            title={locked ? 'Unlock PDF node' : 'Lock PDF node'}
+                        >
+                            {locked ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => onRemove(elementId)}
+                            className="rounded-md p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600"
+                            aria-label="Remove PDF from canvas"
+                            title="Remove PDF from canvas"
+                        >
+                            <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                    </div>
                 )}
             </div>
 

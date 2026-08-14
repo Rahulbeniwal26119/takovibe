@@ -13,6 +13,8 @@ import SpatialPdfNode, { type SpatialHighlight, type WorkspaceChunk } from '../w
 import { getSpatialPdf, saveSpatialPdf } from '../../lib/spatialPdfStore';
 import type { PaperLayoutNode, PaperLayoutResult, PaperNodeType } from '../../lib/paperLayout';
 import { extractPdfTextGeometry, renderPdfToNativePages } from '../../lib/nativePdfPages';
+import { PDF_CANVAS_PAGE_WIDTH } from '../../lib/pdfRenderQuality';
+import { resolveSpatialPaperAnchor } from '../../lib/spatialPaper';
 import NativePdfTextLayer, { type NativePdfTextPageLayer } from '../workspace/NativePdfTextLayer';
 
 const GlobalStyles = () => (
@@ -1197,7 +1199,6 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
         setPdfImportProgress({ completed: 0, total: 0 });
         try {
             const documentId = spatialId('pdf-document');
-            const groupId = spatialId('pdf-group');
             await saveSpatialPdf(documentId, file);
             const pages = await renderPdfToNativePages(file, (completed, total) => {
                 setPdfImportProgress({ completed, total });
@@ -1209,7 +1210,7 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
             const centerX = -appState.scrollX + appState.width / zoom / 2;
             const centerY = -appState.scrollY + appState.height / zoom / 2;
 
-            const pageWidth = 720;
+            const pageWidth = PDF_CANVAS_PAGE_WIDTH;
             const pageGap = 48;
             const startX = centerX - pageWidth / 2;
             let pageY = centerY - (pageWidth * pages[0].aspectRatio) / 2;
@@ -1233,11 +1234,11 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                     y: pageY,
                     width: pageWidth,
                     height,
-                    locked: true,
+                    locked: false,
                     status: 'saved',
                     scale: [1, 1],
                     crop: null,
-                    groupIds: [groupId],
+                    groupIds: [],
                     strokeColor: 'transparent',
                     backgroundColor: 'transparent',
                     customData: {
@@ -1278,7 +1279,7 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
             window.setTimeout(() => {
                 excalidrawAPI.scrollToContent(pageElements.slice(0, 1), { fitToContent: true, animate: true });
             }, 80);
-            showToast(`${pages.length} PDF pages added as native Excalidraw elements.`, 'success');
+            showToast(`${pages.length} PDF pages added as standalone canvas pages.`, 'success');
 
             const uploads = files.map(async (fileData) => {
                 const fileId = fileData.id as string;
@@ -1481,6 +1482,15 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                 if (result.nodes.length === 0) throw new Error('The parser returned no structural blocks.');
             } catch (error) {
                 console.warn('Using local PDF layout fallback:', error);
+                if (fallbackNodes.length === 0) {
+                    showToast(
+                        error instanceof Error && error.message === 'PARSER_NOT_CONFIGURED'
+                            ? 'Vision parsing is not configured, and this PDF has no selectable text.'
+                            : 'Vision parsing failed, and no local paper structure was available.',
+                        'error',
+                    );
+                    return;
+                }
                 result = { provider: 'pdfjs', nodes: fallbackNodes };
                 showToast('Using local layout analysis; configure LLAMA_CLOUD_API_KEY for vision parsing.', 'success');
             }
@@ -1504,6 +1514,41 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                 : element,
         );
         excalidrawAPI.updateScene({ elements, captureUpdate: CaptureUpdateAction.IMMEDIATELY });
+        setHasUnsavedChanges(true);
+    }, [excalidrawAPI, isReadOnly]);
+
+    const removeSpatialPdf = useCallback((elementId: string) => {
+        if (!excalidrawAPI || isReadOnly) return;
+        const now = Date.now();
+        const elements = excalidrawAPI.getSceneElements().map((element: any) =>
+            element.id === elementId
+                ? {
+                      ...element,
+                      isDeleted: true,
+                      version: element.version + 1,
+                      versionNonce: Math.floor(Math.random() * 2_000_000_000),
+                      updated: now,
+                  }
+                : element,
+        );
+        excalidrawAPI.updateScene({
+            elements,
+            appState: { selectedElementIds: {} },
+            captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+        });
+        setPdfChunks((current) => {
+            const next = { ...current };
+            delete next[elementId];
+            return next;
+        });
+        setPdfHighlights((current) => {
+            const next = { ...current };
+            delete next[elementId];
+            return next;
+        });
+        setSelectedPdfIds((current) => current.filter((id) => id !== elementId));
+        setSelectedPassage((current) => current?.elementId === elementId ? null : current);
+        setFocusedPaperAnchor((current) => current?.elementId === elementId ? null : current);
         setHasUnsavedChanges(true);
     }, [excalidrawAPI, isReadOnly]);
 
@@ -1537,12 +1582,13 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                 }}
                 onTextChunks={updatePdfChunks}
                 onToggleLock={togglePdfLock}
+                onRemove={removeSpatialPdf}
                 onDeconstruct={deconstructPaper}
                 deconstructing={Boolean(deconstructingPdfIds[element.id])}
                 focusTarget={focusedPaperAnchor?.elementId === element.id ? focusedPaperAnchor : null}
             />
         );
-    }, [deconstructPaper, deconstructingPdfIds, focusedPaperAnchor, isReadOnly, pdfHighlights, togglePdfLock, updatePdfChunks, updatePdfHighlights]);
+    }, [deconstructPaper, deconstructingPdfIds, focusedPaperAnchor, isReadOnly, pdfHighlights, removeSpatialPdf, togglePdfLock, updatePdfChunks, updatePdfHighlights]);
 
     const activePdfChunks = useMemo(() => {
         const ids = selectedPdfIds.length > 0 ? selectedPdfIds : Object.keys(pdfChunks);
@@ -1556,20 +1602,7 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
         if (!hit) return;
         const scene = excalidrawAPI.getSceneElements();
         const byId = new Map(scene.map((element: any) => [element.id, element]));
-
-        const anchorFor = (element: any) => {
-            if (!element) return null;
-            if (element.customData?.paperAnchor) return element.customData.paperAnchor;
-            if (element.type === 'text' && element.containerId) return (byId.get(element.containerId) as any)?.customData?.paperAnchor || null;
-            return null;
-        };
-
-        let anchor = anchorFor(hit);
-        if (!anchor && hit.type === 'arrow') {
-            const endElement = hit.endBinding?.elementId ? byId.get(hit.endBinding.elementId) : null;
-            const startElement = hit.startBinding?.elementId ? byId.get(hit.startBinding.elementId) : null;
-            anchor = anchorFor(endElement) || anchorFor(startElement);
-        }
+        const anchor = resolveSpatialPaperAnchor(hit, scene);
         if (!anchor?.sourcePdfElementId || !anchor?.bbox) return;
 
         setFocusedPaperAnchor({
@@ -1734,7 +1767,7 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                                 onClick={() => pdfInputRef.current?.click()}
                                 disabled={isAddingPdf}
                                 className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-bold text-stone-500 transition hover:bg-stone-100 hover:text-orange-700 disabled:pointer-events-none disabled:opacity-60 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-orange-300 min-[1100px]:px-3"
-                                title="Convert a PDF into native canvas pages"
+                                title="Convert a PDF into standalone canvas pages"
                             >
                                 {isAddingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <FilePlus2 className="h-4 w-4" />}
                                 <span className="hidden min-[1100px]:inline">
