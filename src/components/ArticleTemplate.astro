@@ -14,6 +14,7 @@ import ExcalidrawHydrator from "./ExcalidrawHydrator";
 import CodeEditorDrawer from "./CodeEditorDrawer";
 import QuizDrawer from "./QuizDrawer";
 import ChatBot from "./ChatBot";
+import SendToNoteHydrator from "./notes/SendToNoteHydrator";
 import { TiptapRenderer } from "./TiptapRenderer";
 import { generateFAQSchema } from "../utils/seo-utils";
 import fs from "node:fs";
@@ -527,7 +528,12 @@ const breadcrumbStructuredData = {
         />
     )
 }
-<SelectionPopover />
+<SelectionPopover
+    sourceTitle={post.data.title}
+    sourceAuthor={post.data.author}
+    sourceId={post.slug}
+    sourceUrl={canonicalUrl}
+/>
 
 <div class="relative min-h-screen overflow-x-clip bg-stone-50 text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50">
     <div class="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.04),transparent_34rem)] dark:bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.06),transparent_34rem)]"></div>
@@ -886,6 +892,7 @@ const breadcrumbStructuredData = {
     articleId={post.slug}
     articleContext={`Title: ${post.data.title}\n\nDescription: ${post.data.description}\n\nContent: ${post.contentJson ? JSON.stringify(post.contentJson) : htmlContent || ""}`}
 />
+<SendToNoteHydrator client:only="react" />
 <ExcalidrawHydrator
     client:idle
     articleSlug={post.slug}

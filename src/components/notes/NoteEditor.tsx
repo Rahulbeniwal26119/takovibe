@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { CaptureUpdateAction, Excalidraw, WelcomeScreen, MainMenu, getSceneVersion, convertToExcalidrawElements, sceneCoordsToViewportCoords } from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css";
-import { ArrowLeft, Loader2, Cloud, CloudOff, Lock, Unlock, Wand2, X, Play, Code, Sparkles, Trash2, AlertTriangle, ListTodo, Image as ImageIcon, PanelRightOpen, Share2, Shapes, Maximize2, Minimize2, Command, FilePlus2, TextSelect } from 'lucide-react';
+import { ArrowLeft, Loader2, Cloud, CloudOff, Lock, Unlock, Wand2, X, Play, Code, Sparkles, Trash2, AlertTriangle, ListTodo, Image as ImageIcon, PanelRightOpen, Share2, Shapes, Maximize2, Minimize2, Command, FilePlus2, TextSelect, Inbox } from 'lucide-react';
 import { parseMermaidToExcalidraw } from "@excalidraw/mermaid-to-excalidraw";
 import { fetchWithAuth } from '../../utils/api';
 import { showToast } from '../../utils/toast';
@@ -16,6 +16,8 @@ import { extractPdfTextGeometry, renderPdfToNativePages } from '../../lib/native
 import { PDF_CANVAS_PAGE_WIDTH } from '../../lib/pdfRenderQuality';
 import { resolveSpatialPaperAnchor } from '../../lib/spatialPaper';
 import NativePdfTextLayer, { type NativePdfTextPageLayer } from '../workspace/NativePdfTextLayer';
+import EvidenceInbox from './EvidenceInbox';
+import { listPendingEvidence, markEvidencePlaced, type NoteEvidence } from '../../lib/noteEvidenceApi';
 
 const GlobalStyles = () => (
     <style>{`
@@ -69,6 +71,96 @@ function spatialId(prefix: string) {
     return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
+function wrapEvidenceText(value: string, maxLineLength = 48): string {
+    const words = value.replace(/\s+/g, ' ').trim().split(' ').filter(Boolean);
+    const lines: string[] = [];
+    let line = '';
+    for (const word of words) {
+        if (!line) {
+            line = word;
+        } else if (`${line} ${word}`.length <= maxLineLength) {
+            line += ` ${word}`;
+        } else {
+            lines.push(line);
+            line = word;
+        }
+    }
+    if (line) lines.push(line);
+    return lines.join('\n');
+}
+
+function evidenceLocatorLabel(evidence: NoteEvidence): string {
+    const locator = evidence.locator || {};
+    if (typeof locator.section === 'string' && locator.section) return locator.section;
+    if (typeof locator.chapter_title === 'string' && locator.chapter_title) return locator.chapter_title;
+    if (typeof locator.page === 'number' || typeof locator.page === 'string') return `Page ${locator.page}`;
+    return evidence.source_type === 'article' ? 'Article passage' : 'Reading passage';
+}
+
+function createEvidenceCard(evidence: NoteEvidence, x: number, y: number) {
+    const groupId = `note-evidence-${evidence.id}`;
+    const quote = wrapEvidenceText(evidence.quote);
+    const annotation = evidence.annotation ? `\n\nMy note\n${wrapEvidenceText(evidence.annotation)}` : '';
+    const byline = evidence.source_author ? ` · ${evidence.source_author}` : '';
+    const capturedDate = new Date(evidence.created_at.replace(' ', 'T'));
+    const captured = Number.isNaN(capturedDate.getTime())
+        ? evidence.created_at
+        : capturedDate.toLocaleDateString(undefined, {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+          });
+    const footer = `${evidence.source_title}${byline}\n${evidenceLocatorLabel(evidence)} · Captured ${captured}`;
+    const text = `“${quote}”${annotation}\n\n${wrapEvidenceText(footer)}`;
+    const lineCount = text.split('\n').length;
+    const height = Math.max(220, lineCount * 24 + 48);
+    const link = evidence.source_url || null;
+    const customData = {
+        noteEvidenceId: evidence.id,
+        sourceType: evidence.source_type,
+        sourceId: evidence.source_id,
+        sourceTitle: evidence.source_title,
+        sourceAuthor: evidence.source_author,
+        sourceUrl: evidence.source_url,
+        locator: evidence.locator,
+        capturedAt: evidence.created_at,
+    };
+
+    return convertToExcalidrawElements([
+        {
+            type: 'rectangle',
+            id: `evidence-card-${evidence.id}`,
+            x,
+            y,
+            width: 500,
+            height,
+            strokeColor: '#ea580c',
+            backgroundColor: '#fff7ed',
+            fillStyle: 'solid',
+            strokeWidth: 2,
+            roughness: 0,
+            roundness: { type: 3 },
+            groupIds: [groupId],
+            link,
+            customData,
+        },
+        {
+            type: 'text',
+            id: `evidence-text-${evidence.id}`,
+            x: x + 24,
+            y: y + 24,
+            text,
+            fontSize: 18,
+            fontFamily: 2,
+            lineHeight: 1.35,
+            strokeColor: '#292524',
+            groupIds: [groupId],
+            link,
+            customData,
+        },
+    ] as any);
+}
+
 function chunkNativePdfText(text: string, page: number, documentId: string, source: string): WorkspaceChunk[] {
     const words = text.replace(/\s+/g, ' ').trim().split(' ').filter(Boolean);
     const chunks: WorkspaceChunk[] = [];
@@ -106,6 +198,13 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
     const [drawingData, setDrawingData] = useState<any>(null);
     const [isAutoSavePaused, setIsAutoSavePaused] = useState(false);
     const [isPublic, setIsPublic] = useState(false);
+    const [activeDrawingId, setActiveDrawingId] = useState<string | number | null>(noteId || null);
+    const [evidenceItems, setEvidenceItems] = useState<NoteEvidence[]>([]);
+    const [isEvidenceInboxOpen, setIsEvidenceInboxOpen] = useState(() =>
+        typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('evidence') === 'inbox'
+    );
+    const [isEvidenceLoading, setIsEvidenceLoading] = useState(false);
+    const [placingEvidenceIds, setPlacingEvidenceIds] = useState<Set<number>>(new Set());
 
     // Mermaid Modal State
     // Mermaid Modal State
@@ -129,7 +228,7 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
         localStorage.setItem('is_sidebar_open', isSidebarOpen.toString());
     }, [isSidebarOpen]);
 
-    const [sidebarWidth, setSidebarWidth] = useState(450);
+    const [sidebarWidth, setSidebarWidth] = useState(520);
     const [isResizing, setIsResizing] = useState(false);
     const [selectionMessage, setSelectionMessage] = useState<string | null>(null);
     const [selectionCoords, setSelectionCoords] = useState<{ x: number, y: number } | null>(null);
@@ -177,7 +276,7 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
     const resize = useCallback((e: MouseEvent) => {
         if (isResizing) {
             const newWidth = window.innerWidth - e.clientX;
-            if (newWidth > 300 && newWidth < 800) {
+            if (newWidth > 360 && newWidth < 900) {
                 setSidebarWidth(newWidth);
             }
         }
@@ -256,7 +355,12 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
         };
     }, [isCommandMenuOpen, isImmersive, setImmersiveMode]);
 
-    useEffect(() => { if (drawingData?.id) drawingIdRef.current = drawingData.id; }, [drawingData?.id]);
+    useEffect(() => {
+        if (drawingData?.id) {
+            drawingIdRef.current = drawingData.id;
+            setActiveDrawingId(drawingData.id);
+        }
+    }, [drawingData?.id]);
 
     useEffect(() => {
         const token = localStorage.getItem('access_token');
@@ -302,7 +406,7 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                         files: filesObj,
                         is_public: data.is_public,
                         id: data.id,
-                        owner: data.owner
+                        owner: data.user
                     });
                     setPdfHighlights(
                         Object.fromEntries(
@@ -331,10 +435,13 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                     setIsPublic(data.is_public);
 
                     lastSavedVersionRef.current = getSceneVersion(elements || []);
-                    if (data.id) drawingIdRef.current = data.id;
+                    if (data.id) {
+                        drawingIdRef.current = data.id;
+                        setActiveDrawingId(data.id);
+                    }
 
-                    // Determine ReadOnly if logged in but not owner
-                    if (!token) setIsReadOnly(true);
+                    // Public notes are viewable, but only their owner may edit them.
+                    setIsReadOnly(!token || data.is_owner !== true);
 
                 } else {
                     if (res.status === 401 || res.status === 403) {
@@ -465,6 +572,7 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                 // Only update ID if this was a new create
                 if (!activeId && saved.id) {
                     drawingIdRef.current = saved.id;
+                    setActiveDrawingId(saved.id);
                     window.history.replaceState(null, '', `/notes/${saved.id}`);
                     // Update internal ID tracking without blowing up the whole Excalidraw state
                     setDrawingData(prev => prev ? { ...prev, id: saved.id } : null);
@@ -490,6 +598,67 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
             }
         }
     };
+
+    const refreshEvidenceInbox = useCallback(async () => {
+        if (!activeDrawingId || !isAuthenticated || isReadOnly) {
+            setEvidenceItems([]);
+            return;
+        }
+        setIsEvidenceLoading(true);
+        try {
+            setEvidenceItems(await listPendingEvidence(activeDrawingId));
+        } catch (error) {
+            console.error('Could not load the Evidence Inbox:', error);
+            showToast(error instanceof Error ? error.message : 'Evidence Inbox could not be loaded.', 'error');
+        } finally {
+            setIsEvidenceLoading(false);
+        }
+    }, [activeDrawingId, isAuthenticated, isReadOnly]);
+
+    useEffect(() => {
+        void refreshEvidenceInbox();
+    }, [refreshEvidenceInbox]);
+
+    const placeEvidenceOnCanvas = useCallback(async (evidence: NoteEvidence, index = 0) => {
+        if (!excalidrawAPI || isReadOnly || placingEvidenceIds.has(evidence.id)) return;
+        setPlacingEvidenceIds((current) => new Set(current).add(evidence.id));
+        try {
+            const appState = excalidrawAPI.getAppState();
+            const zoom = Number(appState.zoom?.value || 1);
+            const centerX = (Number(appState.width || window.innerWidth) / 2 - Number(appState.offsetLeft || 0)) / zoom - Number(appState.scrollX || 0);
+            const centerY = (Number(appState.height || window.innerHeight) / 2 - Number(appState.offsetTop || 0)) / zoom - Number(appState.scrollY || 0);
+            const x = centerX - 250 + index * 28;
+            const y = centerY - 150 + index * 28;
+            const cardElements = createEvidenceCard(evidence, x, y);
+            const cardElementId = cardElements[0]?.id || `evidence-card-${evidence.id}`;
+
+            await markEvidencePlaced(evidence.id, cardElementId);
+            excalidrawAPI.updateScene({
+                elements: [...excalidrawAPI.getSceneElements(), ...cardElements],
+                appState: { selectedElementIds: { [cardElementId]: true } },
+                captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+            });
+            setEvidenceItems((current) => current.filter((item) => item.id !== evidence.id));
+            setHasUnsavedChanges(true);
+            showToast('Evidence card placed on the canvas.', 'success');
+        } catch (error) {
+            console.error('Could not place evidence:', error);
+            showToast(error instanceof Error ? error.message : 'Evidence card could not be placed.', 'error');
+        } finally {
+            setPlacingEvidenceIds((current) => {
+                const next = new Set(current);
+                next.delete(evidence.id);
+                return next;
+            });
+        }
+    }, [excalidrawAPI, isReadOnly, placingEvidenceIds]);
+
+    const placeAllEvidenceOnCanvas = useCallback(async () => {
+        const pending = [...evidenceItems];
+        for (let index = 0; index < pending.length; index += 1) {
+            await placeEvidenceOnCanvas(pending[index], index);
+        }
+    }, [evidenceItems, placeEvidenceOnCanvas]);
 
     const uploadingFilesRef = useRef(new Set<string>());
 
@@ -1576,7 +1745,7 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                             : null,
                     );
                     if (value) {
-                        setSidebarWidth(Math.min(Math.max(window.innerWidth / 2, 380), 640));
+                        setSidebarWidth(Math.min(Math.max(window.innerWidth * 0.44, 460), 720));
                         setIsSidebarOpen(true);
                     }
                 }}
@@ -1631,7 +1800,7 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                             page: selection.page,
                             text: selection.text,
                         });
-                        setSidebarWidth(Math.min(Math.max(window.innerWidth / 2, 380), 640));
+                        setSidebarWidth(Math.min(Math.max(window.innerWidth * 0.44, 460), 720));
                         setIsSidebarOpen(true);
                     }}
                 />
@@ -1729,6 +1898,22 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
 
                     {!isReadOnly && (
                         <>
+                            <button
+                                type="button"
+                                onClick={() => setIsEvidenceInboxOpen(true)}
+                                disabled={!activeDrawingId || isEvidenceLoading}
+                                className={`relative inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-bold transition disabled:pointer-events-none disabled:opacity-40 min-[1100px]:px-3 ${evidenceItems.length > 0 ? 'bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300' : 'text-stone-500 hover:bg-stone-100 hover:text-orange-700 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-orange-300'}`}
+                                title={activeDrawingId ? 'Open passages sent to this note' : 'Save this note before receiving evidence'}
+                            >
+                                {isEvidenceLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Inbox className="h-4 w-4" />}
+                                <span className="hidden min-[1100px]:inline">Evidence</span>
+                                {evidenceItems.length > 0 && (
+                                    <span className="inline-flex min-w-4 items-center justify-center rounded-full bg-orange-600 px-1 text-[9px] leading-4 text-white">
+                                        {evidenceItems.length > 99 ? '99+' : evidenceItems.length}
+                                    </span>
+                                )}
+                            </button>
+
                             {/* Custom File Input for bypassing Excalidraw Image Tool */}
                             <input
                                 type="file"
@@ -1781,15 +1966,15 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                                 onClick={() => {
                                     const becomingOpen = !isSidebarOpen;
                                     if (becomingOpen) {
-                                        setSidebarWidth(Math.min(Math.max(window.innerWidth / 2, 380), 640));
+                                        setSidebarWidth(Math.min(Math.max(window.innerWidth * 0.44, 460), 720));
                                     }
                                     setIsSidebarOpen(becomingOpen);
                                 }}
                                 className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-bold transition min-[1100px]:px-3 ${isSidebarOpen ? 'bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300' : 'text-stone-500 hover:bg-stone-100 hover:text-orange-700 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-orange-300'}`}
-                                title="Toggle Learning Tools"
+                                title="Open reading companion"
                             >
                                 <PanelRightOpen className="h-4 w-4" />
-                                <span className="hidden min-[1100px]:inline">Tools</span>
+                                <span className="hidden min-[1100px]:inline">Companion</span>
                             </button>
                         </>
                     )}
@@ -1868,14 +2053,14 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                         <button
                             onClick={() => {
                                 const becomingOpen = !isSidebarOpen;
-                                if (becomingOpen) setSidebarWidth(Math.min(Math.max(window.innerWidth / 2, 380), 640));
+                                if (becomingOpen) setSidebarWidth(Math.min(Math.max(window.innerWidth * 0.44, 460), 720));
                                 setIsSidebarOpen(becomingOpen);
                             }}
                             className={`inline-flex h-9 items-center gap-2 rounded-xl px-3 text-xs font-bold transition ${isSidebarOpen ? 'bg-orange-50 text-orange-700 dark:bg-orange-950/50 dark:text-orange-300' : 'text-stone-600 hover:bg-stone-100 hover:text-orange-700 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-orange-300'}`}
-                            title="Toggle workspace tools"
+                            title="Toggle reading companion"
                         >
                             <PanelRightOpen className="h-4 w-4" />
-                            <span className="hidden sm:inline">Tools</span>
+                            <span className="hidden sm:inline">Companion</span>
                         </button>
                         <button
                             onClick={() => setIsCommandMenuOpen(true)}
@@ -2055,6 +2240,9 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                                     page: selectedPassage.page,
                                 } : null}
                                 onClearPassage={() => setSelectedPassage(null)}
+                                onImportPdf={!isReadOnly ? () => pdfInputRef.current?.click() : undefined}
+                                isAddingPdf={isAddingPdf}
+                                pdfImportProgress={pdfImportProgress}
                             />
                         </div>
                     </>
@@ -2091,9 +2279,13 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                                 <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 bg-white text-stone-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400"><ListTodo className="h-4 w-4" /></span>
                                 <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-stone-800 dark:text-neutral-100">Create attached task</span><span className="block text-[11px] text-stone-400">Turn this sketch into a follow-up</span></span>
                             </button>
-                            <button onClick={() => { setIsCommandMenuOpen(false); const becomingOpen = !isSidebarOpen; if (becomingOpen) setSidebarWidth(Math.min(Math.max(window.innerWidth / 2, 380), 640)); setIsSidebarOpen(becomingOpen); }} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-stone-50 dark:hover:bg-neutral-900">
+                            <button onClick={() => { setIsCommandMenuOpen(false); setIsEvidenceInboxOpen(true); }} disabled={!activeDrawingId || isReadOnly} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-neutral-900">
+                                <span className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 bg-white text-orange-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-orange-400"><Inbox className="h-4 w-4" />{evidenceItems.length > 0 && <span className="absolute -right-1.5 -top-1.5 min-w-4 rounded-full bg-orange-600 px-1 text-center text-[8px] leading-4 text-white">{evidenceItems.length}</span>}</span>
+                                <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-stone-800 dark:text-neutral-100">Open Evidence Inbox</span><span className="block text-[11px] text-stone-400">Place captured reading passages on this canvas</span></span>
+                            </button>
+                            <button onClick={() => { setIsCommandMenuOpen(false); const becomingOpen = !isSidebarOpen; if (becomingOpen) setSidebarWidth(Math.min(Math.max(window.innerWidth * 0.44, 460), 720)); setIsSidebarOpen(becomingOpen); }} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-stone-50 dark:hover:bg-neutral-900">
                                 <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 bg-white text-stone-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400"><PanelRightOpen className="h-4 w-4" /></span>
-                                <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-stone-800 dark:text-neutral-100">{isSidebarOpen ? 'Close learning tools' : 'Open learning tools'}</span><span className="block text-[11px] text-stone-400">Code Studio and Kumi beside the canvas</span></span>
+                                <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-stone-800 dark:text-neutral-100">{isSidebarOpen ? 'Close reading companion' : 'Open reading companion'}</span><span className="block text-[11px] text-stone-400">Research, Kumi, and experiments beside the canvas</span></span>
                             </button>
                             <button onClick={() => { setIsCommandMenuOpen(false); void togglePublic(); }} disabled={isReadOnly} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-neutral-900">
                                 <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 bg-white text-stone-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">{isPublic ? <Lock className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}</span>
@@ -2108,6 +2300,16 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                     </div>
                 </div>
             )}
+
+            <EvidenceInbox
+                open={isEvidenceInboxOpen}
+                items={evidenceItems}
+                loading={isEvidenceLoading}
+                placingIds={placingEvidenceIds}
+                onClose={() => setIsEvidenceInboxOpen(false)}
+                onPlace={(evidence, index) => void placeEvidenceOnCanvas(evidence, index)}
+                onPlaceAll={() => void placeAllEvidenceOnCanvas()}
+            />
 
             {/* Task Modal */}
             {isTaskModalOpen && (

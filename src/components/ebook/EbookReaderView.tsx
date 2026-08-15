@@ -33,6 +33,8 @@ import {
     type RemoteEbookHighlight,
 } from '../../lib/ebookApi';
 import ReaderAssistant, { type AssistantSeed } from './ReaderAssistant';
+import SendToNoteDialog from '../notes/SendToNoteDialog';
+import type { EvidenceCapture } from '../../lib/noteEvidenceApi';
 
 interface Props {
     bookId: string;
@@ -164,8 +166,20 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
     const pageTurnBusyRef = useRef(false);
     const pageTurnTimersRef = useRef<number[]>([]);
     const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+    const requestedEpubCfiRef = useRef(
+        typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('cfi') : null,
+    );
+    const requestedPdfPageRef = useRef<number | null>(
+        typeof window !== 'undefined'
+            ? (() => {
+                  const value = Number(new URLSearchParams(window.location.search).get('page'));
+                  return Number.isFinite(value) && value > 0 ? value : null;
+              })()
+            : null,
+    );
 
     const [title, setTitle] = useState('');
+    const [author, setAuthor] = useState('');
     const [ready, setReady] = useState(false);
     const [loadError, setLoadError] = useState('');
     const [pdfUrl, setPdfUrl] = useState<string | null>(null);
@@ -185,6 +199,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
     const [clock, setClock] = useState('');
     const [selectionText, setSelectionText] = useState<string | null>(null);
     const [selectionCfiRange, setSelectionCfiRange] = useState<string | null>(null);
+    const [sendToNoteOpen, setSendToNoteOpen] = useState(false);
     const [scrubLocation, setScrubLocation] = useState<number | null>(null);
     const selectionWinRef = useRef<Window | null>(null);
     const translationAbortRef = useRef<AbortController | null>(null);
@@ -420,12 +435,27 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
         setSelectionCfiRange(null);
     };
 
+    const openSendToNote = () => {
+        if (!hasReaderAccount()) {
+            window.dispatchEvent(
+                new CustomEvent('show-login-prompt', {
+                    detail: {
+                        feature: 'Send to Note',
+                        next: window.location.pathname + window.location.search,
+                    },
+                }),
+            );
+            return;
+        }
+        setSendToNoteOpen(true);
+    };
+
     // Dismiss the selection popover once the selection is dropped — i.e. the
     // reader points anywhere outside the popover itself. The popover's own
     // controls (colors, Ask Kumi, language select) keep working because their
     // pointer-downs land inside the popover and are ignored here.
     useEffect(() => {
-        if (!selectionText) return;
+        if (!selectionText || sendToNoteOpen) return;
         const handlePointerDown = (event: PointerEvent) => {
             if (!selectionPopoverRef.current?.contains(event.target as Node)) {
                 clearSelection();
@@ -433,7 +463,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
         };
         document.addEventListener('pointerdown', handlePointerDown);
         return () => document.removeEventListener('pointerdown', handlePointerDown);
-    }, [selectionText]);
+    }, [selectionText, sendToNoteOpen]);
 
     const addHighlight = (color: HighlightColor) => {
         if (!selectionCfiRange || !selectionText) return;
@@ -657,6 +687,7 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                 if (destroyed || !viewerRef.current) return;
                 if (!buf) throw new Error('The reader file is not available on this device.');
                 setTitle(meta?.title || '');
+                setAuthor(meta?.author || '');
                 if (isPdfContentType(meta?.contentType)) {
                     const blob = new Blob([buf], { type: 'application/pdf' });
                     const objectUrl = URL.createObjectURL(blob);
@@ -684,7 +715,8 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
 
                 applyTheme(rendition, themeRef.current, fontRef.current);
 
-                await rendition.display(meta?.location || undefined);
+                await rendition.display(requestedEpubCfiRef.current || meta?.location || undefined);
+                requestedEpubCfiRef.current = null;
                 if (destroyed) return;
                 setReady(true);
 
@@ -908,6 +940,32 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
     const pageBg = THEMES[theme].bg;
     const pct = Math.round(progress * 100);
     const isPdf = Boolean(pdfUrl);
+    const selectedPdfLocator = selectionCfiRange ? parsePdfLocator(selectionCfiRange) : null;
+    const sendToNoteCapture: EvidenceCapture | null = selectionText && selectionCfiRange
+        ? {
+              source_type: isPdf ? 'pdf' : 'ebook',
+              source_id: bookId,
+              source_title: title || 'Untitled book',
+              source_author: author,
+              source_url: typeof window === 'undefined'
+                  ? ''
+                  : `${window.location.origin}/reader/${encodeURIComponent(bookId)}${
+                        selectedPdfLocator
+                            ? `?page=${selectedPdfLocator.page}`
+                            : `?cfi=${encodeURIComponent(selectionCfiRange)}`
+                    }`,
+              quote: selectionText,
+              locator: selectedPdfLocator
+                  ? { kind: 'pdf', page: selectedPdfLocator.page, rects: selectedPdfLocator.rects }
+                  : {
+                        kind: 'epub',
+                        cfi: selectionCfiRange,
+                        chapter_title: chapter,
+                        chapter_href: activeTocHref,
+                        page: page?.current || null,
+                    },
+          }
+        : null;
     // Decode stored PDF highlights into page-anchored overlays for the renderer.
     const pdfOverlays = isPdf
         ? highlights.flatMap((highlight) => {
@@ -1134,6 +1192,11 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                             setProgress(fraction);
                             setPage({ current, total: numPages });
                             saveProgress(bookId, `pdf:${fraction.toFixed(4)}`, fraction, '', 'PDF document');
+                            if (requestedPdfPageRef.current) {
+                                const requestedPage = requestedPdfPageRef.current;
+                                requestedPdfPageRef.current = null;
+                                window.setTimeout(() => pdfReaderRef.current?.seekToPage(requestedPage), 0);
+                            }
                         }}
                         onSelect={({ page: selPage, rects, text }) => {
                             resetTranslation();
@@ -1247,6 +1310,13 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                             ))}
                         </div>
                     <div className="flex flex-wrap items-center gap-2">
+                        <button
+                            onClick={openSendToNote}
+                            className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm font-semibold text-stone-700 transition-colors hover:border-orange-300 hover:bg-orange-50 hover:text-orange-700 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-200 dark:hover:border-orange-900 dark:hover:bg-orange-950/40 dark:hover:text-orange-300"
+                        >
+                            <NotebookPen className="h-4 w-4" />
+                            Send to Note
+                        </button>
                         <button
                             onClick={askKumiAboutSelection}
                             className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-orange-600 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-500"
@@ -1483,6 +1553,15 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
                         </div>
                     </div>
                 )}
+
+                <SendToNoteDialog
+                    open={sendToNoteOpen}
+                    capture={sendToNoteCapture}
+                    onClose={() => {
+                        setSendToNoteOpen(false);
+                        clearSelection();
+                    }}
+                />
             </div>
         </div>
     );
