@@ -1,6 +1,4 @@
-const BACKEND_URL = import.meta.env.DEV
-    ? '/backend-api'
-    : import.meta.env.PUBLIC_API_URL || 'https://backend.takovibe.com';
+const BACKEND_URL = (import.meta.env.PUBLIC_API_URL || 'https://backend.takovibe.com').replace(/\/$/, '');
 const API_BASE = `${BACKEND_URL}/api/ebooks`;
 const EPUB_CONTENT_TYPE = 'application/epub+zip';
 export const PDF_CONTENT_TYPE = 'application/pdf';
@@ -186,8 +184,8 @@ export function deleteRemoteFolder(id: string): Promise<void> {
 }
 
 function normalizePaginatedUrl(url: string | null): string | null {
-    if (!url || !import.meta.env.DEV) return url;
-    const parsed = new URL(url, window.location.origin);
+    if (!url) return null;
+    const parsed = new URL(url, `${BACKEND_URL}/`);
     return `${BACKEND_URL}${parsed.pathname}${parsed.search}`;
 }
 

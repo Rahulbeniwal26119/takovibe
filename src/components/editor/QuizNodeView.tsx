@@ -58,9 +58,6 @@ const QuizNodeView = ({ node, updateAttributes, editor, getPos }) => {
 
     // Render for Reader (Quiz Taker)
     if (!isEditable) {
-        const [selectedOption, setSelectedOption] = React.useState(null);
-        const [isSubmitted, setIsSubmitted] = React.useState(false);
-
         const handleOptionClick = (index) => {
             if (isSubmitted) return;
             setSelectedOption(index);

@@ -1,6 +1,4 @@
-const BACKEND_URL = import.meta.env.DEV
-    ? '/backend-api'
-    : import.meta.env.PUBLIC_API_URL || 'https://backend.takovibe.com';
+const BACKEND_URL = (import.meta.env.PUBLIC_API_URL || 'https://backend.takovibe.com').replace(/\/$/, '');
 const API_BASE = `${BACKEND_URL}/api/task-manager`;
 
 export type TaskStatus = 'inbox' | 'todo' | 'in_progress' | 'done';
@@ -129,9 +127,7 @@ async function listAll<T>(url: string): Promise<T[]> {
         const page: PaginatedResponse<T> | T[] = await apiFetch(next);
         if (Array.isArray(page)) return [...items, ...page];
         items.push(...page.results);
-        next = page.next && import.meta.env.DEV
-            ? `${BACKEND_URL}${new URL(page.next, window.location.origin).pathname}${new URL(page.next, window.location.origin).search}`
-            : page.next;
+        next = normalizeBackendUrl(page.next);
     }
     return items;
 }
@@ -176,13 +172,15 @@ export function listTasksByCollection(collectionId: string): Promise<Task[]> {
 
 /** One page of completed tasks. Pass `next` from the previous page to load more. */
 export async function listDoneTasks(pageUrl?: string): Promise<{ results: Task[]; next: string | null }> {
-    const url = pageUrl
-        ? (import.meta.env.DEV
-            ? `${BACKEND_URL}${new URL(pageUrl, window.location.origin).pathname}${new URL(pageUrl, window.location.origin).search}`
-            : pageUrl)
-        : `${API_BASE}/tasks/?view=done`;
+    const url = pageUrl ? normalizeBackendUrl(pageUrl) : `${API_BASE}/tasks/?view=done`;
     const page = await apiFetch<PaginatedResponse<Task> | Task[]>(url);
     return Array.isArray(page) ? { results: page, next: null } : { results: page.results, next: page.next };
+}
+
+function normalizeBackendUrl(url: string | null): string | null {
+    if (!url) return null;
+    const parsed = new URL(url, `${BACKEND_URL}/`);
+    return `${BACKEND_URL}${parsed.pathname}${parsed.search}`;
 }
 
 export function listCollections(): Promise<LearningCollection[]> {

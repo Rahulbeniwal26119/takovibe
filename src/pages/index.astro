@@ -2,10 +2,8 @@
 export const prerender = true;
 import Layout from "../layouts/Layout.astro";
 
-const API_URL = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
-const newsletterApiUrl = import.meta.env.DEV
-  ? "/backend-api"
-  : import.meta.env.PUBLIC_API_URL || "https://backend.takovibe.com";
+const API_URL = import.meta.env.PUBLIC_API_URL || "https://backend.takovibe.com";
+const newsletterApiUrl = import.meta.env.PUBLIC_API_URL || "https://backend.takovibe.com";
 
 interface ApiBlogPost {
   id: number;
