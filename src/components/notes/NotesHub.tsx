@@ -23,6 +23,7 @@ import {
     X,
 } from 'lucide-react';
 import { fetchWithAuth } from '../../utils/api';
+import { deleteRemoteFiles } from '../../lib/noteFileCleanup';
 
 interface Note {
     id: number;
@@ -34,6 +35,7 @@ interface Note {
     blog_slug?: string;
     is_public: boolean;
     user_name?: string;
+    thumbnail_url?: string;
 }
 
 type NotesView = 'mine' | 'community';
@@ -62,6 +64,24 @@ function noteTitle(note: Note): string {
 
 function NotePreview({ note }: { note: Note }) {
     const variant = note.id % 3;
+    // A note only falls back to the decorative placeholder until its canvas has
+    // been rendered once — a failed image load counts as "not yet".
+    const [thumbnailFailed, setThumbnailFailed] = useState(false);
+
+    if (note.thumbnail_url && !thumbnailFailed) {
+        return (
+            <div className="relative h-40 overflow-hidden border-b border-stone-200/80 bg-[#fbfaf8] dark:border-neutral-800 dark:bg-neutral-900">
+                <img
+                    src={note.thumbnail_url}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    onError={() => setThumbnailFailed(true)}
+                    className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-[1.03]"
+                />
+            </div>
+        );
+    }
 
     return (
         <div className="relative h-40 overflow-hidden border-b border-stone-200/80 bg-[#fbfaf8] dark:border-neutral-800 dark:bg-neutral-900">
@@ -223,6 +243,12 @@ export default function NotesHub() {
                 { method: 'DELETE' },
             );
             if (!response.ok) throw new Error('Note could not be deleted.');
+
+            // Release the stored canvas images the note owned; nothing can
+            // reference them once the record is gone.
+            const deleted = await response.json().catch(() => null);
+            void deleteRemoteFiles(deleted?.orphaned_files || []);
+
             setNotes((current) => current.filter((item) => item.id !== deleteTarget.id));
             setDeleteTarget(null);
         } catch (caught) {

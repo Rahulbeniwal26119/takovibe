@@ -5,6 +5,7 @@ import "@excalidraw/excalidraw/index.css";
 import { X, PenTool, Lock, Unlock, LayoutTemplate, Monitor } from 'lucide-react';
 import { fetchWithAuth } from '../utils/api';
 import { showToast } from '../utils/toast';
+import { attachNoteThumbnail, renderNoteThumbnail, uploadNoteThumbnail } from '../lib/noteThumbnail';
 import drwnioLib from '../data/libraries/drwnio.json';
 import systemDesignLib from '../data/libraries/system-design.json';
 
@@ -25,6 +26,7 @@ interface DrawingData {
     files?: any;
     is_public: boolean;
     id?: string;
+    thumbnail_url?: string;
 }
 
 type ViewMode = 'hidden' | 'minimized' | 'split' | 'maximize';
@@ -114,10 +116,12 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                                     appState: appState,
                                     files: files,
                                     is_public: fullDrawing.is_public,
-                                    id: fullDrawing.id
+                                    id: fullDrawing.id,
+                                    thumbnail_url: fullDrawing.thumbnail_url || ''
                                 });
                                 setIsPublic(fullDrawing.is_public);
                                 lastSavedVersionRef.current = getSceneVersion(elements || []);
+                                if (fullDrawing.thumbnail_url) lastThumbnailAtRef.current = Date.now();
                                 setHasUnsavedChanges(false);
                             }
                         }
@@ -335,6 +339,50 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
         };
     }, [excalidrawAPI, initialRequest]);
 
+    // Card thumbnails for the notes hub. Same throttle as the standalone editor:
+    // a canvas being edited continuously must not re-upload on every autosave.
+    const lastThumbnailAtRef = useRef(0);
+    const lastThumbnailVersionRef = useRef(0);
+    const isRenderingThumbnailRef = useRef(false);
+    const THUMBNAIL_MIN_INTERVAL_MS = 90_000;
+
+    const refreshThumbnail = useCallback(async (
+        noteId: string | number,
+        elements: readonly any[],
+        appState: any,
+        options: { force?: boolean } = {},
+    ) => {
+        if (!excalidrawAPI || isRenderingThumbnailRef.current) return;
+
+        const sceneVersion = getSceneVersion(elements as any);
+        if (!options.force) {
+            if (sceneVersion === lastThumbnailVersionRef.current) return;
+            if (Date.now() - lastThumbnailAtRef.current < THUMBNAIL_MIN_INTERVAL_MS) return;
+        }
+
+        isRenderingThumbnailRef.current = true;
+        try {
+            // Files come from the live scene: they are hydrated to base64 there,
+            // and a cross-origin URL would taint the export canvas.
+            const blob = await renderNoteThumbnail(elements, excalidrawAPI.getFiles(), appState);
+            if (!blob) {
+                console.warn('Note thumbnail skipped: the canvas has nothing exportable on it.');
+                return;
+            }
+
+            const uploadedUrl = await uploadNoteThumbnail(noteId, blob);
+            await attachNoteThumbnail(noteId, uploadedUrl, fetchWithAuth);
+
+            lastThumbnailAtRef.current = Date.now();
+            lastThumbnailVersionRef.current = sceneVersion;
+        } catch (error) {
+            // A missing card image is never worth interrupting someone's drawing.
+            console.error('Could not refresh the note thumbnail:', error);
+        } finally {
+            isRenderingThumbnailRef.current = false;
+        }
+    }, [excalidrawAPI]);
+
     // Save Data Logic
     const saveData = useCallback(async (elements: any, appState: any, files: any, isPublicState: boolean) => {
         const currentVersion = getSceneVersion(elements);
@@ -392,13 +440,33 @@ const ExcalidrawDrawer: React.FC<ExcalidrawDrawerProps> = ({ articleSlug, initia
                 setDrawingData(prev => ({ ...prev, ...saved }));
                 lastSavedVersionRef.current = currentVersion;
                 setHasUnsavedChanges(false);
+
+                const persistedId = saved?.id || drawingData?.id;
+                if (persistedId) void refreshThumbnail(persistedId, elements, updatedAppState);
             }
         } catch (error) {
             console.error("Failed to save drawing:", error);
         } finally {
             setIsSaving(false);
         }
-    }, [articleSlug, drawingData?.id, title]);
+    }, [articleSlug, drawingData?.id, title, refreshThumbnail]);
+
+    // Notes drawn before thumbnails existed still show the placeholder card, so
+    // render one the first time this sketch is opened.
+    useEffect(() => {
+        if (!excalidrawAPI || isLoading) return;
+        if (!drawingData?.id || drawingData.thumbnail_url) return;
+
+        const timer = setTimeout(() => {
+            void refreshThumbnail(
+                drawingData.id as string,
+                excalidrawAPI.getSceneElements(),
+                excalidrawAPI.getAppState(),
+                { force: true },
+            );
+        }, 2500); // Let linked images finish hydrating before rendering the export.
+        return () => clearTimeout(timer);
+    }, [excalidrawAPI, isLoading, drawingData?.id, drawingData?.thumbnail_url, refreshThumbnail]);
 
     const uploadingFilesRef = useRef(new Set<string>());
     // Maps excalidrawFileId -> ImageKit URL so we persist the CDN URL (not base64) in DB

@@ -83,6 +83,7 @@
     "clean": "rm -rf dist .astro",
     "test:spatial-pdf": "node --test src/lib/spatialPaper.test.mjs",
     "test:pdf-pages": "node --test src/lib/pdfRenderQuality.test.mjs src/lib/spatialPaper.test.mjs",
+    "test:notes": "node --test src/lib/noteSnapshot.test.mjs src/lib/imagekitFiles.test.mjs",
     "preview": "astro preview",
     "astro": "astro",
     "fix-brackets": "./fix-brackets.sh"

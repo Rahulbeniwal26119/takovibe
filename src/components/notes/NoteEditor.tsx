@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { CaptureUpdateAction, Excalidraw, WelcomeScreen, MainMenu, getSceneVersion, convertToExcalidrawElements, sceneCoordsToViewportCoords } from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css";
-import { ArrowLeft, Loader2, Cloud, CloudOff, Lock, Unlock, Wand2, X, Play, Code, Sparkles, Trash2, AlertTriangle, ListTodo, Image as ImageIcon, PanelRightOpen, Share2, Shapes, Maximize2, Minimize2, Command, FilePlus2, TextSelect, Inbox } from 'lucide-react';
+import { ArrowLeft, Loader2, Cloud, CloudOff, History, Lock, Unlock, Wand2, X, Play, Code, Sparkles, Trash2, AlertTriangle, ListTodo, Image as ImageIcon, PanelRightOpen, Share2, Shapes, Maximize2, Minimize2, Command, FilePlus2, TextSelect, Inbox } from 'lucide-react';
 import { parseMermaidToExcalidraw } from "@excalidraw/mermaid-to-excalidraw";
 import { fetchWithAuth } from '../../utils/api';
 import { showToast } from '../../utils/toast';
@@ -17,7 +17,20 @@ import { PDF_CANVAS_PAGE_WIDTH } from '../../lib/pdfRenderQuality';
 import { resolveSpatialPaperAnchor } from '../../lib/spatialPaper';
 import NativePdfTextLayer, { type NativePdfTextPageLayer } from '../workspace/NativePdfTextLayer';
 import EvidenceInbox from './EvidenceInbox';
+import NoteHistoryPanel from './NoteHistoryPanel';
 import { listPendingEvidence, markEvidencePlaced, type NoteEvidence } from '../../lib/noteEvidenceApi';
+import {
+    countLiveElements,
+    createNoteSnapshot,
+    deleteNoteSnapshot,
+    getNoteSnapshot,
+    isDestructiveChange,
+    listNoteSnapshots,
+    type NoteSnapshotSummary,
+    type SnapshotTrigger,
+} from '../../lib/noteSnapshotApi';
+import { attachNoteThumbnail, renderNoteThumbnail, uploadNoteThumbnail } from '../../lib/noteThumbnail';
+import { deleteRemoteFiles, sweepOrphanedNoteFiles } from '../../lib/noteFileCleanup';
 
 const GlobalStyles = () => (
     <style>{`
@@ -66,6 +79,15 @@ const PAPER_CARD_COLORS: Record<PaperNodeType, { background: string; stroke: str
     pseudocode: { background: '#ecfdf5', stroke: '#059669', label: 'PSEUDOCODE' },
     table: { background: '#eff6ff', stroke: '#2563eb', label: 'TABLE' },
 };
+
+// Card thumbnails are regenerated at most this often while a note is being edited.
+const THUMBNAIL_MIN_INTERVAL_MS = 90_000;
+// Routine history checkpoints while work is happening.
+const SNAPSHOT_INTERVAL_MS = 5 * 60_000;
+// A save that keeps this little of the previous scene reads as a destructive edit.
+const DESTRUCTIVE_KEPT_RATIO = 0.6;
+// Below this many elements, "half the canvas vanished" is just normal editing.
+const DESTRUCTIVE_MIN_ELEMENTS = 8;
 
 function spatialId(prefix: string) {
     return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -206,6 +228,14 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
     const [isEvidenceLoading, setIsEvidenceLoading] = useState(false);
     const [placingEvidenceIds, setPlacingEvidenceIds] = useState<Set<number>>(new Set());
 
+    // Version history
+    const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+    const [snapshots, setSnapshots] = useState<NoteSnapshotSummary[]>([]);
+    const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+    const [isSavingVersion, setIsSavingVersion] = useState(false);
+    const [restoringSnapshotId, setRestoringSnapshotId] = useState<number | null>(null);
+    const [deletingSnapshotId, setDeletingSnapshotId] = useState<number | null>(null);
+
     // Mermaid Modal State
     // Mermaid Modal State
     const [isMermaidModalOpen, setIsMermaidModalOpen] = useState(false);
@@ -262,6 +292,18 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const lastSavedVersionRef = useRef(0);
     const drawingIdRef = useRef(noteId);
+
+    // Card thumbnails: rendered from the real scene, throttled so a canvas being
+    // edited continuously doesn't re-upload on every autosave.
+    const lastThumbnailAtRef = useRef(0);
+    const lastThumbnailVersionRef = useRef(0);
+    const isRenderingThumbnailRef = useRef(false);
+
+    // Version history: the previous saved scene is kept in memory so a destructive
+    // edit can be snapshotted as it was *before* the elements disappeared.
+    const previousSavedElementsRef = useRef<any[] | null>(null);
+    const lastSnapshotAtRef = useRef(0);
+    const isSnapshottingRef = useRef(false);
 
     // Resize Logic
     const startResizing = useCallback((e: React.MouseEvent) => {
@@ -406,7 +448,8 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                         files: filesObj,
                         is_public: data.is_public,
                         id: data.id,
-                        owner: data.user
+                        owner: data.user,
+                        thumbnail_url: data.thumbnail_url || ''
                     });
                     setPdfHighlights(
                         Object.fromEntries(
@@ -435,6 +478,12 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                     setIsPublic(data.is_public);
 
                     lastSavedVersionRef.current = getSceneVersion(elements || []);
+                    // Baselines for history: the loaded scene is what a destructive edit
+                    // would be measured against, and the clock starts now so simply
+                    // opening a note doesn't snapshot a state that is already stored.
+                    previousSavedElementsRef.current = elements || [];
+                    lastSnapshotAtRef.current = Date.now();
+                    if (data.thumbnail_url) lastThumbnailAtRef.current = Date.now();
                     if (data.id) {
                         drawingIdRef.current = data.id;
                         setActiveDrawingId(data.id);
@@ -462,17 +511,16 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
         fetchNote();
     }, [noteId]);
 
-    // When Excalidraw API becomes available and we have saved files (stored as IK URLs),
-    // re-hydrate them as base64 so Excalidraw can actually render the images.
-    useEffect(() => {
-        if (!excalidrawAPI || !drawingData?.files) return;
-        const savedFiles: Record<string, any> = drawingData.files;
-        const httpFiles = Object.entries(savedFiles).filter(
+    // Saved files are stored as IK URLs, which Excalidraw cannot draw directly —
+    // fetch each one back as base64 before handing it to the scene.
+    const hydrateSavedFiles = useCallback(async (savedFiles: Record<string, any>) => {
+        if (!excalidrawAPI || !savedFiles) return;
+        const httpFiles = Object.entries<any>(savedFiles).filter(
             ([, f]) => f.dataURL && f.dataURL.startsWith('http')
         );
         if (httpFiles.length === 0) return;
 
-        httpFiles.forEach(async ([fileId, fileData]) => {
+        await Promise.all(httpFiles.map(async ([fileId, fileData]) => {
             try {
                 const res = await fetch(fileData.dataURL);
                 const blob = await res.blob();
@@ -488,7 +536,14 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
             } catch (err) {
                 console.error(`Failed to hydrate file ${fileId}:`, err);
             }
-        });
+        }));
+    }, [excalidrawAPI]);
+
+    // When Excalidraw API becomes available and we have saved files (stored as IK URLs),
+    // re-hydrate them as base64 so Excalidraw can actually render the images.
+    useEffect(() => {
+        if (!excalidrawAPI || !drawingData?.files) return;
+        void hydrateSavedFiles(drawingData.files);
     }, [excalidrawAPI, drawingData?.id]);
 
     const getErrorMessage = (err: any) => {
@@ -502,6 +557,8 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
     const pendingSaveRef = useRef(false);
     // Maps excalidrawFileId -> ImageKit URL so we persist the CDN URL (not base64) in the DB
     const ikUrlsRef = useRef<Record<string, string>>({});
+    // Files whose storage has already been swept; they must not be written back.
+    const purgedFileIdsRef = useRef<Set<string>>(new Set());
 
     const executeSave = async (elements: any, appState: any, files: any) => {
         if (isReadOnly || isSavingRef.current) return;
@@ -529,11 +586,13 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
 
             // Primary source: known IK URLs
             for (const [id, ikUrl] of Object.entries(ikUrlsRef.current)) {
+                if (purgedFileIdsRef.current.has(id)) continue;
                 sanitizedFiles[id] = { ...(excFiles[id] || {}), dataURL: ikUrl };
             }
 
             // Secondary: any http file Excalidraw still has that we missed
             for (const [id, fileData] of Object.entries<any>(excFiles)) {
+                if (purgedFileIdsRef.current.has(id)) continue;
                 if (!sanitizedFiles[id] && fileData.dataURL && fileData.dataURL.startsWith('http')) {
                     sanitizedFiles[id] = fileData;
                 }
@@ -577,6 +636,17 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                     // Update internal ID tracking without blowing up the whole Excalidraw state
                     setDrawingData(prev => prev ? { ...prev, id: saved.id } : null);
                 }
+
+                // The scene that was on the canvas before this save is the one worth
+                // rescuing if this save was the destructive one.
+                const previousElements = previousSavedElementsRef.current;
+                previousSavedElementsRef.current = [...elements];
+
+                const persistedId = drawingIdRef.current;
+                if (persistedId) {
+                    void captureAutomaticSnapshot(persistedId, elements, updatedAppState, sanitizedFiles, previousElements);
+                    void refreshThumbnail(persistedId, elements, updatedAppState);
+                }
             } else {
                 if (res.status === 403) {
                     setIsReadOnly(true);
@@ -596,6 +666,300 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
             if (pendingSaveRef.current && !isReadOnly && excalidrawAPI) {
                 executeSave(excalidrawAPI.getSceneElements(), excalidrawAPI.getAppState(), excalidrawAPI.getFiles());
             }
+        }
+    };
+
+    /**
+     * Re-renders the hub card image from the live scene. Throttled: a canvas being
+     * edited continuously would otherwise re-export and re-upload every autosave.
+     */
+    const refreshThumbnail = async (
+        noteId: string | number,
+        elements: readonly any[],
+        appState: any,
+        options: { force?: boolean; notify?: boolean } = {},
+    ) => {
+        const { force = false, notify = false } = options;
+
+        if (isReadOnly || !excalidrawAPI || isRenderingThumbnailRef.current) {
+            if (notify) showToast('The canvas is busy — try again in a moment.', 'error');
+            return;
+        }
+
+        const sceneVersion = getSceneVersion(elements as any);
+        if (!force) {
+            if (sceneVersion === lastThumbnailVersionRef.current) return;
+            if (Date.now() - lastThumbnailAtRef.current < THUMBNAIL_MIN_INTERVAL_MS) return;
+        }
+
+        isRenderingThumbnailRef.current = true;
+        try {
+            // Files must come from the live scene: they are hydrated to base64 there,
+            // and a cross-origin URL would taint the export canvas.
+            const blob = await renderNoteThumbnail(elements, excalidrawAPI.getFiles(), appState);
+            if (!blob) {
+                console.warn('Note thumbnail skipped: the canvas has nothing exportable on it.');
+                if (notify) showToast('Draw something first — this canvas is empty.', 'error');
+                return;
+            }
+
+            const uploadedUrl = await uploadNoteThumbnail(noteId, blob);
+            await attachNoteThumbnail(noteId, uploadedUrl, fetchWithAuth);
+
+            lastThumbnailAtRef.current = Date.now();
+            lastThumbnailVersionRef.current = sceneVersion;
+            setDrawingData((prev: any) => (prev ? { ...prev, thumbnail_url: uploadedUrl } : prev));
+            if (notify) showToast('Card image updated', 'success');
+        } catch (error) {
+            // A missing card image is never worth interrupting someone's drawing,
+            // but it should not vanish without trace either.
+            console.error('Could not refresh the note thumbnail:', error);
+            if (notify) {
+                showToast(
+                    error instanceof Error ? error.message : 'The card image could not be generated.',
+                    'error',
+                );
+            }
+        } finally {
+            isRenderingThumbnailRef.current = false;
+        }
+    };
+
+    const regenerateThumbnail = () => {
+        setIsCommandMenuOpen(false);
+        if (!excalidrawAPI || !drawingIdRef.current) {
+            showToast('Save this sketch before generating its card image.', 'error');
+            return;
+        }
+        void refreshThumbnail(
+            drawingIdRef.current,
+            excalidrawAPI.getSceneElements(),
+            excalidrawAPI.getAppState(),
+            { force: true, notify: true },
+        );
+    };
+
+    /**
+     * Deletes stored images this note no longer draws.
+     *
+     * Runs once per open rather than on every save: undo cannot reach across a
+     * page load, so an unreferenced file is safe to remove now, while deleting it
+     * mid-session would leave a dangling image behind the next Ctrl+Z.
+     */
+    useEffect(() => {
+        if (isReadOnly || isLoading || !excalidrawAPI) return;
+        if (!drawingData?.id || !drawingData.files) return;
+
+        let cancelled = false;
+        const sweep = async () => {
+            const { purgedIds, files } = await sweepOrphanedNoteFiles(
+                drawingData.id,
+                drawingData.elements || [],
+                drawingData.files,
+            );
+            if (cancelled || purgedIds.length === 0) return;
+
+            // Keep the swept ids out of every later save in this session.
+            purgedIds.forEach((fileId) => {
+                purgedFileIdsRef.current.add(fileId);
+                delete ikUrlsRef.current[fileId];
+            });
+            setDrawingData((prev: any) => (prev ? { ...prev, files } : prev));
+        };
+
+        void sweep();
+        return () => { cancelled = true; };
+    }, [excalidrawAPI, isReadOnly, isLoading, drawingData?.id]);
+
+    // Notes created before thumbnails existed only have the placeholder card, so
+    // backfill one the first time the owner opens them.
+    useEffect(() => {
+        if (!excalidrawAPI || isReadOnly || isLoading) return;
+        if (!drawingData?.id || drawingData.thumbnail_url) return;
+
+        const timer = setTimeout(() => {
+            void refreshThumbnail(
+                drawingData.id,
+                excalidrawAPI.getSceneElements(),
+                excalidrawAPI.getAppState(),
+                { force: true },
+            );
+        }, 2500); // Let linked images finish hydrating before rendering the export.
+        return () => clearTimeout(timer);
+    }, [excalidrawAPI, isReadOnly, isLoading, drawingData?.id, drawingData?.thumbnail_url]);
+
+    const captureSnapshot = async (
+        noteId: string | number,
+        elements: readonly any[],
+        appState: any,
+        files: any,
+        trigger: SnapshotTrigger,
+        label = '',
+    ): Promise<NoteSnapshotSummary | null> => {
+        if (isSnapshottingRef.current) return null;
+        isSnapshottingRef.current = true;
+        try {
+            const snapshot = await createNoteSnapshot(noteId, {
+                elements: [...elements],
+                app_state: appState || {},
+                files: files || {},
+                trigger,
+                label,
+                scene_version: getSceneVersion(elements as any),
+            });
+            lastSnapshotAtRef.current = Date.now();
+            setSnapshots((current) => [snapshot, ...current]);
+            return snapshot;
+        } finally {
+            isSnapshottingRef.current = false;
+        }
+    };
+
+    /**
+     * Decides whether a save is worth remembering. A large drop in element count
+     * snapshots the *previous* scene — that is the state someone wants back after
+     * an accidental select-all-and-delete.
+     */
+    const captureAutomaticSnapshot = async (
+        noteId: string | number,
+        elements: readonly any[],
+        appState: any,
+        files: any,
+        previousElements: any[] | null,
+    ) => {
+        if (isReadOnly) return;
+
+        const liveCount = countLiveElements(elements);
+        const previousCount = countLiveElements(previousElements || []);
+
+        try {
+            if (
+                previousElements
+                && isDestructiveChange(previousCount, liveCount, {
+                    minElements: DESTRUCTIVE_MIN_ELEMENTS,
+                    keptRatio: DESTRUCTIVE_KEPT_RATIO,
+                })
+            ) {
+                const removed = previousCount - liveCount;
+                await captureSnapshot(
+                    noteId,
+                    previousElements,
+                    appState,
+                    files,
+                    'pre_delete',
+                    `Before ${removed} element${removed === 1 ? '' : 's'} were removed`,
+                );
+                return;
+            }
+
+            if (liveCount > 0 && Date.now() - lastSnapshotAtRef.current >= SNAPSHOT_INTERVAL_MS) {
+                await captureSnapshot(noteId, elements, appState, files, 'auto');
+            }
+        } catch (error) {
+            // History is a safety net, not part of the save path — never block a save.
+            console.error('Could not capture a version snapshot:', error);
+        }
+    };
+
+    const refreshHistory = useCallback(async () => {
+        if (!activeDrawingId || !isAuthenticated || isReadOnly) {
+            setSnapshots([]);
+            return;
+        }
+        setIsHistoryLoading(true);
+        try {
+            setSnapshots(await listNoteSnapshots(activeDrawingId));
+        } catch (error) {
+            console.error('Could not load version history:', error);
+            showToast(error instanceof Error ? error.message : 'Version history could not be loaded.', 'error');
+        } finally {
+            setIsHistoryLoading(false);
+        }
+    }, [activeDrawingId, isAuthenticated, isReadOnly]);
+
+    const openHistory = () => {
+        if (!isAuthenticated) {
+            window.location.href = `/login?next=${window.location.pathname}`;
+            return;
+        }
+        setIsCommandMenuOpen(false);
+        setIsHistoryOpen(true);
+        void refreshHistory();
+    };
+
+    const handleSaveVersion = async (label: string) => {
+        if (!excalidrawAPI || isReadOnly) return;
+        setIsSavingVersion(true);
+        try {
+            const noteId = await ensureSavedNoteForTask();
+            if (!noteId) throw new Error('Save this sketch before creating a version.');
+            await captureSnapshot(
+                noteId,
+                excalidrawAPI.getSceneElements(),
+                excalidrawAPI.getAppState(),
+                excalidrawAPI.getFiles(),
+                'manual',
+                label,
+            );
+            showToast('Version saved', 'success');
+        } catch (error) {
+            showToast(error instanceof Error ? error.message : 'This version could not be saved.', 'error');
+        } finally {
+            setIsSavingVersion(false);
+        }
+    };
+
+    const handleRestoreSnapshot = async (summary: NoteSnapshotSummary) => {
+        if (!excalidrawAPI || isReadOnly || !drawingIdRef.current) return;
+        setRestoringSnapshotId(summary.id);
+        try {
+            const noteId = drawingIdRef.current;
+            const snapshot = await getNoteSnapshot(noteId, summary.id);
+
+            // Restoring is itself an edit, so keep an escape hatch back to "now".
+            await captureSnapshot(
+                noteId,
+                excalidrawAPI.getSceneElements(),
+                excalidrawAPI.getAppState(),
+                excalidrawAPI.getFiles(),
+                'pre_restore',
+                'Before restore',
+            );
+
+            await hydrateSavedFiles(snapshot.files || {});
+            excalidrawAPI.updateScene({
+                elements: snapshot.elements || [],
+                captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+            });
+            excalidrawAPI.scrollToContent(snapshot.elements || [], { fitToContent: true });
+
+            previousSavedElementsRef.current = snapshot.elements || [];
+            setHasUnsavedChanges(true);
+            setIsHistoryOpen(false);
+            await executeSave(
+                excalidrawAPI.getSceneElements(),
+                excalidrawAPI.getAppState(),
+                excalidrawAPI.getFiles(),
+            );
+            void refreshThumbnail(noteId, excalidrawAPI.getSceneElements(), excalidrawAPI.getAppState(), { force: true });
+            showToast('Version restored — undo is still available', 'success');
+        } catch (error) {
+            showToast(error instanceof Error ? error.message : 'This version could not be restored.', 'error');
+        } finally {
+            setRestoringSnapshotId(null);
+        }
+    };
+
+    const handleDeleteSnapshot = async (summary: NoteSnapshotSummary) => {
+        if (!drawingIdRef.current) return;
+        setDeletingSnapshotId(summary.id);
+        try {
+            await deleteNoteSnapshot(drawingIdRef.current, summary.id);
+            setSnapshots((current) => current.filter((item) => item.id !== summary.id));
+        } catch (error) {
+            showToast(error instanceof Error ? error.message : 'This version could not be removed.', 'error');
+        } finally {
+            setDeletingSnapshotId(null);
         }
     };
 
@@ -1216,6 +1580,12 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
             });
 
             if (res.ok) {
+                // The API reports every stored image the note owned — including
+                // ones only its version history referenced — now that nothing can
+                // point at them any more.
+                const deleted = await res.json().catch(() => null);
+                await deleteRemoteFiles(deleted?.orphaned_files || []);
+
                 showToast("Note deleted successfully", 'success');
                 window.location.href = '/notes';
             } else {
@@ -1914,6 +2284,17 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                                 )}
                             </button>
 
+                            <button
+                                type="button"
+                                onClick={openHistory}
+                                disabled={!activeDrawingId}
+                                className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-bold text-stone-500 transition hover:bg-stone-100 hover:text-orange-700 disabled:pointer-events-none disabled:opacity-40 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-orange-300 min-[1100px]:px-3"
+                                title={activeDrawingId ? 'Browse and restore earlier versions' : 'Save this note to start its history'}
+                            >
+                                <History className="h-4 w-4" />
+                                <span className="hidden min-[1100px]:inline">History</span>
+                            </button>
+
                             {/* Custom File Input for bypassing Excalidraw Image Tool */}
                             <input
                                 type="file"
@@ -2283,6 +2664,14 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                                 <span className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 bg-white text-orange-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-orange-400"><Inbox className="h-4 w-4" />{evidenceItems.length > 0 && <span className="absolute -right-1.5 -top-1.5 min-w-4 rounded-full bg-orange-600 px-1 text-center text-[8px] leading-4 text-white">{evidenceItems.length}</span>}</span>
                                 <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-stone-800 dark:text-neutral-100">Open Evidence Inbox</span><span className="block text-[11px] text-stone-400">Place captured reading passages on this canvas</span></span>
                             </button>
+                            <button onClick={regenerateThumbnail} disabled={!activeDrawingId || isReadOnly} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-neutral-900">
+                                <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 bg-white text-stone-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400"><ImageIcon className="h-4 w-4" /></span>
+                                <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-stone-800 dark:text-neutral-100">Refresh card image</span><span className="block text-[11px] text-stone-400">Redraw the preview shown on the notes hub</span></span>
+                            </button>
+                            <button onClick={openHistory} disabled={!activeDrawingId} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-neutral-900">
+                                <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 bg-white text-stone-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400"><History className="h-4 w-4" /></span>
+                                <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-stone-800 dark:text-neutral-100">Version history</span><span className="block text-[11px] text-stone-400">Save a version, or roll this canvas back</span></span>
+                            </button>
                             <button onClick={() => { setIsCommandMenuOpen(false); const becomingOpen = !isSidebarOpen; if (becomingOpen) setSidebarWidth(Math.min(Math.max(window.innerWidth * 0.44, 460), 720)); setIsSidebarOpen(becomingOpen); }} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-stone-50 dark:hover:bg-neutral-900">
                                 <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 bg-white text-stone-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400"><PanelRightOpen className="h-4 w-4" /></span>
                                 <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-stone-800 dark:text-neutral-100">{isSidebarOpen ? 'Close reading companion' : 'Open reading companion'}</span><span className="block text-[11px] text-stone-400">Research, Kumi, and experiments beside the canvas</span></span>
@@ -2309,6 +2698,20 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                 onClose={() => setIsEvidenceInboxOpen(false)}
                 onPlace={(evidence, index) => void placeEvidenceOnCanvas(evidence, index)}
                 onPlaceAll={() => void placeAllEvidenceOnCanvas()}
+            />
+
+            <NoteHistoryPanel
+                open={isHistoryOpen}
+                snapshots={snapshots}
+                loading={isHistoryLoading}
+                isReadOnly={isReadOnly}
+                restoringId={restoringSnapshotId}
+                deletingId={deletingSnapshotId}
+                isSavingVersion={isSavingVersion}
+                onClose={() => setIsHistoryOpen(false)}
+                onSaveVersion={handleSaveVersion}
+                onRestore={handleRestoreSnapshot}
+                onDelete={handleDeleteSnapshot}
             />
 
             {/* Task Modal */}
