@@ -1,15 +1,17 @@
 import { exportToBlob } from '@excalidraw/excalidraw';
 
+import { calculateThumbnailDimensions } from './noteThumbnailSize';
+
 /**
  * Note cards in the hub used to render a decorative placeholder, so every canvas
  * looked alike. These helpers render the real scene to a small image and park it
  * on ImageKit under a stable per-note path.
  */
 
-// Wide enough for the 2x card in the hub grid without shipping a full-size export.
-const THUMBNAIL_MAX_EDGE = 640;
 const THUMBNAIL_MIME = 'image/webp';
-const THUMBNAIL_QUALITY = 0.82;
+// Thin strokes and small text are exactly what low-quality WebP smears, so pay
+// for it — the export is already sized to the card, not to a full page.
+const THUMBNAIL_QUALITY = 0.92;
 
 /** Elements Excalidraw cannot draw into an export, or that add nothing at card size. */
 function isRenderableElement(element: any): boolean {
@@ -38,7 +40,7 @@ export async function renderNoteThumbnail(
     const exportAppState = {
         exportBackground: true,
         exportWithDarkMode: false,
-        exportScale: 1,
+        // No exportScale: the renderer takes its scale from `getDimensions` below.
         exportEmbedScene: false,
         viewBackgroundColor: appState?.viewBackgroundColor || '#ffffff',
         gridSize: null,
@@ -49,7 +51,8 @@ export async function renderNoteThumbnail(
         elements: exportable,
         files: files || {},
         appState: exportAppState,
-        maxWidthOrHeight: THUMBNAIL_MAX_EDGE,
+        // `getDimensions` is ignored whenever `maxWidthOrHeight` is also passed.
+        getDimensions: calculateThumbnailDimensions,
         exportPadding: 16,
         mimeType: THUMBNAIL_MIME,
         quality: THUMBNAIL_QUALITY,
