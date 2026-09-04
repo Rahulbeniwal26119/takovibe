@@ -4,6 +4,7 @@ export const prerender = true;
 import { getCollection } from "astro:content";
 import { processBackendContent } from "../../utils/backend-renderer";
 import ArticleTemplate from "../../components/ArticleTemplate.astro";
+import { blockedSlugs } from "../../config/retired-content";
 
 export async function getStaticPaths() {
   const API_BASE = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
@@ -14,30 +15,43 @@ export async function getStaticPaths() {
     );
     if (!response.ok) {
       console.error("Failed to fetch posts for static paths");
-      return blogEntries.map((post) => ({
-        params: { slug: post.slug },
-      }));
+      return blogEntries
+        .filter((post) => !blockedSlugs.has(post.slug))
+        .map((post) => ({
+          params: { slug: post.slug },
+        }));
     }
     const data = await response.json();
     // Handle both direct array and results object formats
     const posts = Array.isArray(data) ? data : data.results || [];
 
-    const paths = posts.map((post: any) => ({
-      params: { slug: post.slug },
-      props: { initialPostData: post },
-    }));
+    const paths = posts
+      .filter((post: any) => !blockedSlugs.has(post.slug))
+      .map((post: any) => ({
+        params: { slug: post.slug },
+        props: { initialPostData: post },
+      }));
     const backendSlugs = new Set(posts.map((post: any) => post.slug));
+    // MDX is only a fallback for slugs the backend has never heard of. A slug
+    // in `blockedSlugs` stays unbuilt even if its MDX file is still present,
+    // otherwise unpublishing a post would silently serve the stale MDX copy.
     const staticPaths = blogEntries
-      .filter((post) => !backendSlugs.has(post.slug))
+      .filter(
+        (post) => !backendSlugs.has(post.slug) && !blockedSlugs.has(post.slug),
+      )
       .map((post) => ({
         params: { slug: post.slug },
       }));
     return [...paths, ...staticPaths];
   } catch (e) {
     console.error("Error fetching static paths:", e);
-    return blogEntries.map((post) => ({
-      params: { slug: post.slug },
-    }));
+    // The API is unreachable, so every MDX entry becomes a candidate. Retired
+    // slugs must still stay out, or an outage would republish them.
+    return blogEntries
+      .filter((post) => !blockedSlugs.has(post.slug))
+      .map((post) => ({
+        params: { slug: post.slug },
+      }));
   }
 }
 

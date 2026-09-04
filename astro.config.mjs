@@ -115,6 +115,7 @@ export default defineConfig({
           !page.includes('/forgot-password/') &&
           !page.includes('/reset-password/') &&
           !page.includes('/unsubscribe/') &&
+          !page.includes('/maintenance') &&
           !page.includes('/status/healthz/');
       },
       customPages: [],

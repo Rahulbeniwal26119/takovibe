@@ -1,0 +1,223 @@
+---
+export const prerender = false;
+
+import { maintenance } from "../config/maintenance";
+
+Astro.response.status = 503;
+Astro.response.statusText = "Service Unavailable";
+Astro.response.headers.set("Retry-After", "604800");
+Astro.response.headers.set("Cache-Control", "no-store");
+Astro.response.headers.set("X-TakoVibe-Mode", "maintenance");
+
+const requestedPath = Astro.url.searchParams.get("from");
+const startedOn = new Intl.DateTimeFormat("en", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+}).format(new Date(`${maintenance.startedOn}T00:00:00Z`));
+---
+
+<!doctype html>
+<html lang="en" class="dark">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width" />
+        <meta
+            name="description"
+            content="TakoVibe is in maintenance mode. Its engineering articles and build history remain available as a public archive."
+        />
+        <meta name="robots" content="noindex, follow" />
+        <link rel="icon" type="image/svg+xml" href="/images/logo.svg" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap"
+            rel="stylesheet"
+        />
+        <title>TakoVibe is in maintenance mode</title>
+    </head>
+    <body>
+        <main>
+            <nav aria-label="TakoVibe archive navigation">
+                <a class="brand" href="/maintenance" aria-label="TakoVibe maintenance home">
+                    <img src="/images/logo.svg" alt="" />
+                    <span>TakoVibe</span>
+                </a>
+                <div class="nav-links">
+                    <a href="/blog">Articles</a>
+                    <a href="/changelog">Build log</a>
+                    <a href="/about">About</a>
+                </div>
+            </nav>
+
+            <section class="hero">
+                <div class="grid" aria-hidden="true"></div>
+                <div class="orbit orbit-one" aria-hidden="true"></div>
+                <div class="orbit orbit-two" aria-hidden="true"></div>
+
+                <div class="hero-copy">
+                    <p class="status"><span></span> Maintenance mode since {startedOn}</p>
+                    <h1>The build is paused.<br />The work stays public.</h1>
+                    <p class="lede">
+                        TakoVibe grew into a publishing platform, reading workspace,
+                        sketchbook, task manager, and developer playground. Active
+                        product development is paused while Rahul focuses on the next
+                        venture—but the engineering archive remains open.
+                    </p>
+                    {
+                        requestedPath && requestedPath !== "/" && (
+                            <p class="requested-note">
+                                <span>PAUSED ROUTE</span>
+                                {requestedPath}
+                            </p>
+                        )
+                    }
+                    <div class="actions">
+                        <a class="primary" href="/blog">
+                            Read the engineering archive
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13m-5-5 5 5-5 5"></path></svg>
+                        </a>
+                        <a class="secondary" href="/changelog">See what was built</a>
+                    </div>
+                </div>
+
+                <aside class="ledger" aria-label="Maintenance status">
+                    <div class="ledger-head">
+                        <span>PROJECT LEDGER</span>
+                        <span class="ledger-state">ARCHIVED</span>
+                    </div>
+                    <div class="ledger-body">
+                        <p class="ledger-kicker">What remains online</p>
+                        <ul>
+                            <li><span>01</span><div><strong>Engineering articles</strong><small>Production lessons, systems, Python, and DevOps.</small></div></li>
+                            <li><span>02</span><div><strong>Topics and series</strong><small>Long-form learning paths stay readable.</small></div></li>
+                            <li><span>03</span><div><strong>Public build log</strong><small>The decisions, releases, and scope are documented.</small></div></li>
+                            <li><span>04</span><div><strong>Source and story</strong><small>A real record of shipping an ambitious product.</small></div></li>
+                        </ul>
+                    </div>
+                    <div class="ledger-foot">
+                        <span>Interactive services</span>
+                        <strong>PAUSED</strong>
+                    </div>
+                </aside>
+            </section>
+
+            <section class="proof">
+                <div class="section-heading">
+                    <p>THE HANDOFF</p>
+                    <h2>A finished chapter can still compound.</h2>
+                </div>
+                <div class="proof-grid">
+                    <article>
+                        <span>01 / PROOF</span>
+                        <h3>Keep the archive sharp</h3>
+                        <p>Every strong article and release is evidence of taste, technical range, and the ability to finish difficult work.</p>
+                        <a href="/blog">Browse articles →</a>
+                    </article>
+                    <article>
+                        <span>02 / STORY</span>
+                        <h3>Tell the honest build story</h3>
+                        <p>Scope, wrong turns, architecture decisions, and lessons are more memorable than another polished launch announcement.</p>
+                        <a href="/changelog">Open the build log →</a>
+                    </article>
+                    <article>
+                        <span>03 / NEXT</span>
+                        <h3>Follow the builder</h3>
+                        <p>The next venture should inherit TakoVibe’s credibility—not its sprawling surface area.</p>
+                        <a href="https://www.linkedin.com/in/rahulbeniwal26119/" target="_blank" rel="noopener noreferrer">Follow Rahul on LinkedIn ↗</a>
+                    </article>
+                </div>
+            </section>
+
+            <footer>
+                <p>Built and maintained by <a href="https://www.linkedin.com/in/rahulbeniwal26119/" target="_blank" rel="noopener noreferrer">Rahul Beniwal</a>.</p>
+                <div>
+                    <a href="https://github.com/orgs/TakoVibe" target="_blank" rel="noopener noreferrer">GitHub</a>
+                    <a href="/privacy">Privacy</a>
+                    <a href="/terms">Terms</a>
+                </div>
+            </footer>
+        </main>
+    </body>
+</html>
+
+<style>
+    :global(*) { box-sizing: border-box; }
+    :global(html) { color-scheme: dark; background: #11100e; }
+    :global(body) { margin: 0; background: #11100e; color: #f5f5f4; font-family: "DM Sans", sans-serif; }
+    :global(a) { color: inherit; }
+    main { min-height: 100vh; overflow: hidden; background: #11100e; }
+    nav { position: relative; z-index: 10; display: flex; min-height: 76px; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,.1); padding: 0 clamp(1.25rem, 4vw, 4rem); }
+    .brand { display: inline-flex; align-items: center; gap: .75rem; text-decoration: none; font-family: "Syne", sans-serif; font-size: 1.15rem; font-weight: 800; }
+    .brand img { width: 36px; height: 36px; border-radius: 999px; }
+    .nav-links { display: flex; gap: clamp(1rem, 3vw, 2.25rem); }
+    .nav-links a, footer a { color: #a8a29e; font-size: .85rem; font-weight: 700; text-decoration: none; transition: color .2s ease; }
+    .nav-links a:hover, footer a:hover { color: #fb923c; }
+    .hero { position: relative; display: grid; min-height: calc(100vh - 76px); grid-template-columns: minmax(0, 1.12fr) minmax(320px, .7fr); align-items: center; gap: clamp(3rem, 7vw, 8rem); padding: clamp(4rem, 9vw, 8.5rem) clamp(1.25rem, 6vw, 6.5rem); isolation: isolate; }
+    .grid { position: absolute; inset: 0; z-index: -3; opacity: .35; background-image: linear-gradient(rgba(255,255,255,.055) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.055) 1px, transparent 1px); background-size: 52px 52px; mask-image: linear-gradient(to right, black, transparent 82%); }
+    .orbit { position: absolute; z-index: -2; border: 1px solid rgba(251,146,60,.18); border-radius: 50%; }
+    .orbit-one { width: 60vw; height: 60vw; left: -21vw; top: -35vw; }
+    .orbit-two { width: 42vw; height: 42vw; right: -18vw; bottom: -25vw; border-color: rgba(56,189,248,.15); }
+    .hero-copy { max-width: 900px; }
+    .status { display: inline-flex; align-items: center; gap: .7rem; margin: 0 0 2rem; color: #fdba74; font-family: "JetBrains Mono", monospace; font-size: .72rem; font-weight: 500; letter-spacing: .11em; text-transform: uppercase; }
+    .status span { width: 8px; height: 8px; border-radius: 50%; background: #f97316; box-shadow: 0 0 0 6px rgba(249,115,22,.12); }
+    h1, h2, h3 { font-family: "Syne", sans-serif; }
+    h1 { max-width: 12ch; margin: 0; font-size: clamp(3.25rem, 7.3vw, 7.7rem); font-weight: 800; letter-spacing: -.065em; line-height: .92; }
+    .lede { max-width: 720px; margin: 2.25rem 0 0; color: #b8b3aa; font-size: clamp(1rem, 1.5vw, 1.22rem); line-height: 1.75; }
+    .requested-note { display: flex; width: fit-content; max-width: 100%; gap: .75rem; margin: 1.5rem 0 0; overflow: hidden; color: #78716c; font-family: "JetBrains Mono", monospace; font-size: .7rem; white-space: nowrap; }
+    .requested-note span { color: #fb923c; }
+    .actions { display: flex; flex-wrap: wrap; gap: .8rem; margin-top: 2.25rem; }
+    .actions a { display: inline-flex; min-height: 50px; align-items: center; justify-content: center; gap: .7rem; border-radius: 8px; padding: .85rem 1.2rem; font-size: .86rem; font-weight: 800; text-decoration: none; transition: transform .2s ease, border-color .2s ease, background .2s ease; }
+    .actions a:hover { transform: translateY(-2px); }
+    .primary { background: #f97316; color: white; }
+    .primary:hover { background: #ea580c; }
+    .primary svg { width: 18px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2; }
+    .secondary { border: 1px solid rgba(255,255,255,.15); background: rgba(255,255,255,.035); color: #e7e5e4; }
+    .secondary:hover { border-color: rgba(251,146,60,.55); }
+    .ledger { border: 1px solid rgba(255,255,255,.12); border-radius: 12px; background: rgba(24,23,19,.88); box-shadow: 0 30px 90px rgba(0,0,0,.28); backdrop-filter: blur(12px); }
+    .ledger-head, .ledger-foot { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.2rem; font-family: "JetBrains Mono", monospace; font-size: .68rem; letter-spacing: .1em; }
+    .ledger-head { border-bottom: 1px solid rgba(255,255,255,.1); color: #78716c; }
+    .ledger-state { color: #fdba74; }
+    .ledger-body { padding: 1.5rem 1.2rem; }
+    .ledger-kicker { margin: 0 0 1.4rem; color: #d6d3d1; font-size: .83rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; }
+    ul { display: grid; gap: 1.35rem; margin: 0; padding: 0; list-style: none; }
+    li { display: grid; grid-template-columns: 2rem 1fr; gap: .8rem; }
+    li > span { padding-top: .15rem; color: #f97316; font-family: "JetBrains Mono", monospace; font-size: .68rem; }
+    li strong, li small { display: block; }
+    li strong { color: #f5f5f4; font-size: .9rem; }
+    li small { margin-top: .3rem; color: #78716c; font-size: .78rem; line-height: 1.55; }
+    .ledger-foot { border-top: 1px solid rgba(255,255,255,.1); color: #78716c; }
+    .ledger-foot strong { color: #fb7185; font-size: .67rem; }
+    .proof { border-top: 1px solid rgba(255,255,255,.1); padding: clamp(4rem, 8vw, 7rem) clamp(1.25rem, 6vw, 6.5rem); background: #151412; }
+    .section-heading { display: grid; grid-template-columns: .7fr 1.3fr; gap: 2rem; align-items: start; }
+    .section-heading p, article > span { color: #f97316; font-family: "JetBrains Mono", monospace; font-size: .68rem; letter-spacing: .12em; }
+    .section-heading p { margin: .55rem 0 0; }
+    h2 { max-width: 14ch; margin: 0; font-size: clamp(2.3rem, 5vw, 5rem); letter-spacing: -.045em; line-height: .98; }
+    .proof-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; margin-top: clamp(3rem, 7vw, 6rem); background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.1); }
+    article { min-height: 320px; padding: clamp(1.5rem, 3vw, 2.5rem); background: #151412; }
+    article h3 { margin: 2.5rem 0 0; font-size: clamp(1.4rem, 2.5vw, 2rem); line-height: 1.05; }
+    article p { color: #8f8a82; line-height: 1.7; }
+    article a { display: inline-block; margin-top: 1.5rem; color: #fdba74; font-size: .82rem; font-weight: 800; text-decoration: none; }
+    article a:hover { color: #fff; }
+    footer { display: flex; justify-content: space-between; gap: 2rem; border-top: 1px solid rgba(255,255,255,.1); padding: 1.5rem clamp(1.25rem, 6vw, 6.5rem); color: #78716c; font-size: .78rem; }
+    footer p { margin: 0; }
+    footer div { display: flex; gap: 1.5rem; }
+    @media (max-width: 900px) {
+        .hero { grid-template-columns: 1fr; }
+        .ledger { max-width: 580px; }
+        .proof-grid { grid-template-columns: 1fr; }
+        article { min-height: auto; }
+    }
+    @media (max-width: 620px) {
+        .nav-links a:nth-child(2) { display: none; }
+        .hero { padding-top: 4.5rem; }
+        h1 { font-size: clamp(3.1rem, 15vw, 5rem); }
+        .section-heading { grid-template-columns: 1fr; gap: 1rem; }
+        footer { flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+        .hero-copy, .ledger { animation: rise .65s ease both; }
+        .ledger { animation-delay: .12s; }
+        @keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+    }
+</style>
