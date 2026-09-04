@@ -3,7 +3,6 @@ import ErrorBoundary from "../components/ErrorBoundary.astro";
 import Header from "../components/Header.astro";
 import ReadingProgress from "../components/ReadingProgress.astro";
 import Footer from "../components/Footer.astro";
-import TopBanner from "../components/TopBanner.astro";
 import LoginPromptModal from "../components/LoginPromptModal";
 import ScrollIndicator from "../components/ScrollIndicator";
 
@@ -272,7 +271,6 @@ const structuredData = {
     <body
         class="text-gray-900 dark:text-gray-100 min-h-screen zen-body notranslate"
     >
-        <TopBanner />
         {!no_header && !minimal && <Header />}
         <ReadingProgress />
 
@@ -333,6 +331,7 @@ const structuredData = {
         --cherry-dark: #ea580c;
         --zen-text: #1c1917;
         --zen-light: #fafaf9;
+        --zen-code: #15803d;
         --zen-shadow: rgba(249, 115, 22, 0.08);
         --brand-primary: #f97316;
         --brand-primary-light: #fb923c;
@@ -357,6 +356,7 @@ const structuredData = {
         --cherry-dark: #fb923c;
         --zen-text: #fafaf9;
         --zen-light: #0c0a09;
+        --zen-code: #86efac;
         --zen-shadow: rgba(249, 115, 22, 0.15);
         --surface-light: #0c0a09;
         --surface-dark: #0c0a09;

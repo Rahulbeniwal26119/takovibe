@@ -13,13 +13,17 @@ export interface SEOProps {
   nofollow?: boolean;
 }
 
+// Fallbacks for any page that does not set its own SEO. Python is named on
+// purpose - it is the publication's core subject. Avoid narrower specifics
+// (individual systems, versions, dates, article counts) here, since chrome copy
+// is easy to forget and goes stale as coverage shifts.
 export const defaultSEO = {
-  title: "TakoVibe - Modern Tech Leaning Platform",
-  description: "Explore cutting-edge tutorials on Python, web development, AI, and system programming. Learn from practical examples and in-depth technical guides.",
-  image: "https://takovibe.com/images/logo.svg",
+  title: "TakoVibe - The reasoning behind real systems",
+  description: "Deep technical writing for backend engineers: how Python and production systems actually work, traced through source code and real failures rather than summarised from the docs.",
+  image: "https://takovibe.com/images/default-og.png",
   url: "https://takovibe.com",
   type: "website" as const,
-  author: "TakoVibe Team",
+  author: "Rahul Beniwal",
 };
 
 export function generateSEOTags(props: SEOProps) {

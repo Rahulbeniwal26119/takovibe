@@ -7,17 +7,17 @@ const currentPath = Astro.url.pathname;
 
 const mainNav = [
   { href: "/blog", label: "Articles" },
-  { href: "/series", label: "Topics" },
+  { href: "/series", label: "Series" },
   { href: "/about", label: "About" },
 ];
 
 const toolsNav = [
-  { href: "/tools", label: "All Tools", description: "Explore the full TakoVibe tool suite" },
-  { href: "/vellora", label: "Vellora", description: "Read EPUBs and PDFs with Kumi" },
+  { href: "/tools", label: "All Tools", description: "Everything built alongside the writing" },
   { href: "/runo", label: "Runo", description: "Free self-hosted Postman-style API client" },
-  { href: "/tasks", label: "Tasks", description: "Plan your day with notes, tags, and checklists" },
-  { href: "/playground", label: "Playground", description: "Run code in the browser" },
+  { href: "/vellora", label: "Vellora", description: "Read EPUBs and PDFs with Kumi" },
   { href: "/notes", label: "Sketch Notes", description: "Diagram what you're reading" },
+  { href: "/playground", label: "Playground", description: "Run code in the browser" },
+  { href: "/tasks", label: "Tasks", description: "Plan your day with notes, tags, and checklists" },
   { href: "https://resumevibe.takovibe.com/", label: "ResumeVibe", description: "Also from TakoVibe" },
 ];
 
@@ -36,7 +36,6 @@ const isActivePath = (href: string) =>
   href === "/" ? currentPath === "/" : href.startsWith("/") && currentPath.startsWith(href);
 
 const hasActiveToolItem = toolsNav.some((item) => isActivePath(item.href));
-const hasActiveRelatedItem = relatedNav.some((item) => isActivePath(item.href));
 ---
 
 <header
@@ -107,42 +106,6 @@ const hasActiveRelatedItem = relatedNav.some((item) => isActivePath(item.href));
             class="absolute left-1/2 top-full mt-3 hidden w-72 -translate-x-1/2 overflow-hidden rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 bg-neutral-50/95 dark:bg-neutral-950/95 shadow-xl shadow-neutral-900/10 dark:shadow-black/30 backdrop-blur-xl p-2"
           >
             {toolsNav.map((item) => (
-              <a
-                href={item.href}
-                role="menuitem"
-                class="block rounded-xl px-4 py-3 transition-colors text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800/50 hover:text-neutral-900 dark:hover:text-neutral-50"
-              >
-                <span class="block text-sm font-bold">{item.label}</span>
-                <span class="mt-0.5 block text-xs text-neutral-500 dark:text-neutral-500">{item.description}</span>
-              </a>
-            ))}
-          </div>
-        </div>
-
-        <div class="relative">
-          <button
-            id="desktop-more-btn"
-            type="button"
-            aria-haspopup="menu"
-            aria-expanded="false"
-            class={`px-4 py-2 text-sm font-semibold rounded-full transition-all duration-300 whitespace-nowrap inline-flex items-center gap-1.5 ${
-              hasActiveRelatedItem
-                ? "text-orange-600 dark:text-orange-400 bg-neutral-50 dark:bg-neutral-800/20"
-                : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-50 hover:bg-neutral-100/50 dark:hover:bg-neutral-800/[0.03]"
-            }`}
-          >
-            More
-            <svg class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-            </svg>
-          </button>
-
-          <div
-            id="desktop-more-menu"
-            role="menu"
-            class="absolute left-1/2 top-full mt-3 hidden w-72 -translate-x-1/2 overflow-hidden rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 bg-neutral-50/95 dark:bg-neutral-950/95 shadow-xl shadow-neutral-900/10 dark:shadow-black/30 backdrop-blur-xl p-2"
-          >
-            {relatedNav.map((item) => (
               <a
                 href={item.href}
                 role="menuitem"

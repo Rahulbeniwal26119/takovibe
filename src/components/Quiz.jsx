@@ -95,7 +95,7 @@ export default function Quiz({
               <h3 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white mb-2">
                 {title} Complete!
               </h3>
-              <div className="text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              <div className="text-4xl sm:text-5xl font-extrabold text-neutral-900 dark:text-neutral-50">
                 {res.score}/{questions.length}
               </div>
               <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-2">
