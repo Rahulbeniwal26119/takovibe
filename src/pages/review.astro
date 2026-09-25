@@ -1,0 +1,19 @@
+---
+import Layout from "../layouts/Layout.astro";
+import FlashcardReview from "../components/flashcards/FlashcardReview";
+---
+
+<Layout
+    title="Flashcards | TakoVibe"
+    description="Review flashcards made from your notes on a spaced-repetition schedule."
+    no_footer={true}
+    no_header={true}
+>
+    <style is:global>
+        #top-banner { display: none !important; }
+        :root { --top-banner-height: 0px !important; }
+    </style>
+    <div class="min-h-screen bg-stone-50 dark:bg-neutral-950">
+        <FlashcardReview client:only="react" />
+    </div>
+</Layout>

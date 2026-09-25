@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { CaptureUpdateAction, Excalidraw, WelcomeScreen, MainMenu, getSceneVersion, convertToExcalidrawElements, sceneCoordsToViewportCoords } from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css";
-import { ArrowLeft, Loader2, Cloud, CloudOff, History, Lock, Unlock, Wand2, X, Play, Code, Sparkles, Trash2, AlertTriangle, ListTodo, Image as ImageIcon, PanelRightOpen, Share2, Shapes, Maximize2, Minimize2, Command, FilePlus2, TextSelect, Inbox } from 'lucide-react';
+import { ArrowLeft, Loader2, Cloud, CloudOff, History, Lock, Unlock, Wand2, X, Play, Code, Sparkles, Trash2, AlertTriangle, ListTodo, Image as ImageIcon, PanelRightOpen, Share2, Shapes, Maximize2, Minimize2, Command, FilePlus2, TextSelect, Inbox, Layers, Sigma, MoreHorizontal, Repeat, Sun, Moon } from 'lucide-react';
 import { parseMermaidToExcalidraw } from "@excalidraw/mermaid-to-excalidraw";
 import { fetchWithAuth } from '../../utils/api';
 import { showToast } from '../../utils/toast';
@@ -31,6 +31,17 @@ import {
 } from '../../lib/noteSnapshotApi';
 import { attachNoteThumbnail, renderNoteThumbnail, uploadNoteThumbnail } from '../../lib/noteThumbnail';
 import { deleteRemoteFiles, sweepOrphanedNoteFiles } from '../../lib/noteFileCleanup';
+import FlashcardComposer from '../flashcards/FlashcardComposer';
+import RecallPanel, { recallCount } from '../flashcards/RecallPanel';
+import { recallFlashcards } from '../../lib/flashcardApi';
+import { extractRecallTerms } from '../../lib/recallTerms';
+import type { FlashcardDraft } from '../../lib/flashcardApi';
+import MathFormulaDialog, { type MathDialogRequest } from './MathFormulaDialog';
+import NoteHeaderMenu from './NoteHeaderMenu';
+import NoteToolbarButton, { NoteToolbarDivider } from './NoteToolbarButton';
+import { readMathElementData } from '../../lib/mathLatex';
+import type { RenderedFormula } from '../../lib/mathRender';
+import { imageElementToPngBlob } from '../../lib/imageCrop';
 
 const GlobalStyles = () => (
     <style>{`
@@ -88,6 +99,8 @@ const SNAPSHOT_INTERVAL_MS = 5 * 60_000;
 const DESTRUCTIVE_KEPT_RATIO = 0.6;
 // Below this many elements, "half the canvas vanished" is just normal editing.
 const DESTRUCTIVE_MIN_ELEMENTS = 8;
+
+const CANVAS_THEME_STORAGE_KEY = 'tako-notes:canvas-theme';
 
 function spatialId(prefix: string) {
     return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -249,6 +262,28 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
     const [taskTitle, setTaskTitle] = useState("");
     const [taskDueAt, setTaskDueAt] = useState("");
     const [isImmersive, setIsImmersive] = useState(false);
+    // The canvas theme is chosen separately from the site's: someone may want a
+    // bright page to read PDFs on while the rest of the app stays dark.
+    const [canvasTheme, setCanvasTheme] = useState<'light' | 'dark'>(() => {
+        try {
+            const stored = localStorage.getItem(CANVAS_THEME_STORAGE_KEY);
+            if (stored === 'light' || stored === 'dark') return stored;
+        } catch {
+            // Storage can be blocked; fall back to the site theme.
+        }
+        return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+    });
+    const toggleCanvasTheme = () => {
+        setCanvasTheme((current) => {
+            const next = current === 'dark' ? 'light' : 'dark';
+            try {
+                localStorage.setItem(CANVAS_THEME_STORAGE_KEY, next);
+            } catch {
+                // Not persisting is fine; the toggle still applies to this visit.
+            }
+            return next;
+        });
+    };
     const [isCommandMenuOpen, setIsCommandMenuOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
         return localStorage.getItem('is_sidebar_open') === 'true';
@@ -264,6 +299,14 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
     const [selectionCoords, setSelectionCoords] = useState<{ x: number, y: number } | null>(null);
     const [pendingKumiMessage, setPendingKumiMessage] = useState<string | null>(null);
     const [selectedCards, setSelectedCards] = useState<string[]>([]);
+    const [flashcardDraft, setFlashcardDraft] = useState<FlashcardDraft | null>(null);
+    const [isRecallOpen, setIsRecallOpen] = useState(false);
+    const [recallBadge, setRecallBadge] = useState(0);
+    // Floating "convert/edit math" chip above a single selected image.
+    const [imageSelectionChip, setImageSelectionChip] = useState<{ kind: 'image' | 'formula'; x: number; y: number } | null>(null);
+    // A formula being converted or edited; `targetElementId` is set when an
+    // existing formula is updated in place, `anchorElementId` when converting an image.
+    const [mathRequest, setMathRequest] = useState<(MathDialogRequest & { targetElementId: string | null; anchorElementId: string | null }) | null>(null);
     const [selectedPdfIds, setSelectedPdfIds] = useState<string[]>([]);
     const [selectedPassage, setSelectedPassage] = useState<PassageContext | null>(null);
     const [pdfChunks, setPdfChunks] = useState<Record<string, WorkspaceChunk[]>>({});
@@ -559,13 +602,29 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
     const ikUrlsRef = useRef<Record<string, string>>({});
     // Files whose storage has already been swept; they must not be written back.
     const purgedFileIdsRef = useRef<Set<string>>(new Set());
+    // Canvas files still uploading. A save made meanwhile cannot persist them, so
+    // the note must not read as saved until they land and a follow-up save runs.
+    const pendingUploadIdsRef = useRef<Set<string>>(new Set());
+    // Bypasses the "scene unchanged" skip: a finished upload adds a file URL
+    // without changing any element version.
+    const forceNextSaveRef = useRef(false);
 
     const executeSave = async (elements: any, appState: any, files: any) => {
-        if (isReadOnly || isSavingRef.current) return;
+        if (isReadOnly) return;
+        if (isSavingRef.current) {
+            // Run again once the in-flight save finishes rather than dropping this one.
+            pendingSaveRef.current = true;
+            return;
+        }
 
         // Skip if the scene hasn't changed since the last save
         const currentVersion = getSceneVersion(elements);
-        if (drawingIdRef.current && currentVersion === lastSavedVersionRef.current && !hasUnsavedChanges) {
+        if (
+            drawingIdRef.current
+            && currentVersion === lastSavedVersionRef.current
+            && !hasUnsavedChanges
+            && !forceNextSaveRef.current
+        ) {
             setHasUnsavedChanges(false);
             return;
         }
@@ -573,6 +632,7 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
         isSavingRef.current = true;
         setIsSaving(true);
         pendingSaveRef.current = false;
+        forceNextSaveRef.current = false;
 
         try {
             const updatedAppState = { ...appState, name: titleRef.current };
@@ -623,8 +683,9 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
 
             if (res.ok) {
                 const saved = await res.json();
-                // success
-                setHasUnsavedChanges(false);
+                // success — unless images are still uploading, in which case this
+                // save could not include them yet.
+                setHasUnsavedChanges(pendingUploadIdsRef.current.size > 0);
                 setIsAutoSavePaused(false);
                 lastSavedVersionRef.current = getSceneVersion(elements);
 
@@ -664,6 +725,7 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
             isSavingRef.current = false;
             setIsSaving(false);
             if (pendingSaveRef.current && !isReadOnly && excalidrawAPI) {
+                forceNextSaveRef.current = true;
                 executeSave(excalidrawAPI.getSceneElements(), excalidrawAPI.getAppState(), excalidrawAPI.getFiles());
             }
         }
@@ -770,6 +832,24 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
         void sweep();
         return () => { cancelled = true; };
     }, [excalidrawAPI, isReadOnly, isLoading, drawingData?.id]);
+
+    // Quietly count cards worth revisiting for the toolbar badge. Any failure
+    // (logged out, API not deployed) just leaves the badge empty.
+    useEffect(() => {
+        if (!excalidrawAPI || isLoading || !isAuthenticated || !drawingData?.id) return;
+        let cancelled = false;
+        const timer = window.setTimeout(() => {
+            recallFlashcards({ source_type: 'drawing', source_id: String(drawingData.id), terms: getRecallTerms(), limit: 30 })
+                .then((data) => { if (!cancelled) setRecallBadge(recallCount(data)); })
+                .catch(() => undefined);
+        }, 2000);
+        return () => {
+            cancelled = true;
+            window.clearTimeout(timer);
+        };
+        // Once per opened note; the panel refreshes the count while open.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [excalidrawAPI, isLoading, isAuthenticated, drawingData?.id]);
 
     // Notes created before thumbnails existed only have the placeholder card, so
     // backfill one the first time the owner opens them.
@@ -1026,12 +1106,38 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
 
     const uploadingFilesRef = useRef(new Set<string>());
 
+    /** Once the last pending upload lands, persist its URL straight away. */
+    const saveAfterUploads = () => {
+        if (pendingUploadIdsRef.current.size > 0 || !excalidrawAPI || isReadOnly) return;
+        forceNextSaveRef.current = true;
+        void executeSave(
+            excalidrawAPI.getSceneElements(),
+            excalidrawAPI.getAppState(),
+            excalidrawAPI.getFiles(),
+        );
+    };
+
+    // Leaving before uploads finish would save elements that point at files the
+    // note never stored — they come back as broken image placeholders.
+    useEffect(() => {
+        const warnIfUploading = (event: BeforeUnloadEvent) => {
+            if (pendingUploadIdsRef.current.size === 0) return;
+            event.preventDefault();
+            event.returnValue = '';
+        };
+        window.addEventListener('beforeunload', warnIfUploading);
+        return () => window.removeEventListener('beforeunload', warnIfUploading);
+    }, []);
+
     const uploadImageToImageKit = async (fileData: any, fileId: string) => {
         try {
             const formData = new FormData();
             const res = await fetch(fileData.dataURL);
             const blob = await res.blob();
-            formData.append("file", blob, `${fileId}.png`);
+            // Keep the real extension: formulas are SVG, and a .png name on SVG
+            // bytes would be stored and served with the wrong type.
+            const extension = blob.type === 'image/svg+xml' ? 'svg' : blob.type === 'image/jpeg' ? 'jpg' : 'png';
+            formData.append("file", blob, `${fileId}.${extension}`);
             const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
             if (storedUser.email) formData.append("email", storedUser.email);
 
@@ -1052,6 +1158,242 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
             console.error("ImageKit Upload Error:", err);
         }
         return null;
+    };
+
+    const getSelectedElements = () => {
+        if (!excalidrawAPI) return [];
+        const selectedIds = excalidrawAPI.getAppState().selectedElementIds || {};
+        return excalidrawAPI.getSceneElements().filter((element: any) => selectedIds[element.id] && !element.isDeleted);
+    };
+
+    const openAiDiagram = () => {
+        if (!isAuthenticated) {
+            window.location.href = `/login?next=${window.location.pathname}`;
+            return;
+        }
+        if (isReadOnly) {
+            showToast("You cannot edit this note.", "error");
+            return;
+        }
+        setIsMermaidModalOpen(true);
+    };
+
+    const toggleCompanion = () => {
+        const becomingOpen = !isSidebarOpen;
+        if (becomingOpen) {
+            setSidebarWidth(Math.min(Math.max(window.innerWidth * 0.44, 460), 720));
+            setIsRecallOpen(false);
+        }
+        setIsSidebarOpen(becomingOpen);
+    };
+
+    /** What this note is about: its title, canvas text and PDF page text. */
+    const getRecallTerms = useCallback(() => {
+        if (!excalidrawAPI) return extractRecallTerms({ title: titleRef.current, texts: [] });
+        const texts: string[] = [];
+        excalidrawAPI.getSceneElements().forEach((element: any) => {
+            if (element.isDeleted) return;
+            if (element.type === 'text' && element.text) texts.push(element.text);
+            if (element.type === 'image' && typeof element.customData?.pdfText === 'string') texts.push(element.customData.pdfText);
+        });
+        Object.values(pdfChunks).forEach((chunks) => chunks.forEach((chunk) => texts.push(chunk.text)));
+        return extractRecallTerms({ title: titleRef.current, texts });
+    }, [excalidrawAPI, pdfChunks]);
+
+    const toggleRecall = () => {
+        if (!drawingIdRef.current) {
+            showToast('Save this note first — Recall finds cards related to it.', 'error');
+            return;
+        }
+        setIsRecallOpen((open) => {
+            if (!open) setIsSidebarOpen(false);
+            return !open;
+        });
+    };
+
+    const togglePdfTextSelection = async () => {
+        window.getSelection()?.removeAllRanges();
+        if (isPdfTextSelectionMode) {
+            setIsPdfTextSelectionMode(false);
+            return;
+        }
+        setIsPreparingPdfText(true);
+        try {
+            if (await ensureNativePdfTextGeometry()) {
+                setIsPdfTextSelectionMode(true);
+            }
+        } catch (error) {
+            console.error('Could not prepare native PDF text selection:', error);
+            showToast('Could not prepare PDF text selection.', 'error');
+        } finally {
+            setIsPreparingPdfText(false);
+        }
+    };
+
+    /**
+     * Prefills a flashcard from what is selected: highlighted PDF text, or text
+     * cards on the canvas. Two cards become question (upper) and answer (lower).
+     */
+    const openFlashcardComposer = () => {
+        setIsCommandMenuOpen(false);
+        if (!excalidrawAPI) return;
+        if (!drawingIdRef.current) {
+            showToast('Save this note before making flashcards from it.', 'error');
+            return;
+        }
+        const selected = getSelectedElements();
+        const texts = selected
+            .filter((element: any) => element.type === 'text' && element.text?.trim())
+            .sort((a: any, b: any) => a.y - b.y || a.x - b.x);
+        const highlighted = window.getSelection()?.toString().replace(/\s+/g, ' ').trim() || '';
+
+        let front = '';
+        let back = '';
+        if (highlighted) {
+            back = highlighted;
+        } else if (texts.length === 2) {
+            front = texts[0].text.trim();
+            back = texts[1].text.trim();
+        } else {
+            back = texts.map((element: any) => element.text.trim()).join('\n');
+        }
+
+        const anchor: any = texts[0] || selected[0];
+        setFlashcardDraft({
+            front,
+            back,
+            source_type: 'drawing',
+            source_id: String(drawingIdRef.current),
+            source_label: titleRef.current || 'Untitled note',
+            source_element_id: anchor ? String(anchor.containerId || anchor.id) : '',
+        });
+    };
+
+    /**
+     * One selected formula → edit it; one selected image → read it with OCR;
+     * otherwise start from an empty formula.
+     */
+    const openMathDialog = async () => {
+        setIsCommandMenuOpen(false);
+        if (!excalidrawAPI || isReadOnly) return;
+        const selected = getSelectedElements();
+        const image: any = selected.length === 1 && selected[0].type === 'image' ? selected[0] : null;
+
+        if (image) {
+            const existing = readMathElementData(image);
+            if (existing) {
+                setMathRequest({ sourceImage: null, initialLatex: existing.mathLatex, mode: 'update', targetElementId: image.id, anchorElementId: null });
+                return;
+            }
+            // Saved images can still be ImageKit URLs (hydration is best-effort),
+            // and a remote URL would taint the crop canvas — fetch it into a data URL.
+            const sourceUrl: string | undefined = excalidrawAPI.getFiles()[image.fileId]?.dataURL || ikUrlsRef.current[image.fileId];
+            if (!sourceUrl) {
+                showToast('This image has no stored file, so it cannot be read.', 'error');
+                return;
+            }
+            try {
+                const dataURL = sourceUrl.startsWith('data:')
+                    ? sourceUrl
+                    : await fetch(sourceUrl)
+                        .then((response) => {
+                            if (!response.ok) throw new Error('The image could not be downloaded.');
+                            return response.blob();
+                        })
+                        .then((blob) => new Promise<string>((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = () => resolve(reader.result as string);
+                            reader.onerror = () => reject(new Error('The image could not be read.'));
+                            reader.readAsDataURL(blob);
+                        }));
+                const sourceImage = await imageElementToPngBlob(image, dataURL);
+                setMathRequest({ sourceImage, initialLatex: '', mode: 'insert', targetElementId: null, anchorElementId: image.id });
+            } catch (error) {
+                showToast(error instanceof Error ? error.message : 'The selected image could not be read.', 'error');
+            }
+            return;
+        }
+
+        setMathRequest({ sourceImage: null, initialLatex: '', mode: 'insert', targetElementId: null, anchorElementId: null });
+    };
+
+    /** Places a rendered formula; the background uploader persists its image. */
+    const placeFormula = async (latex: string, rendered: RenderedFormula, source: 'ocr' | 'typed') => {
+        if (!excalidrawAPI || !mathRequest) return;
+        const fileId = spatialId('math-file');
+        const now = Date.now();
+        excalidrawAPI.addFiles([{
+            id: fileId as any,
+            dataURL: rendered.dataURL as any,
+            mimeType: rendered.mimeType as any,
+            created: now,
+            lastRetrieved: now,
+        }]);
+
+        const elements = excalidrawAPI.getSceneElements();
+        const mathData = { mathLatex: latex, mathSource: source, mathBaseWidth: rendered.width };
+
+        if (mathRequest.targetElementId) {
+            // Keep the position and whatever size the person scaled it to.
+            const updatedElements = elements.map((element: any) => {
+                if (element.id !== mathRequest.targetElementId) return element;
+                const scale = element.width / (element.customData?.mathBaseWidth || element.width);
+                return {
+                    ...element,
+                    fileId,
+                    width: rendered.width * scale,
+                    height: rendered.height * scale,
+                    // A mirrored formula is never intended (it comes from dragging a
+                    // resize handle past the opposite corner), so updating rights it.
+                    scale: [1, 1],
+                    crop: null,
+                    customData: { ...element.customData, ...mathData },
+                    version: element.version + 1,
+                    versionNonce: Math.floor(Math.random() * 2_000_000_000),
+                    updated: now,
+                };
+            });
+            excalidrawAPI.updateScene({ elements: updatedElements, captureUpdate: CaptureUpdateAction.IMMEDIATELY });
+        } else {
+            const anchor: any = mathRequest.anchorElementId
+                ? elements.find((element: any) => element.id === mathRequest.anchorElementId)
+                : null;
+            let x: number;
+            let y: number;
+            if (anchor) {
+                x = anchor.x + anchor.width + 40;
+                y = anchor.y + anchor.height / 2 - rendered.height / 2;
+            } else {
+                const appState = excalidrawAPI.getAppState();
+                const zoom = appState.zoom?.value || 1;
+                x = -appState.scrollX + appState.width / zoom / 2 - rendered.width / 2;
+                y = -appState.scrollY + appState.height / zoom / 2 - rendered.height / 2;
+            }
+            const [formulaElement] = convertToExcalidrawElements([{
+                id: spatialId('math'),
+                type: 'image',
+                fileId,
+                x,
+                y,
+                width: rendered.width,
+                height: rendered.height,
+                status: 'saved',
+                scale: [1, 1],
+                crop: null,
+                strokeColor: 'transparent',
+                backgroundColor: 'transparent',
+                customData: mathData,
+            }] as any, { regenerateIds: false });
+            excalidrawAPI.updateScene({
+                elements: [...elements, formulaElement],
+                appState: { selectedElementIds: { [formulaElement.id]: true } } as any,
+                captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+            });
+        }
+
+        setHasUnsavedChanges(true);
+        setMathRequest(null);
+        showToast(mathRequest.targetElementId ? 'Formula updated' : 'Formula added — select it and choose Math to edit', 'success');
     };
 
     const ensureNativePdfTextGeometry = useCallback(async () => {
@@ -1216,11 +1558,16 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                 if (fileData.dataURL && fileData.dataURL.startsWith('data:image/') && fileData.dataURL.length > 1000) {
                     if (!uploadingFilesRef.current.has(fileId) && !ikUrlsRef.current[fileId]) {
                         uploadingFilesRef.current.add(fileId);
+                        pendingUploadIdsRef.current.add(fileId);
                         uploadImageToImageKit(fileData, fileId).then(url => {
+                            pendingUploadIdsRef.current.delete(fileId);
                             if (url) {
                                 // Store the IK URL so sanitizeFiles includes it in the next save
                                 ikUrlsRef.current[fileId] = url;
+                            } else {
+                                showToast('An image could not be uploaded and will not be saved.', 'error');
                             }
+                            saveAfterUploads();
                         });
                     }
                 }
@@ -1252,6 +1599,59 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                     .filter((text): text is string => Boolean(text?.trim())),
             );
             setSelectedPdfIds(Array.from(nextPdfIds));
+        }
+
+        // Resizing past the opposite corner mirrors an image; for a formula that
+        // only ever produces unreadable text, so undo the flip once the drag ends.
+        if (!isReadOnly && !appState.isResizing && excalidrawAPI) {
+            const flipped = elements.filter((el: any) =>
+                !el.isDeleted
+                && el.type === 'image'
+                && readMathElementData(el)
+                && (el.scale?.[0] !== 1 || el.scale?.[1] !== 1),
+            );
+            if (flipped.length > 0) {
+                const flippedIds = new Set(flipped.map((el: any) => el.id));
+                excalidrawAPI.updateScene({
+                    elements: elements.map((el: any) => flippedIds.has(el.id)
+                        ? {
+                              ...el,
+                              scale: [1, 1],
+                              version: el.version + 1,
+                              versionNonce: Math.floor(Math.random() * 2_000_000_000),
+                              updated: Date.now(),
+                          }
+                        : el),
+                    captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+                });
+                return;
+            }
+        }
+
+        // A lone image gets a "convert to math" chip (or "edit formula" when it
+        // already is one). Whole PDF pages only qualify once cropped to a formula.
+        const onlySelected: any = selectedIds.length === 1 ? elements.find((el: any) => el.id === selectedIds[0]) : null;
+        const chipTarget = !isReadOnly
+            && onlySelected
+            && onlySelected.type === 'image'
+            && !onlySelected.isDeleted
+            && !appState.croppingElementId
+            && (readMathElementData(onlySelected) || !onlySelected.customData?.pdfDocumentId || onlySelected.crop)
+            ? onlySelected
+            : null;
+        if (chipTarget) {
+            const anchor = sceneCoordsToViewportCoords(
+                { sceneX: chipTarget.x + chipTarget.width / 2, sceneY: chipTarget.y },
+                appState,
+            );
+            const kind = readMathElementData(chipTarget) ? 'formula' : 'image';
+            setImageSelectionChip((prev) =>
+                prev && prev.kind === kind && Math.abs(prev.x - anchor.x) < 1 && Math.abs(prev.y - anchor.y) < 1
+                    ? prev
+                    : { kind, x: anchor.x, y: anchor.y },
+            );
+        } else {
+            setImageSelectionChip((prev) => (prev ? null : prev));
         }
 
         // Handle selection for "Ask Kumi" - only update if actually changed
@@ -1801,7 +2201,10 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                 { regenerateIds: false },
             );
 
-            files.forEach((fileData) => uploadingFilesRef.current.add(fileData.id));
+            files.forEach((fileData) => {
+                uploadingFilesRef.current.add(fileData.id);
+                pendingUploadIdsRef.current.add(fileData.id);
+            });
             excalidrawAPI.addFiles(files);
             excalidrawAPI.updateScene({
                 elements: [...excalidrawAPI.getSceneElements(), ...pageElements],
@@ -1823,12 +2226,18 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
             const uploads = files.map(async (fileData) => {
                 const fileId = fileData.id as string;
                 const url = await uploadImageToImageKit(fileData, fileId);
+                pendingUploadIdsRef.current.delete(fileId);
                 if (url) {
                     ikUrlsRef.current[fileId] = url;
                 }
                 return url;
             });
             void Promise.all(uploads).then((urls) => {
+                const failed = urls.filter((url) => !url).length;
+                if (failed > 0) {
+                    showToast(`${failed} PDF page${failed === 1 ? '' : 's'} could not be uploaded and will not be saved.`, 'error');
+                }
+                saveAfterUploads();
                 if (!urls.some(Boolean) || !excalidrawAPI) return;
                 const uploadedAt = Date.now();
                 const updatedElements = excalidrawAPI.getSceneElements().map((element: any) =>
@@ -2212,197 +2621,141 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                         )}
                     </div>
                     <div className="mt-0.5 hidden items-center gap-1.5 text-[10px] font-medium text-stone-400 sm:flex">
-                        <span>My workspace</span><span>/</span><span>{isPublic ? 'Shared note' : 'Private note'}</span>
+                        <span className="inline-flex items-center gap-1" aria-live="polite">
+                            {isSaving
+                                ? <Loader2 className="h-2.5 w-2.5 animate-spin text-orange-500" />
+                                : <span className={`h-1.5 w-1.5 rounded-full ${hasUnsavedChanges ? 'bg-amber-500' : 'bg-emerald-500'}`} />}
+                            {isSaving ? 'Saving…' : hasUnsavedChanges ? 'Unsaved' : 'Saved'}
+                        </span>
+                        <span>·</span>
+                        <span>{isPublic ? 'Shared note' : 'Private note'}</span>
                     </div>
                 </div>
 
-                <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
-                    <div className="mr-1 hidden items-center gap-1.5 rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-stone-500 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400 md:flex">
-                        {isSaving ? (
-                            <><Loader2 className="h-3 w-3 animate-spin text-orange-500" /><span>Saving</span></>
-                        ) : hasUnsavedChanges ? (
-                            <><CloudOff className="h-3 w-3 text-amber-500" /><span>Unsaved</span></>
-                        ) : (
-                            <><Cloud className="h-3 w-3 text-emerald-500" /><span>Saved</span></>
-                        )}
-                    </div>
-
-                    <button
-                        onClick={() => setIsCommandMenuOpen(true)}
-                        className="hidden h-9 items-center gap-2 rounded-lg border border-stone-200 bg-white px-2.5 text-[11px] font-bold text-stone-500 shadow-sm transition hover:border-stone-300 hover:text-stone-900 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400 dark:hover:text-white xl:inline-flex"
-                        title="Open quick actions"
-                    >
-                        <Command className="h-3.5 w-3.5" />
-                        <span>Actions</span>
-                        <kbd className="rounded border border-stone-200 bg-stone-50 px-1.5 py-0.5 font-mono text-[9px] text-stone-400 dark:border-neutral-700 dark:bg-neutral-800">⌘K</kbd>
-                    </button>
-
-                    <button
-                        onClick={() => {
-                            if (!isAuthenticated) {
-                                window.location.href = `/login?next=${window.location.pathname}`;
-                                return;
+                <div className="flex shrink-0 items-center gap-1">
+                    {/* Hidden pickers driven by the Image and PDF buttons */}
+                    <input
+                        type="file"
+                        id="custom-image-upload-standalone"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                                await handleImageUpload(file);
                             }
-                            if (isReadOnly) {
-                                showToast("You cannot edit this note.", "error");
-                                return;
-                            }
-                            setIsMermaidModalOpen(true);
+                            e.target.value = '';
                         }}
-                        className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-bold text-stone-500 transition hover:bg-stone-100 hover:text-orange-700 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-orange-300 min-[1100px]:px-3"
-                        title="Text to Diagram"
-                    >
-                        <Wand2 className="h-4 w-4" />
-                        <span className="hidden min-[1100px]:inline">AI diagram</span>
-                    </button>
+                    />
+                    <input
+                        ref={pdfInputRef}
+                        type="file"
+                        accept="application/pdf,.pdf"
+                        className="hidden"
+                        onChange={(event) => {
+                            const file = event.target.files?.[0];
+                            if (file) void addPdfToCanvas(file);
+                        }}
+                    />
 
-                    <button
-                        onClick={openTaskComposer}
-                        disabled={isCreatingTask || isLoading}
-                        className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-bold text-stone-500 transition hover:bg-stone-100 hover:text-orange-700 disabled:pointer-events-none disabled:opacity-60 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-orange-300 min-[1100px]:px-3"
-                        title="Create attached task"
-                    >
-                        {isCreatingTask ? <Loader2 className="h-4 w-4 animate-spin" /> : <ListTodo className="h-4 w-4" />}
-                        <span className="hidden min-[1100px]:inline">Task</span>
-                    </button>
-
+                    {/* Create */}
                     {!isReadOnly && (
                         <>
-                            <button
-                                type="button"
-                                onClick={() => setIsEvidenceInboxOpen(true)}
-                                disabled={!activeDrawingId || isEvidenceLoading}
-                                className={`relative inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-bold transition disabled:pointer-events-none disabled:opacity-40 min-[1100px]:px-3 ${evidenceItems.length > 0 ? 'bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300' : 'text-stone-500 hover:bg-stone-100 hover:text-orange-700 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-orange-300'}`}
-                                title={activeDrawingId ? 'Open passages sent to this note' : 'Save this note before receiving evidence'}
-                            >
-                                {isEvidenceLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Inbox className="h-4 w-4" />}
-                                <span className="hidden min-[1100px]:inline">Evidence</span>
-                                {evidenceItems.length > 0 && (
-                                    <span className="inline-flex min-w-4 items-center justify-center rounded-full bg-orange-600 px-1 text-[9px] leading-4 text-white">
-                                        {evidenceItems.length > 99 ? '99+' : evidenceItems.length}
-                                    </span>
-                                )}
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={openHistory}
-                                disabled={!activeDrawingId}
-                                className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-bold text-stone-500 transition hover:bg-stone-100 hover:text-orange-700 disabled:pointer-events-none disabled:opacity-40 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-orange-300 min-[1100px]:px-3"
-                                title={activeDrawingId ? 'Browse and restore earlier versions' : 'Save this note to start its history'}
-                            >
-                                <History className="h-4 w-4" />
-                                <span className="hidden min-[1100px]:inline">History</span>
-                            </button>
-
-                            {/* Custom File Input for bypassing Excalidraw Image Tool */}
-                            <input
-                                type="file"
-                                id="custom-image-upload-standalone"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={async (e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) {
-                                        await handleImageUpload(file);
-                                    }
-                                    e.target.value = '';
-                                }}
-                            />
-
-                            <button
-                                onClick={() => document.getElementById('custom-image-upload-standalone')?.click()}
-                                className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-bold text-stone-500 transition hover:bg-stone-100 hover:text-orange-700 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-orange-300 min-[1100px]:px-3"
-                                title="Insert Custom Image"
-                            >
-                                <ImageIcon className="h-4 w-4" />
-                                <span className="hidden min-[1100px]:inline">Image</span>
-                            </button>
-
-                            <input
-                                ref={pdfInputRef}
-                                type="file"
-                                accept="application/pdf,.pdf"
-                                className="hidden"
-                                onChange={(event) => {
-                                    const file = event.target.files?.[0];
-                                    if (file) void addPdfToCanvas(file);
-                                }}
-                            />
-                            <button
+                            <NoteToolbarButton label="AI diagram" icon={<Wand2 />} onClick={openAiDiagram} title="Generate editable shapes from a prompt" />
+                            <NoteToolbarButton label="Math" icon={<Sigma />} onClick={() => void openMathDialog()} disabled={isLoading} preserveSelection title="Insert LaTeX, or select an image of a formula to convert it" />
+                            <NoteToolbarButton label="Image" icon={<ImageIcon />} onClick={() => document.getElementById('custom-image-upload-standalone')?.click()} title="Insert an image" />
+                            <NoteToolbarButton
+                                label={pdfImportProgress?.total ? `${pdfImportProgress.completed}/${pdfImportProgress.total}` : 'PDF'}
+                                icon={<FilePlus2 />}
                                 onClick={() => pdfInputRef.current?.click()}
                                 disabled={isAddingPdf}
-                                className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-bold text-stone-500 transition hover:bg-stone-100 hover:text-orange-700 disabled:pointer-events-none disabled:opacity-60 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-orange-300 min-[1100px]:px-3"
-                                title="Convert a PDF into standalone canvas pages"
-                            >
-                                {isAddingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <FilePlus2 className="h-4 w-4" />}
-                                <span className="hidden min-[1100px]:inline">
-                                    {pdfImportProgress?.total
-                                        ? `PDF ${pdfImportProgress.completed}/${pdfImportProgress.total}`
-                                        : 'PDF'}
-                                </span>
-                            </button>
-
-                            <button
-                                onClick={() => {
-                                    const becomingOpen = !isSidebarOpen;
-                                    if (becomingOpen) {
-                                        setSidebarWidth(Math.min(Math.max(window.innerWidth * 0.44, 460), 720));
-                                    }
-                                    setIsSidebarOpen(becomingOpen);
-                                }}
-                                className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-bold transition min-[1100px]:px-3 ${isSidebarOpen ? 'bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300' : 'text-stone-500 hover:bg-stone-100 hover:text-orange-700 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-orange-300'}`}
-                                title="Open reading companion"
-                            >
-                                <PanelRightOpen className="h-4 w-4" />
-                                <span className="hidden min-[1100px]:inline">Companion</span>
-                            </button>
+                                busy={isAddingPdf}
+                                title="Convert a PDF into canvas pages"
+                            />
+                            <NoteToolbarDivider />
                         </>
                     )}
-                    <button
-                        type="button"
-                        onClick={async () => {
-                            window.getSelection()?.removeAllRanges();
-                            if (isPdfTextSelectionMode) {
-                                setIsPdfTextSelectionMode(false);
-                                return;
-                            }
-                            setIsPreparingPdfText(true);
-                            try {
-                                if (await ensureNativePdfTextGeometry()) {
-                                    setIsPdfTextSelectionMode(true);
-                                }
-                            } catch (error) {
-                                console.error('Could not prepare native PDF text selection:', error);
-                                showToast('Could not prepare PDF text selection.', 'error');
-                            } finally {
-                                setIsPreparingPdfText(false);
-                            }
-                        }}
+
+                    {/* Read */}
+                    {!isReadOnly && (
+                        <NoteToolbarButton label="Companion" icon={<PanelRightOpen />} onClick={toggleCompanion} active={isSidebarOpen} title="AI reading companion beside the canvas" />
+                    )}
+                    <NoteToolbarButton
+                        label="PDF text"
+                        icon={<TextSelect />}
+                        onClick={() => void togglePdfTextSelection()}
                         disabled={!hasNativePdfTextPages || isPreparingPdfText}
-                        className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-bold transition disabled:pointer-events-none disabled:opacity-35 min-[1100px]:px-3 ${isPdfTextSelectionMode ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-900' : 'text-stone-500 hover:bg-stone-100 hover:text-blue-700 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-blue-300'}`}
-                        title={hasNativePdfTextPages ? 'Select text from native PDF pages' : 'Import a PDF to enable text selection'}
-                    >
-                        {isPreparingPdfText ? <Loader2 className="h-4 w-4 animate-spin" /> : <TextSelect className="h-4 w-4" />}
-                        <span className="hidden min-[1100px]:inline">{isPreparingPdfText ? 'Preparing text' : isPdfTextSelectionMode ? 'Selecting PDF' : 'PDF text'}</span>
-                    </button>
-                    <button
-                        onClick={() => void setImmersiveMode(true)}
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-stone-500 transition hover:bg-stone-100 hover:text-orange-700 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-orange-300"
-                        title="Enter immersive mode (⌘⇧F)"
-                        aria-label="Enter immersive mode"
-                    >
-                        <Maximize2 className="h-4 w-4" />
-                    </button>
+                        busy={isPreparingPdfText}
+                        active={isPdfTextSelectionMode}
+                        title={hasNativePdfTextPages ? 'Select and copy text on PDF pages' : 'Add a PDF to enable text selection'}
+                    />
+                    {!isReadOnly && (
+                        <NoteToolbarButton
+                            label="Evidence"
+                            icon={<Inbox />}
+                            onClick={() => setIsEvidenceInboxOpen(true)}
+                            disabled={!activeDrawingId || isEvidenceLoading}
+                            busy={isEvidenceLoading}
+                            badge={evidenceItems.length}
+                            title={activeDrawingId ? 'Passages sent to this note from your reading' : 'Save this note before receiving evidence'}
+                        />
+                    )}
+                    <NoteToolbarDivider />
+
+                    {/* Remember */}
+                    <NoteToolbarButton label="Flashcard" icon={<Layers />} onClick={openFlashcardComposer} disabled={isLoading} preserveSelection title="Make a flashcard from the selected text" />
+                    <NoteToolbarButton
+                        label="Recall"
+                        icon={<Repeat />}
+                        onClick={toggleRecall}
+                        active={isRecallOpen}
+                        badge={isRecallOpen ? 0 : recallBadge}
+                        title="Review cards related to what you're reading"
+                    />
+                    <NoteToolbarDivider />
+
+                    {/* Organise */}
+                    <NoteToolbarButton label="Task" icon={<ListTodo />} onClick={openTaskComposer} disabled={isCreatingTask || isLoading} busy={isCreatingTask} title="Create a task attached to this note" />
+                    {!isReadOnly && (
+                        <NoteToolbarButton
+                            label="History"
+                            icon={<History />}
+                            onClick={openHistory}
+                            disabled={!activeDrawingId}
+                            title={activeDrawingId ? 'Browse and restore earlier versions' : 'Save this note to start its history'}
+                        />
+                    )}
+                    <NoteToolbarButton
+                        label={canvasTheme === 'dark' ? 'Light' : 'Dark'}
+                        icon={canvasTheme === 'dark' ? <Sun /> : <Moon />}
+                        onClick={toggleCanvasTheme}
+                        title={canvasTheme === 'dark' ? 'Switch the canvas to light mode' : 'Switch the canvas to dark mode'}
+                    />
+                    <NoteToolbarButton label="Focus" icon={<Maximize2 />} onClick={() => void setImmersiveMode(true)} title="Hide the header (⌘⇧F)" />
+                    <NoteHeaderMenu
+                        label="More"
+                        iconOnly
+                        icon={<MoreHorizontal className="h-4 w-4" />}
+                        sections={[
+                            {
+                                items: [
+                                    { key: 'actions', label: 'All actions', hint: 'Keyboard: ⌘K', icon: <Command className="h-4 w-4" />, onSelect: () => setIsCommandMenuOpen(true) },
+                                    ...(!isReadOnly ? [{ key: 'thumb', label: 'Refresh card image', hint: 'Redraw the preview on the notes hub', icon: <ImageIcon className="h-4 w-4" />, onSelect: regenerateThumbnail, disabled: !activeDrawingId }] : []),
+                                ],
+                            },
+                            {
+                                items: !isReadOnly && noteId
+                                    ? [{ key: 'delete', label: 'Delete note', icon: <Trash2 className="h-4 w-4" />, onSelect: () => setIsDeleteModalOpen(true), tone: 'danger' as const }]
+                                    : [],
+                            },
+                        ]}
+                    />
                     {!isReadOnly && (
                         <>
                             {isAutoSavePaused && (
                                 <button onClick={handleManualSave} className="animate-pulse rounded-lg bg-red-50 px-2.5 py-1.5 text-xs font-bold text-red-600 dark:bg-red-500/10 dark:text-red-300">
                                     Retry Save
                                 </button>
-                            )}
-                            {noteId && (
-                                <button onClick={() => setIsDeleteModalOpen(true)} className="hidden h-9 w-9 items-center justify-center rounded-lg text-stone-400 transition hover:bg-red-50 hover:text-red-600 xl:inline-flex dark:hover:bg-red-950/40 dark:hover:text-red-400" title="Delete note"><Trash2 className="h-4 w-4" /></button>
                             )}
                             <span className="mx-0.5 hidden h-5 w-px bg-stone-200 sm:block dark:bg-neutral-800" />
                             <button
@@ -2523,7 +2876,7 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                             excalidrawAPI={(api) => setExcalidrawAPI(api)}
                             validateEmbeddable={(link) => Boolean(link?.startsWith('spatial-pdf://'))}
                             renderEmbeddable={renderPdfEmbeddable}
-                            theme={document.documentElement.classList.contains('dark') ? 'dark' : 'light'}
+                            theme={canvasTheme}
                             viewModeEnabled={isReadOnly}
                             UIOptions={{
                                 tools: { image: true },
@@ -2573,28 +2926,52 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                         </Excalidraw>
                     )}
 
-                    {/* Ask Kumi Floating Button */}
+                    {/* Selection actions: what you can do with the text you just picked */}
                     {selectionMessage && selectionCoords && (
-                        <button
-                            onClick={() => {
-                                const message = `Explain this: "${selectionMessage}"`;
-                                setPendingKumiMessage(message);
-                                setSidebarWidth(window.innerWidth / 2);
-                                setIsSidebarOpen(true);
-                                // Fallback event for when it's already open
-                                window.dispatchEvent(new CustomEvent('ask-kumi', {
-                                    detail: { message }
-                                }));
-                                setSelectionMessage(null);
-                            }}
-                            style={{
-                                left: `${selectionCoords.x}px`,
-                                top: `${selectionCoords.y}px`
-                            }}
-                            className="fixed z-[999] flex items-center gap-2 whitespace-nowrap rounded-xl bg-orange-600 px-4 py-2 text-sm font-bold text-white shadow-2xl transition-all hover:bg-orange-700 active:scale-95 animate-in zoom-in-50 duration-200"
+                        <div
+                            style={{ left: `${selectionCoords.x}px`, top: `${selectionCoords.y}px` }}
+                            className="fixed z-[999] flex items-center overflow-hidden rounded-xl bg-stone-900 text-sm font-bold text-white shadow-2xl animate-in zoom-in-50 duration-200 dark:bg-white dark:text-stone-900"
                         >
-                            <Sparkles className="w-4 h-4" />
-                            Analyze with AI
+                            <button
+                                onClick={() => {
+                                    const message = `Explain this: "${selectionMessage}"`;
+                                    setPendingKumiMessage(message);
+                                    setSidebarWidth(window.innerWidth / 2);
+                                    setIsSidebarOpen(true);
+                                    // Fallback event for when it's already open
+                                    window.dispatchEvent(new CustomEvent('ask-kumi', {
+                                        detail: { message }
+                                    }));
+                                    setSelectionMessage(null);
+                                }}
+                                className="flex items-center gap-2 whitespace-nowrap bg-orange-600 px-3.5 py-2 text-white transition hover:bg-orange-700 active:scale-95"
+                            >
+                                <Sparkles className="h-4 w-4" />
+                                Analyze with AI
+                            </button>
+                            <button
+                                onMouseDown={(event) => event.preventDefault()}
+                                onClick={() => {
+                                    openFlashcardComposer();
+                                    setSelectionMessage(null);
+                                }}
+                                className="flex items-center gap-2 whitespace-nowrap px-3.5 py-2 transition hover:bg-stone-700 active:scale-95 dark:hover:bg-stone-100"
+                                title="Make a flashcard from this text"
+                            >
+                                <Layers className="h-4 w-4" />
+                                Flashcard
+                            </button>
+                        </div>
+                    )}
+
+                    {imageSelectionChip && !selectionMessage && !mathRequest && (
+                        <button
+                            onClick={() => void openMathDialog()}
+                            style={{ left: `${imageSelectionChip.x}px`, top: `${Math.max(8, imageSelectionChip.y - 48)}px` }}
+                            className="fixed z-[999] flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-xl bg-stone-900 px-3.5 py-2 text-sm font-bold text-white shadow-2xl transition hover:bg-stone-700 active:scale-95 animate-in zoom-in-50 duration-200 dark:bg-white dark:text-stone-900 dark:hover:bg-stone-100"
+                        >
+                            <Sigma className="h-4 w-4 text-orange-400 dark:text-orange-600" />
+                            {imageSelectionChip.kind === 'formula' ? 'Edit formula' : 'Convert to math'}
                         </button>
                     )}
                 </div>
@@ -2660,6 +3037,18 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                                 <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 bg-white text-stone-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400"><ListTodo className="h-4 w-4" /></span>
                                 <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-stone-800 dark:text-neutral-100">Create attached task</span><span className="block text-[11px] text-stone-400">Turn this sketch into a follow-up</span></span>
                             </button>
+                            <button onMouseDown={(event) => event.preventDefault()} onClick={openFlashcardComposer} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-stone-50 dark:hover:bg-neutral-900">
+                                <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 bg-white text-orange-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-orange-400"><Layers className="h-4 w-4" /></span>
+                                <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-stone-800 dark:text-neutral-100">Make a flashcard</span><span className="block text-[11px] text-stone-400">From selected text — reviewed on a spaced schedule</span></span>
+                            </button>
+                            <button onClick={() => void openMathDialog()} disabled={isReadOnly} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-neutral-900">
+                                <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 bg-white text-orange-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-orange-400"><Sigma className="h-4 w-4" /></span>
+                                <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-stone-800 dark:text-neutral-100">Insert or convert math</span><span className="block text-[11px] text-stone-400">Type LaTeX, or select an image of a formula first</span></span>
+                            </button>
+                            <a href="/review" className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-stone-50 dark:hover:bg-neutral-900">
+                                <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 bg-white text-stone-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400"><Layers className="h-4 w-4" /></span>
+                                <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-stone-800 dark:text-neutral-100">Review flashcards</span><span className="block text-[11px] text-stone-400">Work through today's due cards</span></span>
+                            </a>
                             <button onClick={() => { setIsCommandMenuOpen(false); setIsEvidenceInboxOpen(true); }} disabled={!activeDrawingId || isReadOnly} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-neutral-900">
                                 <span className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 bg-white text-orange-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-orange-400"><Inbox className="h-4 w-4" />{evidenceItems.length > 0 && <span className="absolute -right-1.5 -top-1.5 min-w-4 rounded-full bg-orange-600 px-1 text-center text-[8px] leading-4 text-white">{evidenceItems.length}</span>}</span>
                                 <span className="min-w-0 flex-1"><span className="block text-sm font-bold text-stone-800 dark:text-neutral-100">Open Evidence Inbox</span><span className="block text-[11px] text-stone-400">Place captured reading passages on this canvas</span></span>
@@ -2713,6 +3102,24 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
                 onRestore={handleRestoreSnapshot}
                 onDelete={handleDeleteSnapshot}
             />
+
+            {flashcardDraft && (
+                <FlashcardComposer draft={flashcardDraft} onClose={() => setFlashcardDraft(null)} />
+            )}
+
+            {isRecallOpen && drawingIdRef.current && (
+                <RecallPanel
+                    noteId={String(drawingIdRef.current)}
+                    getTerms={getRecallTerms}
+                    onClose={() => setIsRecallOpen(false)}
+                    onCountChange={setRecallBadge}
+                    topOffset={isImmersive ? 16 : 76}
+                />
+            )}
+
+            {mathRequest && (
+                <MathFormulaDialog request={mathRequest} onClose={() => setMathRequest(null)} onConfirm={placeFormula} />
+            )}
 
             {/* Task Modal */}
             {isTaskModalOpen && (
