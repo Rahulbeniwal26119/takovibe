@@ -5,9 +5,12 @@ import { Select } from './ui/Select';
 import { ContactManager } from './admin/ContactManager';
 import { SeriesManager } from './dashboard/SeriesManager';
 import UserManagement from './admin/UserManagement';
+import { CampaignInsights } from './admin/CampaignInsights';
+import { dashboardTabFromHash, resolveDashboardTab, type DashboardTab } from '../lib/dashboardNavigation';
 
 
 const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
+const insightFetcher = (path: string) => fetch(`${API_URL}${path}`, { headers: { Authorization: `Token ${localStorage.getItem('access_token')}` } });
 
 interface User {
     id: number;
@@ -53,8 +56,37 @@ interface DashboardStats {
 const AuthorDashboard: React.FC = () => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'my-posts' | 'series' | 'profile' | 'inbox' | 'users'>('my-posts');
+    const [activeTab, setActiveTab] = useState<DashboardTab>(() => typeof window === 'undefined' ? 'my-posts' : dashboardTabFromHash(window.location.hash) || 'my-posts');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+    const selectDashboardTab = (tab: DashboardTab) => {
+        if (!user) return;
+        const next = resolveDashboardTab('#' + tab, user);
+        if (window.location.hash !== '#' + next) {
+            window.history.pushState(window.history.state, '', window.location.pathname + window.location.search + '#' + next);
+        }
+        setActiveTab(next);
+        setIsMobileMenuOpen(false);
+    };
+
+    useEffect(() => {
+        if (!user) return;
+        const syncTab = () => {
+            const next = resolveDashboardTab(window.location.hash, user);
+            setActiveTab(next);
+            setIsMobileMenuOpen(false);
+            if (window.location.hash !== '#' + next) {
+                window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search + '#' + next);
+            }
+        };
+        syncTab();
+        window.addEventListener('hashchange', syncTab);
+        window.addEventListener('popstate', syncTab);
+        return () => {
+            window.removeEventListener('hashchange', syncTab);
+            window.removeEventListener('popstate', syncTab);
+        };
+    }, [user]);
     const [postTab, setPostTab] = useState<'drafts' | 'published'>('published');
 
     // Data State
@@ -102,9 +134,6 @@ const AuthorDashboard: React.FC = () => {
                 fetchAuthors();
             }
 
-            if (!user.is_author && user.client_type !== 'Author' && user.client_type !== 'Admin' && user.client_type !== 'Editor' && !user.is_superuser && (activeTab === 'my-posts' || activeTab === 'series')) {
-                setActiveTab('profile');
-            }
         }
     }, [user, activeTab]);
 
@@ -131,7 +160,7 @@ const AuthorDashboard: React.FC = () => {
     const checkAuthAndFetchInitialData = async () => {
         const token = localStorage.getItem('access_token');
         if (!token) {
-            window.location.href = '/login?redirect=/dashboard';
+            window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
             return;
         }
 
@@ -144,7 +173,7 @@ const AuthorDashboard: React.FC = () => {
             if (!profileRes.ok) {
                 if (profileRes.status === 401) {
                     localStorage.clear();
-                    window.location.href = '/login?redirect=/dashboard';
+                    window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
                     return;
                 }
                 throw new Error('Failed to fetch profile');
@@ -422,7 +451,7 @@ const AuthorDashboard: React.FC = () => {
                     <nav className="space-y-1 flex-1">
                         {(user?.is_author || user?.is_superuser || user?.client_type === 'Author' || user?.client_type === 'Admin' || user?.client_type === 'Editor') && (
                             <button
-                                onClick={() => { setActiveTab('my-posts'); setIsMobileMenuOpen(false); }}
+                                onClick={() => selectDashboardTab('my-posts')}
                                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors group border-l-2 ${activeTab === 'my-posts'
                                     ? 'border-orange-500 bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300'
                                     : 'border-transparent text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-neutral-900 hover:text-gray-950 dark:hover:text-white'
@@ -434,7 +463,7 @@ const AuthorDashboard: React.FC = () => {
                         )}
                         {(user?.is_author || user?.is_superuser || user?.client_type === 'Author' || user?.client_type === 'Admin' || user?.client_type === 'Editor') && (
                             <button
-                                onClick={() => { setActiveTab('series'); setIsMobileMenuOpen(false); }}
+                                onClick={() => selectDashboardTab('series')}
                                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors group border-l-2 ${activeTab === 'series'
                                     ? 'border-orange-500 bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300'
                                     : 'border-transparent text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-neutral-900 hover:text-gray-950 dark:hover:text-white'
@@ -445,7 +474,7 @@ const AuthorDashboard: React.FC = () => {
                             </button>
                         )}
                         <button
-                            onClick={() => { setActiveTab('profile'); setIsMobileMenuOpen(false); }}
+                            onClick={() => selectDashboardTab('profile')}
                             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors group border-l-2 ${activeTab === 'profile'
                                 ? 'border-orange-500 bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300'
                                 : 'border-transparent text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-neutral-900 hover:text-gray-950 dark:hover:text-white'
@@ -457,7 +486,7 @@ const AuthorDashboard: React.FC = () => {
 
                         {(user?.manage_contact_us || user?.is_superuser || user?.client_type === 'Admin') && (
                             <button
-                                onClick={() => { setActiveTab('inbox'); setIsMobileMenuOpen(false); }}
+                                onClick={() => selectDashboardTab('inbox')}
                                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors group border-l-2 ${activeTab === 'inbox'
                                     ? 'border-orange-500 bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300'
                                     : 'border-transparent text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-neutral-900 hover:text-gray-950 dark:hover:text-white'
@@ -470,7 +499,7 @@ const AuthorDashboard: React.FC = () => {
 
                         {(user?.is_superuser || user?.can_manage_authors || user?.client_type === 'Admin') && (
                             <button
-                                onClick={() => { setActiveTab('users'); setIsMobileMenuOpen(false); }}
+                                onClick={() => selectDashboardTab('users')}
                                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors group border-l-2 ${activeTab === 'users'
                                     ? 'border-orange-500 bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300'
                                     : 'border-transparent text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-neutral-900 hover:text-gray-950 dark:hover:text-white'
@@ -480,6 +509,7 @@ const AuthorDashboard: React.FC = () => {
                                 <span className="tracking-wide">Users</span>
                             </button>
                         )}
+                        {(user?.is_superuser || user?.client_type === 'Admin') && <button onClick={() => selectDashboardTab('campaign')} className={`w-full rounded-lg border-l-2 px-3 py-2.5 text-left text-sm font-semibold ${activeTab === 'campaign' ? 'border-orange-500 bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300' : 'border-transparent text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-neutral-900'}`}>Campaign insights</button>}
                     </nav>
                 </div>
             </aside>
@@ -897,6 +927,7 @@ const AuthorDashboard: React.FC = () => {
                 )}
 
                 {/* Users View */}
+                {activeTab === 'campaign' && (user?.is_superuser || user?.client_type === 'Admin') && <CampaignInsights fetcher={insightFetcher} appearance="tako" />}
                 {activeTab === 'users' && (user?.is_superuser || user?.can_manage_authors || user?.client_type === 'Admin') && (
                     <div className="animate-fade-in w-full">
                         <div className="mb-8">

@@ -41,7 +41,7 @@ import AuthorDashboard from "../components/AuthorDashboard";
         };
 
         const toLogin = () => {
-            const returnUrl = encodeURIComponent(window.location.pathname);
+            const returnUrl = encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
             window.location.href = `/login?redirect=${returnUrl}`;
         };
 

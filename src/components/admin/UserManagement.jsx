@@ -1,7 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import GrantTokensDialog from './GrantTokensDialog';
+import { TokenRequestQueue } from './TokenRequestQueue';
 
 const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
+const tokenRequestFetcher = (path, options = {}) => fetch(`${API_URL}${path}`, {
+    ...options,
+    headers: { ...options.headers, Authorization: `Token ${localStorage.getItem('access_token')}` },
+});
 
 const UserManagement = ({ currentUser }) => {
     const getRank = (user) => {
@@ -15,15 +21,23 @@ const UserManagement = ({ currentUser }) => {
     };
 
     const currentRank = getRank(currentUser);
+    const canChangeUserStatus = user => currentRank >= 4 && currentRank > getRank(user) && user.id !== currentUser?.id;
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [isAuthorFilter, setIsAuthorFilter] = useState(false);
+    const [statusFilter, setStatusFilter] = useState('active');
+    const [statusChangeUser, setStatusChangeUser] = useState(null);
+    const [statusUpdating, setStatusUpdating] = useState(false);
+    const [statusError, setStatusError] = useState('');
+    const statusSubmitting = useRef(false);
+    const usersRequestVersion = useRef(0);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalUsers, setTotalUsers] = useState(0);
 
     const [editingUser, setEditingUser] = useState(null); // User being edited
+    const [grantingUser, setGrantingUser] = useState(null);
     const [editForm, setEditForm] = useState({
         name: "",
         username: "",
@@ -87,12 +101,14 @@ const UserManagement = ({ currentUser }) => {
     );
 
     const fetchUsers = async () => {
+        const requestVersion = ++usersRequestVersion.current;
         setLoading(true);
         try {
             const token = localStorage.getItem("access_token"); // classic auth token pattern
             const params = new URLSearchParams({
                 page,
                 query: search,
+                status: statusFilter,
             });
             if (isAuthorFilter) {
                 params.append("is_author", "true");
@@ -104,23 +120,29 @@ const UserManagement = ({ currentUser }) => {
                 },
             });
 
-            if (!res.ok) throw new Error("Failed to fetch");
-
             const data = await res.json();
+            if (!res.ok) throw new Error(data.message || 'Could not load users.');
+            if (requestVersion !== usersRequestVersion.current) return;
 
             if (data.results) {
                 setUsers(data.results);
                 setTotalUsers(data.count || 0);
                 setTotalPages(Math.ceil((data.count || 0) / 10) || 1);
+                const lastPage = Math.ceil((data.count || 0) / 10) || 1;
+                if (page > lastPage) setPage(lastPage);
             } else {
                 setUsers([]);
                 setTotalUsers(0);
                 setTotalPages(1);
             }
         } catch (err) {
-            console.error(err);
+            if (requestVersion === usersRequestVersion.current) {
+                setUsers([]);
+                setTotalUsers(0);
+                showToast(err.message || 'Could not load users.', 'error');
+            }
         } finally {
-            setLoading(false);
+            if (requestVersion === usersRequestVersion.current) setLoading(false);
         }
     };
 
@@ -128,11 +150,14 @@ const UserManagement = ({ currentUser }) => {
         const timer = setTimeout(() => {
             fetchUsers();
         }, 300);
-        return () => clearTimeout(timer);
-    }, [page, search, isAuthorFilter]);
+        return () => { clearTimeout(timer); usersRequestVersion.current++; };
+    }, [page, search, isAuthorFilter, statusFilter]);
 
     const handleToggleActive = async (user) => {
-        // Optimistic update? Better wait for server.
+        if (!canChangeUserStatus(user) || statusSubmitting.current) return;
+        statusSubmitting.current = true;
+        setStatusUpdating(true);
+        setStatusError('');
         try {
             const token = localStorage.getItem("access_token");
             const res = await fetch(`${API_URL}/api/users/${user.id}/`, {
@@ -145,14 +170,17 @@ const UserManagement = ({ currentUser }) => {
             });
             const data = await res.json();
             if (res.ok) {
-                setUsers(users.map(u => u.id === user.id ? { ...u, is_active: !user.is_active } : u));
+                setStatusChangeUser(null);
                 showToast(`User ${!user.is_active ? 'activated' : 'deactivated'} successfully`);
+                await fetchUsers();
             } else {
-                showToast("Failed to update status", "error");
+                setStatusError(data.message || data.detail || 'Could not update this account.');
             }
         } catch (e) {
-            console.error(e);
-            showToast("An error occurred", "error");
+            setStatusError('Could not confirm the account status. Refresh users before retrying.');
+        } finally {
+            statusSubmitting.current = false;
+            setStatusUpdating(false);
         }
     };
 
@@ -201,13 +229,14 @@ const UserManagement = ({ currentUser }) => {
 
     return (
         <div className="space-y-4">
+            {currentRank >= 4 && <TokenRequestQueue fetcher={tokenRequestFetcher} appearance="tako" />}
             <section className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-950">
                 <div className="flex flex-col gap-4 border-b border-gray-200 p-4 dark:border-neutral-800 lg:flex-row lg:items-center lg:justify-between">
                     <div className="min-w-0">
                         <p className="text-xs font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400">Directory</p>
                         <h2 className="mt-1 text-lg font-bold text-gray-950 dark:text-white">Registered users</h2>
                     </div>
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                         <input
                             type="text"
                             placeholder="Search users"
@@ -216,6 +245,9 @@ const UserManagement = ({ currentUser }) => {
                             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                         />
 
+                        <label className="text-xs font-medium text-gray-700 dark:text-neutral-300">User status
+                            <select aria-label="User status" value={statusFilter} onChange={event => { setStatusFilter(event.target.value); setPage(1); }} className={`${inputClass} mt-1`}><option value="active">Active users</option><option value="inactive">Inactive users</option><option value="all">All users</option></select>
+                        </label>
                         <label className="flex shrink-0 cursor-pointer items-center gap-2 text-sm font-medium text-gray-700 dark:text-neutral-300">
                             <input
                                 type="checkbox"
@@ -229,7 +261,7 @@ const UserManagement = ({ currentUser }) => {
                 </div>
 
                 <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-neutral-800">
-                    <span className="text-sm font-medium text-gray-500 dark:text-neutral-400">Total users</span>
+                    <span className="text-sm font-medium text-gray-500 dark:text-neutral-400">{statusFilter === 'all' ? 'All matching users' : statusFilter === 'active' ? 'Matching active users' : 'Matching inactive users'}</span>
                     <span className="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-sm font-bold text-gray-900 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white">{totalUsers}</span>
                 </div>
 
@@ -260,12 +292,11 @@ const UserManagement = ({ currentUser }) => {
                                         </div>
                                         <div className="truncate text-sm font-medium text-gray-900 dark:text-neutral-200">{user.username || "-"}</div>
                                         <div>
-                                            <button
-                                                onClick={() => handleToggleActive(user)}
+                                            <span
                                                 className={`rounded-md border px-2 py-1 text-xs font-bold ${user.is_active ? 'border-green-200 bg-green-50 text-green-700 dark:border-green-500/20 dark:bg-green-500/10 dark:text-green-300' : 'border-red-200 bg-red-50 text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300'}`}
                                             >
                                                 {user.is_active ? 'Active' : 'Inactive'}
-                                            </button>
+                                            </span>
                                         </div>
                                         <div>
                                             <span className={`inline-flex rounded-md border px-2 py-1 text-xs font-bold ${getTypeBadgeClass(user)}`}>
@@ -273,6 +304,8 @@ const UserManagement = ({ currentUser }) => {
                                             </span>
                                         </div>
                                         <div className="text-right text-sm font-medium">
+                                            {currentRank >= 4 && <button disabled={!user.is_active} onClick={() => setGrantingUser(user)} className="mb-2 block w-full text-xs font-semibold text-orange-600 disabled:opacity-40 dark:text-orange-400">Grant tokens</button>}
+                                            {canChangeUserStatus(user) && <button aria-label={`${user.is_active ? 'Deactivate' : 'Reactivate'} ${user.email}`} disabled={statusUpdating} onClick={() => { setStatusChangeUser(user); setStatusError(''); }} className="mb-2 block w-full text-xs font-semibold text-red-600 disabled:opacity-50 dark:text-red-400">{user.is_active ? 'Deactivate' : 'Reactivate'}</button>}
                                             {(currentRank === 5 || currentRank > getRank(user)) && (
                                                 <button onClick={() => handleEditClick(user)} className="font-semibold text-orange-600 transition-colors hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300">
                                                     Edit
@@ -311,7 +344,9 @@ const UserManagement = ({ currentUser }) => {
                                             <label className="block text-xs text-gray-500 mb-1 uppercase">Username</label>
                                             <span className="text-gray-900 dark:text-white">{user.username || "-"}</span>
                                         </div>
-                                        <div className="flex justify-end items-end">
+                                        <div className="flex flex-wrap justify-end items-end gap-3">
+                                            {currentRank >= 4 && <button disabled={!user.is_active} onClick={() => setGrantingUser(user)} className="text-xs font-semibold text-orange-600 disabled:opacity-40 dark:text-orange-400">Grant tokens</button>}
+                                            {canChangeUserStatus(user) && <button aria-label={`${user.is_active ? 'Deactivate' : 'Reactivate'} ${user.email}`} disabled={statusUpdating} onClick={() => { setStatusChangeUser(user); setStatusError(''); }} className="text-xs font-semibold text-red-600 disabled:opacity-50 dark:text-red-400">{user.is_active ? 'Deactivate' : 'Reactivate'}</button>}
                                             {(currentRank === 5 || currentRank > getRank(user)) && (
                                                 <button onClick={() => handleEditClick(user)} className="text-xs font-semibold text-orange-600 dark:text-orange-400">
                                                     Edit Profile
@@ -321,12 +356,11 @@ const UserManagement = ({ currentUser }) => {
                                     </div>
 
                                     <div className="flex items-center justify-between border-t border-gray-100 pt-2 dark:border-neutral-800">
-                                        <button
-                                            onClick={() => handleToggleActive(user)}
+                                        <span
                                             className={`rounded-md border px-2 py-1 text-xs font-bold ${user.is_active ? 'border-green-200 bg-green-50 text-green-700 dark:border-green-500/20 dark:bg-green-500/10 dark:text-green-300' : 'border-red-200 bg-red-50 text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300'}`}
                                         >
                                             {user.is_active ? 'Active' : 'Inactive'}
-                                        </button>
+                                        </span>
 
                                         <div className="flex items-center gap-2">
                                             <span className={`inline-flex rounded-md border px-2 py-1 text-xs font-bold ${getTypeBadgeClass(user)}`}>
@@ -387,7 +421,22 @@ const UserManagement = ({ currentUser }) => {
                 </div>
             </section>
 
+            {grantingUser && <GrantTokensDialog user={grantingUser} onClose={() => setGrantingUser(null)} onGranted={(balance) => {
+                setUsers(users => users.map(user => user.id === grantingUser.id ? { ...user, vibe_credits: balance } : user));
+                setGrantingUser(null);
+                showToast(`Tokens granted. New balance: ${Number(balance).toLocaleString()}`);
+            }} />}
+
             {/* Edit User Modal */}
+            {statusChangeUser && createPortal(<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
+                <section role="dialog" aria-modal="true" aria-labelledby="account-status-title" className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-6 text-gray-950 shadow-xl dark:border-neutral-700 dark:bg-neutral-950 dark:text-white">
+                    <h2 id="account-status-title" className="text-xl font-bold">{statusChangeUser.is_active ? 'Deactivate account?' : 'Reactivate account?'}</h2>
+                    <p className="mt-3 break-all text-sm font-semibold">{statusChangeUser.email}</p>
+                    <p className="mt-3 text-sm leading-6 text-gray-500 dark:text-neutral-400">{statusChangeUser.is_active ? 'This blocks account access without deleting resumes, tokens or other account data. You can reactivate the user later.' : 'This restores account access. Existing account data and token balances are kept.'}</p>
+                    {statusError && <p role="alert" className="mt-4 text-sm text-red-600 dark:text-red-400">{statusError}</p>}
+                    <div className="mt-6 flex flex-wrap justify-end gap-3"><button type="button" disabled={statusUpdating} onClick={() => setStatusChangeUser(null)} className="rounded-lg border border-gray-300 px-4 py-2 text-sm dark:border-neutral-700">Cancel</button><button type="button" disabled={statusUpdating} onClick={() => void handleToggleActive(statusChangeUser)} className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{statusUpdating ? 'Updating…' : statusChangeUser.is_active ? 'Confirm deactivation' : 'Confirm reactivation'}</button></div>
+                </section>
+            </div>, document.body)}
             {editingUser && createPortal(
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
                     <div className="bg-white dark:bg-neutral-950 rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-neutral-800">
