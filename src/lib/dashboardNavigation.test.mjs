@@ -17,10 +17,12 @@ test('missing, unknown and malformed fragments safely resolve to a permitted def
 
 test('fragments cannot grant access to admin tabs', () => {
     for (const role of ['Author', 'Editor', 'Reader']) {
-        for (const tab of ['users', 'campaign']) assert.notEqual(resolveDashboardTab('#' + tab, { client_type: role }), tab);
+        for (const tab of ['users', 'campaign', 'emails']) assert.notEqual(resolveDashboardTab('#' + tab, { client_type: role }), tab);
     }
     assert.equal(resolveDashboardTab('#users', { client_type: 'Admin' }), 'users');
     assert.equal(resolveDashboardTab('#campaign', { is_superuser: true }), 'campaign');
+    assert.equal(resolveDashboardTab('#emails', { client_type: 'Admin' }), 'emails');
+    assert.equal(resolveDashboardTab('#emails', { can_manage_authors: true }), 'profile');
 });
 
 test('granted capabilities preserve the existing inbox and user-directory access rules', () => {

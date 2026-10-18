@@ -1,16 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, User as UserIcon, Plus, Edit3, Eye, Github, Linkedin, Globe, AlertCircle, Inbox, Layers, X, Send, CheckCircle2, Loader2 } from 'lucide-react';
+import { FileText, User as UserIcon, Plus, Edit3, Eye, Github, Linkedin, Globe, AlertCircle, Inbox, Layers, X, Send, CheckCircle2, Loader2, BarChart3, Mail } from 'lucide-react';
 import { toast, Toaster } from 'react-hot-toast';
 import { Select } from './ui/Select';
 import { ContactManager } from './admin/ContactManager';
 import { SeriesManager } from './dashboard/SeriesManager';
 import UserManagement from './admin/UserManagement';
 import { CampaignInsights } from './admin/CampaignInsights';
+import { EmailCenter } from './admin/EmailCenter';
+import { Loader } from './ui/Loader';
 import { dashboardTabFromHash, resolveDashboardTab, type DashboardTab } from '../lib/dashboardNavigation';
 
 
 const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
-const insightFetcher = (path: string) => fetch(`${API_URL}${path}`, { headers: { Authorization: `Token ${localStorage.getItem('access_token')}` } });
+const sectionLoader = (text: string) => <div className="py-20 flex justify-center"><Loader text={text} /></div>;
+const insightFetcher = (path: string, body?: unknown) => fetch(`${API_URL}${path}`, body === undefined
+    ? { headers: { Authorization: `Token ${localStorage.getItem('access_token')}` } }
+    : { method: 'POST', headers: { Authorization: `Token ${localStorage.getItem('access_token')}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 
 interface User {
     id: number;
@@ -509,7 +514,30 @@ const AuthorDashboard: React.FC = () => {
                                 <span className="tracking-wide">Users</span>
                             </button>
                         )}
-                        {(user?.is_superuser || user?.client_type === 'Admin') && <button onClick={() => selectDashboardTab('campaign')} className={`w-full rounded-lg border-l-2 px-3 py-2.5 text-left text-sm font-semibold ${activeTab === 'campaign' ? 'border-orange-500 bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300' : 'border-transparent text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-neutral-900'}`}>Campaign insights</button>}
+                        {(user?.is_superuser || user?.client_type === 'Admin') && (
+                            <button
+                                onClick={() => selectDashboardTab('campaign')}
+                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors group border-l-2 ${activeTab === 'campaign'
+                                    ? 'border-orange-500 bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300'
+                                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-neutral-900 hover:text-gray-950 dark:hover:text-white'
+                                    }`}
+                            >
+                                <BarChart3 className={`w-4.5 h-4.5 ${activeTab === 'campaign' ? 'text-orange-600 dark:text-orange-300' : 'text-gray-400 group-hover:text-gray-700 dark:group-hover:text-neutral-200 transition-colors'}`} />
+                                <span className="tracking-wide">Campaign insights</span>
+                            </button>
+                        )}
+                        {(user?.is_superuser || user?.client_type === 'Admin') && (
+                            <button
+                                onClick={() => selectDashboardTab('emails')}
+                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors group border-l-2 ${activeTab === 'emails'
+                                    ? 'border-orange-500 bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300'
+                                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-neutral-900 hover:text-gray-950 dark:hover:text-white'
+                                    }`}
+                            >
+                                <Mail className={`w-4.5 h-4.5 ${activeTab === 'emails' ? 'text-orange-600 dark:text-orange-300' : 'text-gray-400 group-hover:text-gray-700 dark:group-hover:text-neutral-200 transition-colors'}`} />
+                                <span className="tracking-wide">Emails</span>
+                            </button>
+                        )}
                     </nav>
                 </div>
             </aside>
@@ -927,7 +955,8 @@ const AuthorDashboard: React.FC = () => {
                 )}
 
                 {/* Users View */}
-                {activeTab === 'campaign' && (user?.is_superuser || user?.client_type === 'Admin') && <CampaignInsights fetcher={insightFetcher} appearance="tako" />}
+                {activeTab === 'campaign' && (user?.is_superuser || user?.client_type === 'Admin') && <CampaignInsights fetcher={insightFetcher} appearance="tako" renderLoading={sectionLoader} />}
+                {activeTab === 'emails' && (user?.is_superuser || user?.client_type === 'Admin') && <EmailCenter fetcher={insightFetcher} />}
                 {activeTab === 'users' && (user?.is_superuser || user?.can_manage_authors || user?.client_type === 'Admin') && (
                     <div className="animate-fade-in w-full">
                         <div className="mb-8">
