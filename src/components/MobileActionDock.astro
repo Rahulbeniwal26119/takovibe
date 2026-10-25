@@ -546,6 +546,7 @@ const { headings, title, description, url } = Astro.props;
     const MIN_SIZE = 16;
     const MAX_SIZE = 24;
     const DEFAULT_SIZE = 18;
+    const FONT_SIZE_KEY = "blog-font-size-v2";
     const sizeDisplay = document.getElementById("mobile-font-size-display");
 
     function updateMobileFontUI(size) {
@@ -567,29 +568,29 @@ const { headings, title, description, url } = Astro.props;
         const h3Scale = isMobile ? 1.2 : 1.5;
 
         style.textContent = `
-        article.prose p, 
-        article.prose li, 
-        article.prose blockquote {
+        #article .mdx-content p,
+        #article .mdx-content li,
+        #article .mdx-content blockquote {
           font-size: ${size}px !important;
           line-height: 1.7 !important;
         }
-        article.prose h1 { 
+        #article .mdx-content h1 {
             font-size: ${size * h1Scale}px !important; 
             overflow-wrap: break-word !important;
             word-break: break-word !important;
             line-height: 1.2 !important;
         }
-        article.prose h2 { 
+        #article .mdx-content h2 {
             font-size: ${size * h2Scale}px !important; 
             overflow-wrap: break-word !important;
             word-break: break-word !important;
             line-height: 1.3 !important;
         }
-        article.prose h3 { font-size: ${size * h3Scale}px !important; }
-        article.prose h4 { font-size: ${size * 1.15}px !important; }
+        #article .mdx-content h3 { font-size: ${size * h3Scale}px !important; }
+        #article .mdx-content h4 { font-size: ${size * 1.15}px !important; }
         
         /* Force code blocks to scroll, not wrap, and have padding */
-        article.prose pre {
+        #article .mdx-content pre {
             overflow-x: auto !important;
             white-space: pre !important;
             word-wrap: normal !important;
@@ -598,21 +599,24 @@ const { headings, title, description, url } = Astro.props;
             border-radius: 0.5rem !important;
         }
       `;
-        localStorage.setItem("blog-font-size", size);
+        localStorage.setItem(FONT_SIZE_KEY, size);
         updateMobileFontUI(size);
     }
 
     // Init Font
-    const savedSize = parseInt(
-        localStorage.getItem("blog-font-size") || DEFAULT_SIZE,
-    );
+    const previousSize = Number(localStorage.getItem("blog-font-size"));
+    const initialSize = Number(localStorage.getItem(FONT_SIZE_KEY)) ||
+        (previousSize >= MIN_SIZE && previousSize <= MAX_SIZE && previousSize !== 18
+            ? previousSize
+            : DEFAULT_SIZE);
+    const savedSize = initialSize;
     updateMobileFontUI(savedSize); // Sync UI initially without reapplying style if ReaderToolbar did it
 
     document
         .getElementById("mobile-increase-font")
         ?.addEventListener("click", () => {
             let current = parseInt(
-                localStorage.getItem("blog-font-size") || DEFAULT_SIZE,
+                localStorage.getItem(FONT_SIZE_KEY) || initialSize,
             );
             if (current < MAX_SIZE) applyMobileFont(current + 1);
         });
@@ -620,7 +624,7 @@ const { headings, title, description, url } = Astro.props;
         .getElementById("mobile-decrease-font")
         ?.addEventListener("click", () => {
             let current = parseInt(
-                localStorage.getItem("blog-font-size") || DEFAULT_SIZE,
+                localStorage.getItem(FONT_SIZE_KEY) || initialSize,
             );
             if (current > MIN_SIZE) applyMobileFont(current - 1);
         });

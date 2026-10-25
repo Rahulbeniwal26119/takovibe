@@ -16,11 +16,11 @@ const toc = headings.filter((heading) => heading.depth > 1 && heading.depth <= 3
             <div class="mb-3 flex items-center justify-between gap-3 px-1">
                 <div class="flex items-center gap-2">
                     <span class="h-1.5 w-1.5 rounded-full bg-orange-500"></span>
-                    <h2 class="text-[11px] font-black uppercase tracking-[0.18em] text-neutral-700 dark:text-neutral-200">
+                    <h2 class="text-xs font-black uppercase tracking-[0.16em] text-neutral-700 dark:text-neutral-200">
                         On this page
                     </h2>
                 </div>
-                <span class="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-bold text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
+                <span class="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-bold text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
                     {toc.length}
                 </span>
             </div>
@@ -33,9 +33,9 @@ const toc = headings.filter((heading) => heading.depth > 1 && heading.depth <= 3
                     >
                         <a
                             href={`#${heading.slug}`}
-                            class="flex items-start gap-2.5 rounded-lg border border-transparent px-2 py-2 text-sm leading-5 text-neutral-600 transition-all duration-200 hover:border-orange-200 hover:bg-orange-50 hover:text-orange-700 dark:text-neutral-400 dark:hover:border-orange-900/70 dark:hover:bg-orange-950/30 dark:hover:text-orange-300"
+                            class="flex items-start gap-2.5 rounded-lg border border-transparent px-2 py-2.5 text-[15px] leading-[1.45] text-neutral-600 transition-all duration-200 hover:border-orange-200 hover:bg-orange-50 hover:text-orange-700 dark:text-neutral-400 dark:hover:border-orange-900/70 dark:hover:bg-orange-950/30 dark:hover:text-orange-300"
                         >
-                            <span class="toc-index mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md bg-neutral-100 font-mono text-[9px] font-bold text-neutral-500 transition-colors dark:bg-neutral-900 dark:text-neutral-500">
+                            <span class="toc-index mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md bg-neutral-100 font-mono text-[10px] font-bold text-neutral-500 transition-colors dark:bg-neutral-900 dark:text-neutral-500">
                                 {String(index + 1).padStart(2, "0")}
                             </span>
                             <span class="line-clamp-2">{heading.text}</span>

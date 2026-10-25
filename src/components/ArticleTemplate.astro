@@ -549,15 +549,15 @@ const breadcrumbStructuredData = {
             class="max-w-[1500px] mx-auto px-0 sm:px-4 pb-12 transition-all duration-300"
         >
             <div
-                class="flex flex-col lg:flex-row gap-8 xl:gap-12 relative items-start justify-center"
+                class="flex flex-col lg:flex-row gap-8 xl:gap-12 relative items-start lg:justify-start"
             >
                 <!-- Left Sidebar: Moved per user request -->
                 <aside
                     id="article-toc-sidebar"
-                    class="sticky hidden w-64 flex-shrink-0 self-start pr-1 lg:block"
+                    class="sticky hidden w-72 flex-shrink-0 self-start pr-1 lg:block"
                 >
                     <div
-                        class="flex flex-col pr-6 border-r border-neutral-200 dark:border-neutral-800"
+                        class="flex flex-col pr-4 border-r border-neutral-200 dark:border-neutral-800"
                         style="height: calc(100vh - var(--top-banner-height, 0px) - 8rem);"
                     >
                         <!-- ResumeVibe Left Prompt -->
@@ -571,10 +571,10 @@ const breadcrumbStructuredData = {
                                 <div class="relative z-10">
                                     <div class="flex items-center gap-2 mb-2">
                                         <div class="w-1.5 h-1.5 rounded-full bg-orange-500"></div>
-                                        <h5 class="text-[9px] font-black uppercase tracking-[0.2em] text-orange-600 dark:text-orange-400">ResumeVibe AI</h5>
+                                        <h5 class="text-[10px] font-black uppercase tracking-[0.18em] text-orange-600 dark:text-orange-400">ResumeVibe AI</h5>
                                     </div>
-                                    <p class="mb-2 text-[11px] font-bold leading-tight text-neutral-900 dark:text-white">Find why interviews are not landing.</p>
-                                    <div class="flex items-center gap-2 text-[9px] font-bold text-orange-600 dark:text-orange-400 transition-colors">
+                                    <p class="mb-2 text-[13px] font-bold leading-snug text-neutral-900 dark:text-white">Find why interviews are not landing.</p>
+                                    <div class="flex items-center gap-2 text-[11px] font-bold text-orange-600 dark:text-orange-400 transition-colors">
                                         <span>Audit Resume &rarr;</span>
                                     </div>
                                 </div>
@@ -598,7 +598,7 @@ const breadcrumbStructuredData = {
                 </aside>
 
                     <!-- Main Article Content -->
-                    <article class="flex-1 min-w-0 w-full" id="article">
+                    <article class="min-w-0 w-full lg:flex-1 lg:max-w-[900px]" id="article">
                     <!-- min-w-0 prevents flex overflow -->
 
                     <!-- Native Clean Header (No gradients) -->
@@ -992,15 +992,16 @@ const breadcrumbStructuredData = {
         opacity: 0.2 !important;
     }
 
-    /* Typography enhancements */
-    .prose p {
+    /* Keep body copy comfortable before the reader font controls initialize. */
+    #article .mdx-content p {
         margin-bottom: 1.5em;
-        font-size: 1rem; /* 16px base size on mobile */
+        font-size: 1.125rem;
+        line-height: 1.75;
     }
 
-    @media (min-width: 640px) {
-        .prose p {
-            font-size: 1.125rem; /* 18px on desktop */
+    @media (min-width: 1024px) {
+        #article .mdx-content p {
+            font-size: 1.25rem;
         }
     }
 
