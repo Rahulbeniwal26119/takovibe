@@ -335,6 +335,7 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const lastSavedVersionRef = useRef(0);
     const drawingIdRef = useRef(noteId);
+    const folderIdRef = useRef<number | null>(null);
 
     // Card thumbnails: rendered from the real scene, throttled so a canvas being
     // edited continuously doesn't re-upload on every autosave.
@@ -448,6 +449,13 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
     }, [drawingData?.id]);
 
     useEffect(() => {
+        if (noteId) return;
+        const requested = new URLSearchParams(window.location.search).get('folder_id');
+        const id = requested ? Number(requested) : NaN;
+        folderIdRef.current = Number.isSafeInteger(id) && id > 0 ? id : null;
+    }, [noteId]);
+
+    useEffect(() => {
         const token = localStorage.getItem('access_token');
         setIsAuthenticated(!!token);
         if (!token) {
@@ -485,6 +493,7 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
 
                     setTitle(loadedTitle);
                     titleRef.current = loadedTitle;
+                    folderIdRef.current = data.folder_id ?? null;
                     setDrawingData({
                         elements,
                         appState,
@@ -660,6 +669,7 @@ const NoteEditorInner: React.FC<NoteEditorProps> = ({ noteId }) => {
 
             const payload = {
                 title: titleRef.current,
+                folder_id: folderIdRef.current,
                 elements: [...elements],
                 app_state: updatedAppState,
                 files: sanitizedFiles,

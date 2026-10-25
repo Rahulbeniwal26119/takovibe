@@ -1,0 +1,43 @@
+.quiz-syntax .hljs-keyword,
+.quiz-syntax .hljs-selector-tag,
+.quiz-syntax .hljs-literal,
+.quiz-syntax .hljs-type {
+  color: #ff7b72;
+}
+
+.quiz-syntax .hljs-string,
+.quiz-syntax .hljs-regexp,
+.quiz-syntax .hljs-addition {
+  color: #a5d6ff;
+}
+
+.quiz-syntax .hljs-number,
+.quiz-syntax .hljs-attr,
+.quiz-syntax .hljs-attribute,
+.quiz-syntax .hljs-variable {
+  color: #79c0ff;
+}
+
+.quiz-syntax .hljs-title,
+.quiz-syntax .hljs-function,
+.quiz-syntax .hljs-class,
+.quiz-syntax .hljs-built_in {
+  color: #d2a8ff;
+}
+
+.quiz-syntax .hljs-comment,
+.quiz-syntax .hljs-meta,
+.quiz-syntax .hljs-quote {
+  color: #8b949e;
+}
+
+.quiz-syntax .hljs-name,
+.quiz-syntax .hljs-selector-class,
+.quiz-syntax .hljs-selector-id {
+  color: #7ee787;
+}
+
+.quiz-syntax .hljs-operator,
+.quiz-syntax .hljs-punctuation {
+  color: #c9d1d9;
+}

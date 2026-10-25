@@ -9,6 +9,8 @@ import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import Image from '@tiptap/extension-image';
 import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
+import { QuizSchema } from '../components/editor/QuizSchema';
+import { ArticleResourcesSchema } from '../components/editor/ArticleResourcesSchema';
 import { common, createLowlight } from 'lowlight';
 
 // Initialize lowlight with common languages
@@ -75,6 +77,7 @@ export const generateServerHtml = (contentJson: any) => {
                 })
                 .configure({ lowlight }),
             Table.configure({
+                renderWrapper: true,
                 HTMLAttributes: {
                     class: 'border-collapse table-auto w-full my-4',
                 },
@@ -90,6 +93,8 @@ export const generateServerHtml = (contentJson: any) => {
                     class: 'border border-gray-300 dark:border-gray-600 p-2',
                 },
             }),
+            QuizSchema,
+            ArticleResourcesSchema,
             Link.configure({
                 openOnClick: true,
                 autolink: true,

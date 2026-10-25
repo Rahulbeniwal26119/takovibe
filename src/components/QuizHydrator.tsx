@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
+import type { QuizCode, StoredQuizOption } from '../lib/quizContent';
 
 
 export default function QuizHydrator() {
@@ -18,12 +19,20 @@ export default function QuizHydrator() {
                 const question = element.getAttribute('question') || '';
                 const optionsStr = element.getAttribute('options');
                 const correctIndexStr = element.getAttribute('correctIndex');
+                const questionCodeStr = element.getAttribute('data-question-code');
+                const explanation = element.getAttribute('data-explanation') || '';
 
-                let options: string[] = [];
+                let options: StoredQuizOption[] = [];
+                let questionCode: QuizCode | null = null;
                 try {
                     options = optionsStr ? JSON.parse(optionsStr) : [];
                 } catch (e) {
                     console.error('Failed to parse quiz options:', e);
+                }
+                try {
+                    questionCode = questionCodeStr ? JSON.parse(questionCodeStr) : null;
+                } catch (e) {
+                    console.error('Failed to parse quiz question code:', e);
                 }
 
                 const correctIndex = correctIndexStr ? parseInt(correctIndexStr, 10) : 0;
@@ -40,8 +49,10 @@ export default function QuizHydrator() {
                 root.render(
                     <SingleQuiz
                         question={question}
+                        questionCode={questionCode}
                         options={options}
                         correctIndex={correctIndex}
+                        explanation={explanation}
                     />
                 );
             });

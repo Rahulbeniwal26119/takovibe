@@ -5,6 +5,8 @@ import {
     ChevronDown,
     Clock3,
     FileText,
+    Folder,
+    FolderPlus,
     Globe2,
     Grid2X2,
     LayoutDashboard,
@@ -24,6 +26,7 @@ import {
 } from 'lucide-react';
 import { fetchWithAuth } from '../../utils/api';
 import { deleteRemoteFiles } from '../../lib/noteFileCleanup';
+import { createNoteFolder, deleteNoteFolder, listNoteFolders, moveNoteToFolder, type NoteFolder } from '../../lib/noteFolderApi';
 
 interface Note {
     id: number;
@@ -36,6 +39,7 @@ interface Note {
     is_public: boolean;
     user_name?: string;
     thumbnail_url?: string;
+    folder_id?: number | null;
 }
 
 type NotesView = 'mine' | 'community';
@@ -125,7 +129,7 @@ function NotePreview({ note }: { note: Note }) {
     );
 }
 
-function NoteCard({ note, canDelete, onDelete }: { note: Note; canDelete: boolean; onDelete: (note: Note) => void }) {
+function NoteCard({ note, canDelete, onDelete, folders, onMove, moving }: { note: Note; canDelete: boolean; onDelete: (note: Note) => void; folders: NoteFolder[]; onMove: (note: Note, folderId: number | null) => void; moving: boolean }) {
     const href = note.blog_slug ? `/blog/${note.blog_slug}?open_notes=true` : `/notes/${note.id}`;
 
     return (
@@ -158,6 +162,21 @@ function NoteCard({ note, canDelete, onDelete }: { note: Note; canDelete: boolea
                 </div>
             </a>
             {canDelete && (
+                <div className="flex items-center gap-2 border-t border-stone-100 px-4 py-3 dark:border-neutral-800">
+                    <Folder className="h-4 w-4 shrink-0 text-stone-400" />
+                    <select
+                        value={note.folder_id ?? ''}
+                        disabled={moving}
+                        onChange={(event) => onMove(note, event.target.value ? Number(event.target.value) : null)}
+                        aria-label={`Move ${noteTitle(note)} to folder`}
+                        className="min-w-0 flex-1 rounded-lg border border-stone-200 bg-white px-2 py-1.5 text-xs font-semibold text-stone-600 outline-none focus:border-orange-400 disabled:opacity-60 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300"
+                    >
+                        <option value="">Unfiled</option>
+                        {folders.map((folder) => <option key={folder.id} value={folder.id}>{folder.name}</option>)}
+                    </select>
+                </div>
+            )}
+            {canDelete && (
                 <button
                     onClick={() => onDelete(note)}
                     className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg border border-stone-200 bg-white/90 text-stone-400 opacity-0 shadow-sm backdrop-blur transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 focus:opacity-100 group-hover:opacity-100 dark:border-neutral-700 dark:bg-neutral-900/90 dark:hover:border-red-900 dark:hover:bg-red-950/50 dark:hover:text-red-400"
@@ -177,10 +196,18 @@ export default function NotesHub() {
     const [loading, setLoading] = useState(true);
     const [query, setQuery] = useState('');
     const [error, setError] = useState('');
+    const [folderError, setFolderError] = useState('');
     const [authenticated, setAuthenticated] = useState(false);
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<Note | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [folders, setFolders] = useState<NoteFolder[]>([]);
+    const [activeFolderId, setActiveFolderId] = useState<'all' | 'root' | number>('all');
+    const [creatingFolder, setCreatingFolder] = useState(false);
+    const [newFolderName, setNewFolderName] = useState('');
+    const [folderToDelete, setFolderToDelete] = useState<NoteFolder | null>(null);
+    const [savingFolder, setSavingFolder] = useState(false);
+    const [movingNoteId, setMovingNoteId] = useState<number | null>(null);
 
     useEffect(() => {
         const hasToken = Boolean(localStorage.getItem('access_token'));
@@ -205,6 +232,14 @@ export default function NotesHub() {
         return () => window.clearTimeout(timer);
     }, [view, authenticated, query]);
 
+    useEffect(() => {
+        if (!authenticated) return;
+        setFolderError('');
+        void listNoteFolders()
+            .then(setFolders)
+            .catch((caught) => setFolderError(caught instanceof Error ? caught.message : 'Folders could not be loaded.'));
+    }, [authenticated]);
+
     const loadNotes = async () => {
         if (view === 'mine' && !authenticated) {
             setNotes([]);
@@ -220,11 +255,20 @@ export default function NotesHub() {
             if (view === 'mine') params.set('my_drawings', 'true');
             else params.set('is_public', 'true');
 
-            const url = `${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/user-drawings/?${params.toString()}`;
-            const response = view === 'mine' ? await fetchWithAuth(url) : await fetch(url);
-            if (!response.ok) throw new Error('Notes could not be loaded.');
-            const data = await response.json();
-            setNotes(Array.isArray(data) ? data : data.results || data.data || []);
+            let next: string | null = `${import.meta.env.PUBLIC_API_URL || ''}/api/blogs/user-drawings/?${params.toString()}`;
+            const allNotes: Note[] = [];
+            while (next) {
+                const response = view === 'mine' ? await fetchWithAuth(next) : await fetch(next);
+                if (!response.ok) throw new Error('Notes could not be loaded.');
+                const data = await response.json();
+                if (Array.isArray(data)) {
+                    allNotes.push(...data);
+                    break;
+                }
+                allNotes.push(...(data.results || data.data || []));
+                next = data.next ? new URL(data.next, response.url).toString() : null;
+            }
+            setNotes(allNotes);
         } catch (caught) {
             console.error(caught);
             setError(caught instanceof Error ? caught.message : 'Notes could not be loaded.');
@@ -258,8 +302,63 @@ export default function NotesHub() {
         }
     };
 
+    const createFolder = async (event: React.FormEvent) => {
+        event.preventDefault();
+        const name = newFolderName.trim();
+        if (!name || savingFolder) return;
+        setSavingFolder(true);
+        setError('');
+        try {
+            const folder = await createNoteFolder(name);
+            setFolders((current) => [...current, folder].sort((a, b) => a.name.localeCompare(b.name)));
+            setActiveFolderId(folder.id);
+            setNewFolderName('');
+            setCreatingFolder(false);
+        } catch (caught) {
+            setError(caught instanceof Error ? caught.message : 'The folder could not be created.');
+        } finally {
+            setSavingFolder(false);
+        }
+    };
+
+    const removeFolder = async () => {
+        if (!folderToDelete || savingFolder) return;
+        setSavingFolder(true);
+        setError('');
+        try {
+            await deleteNoteFolder(folderToDelete.id);
+            setFolders((current) => current.filter((folder) => folder.id !== folderToDelete.id));
+            setNotes((current) => current.map((note) => note.folder_id === folderToDelete.id ? { ...note, folder_id: null } : note));
+            if (activeFolderId === folderToDelete.id) setActiveFolderId('root');
+            setFolderToDelete(null);
+        } catch (caught) {
+            setError(caught instanceof Error ? caught.message : 'The folder could not be deleted.');
+        } finally {
+            setSavingFolder(false);
+        }
+    };
+
+    const moveNote = async (note: Note, folderId: number | null) => {
+        if ((note.folder_id ?? null) === folderId) return;
+        setMovingNoteId(note.id);
+        setError('');
+        try {
+            await moveNoteToFolder(note.id, folderId);
+            setNotes((current) => current.map((item) => item.id === note.id ? { ...item, folder_id: folderId } : item));
+        } catch (caught) {
+            setError(caught instanceof Error ? caught.message : 'The note could not be moved.');
+        } finally {
+            setMovingNoteId(null);
+        }
+    };
+
     const publicCount = useMemo(() => notes.filter((note) => note.is_public).length, [notes]);
     const sourceCount = useMemo(() => new Set(notes.map((note) => note.blog_slug).filter(Boolean)).size, [notes]);
+    const visibleNotes = useMemo(() => view !== 'mine' || activeFolderId === 'all' ? notes : notes.filter((note) =>
+        activeFolderId === 'root' ? !note.folder_id : note.folder_id === activeFolderId,
+    ), [notes, view, activeFolderId]);
+    const activeFolderName = activeFolderId === 'all' ? 'All notes' : activeFolderId === 'root' ? 'Unfiled' : folders.find((folder) => folder.id === activeFolderId)?.name || 'Folder';
+    const newNoteUrl = view === 'mine' && typeof activeFolderId === 'number' ? `/notes/new?folder_id=${activeFolderId}` : '/notes/new';
 
     const nav = (
         <>
@@ -349,7 +448,7 @@ export default function NotesHub() {
                         />
                     </div>
                     <div className="ml-auto flex items-center gap-2">
-                        <a href="/notes/new" className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-orange-600 px-3.5 text-sm font-bold text-white shadow-sm shadow-orange-600/20 transition hover:bg-orange-700">
+                        <a href={newNoteUrl} className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-orange-600 px-3.5 text-sm font-bold text-white shadow-sm shadow-orange-600/20 transition hover:bg-orange-700">
                             <Plus className="h-4 w-4" /><span className="hidden sm:inline">New note</span>
                         </a>
                         <a href="/tools" className="hidden h-10 w-10 items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-500 shadow-sm transition hover:bg-stone-50 hover:text-stone-900 sm:flex dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400 dark:hover:text-white" aria-label="Open TakoVibe tools"><MoreHorizontal className="h-4 w-4" /></a>
@@ -387,16 +486,41 @@ export default function NotesHub() {
                         </div>
                     </section>
 
+                    {view === 'mine' && authenticated && (
+                        <section className="mt-7" aria-label="Note folders">
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                <h2 className="text-sm font-bold text-stone-900 dark:text-white">Folders</h2>
+                                <button onClick={() => setCreatingFolder((open) => !open)} className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-bold text-orange-700 hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-orange-950/30"><FolderPlus className="h-4 w-4" /> New folder</button>
+                            </div>
+                            {creatingFolder && (
+                                <form onSubmit={createFolder} className="mt-3 flex max-w-md gap-2">
+                                    <input autoFocus maxLength={80} value={newFolderName} onChange={(event) => setNewFolderName(event.target.value)} placeholder="Folder name" aria-label="Folder name" className="min-w-0 flex-1 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm outline-none focus:border-orange-400 dark:border-neutral-700 dark:bg-neutral-900" />
+                                    <button disabled={!newFolderName.trim() || savingFolder} className="rounded-xl bg-orange-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-50">Create</button>
+                                </form>
+                            )}
+                            <div className="mt-3 flex flex-wrap gap-2">
+                                <button onClick={() => setActiveFolderId('all')} aria-pressed={activeFolderId === 'all'} className={`rounded-xl border px-3 py-2 text-xs font-bold ${activeFolderId === 'all' ? 'border-orange-300 bg-orange-50 text-orange-800 dark:border-orange-800 dark:bg-orange-950/40 dark:text-orange-300' : 'border-stone-200 bg-white text-stone-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300'}`}><FileText className="mr-1.5 inline h-3.5 w-3.5" />All <span className="ml-1 opacity-60">{notes.length}</span></button>
+                                <button onClick={() => setActiveFolderId('root')} aria-pressed={activeFolderId === 'root'} className={`rounded-xl border px-3 py-2 text-xs font-bold ${activeFolderId === 'root' ? 'border-orange-300 bg-orange-50 text-orange-800 dark:border-orange-800 dark:bg-orange-950/40 dark:text-orange-300' : 'border-stone-200 bg-white text-stone-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300'}`}><Folder className="mr-1.5 inline h-3.5 w-3.5" />Unfiled <span className="ml-1 opacity-60">{notes.filter((note) => !note.folder_id).length}</span></button>
+                                {folders.map((folder) => (
+                                    <div key={folder.id} className={`inline-flex items-center rounded-xl border text-xs font-bold ${activeFolderId === folder.id ? 'border-orange-300 bg-orange-50 text-orange-800 dark:border-orange-800 dark:bg-orange-950/40 dark:text-orange-300' : 'border-stone-200 bg-white text-stone-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300'}`}>
+                                        <button onClick={() => setActiveFolderId(folder.id)} aria-pressed={activeFolderId === folder.id} className="px-3 py-2"><Folder className="mr-1.5 inline h-3.5 w-3.5" />{folder.name} <span className="ml-1 opacity-60">{notes.filter((note) => note.folder_id === folder.id).length}</span></button>
+                                        <button onClick={() => setFolderToDelete(folder)} className="mr-1 rounded-lg p-1.5 text-stone-400 hover:bg-red-50 hover:text-red-600" aria-label={`Delete folder ${folder.name}`} title="Delete folder"><Trash2 className="h-3.5 w-3.5" /></button>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
                     <section className="mt-8">
                         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                             <div>
-                                <h2 className="text-sm font-bold text-stone-900 dark:text-white">{view === 'mine' ? 'All notes' : 'Community library'}</h2>
+                                <h2 className="text-sm font-bold text-stone-900 dark:text-white">{view === 'mine' ? activeFolderName : 'Community library'}</h2>
                                 <p className="mt-0.5 text-xs text-stone-400">{query ? `Results for “${query}”` : view === 'mine' ? 'Your recently updated canvases' : 'Public diagrams from TakoVibe readers'}</p>
                             </div>
                             <div className="inline-flex items-center gap-2 rounded-lg border border-stone-200 bg-white px-3 py-2 text-xs font-bold text-stone-500 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400"><ListFilter className="h-3.5 w-3.5" /> Last updated</div>
                         </div>
 
-                        {error && <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">{error}</div>}
+                        {(error || folderError) && <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">{error || folderError}</div>}
 
                         {view === 'mine' && !authenticated ? (
                             <div className="rounded-2xl border border-stone-200 bg-white px-6 py-16 text-center dark:border-neutral-800 dark:bg-neutral-900">
@@ -409,16 +533,16 @@ export default function NotesHub() {
                             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                                 {[1, 2, 3, 4, 5, 6].map((item) => <div key={item} className="h-[278px] animate-pulse rounded-2xl border border-stone-200 bg-white dark:border-neutral-800 dark:bg-neutral-900" />)}
                             </div>
-                        ) : notes.length === 0 ? (
+                        ) : visibleNotes.length === 0 ? (
                             <div className="rounded-2xl border border-dashed border-stone-300 bg-white px-6 py-16 text-center dark:border-neutral-700 dark:bg-neutral-900/50">
                                 <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-stone-100 text-stone-400 dark:bg-neutral-800"><Shapes className="h-5 w-5" /></span>
-                                <h2 className="mt-4 text-lg font-bold">{query ? 'No notes match that search' : view === 'mine' ? 'Your first canvas starts here' : 'No community notes yet'}</h2>
+                                <h2 className="mt-4 text-lg font-bold">{query ? 'No notes match that search' : view === 'mine' && activeFolderId !== 'all' ? `${activeFolderName} is empty` : view === 'mine' ? 'Your first canvas starts here' : 'No community notes yet'}</h2>
                                 <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-stone-500 dark:text-neutral-400">{query ? 'Try a shorter title or a different keyword.' : 'Sketch a workflow, architecture, or idea while the context is still fresh.'}</p>
-                                {view === 'mine' && !query && <a href="/notes/new" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-orange-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-orange-700"><Plus className="h-4 w-4" /> Create a note</a>}
+                                {view === 'mine' && !query && <a href={newNoteUrl} className="mt-5 inline-flex items-center gap-2 rounded-xl bg-orange-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-orange-700"><Plus className="h-4 w-4" /> Create a note</a>}
                             </div>
                         ) : (
                             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                                {notes.map((note) => <NoteCard key={note.id} note={note} canDelete={view === 'mine'} onDelete={setDeleteTarget} />)}
+                                {visibleNotes.map((note) => <NoteCard key={note.id} note={note} canDelete={view === 'mine'} onDelete={setDeleteTarget} folders={folders} onMove={moveNote} moving={movingNoteId === note.id} />)}
                             </div>
                         )}
                     </section>
@@ -434,6 +558,19 @@ export default function NotesHub() {
                         <div className="mt-6 flex justify-end gap-2">
                             <button onClick={() => setDeleteTarget(null)} className="rounded-xl px-4 py-2.5 text-sm font-bold text-stone-600 hover:bg-stone-100 dark:text-neutral-300 dark:hover:bg-neutral-800">Cancel</button>
                             <button onClick={deleteNote} disabled={isDeleting} className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-60">{isDeleting && <Loader2 className="h-4 w-4 animate-spin" />} Delete note</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {folderToDelete && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-stone-950/40 p-4 backdrop-blur-sm">
+                    <div className="w-full max-w-sm rounded-2xl border border-stone-200 bg-white p-5 shadow-2xl dark:border-neutral-800 dark:bg-neutral-900">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400"><Trash2 className="h-4 w-4" /></div>
+                        <h3 className="mt-4 text-lg font-bold">Delete “{folderToDelete.name}”?</h3>
+                        <p className="mt-2 text-sm leading-6 text-stone-500 dark:text-neutral-400">Notes in this folder will move to Unfiled.</p>
+                        <div className="mt-6 flex justify-end gap-2">
+                            <button onClick={() => setFolderToDelete(null)} className="rounded-xl px-4 py-2.5 text-sm font-bold text-stone-600 hover:bg-stone-100 dark:text-neutral-300 dark:hover:bg-neutral-800">Cancel</button>
+                            <button onClick={removeFolder} disabled={savingFolder} className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-60">{savingFolder && <Loader2 className="h-4 w-4 animate-spin" />} Delete folder</button>
                         </div>
                     </div>
                 </div>

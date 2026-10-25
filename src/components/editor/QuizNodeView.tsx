@@ -1,241 +1,321 @@
 import { NodeViewWrapper } from '@tiptap/react';
 import React from 'react';
-import { Trash2, Plus, CheckCircle2, Circle, Copy } from 'lucide-react';
+import { ArrowDown, CheckCircle2, Circle, Code2, Copy, Eye, Pencil, Plus, Trash2, X } from 'lucide-react';
+import SingleQuiz from '../SingleQuiz';
+import QuizHighlightedCode from '../QuizHighlightedCode';
+import { normalizeQuizCode, normalizeQuizOptions, parseFencedQuizCode, type QuizCode, type QuizOption } from '../../lib/quizContent';
+import { exitQuizTransaction, shouldExitQuizCode } from './quizExit';
 
-const QuizNodeView = ({ node, updateAttributes, editor, getPos }) => {
-    const { question, options, correctIndex } = node.attrs;
+const fieldClass = 'block w-full min-w-0 max-w-full resize-y overflow-y-auto rounded-lg border px-3 py-2 outline-none transition-colors';
+const textFieldClass = 'border-neutral-300 bg-white text-sm leading-relaxed text-neutral-900 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100';
+const codeFieldClass = 'rounded-none border-0 bg-transparent font-mono text-xs leading-5 text-transparent caret-neutral-100 placeholder:text-neutral-500 focus:ring-0';
+const codeLanguages = [
+    ['text', 'Plain text'],
+    ['bash', 'Bash'],
+    ['c', 'C'],
+    ['cpp', 'C++'],
+    ['csharp', 'C#'],
+    ['css', 'CSS'],
+    ['go', 'Go'],
+    ['html', 'HTML'],
+    ['java', 'Java'],
+    ['javascript', 'JavaScript'],
+    ['json', 'JSON'],
+    ['jsx', 'JSX'],
+    ['kotlin', 'Kotlin'],
+    ['markdown', 'Markdown'],
+    ['php', 'PHP'],
+    ['python', 'Python'],
+    ['ruby', 'Ruby'],
+    ['rust', 'Rust'],
+    ['sql', 'SQL'],
+    ['swift', 'Swift'],
+    ['tsx', 'TSX'],
+    ['typescript', 'TypeScript'],
+    ['yaml', 'YAML'],
+] as const;
 
-    const isEditable = editor.isEditable;
+function QuizTextArea({ value, onChange, placeholder, rows = 2, maxHeight = 192, className = '', onPaste, onKeyDown, onScroll, wrap, code = false }: {
+    value: string;
+    onChange: (value: string) => void;
+    placeholder?: string;
+    rows?: number;
+    maxHeight?: number;
+    className?: string;
+    onPaste?: (event: React.ClipboardEvent<HTMLTextAreaElement>) => void;
+    onKeyDown?: (event: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+    onScroll?: (event: React.UIEvent<HTMLTextAreaElement>) => void;
+    wrap?: 'soft' | 'hard' | 'off';
+    code?: boolean;
+}) {
+    const ref = React.useRef<HTMLTextAreaElement>(null);
+    const minHeight = code ? Math.max(120, rows * 20 + 18) : Math.max(64, rows * 24 + 18);
 
-    const [selectedOption, setSelectedOption] = React.useState(null);
-    const [isSubmitted, setIsSubmitted] = React.useState(false);
+    React.useLayoutEffect(() => {
+        const resize = () => {
+            const field = ref.current;
+            if (!field) return;
+            field.style.height = 'auto';
+            field.style.height = `${Math.min(maxHeight, Math.max(minHeight, field.scrollHeight))}px`;
+        };
 
-    const handleQuestionChange = (e) => {
-        if (!isEditable) return;
-        updateAttributes({ question: e.target.value });
+        resize();
+        // Node views can be measured before ProseMirror attaches them to the page.
+        const frame = requestAnimationFrame(resize);
+        return () => cancelAnimationFrame(frame);
+    }, [value, maxHeight, minHeight]);
+
+    return (
+        <textarea
+            ref={ref}
+            value={value}
+            onChange={event => onChange(event.target.value)}
+            onPaste={onPaste}
+            onKeyDown={onKeyDown}
+            onScroll={onScroll}
+            rows={rows}
+            wrap={wrap}
+            placeholder={placeholder}
+            spellCheck={code ? false : undefined}
+            style={{ minHeight, maxHeight }}
+            className={`${fieldClass} ${code ? codeFieldClass : textFieldClass} ${className}`}
+        />
+    );
+}
+
+function QuizCodeEditor({ label, value, onChange, onRemove, onExit }: {
+    label: string;
+    value: QuizCode;
+    onChange: (value: QuizCode) => void;
+    onRemove: () => void;
+    onExit: () => void;
+}) {
+    const [customLanguage, setCustomLanguage] = React.useState(false);
+    const highlightRef = React.useRef<HTMLPreElement>(null);
+    const languageIsListed = codeLanguages.some(([language]) => language === value.language);
+    const showCustomLanguage = customLanguage || !languageIsListed;
+
+    const handleCodeScroll = (event: React.UIEvent<HTMLTextAreaElement>) => {
+        if (!highlightRef.current) return;
+        highlightRef.current.scrollTop = event.currentTarget.scrollTop;
+        highlightRef.current.scrollLeft = event.currentTarget.scrollLeft;
     };
 
-    const handleOptionChange = (index, value) => {
-        if (!isEditable) return;
-        const newOptions = [...options];
-        newOptions[index] = value;
-        updateAttributes({ options: newOptions });
-    };
-
-    const addOption = () => {
-        if (!isEditable) return;
-        updateAttributes({ options: [...options, `Option ${options.length + 1}`] });
-    };
-
-    const removeOption = (index) => {
-        if (!isEditable) return;
-        const newOptions = options.filter((_, i) => i !== index);
-        // Adjust correctIndex if necessary
-        let newCorrectIndex = correctIndex;
-        if (index === correctIndex) {
-            newCorrectIndex = 0;
-        } else if (index < correctIndex) {
-            newCorrectIndex = correctIndex - 1;
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        const field = event.currentTarget;
+        if (shouldExitQuizCode(event.key, event.metaKey, event.ctrlKey, field.selectionStart, field.selectionEnd, field.value.length)) {
+            event.preventDefault();
+            event.stopPropagation();
+            onExit();
         }
-        updateAttributes({ options: newOptions, correctIndex: newCorrectIndex });
     };
 
-    const setCorrectOption = (index) => {
-        if (!isEditable) return;
-        updateAttributes({ correctIndex: index });
+    return (
+        <div className="mt-3 min-w-0 max-w-full overflow-hidden rounded-lg border border-neutral-300 dark:border-neutral-700">
+            <div className="flex min-w-0 items-center justify-between gap-2 border-b border-neutral-200 bg-stone-50 px-3 py-2 dark:border-neutral-700 dark:bg-neutral-900">
+                <span className="min-w-0 truncate text-xs font-semibold text-neutral-600 dark:text-neutral-300">{label} code</span>
+                <div className="flex shrink-0 items-center gap-2">
+                    <select
+                        value={showCustomLanguage ? 'custom' : value.language}
+                        onChange={event => {
+                            if (event.target.value === 'custom') {
+                                setCustomLanguage(true);
+                            } else {
+                                setCustomLanguage(false);
+                                onChange({ ...value, language: event.target.value });
+                            }
+                        }}
+                        aria-label={`${label} code language`}
+                        className="w-32 max-w-[42vw] rounded border border-neutral-300 bg-white px-2 py-1 text-xs text-neutral-800 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-200 sm:w-40"
+                    >
+                        {codeLanguages.map(([language, name]) => <option key={language} value={language}>{name}</option>)}
+                        <option value="custom">Custom language…</option>
+                    </select>
+                    <button type="button" onClick={onRemove} title="Remove code snippet" aria-label={`Remove ${label} code`} className="rounded p-1 text-neutral-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30">
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
+            </div>
+            {showCustomLanguage && (
+                <div className="border-b border-neutral-200 bg-stone-50 px-3 py-2 dark:border-neutral-700 dark:bg-neutral-900">
+                    <input
+                        type="text"
+                        value={value.language}
+                        onChange={event => onChange({ ...value, language: event.target.value })}
+                        onFocus={event => event.target.select()}
+                        aria-label={`${label} custom code language`}
+                        placeholder="Language name"
+                        className="w-full rounded border border-neutral-300 bg-white px-2 py-1 text-xs text-neutral-800 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-200"
+                    />
+                </div>
+            )}
+            <div className="relative min-w-0 max-w-full bg-neutral-950">
+                <pre ref={highlightRef} aria-hidden="true" className="quiz-syntax pointer-events-none absolute inset-0 m-0 overflow-hidden whitespace-pre px-3 py-2 font-mono text-xs leading-5 text-neutral-100">
+                    <QuizHighlightedCode language={value.language} code={value.code} />
+                </pre>
+                <QuizTextArea
+                    value={value.code}
+                    onChange={code => onChange({ ...value, code })}
+                    onPaste={event => {
+                        const pastedCode = parseFencedQuizCode(event.clipboardData.getData('text/plain'));
+                        if (pastedCode) {
+                            event.preventDefault();
+                            onChange(pastedCode);
+                        }
+                    }}
+                    onKeyDown={handleKeyDown}
+                    onScroll={handleCodeScroll}
+                    placeholder="Paste or type code here..."
+                    rows={5}
+                    maxHeight={256}
+                    wrap="off"
+                    code
+                    className="relative z-10 max-h-64 selection:bg-orange-500/30"
+                />
+            </div>
+            <p className="border-t border-neutral-200 bg-stone-50 px-3 py-1.5 text-[11px] text-neutral-500 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400">
+                Down Arrow at the end, or Cmd/Ctrl + Enter, continues below the quiz.
+            </p>
+        </div>
+    );
+}
+
+const QuizNodeView = ({ node, updateAttributes, editor, getPos }: any) => {
+    const [showPreview, setShowPreview] = React.useState(false);
+    const { question = '', correctIndex = 0, explanation = '' } = node.attrs;
+    const questionCode = normalizeQuizCode(node.attrs.questionCode);
+    const options = normalizeQuizOptions(node.attrs.options);
+
+    const updateOption = (index: number, patch: Partial<QuizOption>) => {
+        const next = options.map((option, optionIndex) => optionIndex === index ? { ...option, ...patch } : option);
+        updateAttributes({ options: next });
+    };
+
+    const addOption = () => updateAttributes({ options: [...options, { text: '' }] });
+
+    const removeOption = (index: number) => {
+        if (options.length <= 2) return;
+        const next = options.filter((_, optionIndex) => optionIndex !== index);
+        const nextCorrectIndex = index === correctIndex ? 0 : index < correctIndex ? correctIndex - 1 : correctIndex;
+        updateAttributes({ options: next, correctIndex: nextCorrectIndex });
+    };
+
+    const continueBelowQuiz = () => {
+        if (typeof getPos !== 'function') return;
+        editor.chain().focus().command(({ state, dispatch }: any) => {
+            const tr = exitQuizTransaction(state, getPos());
+            if (!tr) return false;
+            dispatch?.(tr.scrollIntoView());
+            return true;
+        }).run();
+    };
+
+    const handleFencedPaste = (event: React.ClipboardEvent<HTMLTextAreaElement>, onCode: (code: QuizCode) => void) => {
+        const code = parseFencedQuizCode(event.clipboardData.getData('text/plain'));
+        if (!code) return;
+        event.preventDefault();
+        onCode(code);
     };
 
     const handleCopyBlock = () => {
-        if (typeof getPos === 'function') {
-            const pos = getPos();
-            editor.commands.setNodeSelection(pos);
-            document.execCommand('copy');
-
-            // Move cursor to next line
-            editor.chain().focus().insertContentAt(pos + node.nodeSize, { type: 'paragraph' }).run();
-        }
+        if (typeof getPos !== 'function') return;
+        editor.commands.setNodeSelection(getPos());
+        document.execCommand('copy');
     };
 
-    // Render for Reader (Quiz Taker)
-    if (!isEditable) {
-        const handleOptionClick = (index) => {
-            if (isSubmitted) return;
-            setSelectedOption(index);
-            setIsSubmitted(true);
-        };
-
+    if (!editor.isEditable) {
         return (
-            <NodeViewWrapper className="quiz-component my-4 sm:my-8 w-full not-prose">
-                <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm transition-all duration-300 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-950">
-                    <div className="border-b border-neutral-200 bg-stone-50 px-4 py-3 dark:border-neutral-800 dark:bg-neutral-900/70 sm:px-5">
-                        <div className="flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-2">
-                                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300">
-                                    <span className="text-sm font-bold">?</span>
-                                </span>
-                                <span className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
-                                    Quick Check
-                                </span>
-                            </div>
-                            <span className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-500 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-400">
-                                {isSubmitted ? "Completed" : "Interactive"}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div className="p-4 sm:p-5">
-                        <h3 className="mb-4 text-base font-semibold leading-snug text-neutral-900 dark:text-neutral-100 sm:text-lg lg:text-xl">
-                            {question || "Untitled Quiz"}
-                        </h3>
-
-                        <div className="grid grid-cols-1 gap-2">
-                            {options.map((option, index) => {
-                                const isSelected = selectedOption === index;
-                                const isCorrect = index === correctIndex;
-                                let borderClass = "border-neutral-200 dark:border-neutral-800";
-                                let bgClass = "bg-stone-50 dark:bg-neutral-900/70";
-                                let textClass = "text-neutral-700 dark:text-neutral-300";
-                                let markerClass = "bg-neutral-200 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400";
-
-                                if (isSubmitted) {
-                                    if (isCorrect) {
-                                        borderClass = "border-emerald-500 dark:border-emerald-500";
-                                        bgClass = "bg-emerald-50 dark:bg-emerald-950/30";
-                                        textClass = "text-green-700 dark:text-green-300";
-                                        markerClass = "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300";
-                                    } else if (isSelected) {
-                                        borderClass = "border-red-500 dark:border-red-500";
-                                        bgClass = "bg-red-50 dark:bg-red-950/30";
-                                        textClass = "text-red-700 dark:text-red-300";
-                                        markerClass = "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300";
-                                    }
-                                } else if (isSelected) {
-                                    borderClass = "border-orange-500 dark:border-orange-500";
-                                    bgClass = "bg-orange-50 dark:bg-orange-950/30";
-                                    markerClass = "bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300";
-                                }
-
-                                return (
-                                    <button
-                                        key={index}
-                                        className={`relative flex items-center rounded-lg border p-3 text-left ${borderClass} ${bgClass} group overflow-hidden transition-all duration-200 ${!isSubmitted ? 'hover:border-orange-400 hover:bg-orange-50 dark:hover:border-orange-500 dark:hover:bg-orange-950/30' : 'cursor-default'}`}
-                                        onClick={() => handleOptionClick(index)}
-                                        disabled={isSubmitted}
-                                    >
-                                        <div className={`z-10 mr-3 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors ${markerClass}`}>
-                                            {isSubmitted && isCorrect ? (
-                                                <CheckCircle2 className="h-4 w-4" />
-                                            ) : isSubmitted && isSelected && !isCorrect ? (
-                                                <div className="flex h-4 w-4 items-center justify-center">x</div>
-                                            ) : (
-                                                String.fromCharCode(65 + index)
-                                            )}
-                                        </div>
-                                        <span className={`z-10 text-sm font-medium sm:text-base ${textClass}`}>
-                                            {option}
-                                        </span>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
-                    <div className="flex items-center justify-between border-t border-neutral-200 bg-stone-50 px-4 py-2 text-[10px] font-semibold uppercase tracking-wider text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900/70 dark:text-neutral-400 sm:px-5 sm:py-2.5">
-                        <span>{isSubmitted ? (selectedOption === correctIndex ? "Correct Answer" : "Incorrect Answer") : "Select an option"}</span>
-                        <span className="flex items-center gap-1.5">
-                            <span className={`h-1.5 w-1.5 rounded-full ${isSubmitted ? (selectedOption === correctIndex ? 'bg-emerald-500' : 'bg-red-500') : 'bg-orange-500 animate-pulse'}`}></span>
-                            {isSubmitted ? "Completed" : "Interactive"}
-                        </span>
-                    </div>
-                </div>
+            <NodeViewWrapper className="quiz-component not-prose w-full min-w-0 max-w-full">
+                <SingleQuiz question={question} questionCode={questionCode} options={options} correctIndex={correctIndex} explanation={explanation} />
             </NodeViewWrapper>
         );
     }
 
-    // Render for Editor (Quiz Creator)
     return (
-        <NodeViewWrapper className="quiz-component group relative my-4 overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-950 sm:my-8">
-            <div className="flex items-center justify-between gap-3 border-b border-neutral-200 bg-stone-50 px-4 py-3 dark:border-neutral-800 dark:bg-neutral-900/70 sm:px-5">
-                <div className="flex items-center gap-2">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300">
-                        <span className="text-sm font-bold">?</span>
-                    </span>
-                    <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
-                            Quiz Block
-                        </p>
-                        <p className="text-[11px] text-neutral-400 dark:text-neutral-500">
-                            Mark the correct answer before publishing.
-                        </p>
-                    </div>
+        <NodeViewWrapper className="quiz-component not-prose group relative my-4 w-full min-w-0 max-w-full overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-950 sm:my-8">
+            <div className="flex min-w-0 items-center justify-between gap-3 border-b border-neutral-200 bg-stone-50 px-4 py-3 dark:border-neutral-800 dark:bg-neutral-900/70 sm:px-5">
+                <div className="min-w-0">
+                    <p className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Quiz block</p>
+                    <p className="text-[11px] text-neutral-400 dark:text-neutral-500">Multiline answers and code examples</p>
                 </div>
-                <button
-                    onClick={handleCopyBlock}
-                    className="rounded-lg p-2 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
-                    title="Copy Quiz Block"
-                >
-                    <Copy className="h-4 w-4" />
-                </button>
+                <div className="flex shrink-0 items-center gap-1">
+                    <button type="button" onClick={() => setShowPreview(value => !value)} title={showPreview ? 'Edit quiz' : 'Preview quiz'} aria-label={showPreview ? 'Edit quiz' : 'Preview quiz'} className="rounded-lg p-2 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800">
+                        {showPreview ? <Pencil className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                    <button type="button" onClick={handleCopyBlock} title="Copy quiz block" aria-label="Copy quiz block" className="rounded-lg p-2 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800">
+                        <Copy className="h-4 w-4" />
+                    </button>
+                </div>
             </div>
 
-            <div className="p-4 sm:p-5">
-                <div className="mb-5">
-                    <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
-                        Question
-                    </label>
-                    <input
-                        type="text"
-                        value={question}
-                        onChange={handleQuestionChange}
-                        className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white sm:px-4 sm:py-2 sm:text-base"
-                        placeholder="Enter your question here..."
-                    />
+            {showPreview ? (
+                <div className="min-w-0 px-4 py-1 sm:px-5">
+                    <SingleQuiz question={question} questionCode={questionCode} options={options} correctIndex={correctIndex} explanation={explanation} />
                 </div>
+            ) : (
+                <div className="min-w-0 space-y-6 p-4 sm:p-5">
+                    <section className="min-w-0">
+                        <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Question</label>
+                        <QuizTextArea
+                            value={question}
+                            onChange={value => updateAttributes({ question: value })}
+                            onPaste={event => handleFencedPaste(event, code => updateAttributes({ questionCode: code }))}
+                            placeholder="Enter your question here..."
+                            rows={3}
+                        />
+                        {questionCode ? (
+                            <QuizCodeEditor label="Question" value={questionCode} onChange={value => updateAttributes({ questionCode: value })} onRemove={() => updateAttributes({ questionCode: null })} onExit={continueBelowQuiz} />
+                        ) : (
+                            <button type="button" onClick={() => updateAttributes({ questionCode: { language: 'text', code: '' } })} className="mt-2 inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold text-orange-600 hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-orange-950/30">
+                                <Code2 className="h-4 w-4" /> Add code example
+                            </button>
+                        )}
+                    </section>
 
-                <div className="space-y-3">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
-                        Options
-                    </label>
-                    {options.map((option, index) => (
-                        <div key={index} className="flex items-center gap-2 sm:gap-3">
-                            <button
-                                onClick={() => setCorrectOption(index)}
-                                className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border transition-colors ${index === correctIndex
-                                    ? 'border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-800/70 dark:bg-emerald-950/30 dark:text-emerald-300'
-                                    : 'border-neutral-200 bg-stone-50 text-neutral-400 hover:border-orange-300 hover:text-orange-600 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-orange-800 dark:hover:text-orange-300'
-                                    }`}
-                                title="Mark as correct answer"
-                            >
-                                {index === correctIndex ? (
-                                    <CheckCircle2 className="h-5 w-5" />
+                    <section className="min-w-0 space-y-3">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Options</h4>
+                        {options.map((option, index) => (
+                            <div key={index} className="min-w-0 max-w-full rounded-lg border border-neutral-200 p-3 dark:border-neutral-800">
+                                <div className="mb-2 flex min-w-0 items-center justify-between gap-2">
+                                    <button type="button" onClick={() => updateAttributes({ correctIndex: index })} className={`inline-flex min-w-0 items-center gap-2 rounded-lg px-2 py-1 text-xs font-semibold ${index === correctIndex ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300' : 'text-neutral-500 hover:bg-stone-50 dark:hover:bg-neutral-900'}`} aria-label={`Mark option ${String.fromCharCode(65 + index)} as correct`}>
+                                        {index === correctIndex ? <CheckCircle2 className="h-4 w-4 shrink-0" /> : <Circle className="h-4 w-4 shrink-0" />}
+                                        Option {String.fromCharCode(65 + index)} {index === correctIndex ? '· Correct' : ''}
+                                    </button>
+                                    <button type="button" onClick={() => removeOption(index)} disabled={options.length <= 2} title="Remove option" aria-label={`Remove option ${String.fromCharCode(65 + index)}`} className="rounded-lg p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-red-950/30">
+                                        <Trash2 className="h-4 w-4" />
+                                    </button>
+                                </div>
+                                <QuizTextArea
+                                    value={option.text}
+                                    onChange={text => updateOption(index, { text })}
+                                    onPaste={event => handleFencedPaste(event, code => updateOption(index, { code }))}
+                                    placeholder={`Write option ${String.fromCharCode(65 + index)}...`}
+                                />
+                                {normalizeQuizCode(option.code) ? (
+                                    <QuizCodeEditor label={`Option ${String.fromCharCode(65 + index)}`} value={normalizeQuizCode(option.code)!} onChange={code => updateOption(index, { code })} onRemove={() => updateOption(index, { code: null })} onExit={continueBelowQuiz} />
                                 ) : (
-                                    <Circle className="h-5 w-5" />
+                                    <button type="button" onClick={() => updateOption(index, { code: { language: 'text', code: '' } })} className="mt-2 inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold text-orange-600 hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-orange-950/30">
+                                        <Code2 className="h-4 w-4" /> Add code example
+                                    </button>
                                 )}
-                            </button>
-                            <input
-                                type="text"
-                                value={option}
-                                onChange={(e) => handleOptionChange(index, e.target.value)}
-                                className="min-w-0 flex-1 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 dark:border-neutral-700 dark:bg-neutral-900 dark:text-white sm:px-4 sm:py-2 sm:text-base"
-                                placeholder={`Option ${index + 1}`}
-                            />
-                            <button
-                                onClick={() => removeOption(index)}
-                                className="rounded-lg p-2 text-neutral-400 transition-colors hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-red-950/30"
-                                title="Remove option"
-                                disabled={options.length <= 2}
-                            >
-                                <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
-                            </button>
-                        </div>
-                    ))}
-                </div>
+                            </div>
+                        ))}
+                        <button type="button" onClick={addOption} className="inline-flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-orange-600 hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-orange-950/30">
+                            <Plus className="h-4 w-4" /> Add option
+                        </button>
+                    </section>
 
-                <button
-                    onClick={addOption}
-                    className="mt-4 flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-orange-600 transition-colors hover:bg-orange-50 hover:text-orange-700 dark:text-orange-400 dark:hover:bg-orange-950/30 dark:hover:text-orange-300"
-                >
-                    <Plus className="h-4 w-4" />
-                    Add Option
+                    <section className="min-w-0">
+                        <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Explanation <span className="font-normal normal-case">(shown after an answer)</span></label>
+                        <QuizTextArea value={explanation} onChange={value => updateAttributes({ explanation: value })} placeholder="Explain why the answer is correct..." rows={3} />
+                    </section>
+                </div>
+            )}
+
+            <div className="flex min-w-0 items-center justify-between gap-3 border-t border-neutral-200 bg-stone-50 px-4 py-2.5 dark:border-neutral-800 dark:bg-neutral-900/70 sm:px-5">
+                <span className="min-w-0 text-[11px] text-neutral-500 dark:text-neutral-400">Paste fenced code into any question or option field.</span>
+                <button type="button" onClick={continueBelowQuiz} className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold text-orange-600 hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-orange-950/30">
+                    Continue below <ArrowDown className="h-3.5 w-3.5" />
                 </button>
             </div>
         </NodeViewWrapper>

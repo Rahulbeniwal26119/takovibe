@@ -15,6 +15,9 @@ import { QuizExtension } from './QuizExtension';
 import { CodePlaygroundExtension } from './CodePlaygroundExtension';
 import { FAQExtension } from './FAQExtension';
 import { SlashCommand } from './SlashCommand';
+import { TrailingParagraph, withTrailingParagraph } from './TrailingParagraph';
+import { ArticleResourcesSchema } from './ArticleResourcesSchema';
+import { type ArticleAttachment, getArticleAttachments, formatArticleAttachmentSize, normalizeArticleAttachments, withArticleResourcesAtEnd } from '../../lib/articleAttachments';
 import CodeBlockComponent from './CodeBlockComponent';
 import ImageNodeView from './ImageNodeView';
 import { fetchWithAuth } from '../../utils/api';
@@ -23,6 +26,7 @@ import UserAuth from '../UserAuth';
 import { Select } from '../ui/Select';
 
 import '../../styles/editor.css';
+import '../../styles/article-resources.css';
 import {
     Bold,
     Italic,
@@ -123,6 +127,9 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
 
     const [uploadError, setUploadError] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
+    const [attachments, setAttachments] = useState<ArticleAttachment[]>([]);
+    const [attachmentError, setAttachmentError] = useState<string | null>(null);
+    const [isAttachmentUploading, setIsAttachmentUploading] = useState(false);
 
     const appendUploadOwner = (formData: FormData) => {
         const email = getUser()?.email;
@@ -260,6 +267,10 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
         setValidationErrors(errors);
         return errors.length === 0;
     };
+
+    const editorContent = initialContent?.type === 'doc'
+        ? initialContent
+        : initialContent?.content || initialContent || { type: 'doc', content: [{ type: 'paragraph' }] };
 
     const editor = useEditor({
         immediatelyRender: false,
@@ -407,6 +418,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
             QuizExtension,
             CodePlaygroundExtension,
             FAQExtension,
+            ArticleResourcesSchema,
             Link.extend({
                 addKeyboardShortcuts() {
                     return {
@@ -436,16 +448,10 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                 placeholder: 'Tell your story...',
                 showOnlyCurrent: false,
             }),
+            TrailingParagraph,
             SlashCommand,
         ],
-        content: initialContent?.content || initialContent || {
-            type: 'doc',
-            content: [
-                {
-                    type: 'paragraph',
-                },
-            ],
-        },
+        content: withTrailingParagraph(editorContent),
         editorProps: {
             attributes: {
                 class:
@@ -479,6 +485,80 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
             setSaveError(null);
         },
     });
+
+    useEffect(() => {
+        if (!editor) return;
+        const syncAttachments = () => {
+            const next = getArticleAttachments(editor.getJSON());
+            setAttachments(previous => JSON.stringify(previous) === JSON.stringify(next) ? previous : next);
+        };
+        syncAttachments();
+        editor.on('update', syncAttachments);
+        return () => { editor.off('update', syncAttachments); };
+    }, [editor]);
+
+    const handleAttachmentUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const input = event.currentTarget;
+        const file = input.files?.[0];
+        if (!file || !editor) return;
+        setIsAttachmentUploading(true);
+        setAttachmentError(null);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            const response = await fetchWithAuth('/api/upload-attachment', { method: 'POST', body: formData });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(data.error || 'Attachment upload failed.');
+            const [uploaded] = normalizeArticleAttachments([data]);
+            if (!uploaded) throw new Error('Upload did not return a valid file.');
+
+            let resourcesPosition: number | null = null;
+            let existingFiles: ArticleAttachment[] = [];
+            editor.state.doc.descendants((node, position) => {
+                if (node.type.name === 'articleResources' && resourcesPosition === null) {
+                    resourcesPosition = position;
+                    existingFiles = normalizeArticleAttachments(node.attrs.files);
+                    return false;
+                }
+            });
+
+            const { state, view } = editor;
+            const files = [...existingFiles, uploaded];
+            if (resourcesPosition !== null) {
+                view.dispatch(state.tr.setNodeMarkup(resourcesPosition, undefined, { files }));
+            } else {
+                const last = state.doc.lastChild;
+                const insertAt = last?.type.name === 'paragraph' && !last.content.size
+                    ? state.doc.content.size - last.nodeSize
+                    : state.doc.content.size;
+                view.dispatch(state.tr.insert(insertAt, state.schema.nodes.articleResources.create({ files })));
+            }
+        } catch (error: any) {
+            setAttachmentError(error.message || 'Attachment upload failed.');
+        } finally {
+            setIsAttachmentUploading(false);
+            input.value = '';
+        }
+    };
+
+    const removeAttachment = (url: string) => {
+        if (!editor) return;
+        let resourcesPosition: number | null = null;
+        let resourcesSize = 0;
+        let files: ArticleAttachment[] = [];
+        editor.state.doc.descendants((node, position) => {
+            if (node.type.name !== 'articleResources' || resourcesPosition !== null) return;
+            resourcesPosition = position;
+            resourcesSize = node.nodeSize;
+            files = normalizeArticleAttachments(node.attrs.files).filter(file => file.url !== url);
+            return false;
+        });
+        if (resourcesPosition === null) return;
+        const transaction = files.length
+            ? editor.state.tr.setNodeMarkup(resourcesPosition, undefined, { files })
+            : editor.state.tr.delete(resourcesPosition, resourcesPosition + resourcesSize);
+        editor.view.dispatch(transaction);
+    };
 
     // Listen for custom events from SlashCommand (to avoid using window.prompt)
     useEffect(() => {
@@ -557,7 +637,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
         setSaveError(null);
 
         try {
-            const data = { content: editor.getJSON(), frontmatter: frontmatterForSave };
+            const data = { content: withArticleResourcesAtEnd(editor.getJSON()), frontmatter: frontmatterForSave };
 
             if (onSave) {
                 await onSave(data);
@@ -744,8 +824,10 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
             const tablePos = $from.before(tableDepth);
             const tableEnd = tablePos + tableNode.nodeSize;
 
-            // Insert paragraph after table
-            editor.chain().insertContentAt(tableEnd, { type: 'paragraph' }).run();
+            // Keep a place to write after tables inserted before another block.
+            if (state.doc.nodeAt(tableEnd)?.type.name !== 'paragraph') {
+                editor.chain().insertContentAt(tableEnd, { type: 'paragraph' }).run();
+            }
         }
 
         setShowTableInput(false);
@@ -1477,6 +1559,39 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                 </div>
                             </div>
 
+                            {/* Files readers can download with the article */}
+                            <div className="md:col-span-2 space-y-3 border-t border-neutral-200 pt-5 dark:border-neutral-800">
+                                <div>
+                                    <label className="text-xs font-bold uppercase tracking-wider text-neutral-500">Article attachments <span className="font-medium text-neutral-400">(optional)</span></label>
+                                    <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">Notebooks and other files appear in a Resources section at the end of the article.</p>
+                                </div>
+
+                                {attachments.length > 0 && (
+                                    <ul className="space-y-2">
+                                        {attachments.map((file, index) => (
+                                            <li key={`${file.url}-${index}`} className="flex min-w-0 items-center gap-3 rounded-lg border border-neutral-200 bg-stone-50 px-3 py-2 dark:border-neutral-800 dark:bg-neutral-900">
+                                                <FileText className="h-5 w-5 shrink-0 text-orange-600 dark:text-orange-400" />
+                                                <div className="min-w-0 flex-1">
+                                                    <span className="block truncate text-sm font-medium text-neutral-900 dark:text-white" title={file.name}>{file.name}</span>
+                                                    <span className="text-xs text-neutral-500">{file.name.toLowerCase().endsWith('.ipynb') ? 'Jupyter notebook' : 'Attachment'}{file.size ? ` · ${formatArticleAttachmentSize(file.size)}` : ''}</span>
+                                                </div>
+                                                <button type="button" onClick={() => removeAttachment(file.url)} aria-label={`Remove ${file.name}`} title={`Remove ${file.name}`} className="rounded-md p-1.5 text-neutral-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30">
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+
+                                <label className={`inline-flex items-center gap-2 rounded-lg border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-800 transition-colors dark:border-neutral-700 dark:text-neutral-200 ${isAttachmentUploading ? 'cursor-wait opacity-60' : 'cursor-pointer hover:border-orange-500 hover:text-orange-600 dark:hover:text-orange-400'}`}>
+                                    {isAttachmentUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                                    {isAttachmentUploading ? 'Uploading file…' : 'Add attachment'}
+                                    <input type="file" className="hidden" accept=".ipynb,.pdf,.zip,.csv,.txt,.md" disabled={isAttachmentUploading} onChange={handleAttachmentUpload} />
+                                </label>
+                                <p className="text-xs text-neutral-500 dark:text-neutral-400">IPYNB, PDF, ZIP, CSV, TXT, or MD · up to 25 MB each</p>
+                                {attachmentError && <p role="alert" className="text-xs font-medium text-red-600 dark:text-red-400">{attachmentError}</p>}
+                            </div>
+
                             {/* Author & Slug */}
                             <div className="space-y-2">
                                 <label className="text-xs font-bold uppercase tracking-wider text-neutral-500">Author</label>
@@ -1611,6 +1726,8 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({
                                     { label: 'Ordered List', keys: ['1.', 'Space'] },
                                     { label: 'Quote', keys: ['>', 'Space'] },
                                     { label: 'Code Block', keys: ['```', 'Enter'] },
+                                    { label: 'Continue below table', keys: ['↓'] },
+                                    { label: 'Continue from any table cell', keys: ['⌘/Ctrl', 'Enter'] },
                                     { label: 'Divider', keys: ['---', 'Enter'] },
                                 ].map((item, i) => (
                                     <div key={i} className="flex items-center justify-between px-4 py-3 rounded-lg hover:bg-stone-50 dark:hover:bg-white/5 transition-colors group">

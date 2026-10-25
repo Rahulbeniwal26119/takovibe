@@ -1,6 +1,9 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { generateServerHtml } from "../utils/generateHtml";
+import "../styles/article-tables.css";
+import "../styles/article-resources.css";
+import { getArticleAttachments } from "../lib/articleAttachments";
 import Footer from "./Footer.astro";
 import RelatedPosts from "./RelatedPosts.astro";
 import MobileActionDock from "./MobileActionDock.astro";
@@ -56,6 +59,7 @@ const publishDate = new Date(post.data.date).toISOString();
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site).toString();
 
 const serverHtml = htmlContent || (post.contentJson ? generateServerHtml(post.contentJson): '');
+const articleAttachments = getArticleAttachments(post.contentJson);
 
 const articleStructuredData = {
     "@context": "https://schema.org",
@@ -719,6 +723,12 @@ const breadcrumbStructuredData = {
                                     }
                                 </div>
                             </div>
+                            {articleAttachments.length > 0 && (
+                                <a href="#article-resources" class="inline-flex w-fit items-center gap-2 rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-sm font-semibold text-orange-800 transition hover:bg-orange-100 dark:border-orange-900 dark:bg-orange-950/30 dark:text-orange-300 dark:hover:bg-orange-950/60">
+                                    <span aria-hidden="true">↓</span>
+                                    {articleAttachments.some(file => file.name.toLowerCase().endsWith('.ipynb')) ? 'Download notebook and files' : 'Download article files'}
+                                </a>
+                            )}
                         </div>
                     </header>
 
@@ -1002,79 +1012,6 @@ const breadcrumbStructuredData = {
     .prose h3 {
         margin-top: 1.5em;
         margin-bottom: 0.75em;
-    }
-
-    /* Responsive Tables */
-    .mdx-content table,
-    .prose table {
-        width: 100%;
-        max-width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-        table-layout: fixed;
-        margin: 2.5rem 0;
-        border-radius: 0.75rem;
-        border: 1px solid rgba(229, 231, 235, 0.1);
-        font-size: 0.9375rem;
-        overflow: hidden;
-    }
-
-    /* Prevent table from stretching the whole page */
-    .mdx-content, .prose {
-        overflow-wrap: break-word;
-        word-wrap: break-word;
-    }
-
-    .mdx-content table th,
-    .prose table th {
-        background-color: rgba(249, 250, 251, 1);
-        color: #374151;
-        font-weight: 700;
-        text-transform: uppercase;
-        font-size: 0.75rem;
-        letter-spacing: 0.05em;
-        padding: 1rem 1.25rem;
-        border-bottom: 2px solid rgba(229, 231, 235, 1);
-        text-align: left;
-        white-space: nowrap;
-    }
-
-    .dark .mdx-content table th,
-    .dark .prose table th {
-        background-color: rgba(31, 41, 55, 0.5);
-        color: #e5e7eb;
-        border-bottom-color: rgba(75, 85, 99, 0.5);
-    }
-
-    .mdx-content table td,
-    .prose table td {
-        padding: 1rem 1.25rem;
-        border-bottom: 1px solid rgba(229, 231, 235, 1);
-        color: #4b5563;
-        line-height: 1.5;
-        overflow-wrap: anywhere;
-        word-break: normal;
-    }
-
-    .dark .mdx-content table td,
-    .dark .prose table td {
-        color: #9ca3af;
-        border-bottom-color: rgba(75, 85, 99, 0.2);
-    }
-
-    .mdx-content table tr:last-child td,
-    .prose table tr:last-child td {
-        border-bottom: none;
-    }
-
-    .mdx-content table tr:hover td,
-    .prose table tr:hover td {
-        background-color: rgba(243, 244, 246, 0.5);
-    }
-
-    .dark .mdx-content table tr:hover td,
-    .dark .prose table tr:hover td {
-        background-color: rgba(255, 255, 255, 0.02);
     }
 
     .custom-scrollbar::-webkit-scrollbar,

@@ -72,6 +72,23 @@ async function fetchSiteData() {
 // Fetch sitemap data at config load time
 const { data: siteData } = await fetchSiteData();
 
+// Keep production articles prerendered, but resolve blog slugs on every
+// request in local dev so a newly published article needs no site build.
+function localBlogPreview() {
+  let isDev = false;
+  return {
+    name: 'local-blog-preview',
+    hooks: {
+      'astro:config:setup': ({ command }) => { isDev = command === 'dev'; },
+      'astro:route:setup': ({ route }) => {
+        if (isDev && route.component === 'src/pages/blog/[...slug].astro') {
+          route.prerender = false;
+        }
+      },
+    },
+  };
+}
+
 export default defineConfig({
   site: 'https://takovibe.com',
   trailingSlash: 'ignore',
@@ -84,6 +101,7 @@ export default defineConfig({
     inlineStylesheets: 'always',
   },
   integrations: [
+    localBlogPreview(),
     react(),
     mdx({
       remarkPlugins: [remarkMath],

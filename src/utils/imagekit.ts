@@ -1,40 +1,50 @@
-import ImageKit from "imagekit";
+import type ImageKit from "imagekit";
 import { Buffer } from "node:buffer";
 
-const imagekit = new ImageKit({
+// The SDK pulls in axios/follow-redirects at import time, which can fail while
+// Astro loads API routes under Bun. Uploads only need ImageKit's HTTP API.
+// Keep the SDK lazy for the file-management operations below.
+let imagekitPromise: Promise<ImageKit> | undefined;
+const getImageKit = () => imagekitPromise ??= import('imagekit').then(({ default: ImageKit }) => new ImageKit({
     publicKey: import.meta.env.IMAGEKIT_PUBLIC_KEY,
     privateKey: import.meta.env.IMAGEKIT_PRIVATE_KEY,
     urlEndpoint: import.meta.env.IMAGEKIT_URL_ENDPOINT,
-});
+}));
+
+type UploadOptions = {
+    folder?: string;
+    isPrivateFile?: boolean;
+    fileName?: string;
+    overwrite?: boolean;
+};
+
+export const makeImageKitUploadRequest = (file: File, options: UploadOptions, privateKey: string): Request => {
+    if (!privateKey) throw new Error('ImageKit private key is not configured.');
+    const fileName = options.fileName || file.name;
+    const body = new FormData();
+    body.append('file', file, fileName);
+    body.append('fileName', fileName);
+    body.append('useUniqueFileName', String(!options.overwrite));
+    if (options.overwrite) body.append('overwriteFile', 'true');
+    if (options.folder) body.append('folder', options.folder);
+    if (options.isPrivateFile !== undefined) body.append('isPrivateFile', String(options.isPrivateFile));
+
+    return new Request('https://upload.imagekit.io/api/v1/files/upload', {
+        method: 'POST',
+        headers: { Authorization: `Basic ${Buffer.from(`${privateKey}:`).toString('base64')}` },
+        body,
+    });
+};
 
 export const uploadImage = async (
     file: File,
-    options?: {
-        folder?: string;
-        isPrivateFile?: boolean;
-        fileName?: string;
-        // Replace the file already sitting at this path instead of creating a new
-        // one. Used for regenerated assets (note thumbnails) that would otherwise
-        // pile up a fresh copy in storage on every refresh.
-        overwrite?: boolean;
-    }
+    options: UploadOptions = {},
 ) => {
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    return new Promise((resolve, reject) => {
-        imagekit.upload({
-            file: buffer,
-            fileName: options?.fileName || file.name,
-            useUniqueFileName: !options?.overwrite,
-            ...(options?.overwrite && { overwriteFile: true }),
-            ...(options?.folder && { folder: options.folder }),
-            ...(options?.isPrivateFile !== undefined && { isPrivateFile: options.isPrivateFile }),
-        }, (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-        });
-    });
+    const response = await fetch(makeImageKitUploadRequest(file, options, import.meta.env.IMAGEKIT_PRIVATE_KEY));
+    const result = await response.json().catch(() => null);
+    if (!response.ok) throw new Error(result?.message || `ImageKit upload failed (${response.status}).`);
+    if (!result?.url) throw new Error('ImageKit upload did not return a URL.');
+    return result;
 };
 
 export const imagekitUrlEndpoint = () => import.meta.env.IMAGEKIT_URL_ENDPOINT || '';
@@ -53,6 +63,7 @@ const MAX_FILES_SCANNED_PER_FOLDER = 5000;
 export const resolveFileIdsByPath = async (
     storagePaths: string[],
 ): Promise<Map<string, string>> => {
+    const imagekit = await getImageKit();
     const wantedByFolder = new Map<string, Set<string>>();
     for (const path of storagePaths) {
         const index = path.lastIndexOf('/');
@@ -94,6 +105,7 @@ export const resolveFileIdsByPath = async (
 
 /** Deletes files by ImageKit file id, in the 100-per-call batches the API allows. */
 export const deleteFilesByIds = async (fileIds: string[]): Promise<number> => {
+    const imagekit = await getImageKit();
     let deleted = 0;
     for (let start = 0; start < fileIds.length; start += 100) {
         const batch = fileIds.slice(start, start + 100);

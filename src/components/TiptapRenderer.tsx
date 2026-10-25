@@ -16,6 +16,7 @@ import CodeBlockComponent from './editor/CodeBlockComponent';
 import ImageNodeView from './editor/ImageNodeView';
 import { CodePlaygroundExtension } from './editor/CodePlaygroundExtension';
 import { FAQExtension } from './editor/FAQExtension';
+import { ArticleResourcesSchema } from './editor/ArticleResourcesSchema';
 import '../styles/editor.css';
 
 // Initialize lowlight with common languages
@@ -152,6 +153,7 @@ export const TiptapRenderer: React.FC<TiptapRendererProps> = ({ content }) => {
             QuizExtension, // Quiz might need read-only adjustments if it has interactive editing features
             CodePlaygroundExtension,
             FAQExtension,
+            ArticleResourcesSchema,
             Link.configure({
                 openOnClick: true,
                 autolink: true,

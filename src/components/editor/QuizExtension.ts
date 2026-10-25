@@ -1,11 +1,14 @@
 import { ReactNodeViewRenderer } from '@tiptap/react';
 import QuizNodeView from './QuizNodeView';
 import { QuizSchema } from './QuizSchema';
+import type { QuizCode, StoredQuizOption } from '../../lib/quizContent';
 
 export interface QuizAttributes {
     question: string;
-    options: string[];
+    questionCode?: QuizCode | null;
+    options: StoredQuizOption[];
     correctIndex: number;
+    explanation?: string;
 }
 
 declare module '@tiptap/core' {

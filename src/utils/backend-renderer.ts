@@ -15,6 +15,7 @@ import { common, createLowlight } from "lowlight";
 import { QuizSchema } from "../components/editor/QuizSchema";
 import { CodePlaygroundSchema } from "../components/editor/CodePlaygroundSchema";
 import { FAQSchema } from "../components/editor/FAQSchema";
+import { ArticleResourcesSchema } from "../components/editor/ArticleResourcesSchema";
 import { createHighlighter } from "shiki";
 
 // Initialize lowlight
@@ -164,6 +165,7 @@ export async function processBackendContent(contentJson: any) {
         CustomHeading,
         Underline,
         Table.configure({
+            renderWrapper: true,
             HTMLAttributes: {
                 class: "border-collapse table-auto w-full my-4",
             },
@@ -190,6 +192,7 @@ export async function processBackendContent(contentJson: any) {
         QuizSchema,
         CodePlaygroundSchema,
         FAQSchema,
+        ArticleResourcesSchema,
         Link.extend({
             addAttributes() {
                 return {

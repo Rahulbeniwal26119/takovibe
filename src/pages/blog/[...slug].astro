@@ -5,6 +5,7 @@ import { getCollection } from "astro:content";
 import { processBackendContent } from "../../utils/backend-renderer";
 import ArticleTemplate from "../../components/ArticleTemplate.astro";
 import { blockedSlugs } from "../../config/retired-content";
+import { fetchBlogPostBySlug } from "../../lib/blogPreview";
 
 export async function getStaticPaths() {
   const API_BASE = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
@@ -58,7 +59,7 @@ export async function getStaticPaths() {
 const { slug } = Astro.params;
 const { initialPostData } = Astro.props;
 
-if (!slug) {
+if (!slug || blockedSlugs.has(slug)) {
   return Astro.redirect("/404");
 }
 
@@ -72,23 +73,11 @@ let isStatic = false;
 try {
   let apiData: any = initialPostData;
 
-  // If no initial data (e.g. running in SSR mode or fallback), try fetching
+  // Local dev serves this route on demand. Try the slug filter first, then
+  // the complete list for backends that do not support filtering by slug.
   if (!apiData) {
     const API_BASE = import.meta.env.PUBLIC_API_URL || "http://localhost:8000";
-    // Using the same endpoint convention as list, but specific post if supported,
-    // or falling back to the old endpoint if that was intentional.
-    // Given the user context, we'll try to use the logic that works.
-    // However, since we are in SSG (prerender=true), getStaticPaths handles everything.
-    // We will keep a fallback fetch just in case logic changes to SSR later.
-    const apiUrl = `${API_BASE}/api/blogs/blogs/?slug=${slug}&include_content=true`;
-    const response = await fetch(apiUrl);
-
-    if (response.ok) {
-      const result = await response.json();
-      // Assuming filtered list returns array
-      const posts = Array.isArray(result) ? result : result.results || [];
-      apiData = posts.find((p: any) => p.slug === slug);
-    }
+    apiData = await fetchBlogPostBySlug(slug, API_BASE);
   }
 
   // 1.1 Fetch Series Data (Separate API per user request)
