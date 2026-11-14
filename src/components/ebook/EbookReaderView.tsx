@@ -268,6 +268,11 @@ export default function EbookReaderView({ bookId, onClose }: Props) {
         if (!rendition?.manager) return;
         try {
             rendition.resize();
+            // epub.js clears all views on resize and only redisplays if its
+            // internal `location` is set (rendition.js:479). Fullscreen toggles
+            // and Kumi show/hide race that, blanking the page. Redisplay ourselves.
+            const cfi = rendition.currentLocation?.()?.start?.cfi;
+            if (cfi) rendition.display(cfi);
         } catch {
             /* The iframe manager may disappear during a reload. */
         }
