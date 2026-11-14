@@ -1,0 +1,272 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-14T00:00:00Z",
+  "title": "Design System: TakoVibe",
+  "extensions": {
+    "colorMeta": {
+      "spark-orange": {
+        "role": "primary",
+        "displayName": "Spark Orange",
+        "canonical": "#f97316",
+        "tonalRamp": ["#fff7ed", "#ffedd5", "#fed7aa", "#fdba74", "#fb923c", "#f97316", "#ea580c", "#c2410c", "#9a3412", "#7c2d12", "#431407"]
+      },
+      "spark-orange-light": {
+        "role": "primary",
+        "displayName": "Spark Orange Light",
+        "canonical": "#fb923c",
+        "tonalRamp": ["#fff7ed", "#ffedd5", "#fed7aa", "#fdba74", "#fb923c", "#f97316", "#ea580c", "#c2410c"]
+      },
+      "spark-orange-deep": {
+        "role": "primary",
+        "displayName": "Spark Orange Deep",
+        "canonical": "#ea580c",
+        "tonalRamp": ["#fed7aa", "#fdba74", "#fb923c", "#f97316", "#ea580c", "#c2410c", "#9a3412", "#7c2d12"]
+      },
+      "schematic-blue": {
+        "role": "secondary",
+        "displayName": "Schematic Blue",
+        "canonical": "#0ea5e9",
+        "tonalRamp": ["#f0f9ff", "#e0f2fe", "#bae6fd", "#7dd3fc", "#38bdf8", "#0ea5e9", "#0284c7", "#0369a1"]
+      },
+      "schematic-blue-light": {
+        "role": "secondary",
+        "displayName": "Schematic Blue Light",
+        "canonical": "#38bdf8",
+        "tonalRamp": ["#f0f9ff", "#e0f2fe", "#bae6fd", "#7dd3fc", "#38bdf8", "#0ea5e9", "#0284c7"]
+      },
+      "meadow-green": {
+        "role": "tertiary",
+        "displayName": "Meadow Green",
+        "canonical": "#15803d",
+        "tonalRamp": ["#f0fdf4", "#dcfce7", "#bbf7d0", "#86efac", "#4ade80", "#22c55e", "#16a34a", "#15803d", "#166534"]
+      },
+      "meadow-green-light": {
+        "role": "tertiary",
+        "displayName": "Meadow Green Light",
+        "canonical": "#86efac",
+        "tonalRamp": ["#f0fdf4", "#dcfce7", "#bbf7d0", "#86efac", "#4ade80", "#22c55e", "#16a34a"]
+      },
+      "paper-cream": {
+        "role": "neutral",
+        "displayName": "Paper Cream",
+        "canonical": "#f4f0e8",
+        "tonalRamp": ["#faf7f0", "#f4f0e8", "#ece6d6", "#e0d7c2", "#c9bb9c", "#a89877", "#7c6f58", "#50473a"]
+      },
+      "paper-stat": {
+        "role": "neutral",
+        "displayName": "Paper Stat",
+        "canonical": "#f7f4ed",
+        "tonalRamp": ["#fbf9f4", "#f7f4ed", "#efeadb", "#e2dac3", "#c7bc9f", "#a2957a", "#766a56", "#4c4537"]
+      },
+      "paper-white": {
+        "role": "neutral",
+        "displayName": "Paper White",
+        "canonical": "#ffffff",
+        "tonalRamp": ["#ffffff", "#fafaf9", "#f5f5f4", "#e7e5e4", "#d6d3d1", "#a8a29e", "#78716c", "#57534e"]
+      },
+      "coal": {
+        "role": "neutral",
+        "displayName": "Coal",
+        "canonical": "#181713",
+        "tonalRamp": ["#f0ece4", "#d2cab8", "#a89f85", "#74695a", "#4b4238", "#2e2822", "#211d18", "#181713", "#0f0d0a"]
+      },
+      "coal-deep": {
+        "role": "neutral",
+        "displayName": "Coal Deep",
+        "canonical": "#11100e",
+        "tonalRamp": ["#ebe7df", "#c9c0ad", "#9d927d", "#6a6150", "#423a30", "#28221b", "#1b1814", "#11100e", "#070604"]
+      },
+      "carbon": {
+        "role": "neutral",
+        "displayName": "Carbon (legacy)",
+        "canonical": "#171923",
+        "tonalRamp": ["#e8e9ee", "#bcc0ca", "#898ea0", "#5a607a", "#383e55", "#22273b", "#1a1e2d", "#171923", "#0b0c11"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#1c1917",
+        "tonalRamp": ["#fafaf9", "#f5f5f4", "#e7e5e4", "#d6d3d1", "#a8a29e", "#78716c", "#57534e", "#44403c", "#292524", "#1c1917", "#0c0a09"]
+      },
+      "bone": {
+        "role": "neutral",
+        "displayName": "Bone",
+        "canonical": "#fafaf9",
+        "tonalRamp": ["#ffffff", "#fafaf9", "#f5f5f4", "#e7e5e4", "#d6d3d1", "#a8a29e", "#78716c"]
+      },
+      "stone-pale": {
+        "role": "neutral",
+        "displayName": "Stone Pale",
+        "canonical": "#e7e5e4",
+        "tonalRamp": ["#fafaf9", "#f5f5f4", "#e7e5e4", "#d6d3d1", "#a8a29e", "#78716c"]
+      },
+      "stone-soft": {
+        "role": "neutral",
+        "displayName": "Stone Soft",
+        "canonical": "#d6d3d1",
+        "tonalRamp": ["#fafaf9", "#f5f5f4", "#e7e5e4", "#d6d3d1", "#a8a29e", "#78716c", "#57534e"]
+      },
+      "haze": {
+        "role": "neutral",
+        "displayName": "Haze",
+        "canonical": "#78716c",
+        "tonalRamp": ["#e7e5e4", "#d6d3d1", "#a8a29e", "#78716c", "#57534e", "#44403c", "#292524"]
+      },
+      "haze-light": {
+        "role": "neutral",
+        "displayName": "Haze Light",
+        "canonical": "#a8a29e",
+        "tonalRamp": ["#f5f5f4", "#e7e5e4", "#d6d3d1", "#a8a29e", "#78716c", "#57534e"]
+      },
+      "ash": {
+        "role": "neutral",
+        "displayName": "Ash",
+        "canonical": "#292524",
+        "tonalRamp": ["#e7e5e4", "#a8a29e", "#78716c", "#57534e", "#44403c", "#292524", "#1c1917", "#0c0a09"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display (Syne)", "purpose": "Hero headlines only; one per surface." },
+      "headline": { "displayName": "Headline (Syne)", "purpose": "Section headings on landing and tool surfaces." },
+      "title": { "displayName": "Title (Syne)", "purpose": "Card titles, tool names, featured-article titles." },
+      "body": { "displayName": "Body (DM Sans)", "purpose": "General body copy on marketing and tool surfaces." },
+      "bodyProse": { "displayName": "Body Prose (DM Sans)", "purpose": "Long-form article body, capped at 65ch." },
+      "label": { "displayName": "Label / Kicker (DM Sans)", "purpose": "Uppercase eyebrow labels, category badges, stat labels." },
+      "mono": { "displayName": "Mono (JetBrains Mono)", "purpose": "Inline tokens, identifiers, and code samples." }
+    },
+    "shadows": [
+      { "name": "ambient-orange-low", "value": "0 10px 24px rgba(249, 115, 22, 0.08)", "purpose": "Subtle warmth under an interactive card at rest on light surfaces." },
+      { "name": "ambient-orange-hover", "value": "0 0 20px rgba(249, 115, 22, 0.15)", "purpose": "Hover-glow bloom under an interactive element on light." },
+      { "name": "ambient-orange-hover-dark", "value": "0 0 20px rgba(251, 146, 60, 0.20)", "purpose": "Hover-glow bloom under an interactive element on dark." },
+      { "name": "oxblood-panel", "value": "0 25px 50px rgba(67, 20, 7, 0.15)", "purpose": "Warm drop under a featured coal-panel card." },
+      { "name": "card-lift-light", "value": "0 20px 40px -12px rgba(0, 0, 0, 0.15)", "purpose": "Neutral drop paired with a card-lift translate on light surfaces." },
+      { "name": "card-lift-dark", "value": "0 20px 40px -12px rgba(0, 0, 0, 0.40)", "purpose": "Neutral drop paired with a card-lift translate on dark surfaces." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Default easing for all state transitions (hover lift, focus ring, card-lift)." },
+      { "name": "duration-fast", "value": "200ms", "purpose": "Micro-interactions: hover color, focus ring, chevron rotate." },
+      { "name": "duration-standard", "value": "300ms", "purpose": "Card lift, hover-glow bloom, nav pill transitions." },
+      { "name": "duration-slow", "value": "500ms", "purpose": "Logo rotate on hover, image scale-in on card hover." },
+      { "name": "fade-in-up", "value": "600ms cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Section entry animation with translateY(20px) → translateY(0)." },
+      { "name": "flow-line", "value": "7s infinite", "purpose": "Signature hero flow-line slow animation." }
+    ],
+    "breakpoints": [
+      { "name": "xs", "value": "300px" },
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" },
+      { "name": "2xl", "value": "1536px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one confident action on a surface: solid Spark Orange pill, uppercase label, chevron.",
+      "html": "<button class=\"ds-btn-primary\">Read articles <svg class=\"ds-btn-arrow\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M5 12h13m-5-5 5 5-5 5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 8px; background: #f97316; color: #fafaf9; font-family: 'DM Sans', sans-serif; font-size: 0.875rem; font-weight: 700; letter-spacing: 0.04em; padding: 12px 24px; border: none; border-radius: 9999px; cursor: pointer; transition: background 300ms cubic-bezier(0.4,0,0.2,1), transform 300ms cubic-bezier(0.4,0,0.2,1), box-shadow 300ms cubic-bezier(0.4,0,0.2,1); } .ds-btn-primary:hover { background: #ea580c; transform: translateY(-1px); box-shadow: 0 0 20px rgba(249, 115, 22, 0.15); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #f97316; } .ds-btn-primary .ds-btn-arrow { width: 14px; height: 14px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Ghost pill with hairline border; used when a surface already has a primary.",
+      "html": "<button class=\"ds-btn-secondary\">Latest issue</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; gap: 8px; background: transparent; color: #1c1917; font-family: 'DM Sans', sans-serif; font-size: 0.875rem; font-weight: 700; letter-spacing: 0.04em; padding: 12px 24px; border: 1px solid rgba(0,0,0,0.1); border-radius: 9999px; cursor: pointer; transition: background 300ms cubic-bezier(0.4,0,0.2,1), color 300ms cubic-bezier(0.4,0,0.2,1); } .ds-btn-secondary:hover { background: rgba(0,0,0,0.05); } .ds-btn-secondary:focus-visible { outline: none; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #f97316; }"
+    },
+    {
+      "name": "Kicker Label",
+      "kind": "chip",
+      "refersTo": "chip-kicker",
+      "description": "Uppercase micro-label that leads every hero and significant section.",
+      "html": "<span class=\"ds-kicker\">A workshop for working engineers</span>",
+      "css": ".ds-kicker { display: inline-block; font-family: 'DM Sans', sans-serif; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #ea580c; }"
+    },
+    {
+      "name": "Paper Card",
+      "kind": "card",
+      "refersTo": "card-paper",
+      "description": "Default signature surface on cream grounds: translucent paper with hairline border and backdrop blur.",
+      "html": "<div class=\"ds-card-paper\"><p class=\"ds-card-kicker\">Next issue</p><h2 class=\"ds-card-title\">A deep-dive is being prepared.</h2><p class=\"ds-card-body\">Subscribe now and start with the full library while the next piece lands.</p></div>",
+      "css": ".ds-card-paper { background: rgba(255,255,255,0.7); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); border: 1px solid rgba(0,0,0,0.1); border-radius: 28px; padding: 32px; color: #1c1917; font-family: 'DM Sans', sans-serif; } .ds-card-kicker { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #c2410c; margin: 0; } .ds-card-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 2.25rem; line-height: 1.1; margin: 20px 0 0; } .ds-card-body { font-size: 1rem; line-height: 1.75; color: #57534e; margin: 16px 0 0; max-width: 54ch; }"
+    },
+    {
+      "name": "Coal Panel Card",
+      "kind": "card",
+      "refersTo": "card-coal",
+      "description": "Featured dark surface: the workshop's benchtop. Rounded 28px, warm orange-tinted drop shadow, hairline border, hover-lift.",
+      "html": "<a class=\"ds-card-coal\" href=\"#\"><div class=\"ds-card-coal-meta\"><span>Latest article</span><span class=\"ds-card-coal-sep\">/</span><span>Engineering</span></div><h2 class=\"ds-card-coal-title\">The reasoning behind real systems</h2><p class=\"ds-card-coal-body\">The claim, the tradeoff, the runnable artifact.</p><span class=\"ds-card-coal-link\">Read the piece →</span></a>",
+      "css": ".ds-card-coal { display: block; background: #181713; color: #fafaf9; border: 1px solid rgba(255,255,255,0.1); border-radius: 28px; padding: 32px; text-decoration: none; box-shadow: 0 25px 50px rgba(67, 20, 7, 0.15); transition: transform 300ms cubic-bezier(0.4,0,0.2,1), box-shadow 300ms cubic-bezier(0.4,0,0.2,1); font-family: 'DM Sans', sans-serif; } .ds-card-coal:hover { transform: translateY(-4px); box-shadow: 0 35px 60px rgba(67, 20, 7, 0.25); } .ds-card-coal-meta { display: flex; gap: 8px; font-size: 0.625rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: #fdba74; } .ds-card-coal-sep { color: #57534e; } .ds-card-coal-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.875rem; line-height: 1.1; margin: 16px 0 0; } .ds-card-coal-body { font-size: 0.9375rem; line-height: 1.65; color: #a8a29e; margin: 14px 0 0; } .ds-card-coal-link { display: inline-flex; margin-top: 20px; font-size: 0.875rem; font-weight: 700; color: #fdba74; }"
+    },
+    {
+      "name": "Text Input (Framed)",
+      "kind": "input",
+      "refersTo": "input-text",
+      "description": "Transparent input embedded in a paper-card frame that carries the border; focus ring is orange.",
+      "html": "<div class=\"ds-input-frame\"><input class=\"ds-input\" type=\"email\" placeholder=\"Email for one deep-dive a week\" /><button class=\"ds-input-cta\" type=\"button\">Subscribe</button></div>",
+      "css": ".ds-input-frame { display: flex; gap: 12px; background: rgba(255,255,255,0.7); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); border: 1px solid rgba(0,0,0,0.1); border-radius: 16px; padding: 8px; box-shadow: 0 10px 24px rgba(249, 115, 22, 0.08); } .ds-input { flex: 1; min-height: 48px; background: transparent; border: none; border-radius: 12px; padding: 0 16px; font-family: 'DM Sans', sans-serif; font-size: 0.9375rem; color: #1c1917; outline: none; } .ds-input::placeholder { color: #a8a29e; } .ds-input:focus { box-shadow: inset 0 0 0 2px #f97316; } .ds-input-cta { display: inline-flex; align-items: center; justify-content: center; background: #f97316; color: #fafaf9; font-family: 'DM Sans', sans-serif; font-size: 0.875rem; font-weight: 700; letter-spacing: 0.04em; padding: 12px 24px; border: none; border-radius: 12px; cursor: pointer; transition: background 300ms cubic-bezier(0.4,0,0.2,1); } .ds-input-cta:hover { background: #ea580c; }"
+    },
+    {
+      "name": "Nav Pill",
+      "kind": "nav",
+      "refersTo": "nav-link",
+      "description": "Header nav link rendered as a pill. Active state swaps text to Spark Orange Deep with a very subtle neutral ground.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-link ds-nav-link-active\" href=\"#\">Articles</a><a class=\"ds-nav-link\" href=\"#\">Series</a><a class=\"ds-nav-link\" href=\"#\">Tools</a><a class=\"ds-nav-link\" href=\"#\">About</a></nav>",
+      "css": ".ds-nav { display: inline-flex; gap: 8px; font-family: 'DM Sans', sans-serif; } .ds-nav-link { display: inline-flex; align-items: center; padding: 8px 16px; font-size: 0.875rem; font-weight: 600; color: #78716c; text-decoration: none; border-radius: 9999px; transition: color 200ms cubic-bezier(0.4,0,0.2,1), background 200ms cubic-bezier(0.4,0,0.2,1); } .ds-nav-link:hover { color: #1c1917; background: rgba(0,0,0,0.04); } .ds-nav-link-active { color: #ea580c; background: #fafaf9; }"
+    },
+    {
+      "name": "Tool Tile",
+      "kind": "card",
+      "refersTo": "card-coal",
+      "description": "Signature workshop tile for a shipped tool: coal ground, orange kicker, title, one-line role, hover lift.",
+      "html": "<a class=\"ds-tool-tile\" href=\"#\"><span class=\"ds-tool-tile-kicker\">Tool</span><h3 class=\"ds-tool-tile-title\">Vellora</h3><p class=\"ds-tool-tile-body\">Read EPUBs and PDFs with highlights, folders, and local-first progress.</p><span class=\"ds-tool-tile-arrow\">Open →</span></a>",
+      "css": ".ds-tool-tile { display: flex; flex-direction: column; justify-content: space-between; min-height: 200px; background: #0f1311; color: #fafaf9; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px; text-decoration: none; font-family: 'DM Sans', sans-serif; transition: transform 300ms cubic-bezier(0.4,0,0.2,1), border-color 300ms cubic-bezier(0.4,0,0.2,1), box-shadow 300ms cubic-bezier(0.4,0,0.2,1); box-shadow: 0 20px 40px -12px rgba(0,0,0,0.3); } .ds-tool-tile:hover { transform: translateY(-4px); border-color: rgba(253, 186, 116, 0.4); box-shadow: 0 0 20px rgba(251, 146, 60, 0.20), 0 20px 40px -12px rgba(0,0,0,0.4); } .ds-tool-tile-kicker { font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: #fdba74; } .ds-tool-tile-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.5rem; line-height: 1.1; margin: 12px 0 0; } .ds-tool-tile-body { font-size: 0.9375rem; line-height: 1.6; color: #a8a29e; margin: 12px 0 0; } .ds-tool-tile-arrow { display: inline-block; margin-top: 20px; font-size: 0.875rem; font-weight: 700; color: #fdba74; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Workshop Notebook",
+    "overview": "TakoVibe is one builder's open workshop — small, honest web tools laid out on warm paper, with the reasoning behind each one written in the margin. Cream paper sits against coal panels; a single ember-orange carries the workshop's voice; cool-blue schematic lines and green code annotations appear only where the content is literally a diagram, a flow, or a token. The grid shows. The construction is part of the look.\n\nThe system reads as a workshop first, a publication second. Each tool surface is a workbench, scaled and lit for the job: generous padding on a redactor's canvas, tighter density inside an editor or dashboard, long-form prose only where the writing is the build log for a shipped tool. Typography does the heavy lifting — Syne for headlines, DM Sans for reading, JetBrains Mono where the mechanism should show. Depth is quiet: flat surfaces at rest, a gentle lift on hover, an orange-tinted shadow bloom under the one thing being touched.\n\nThe anti-reference is the generic \"developer SaaS\" landing page — lifeless gradients, cold neutrals, a stock dashboard mock in the hero, an AI feature made the headline. TakoVibe is not a platform pitching a suite; it is a workshop that ships one honest tool at a time and publishes why each was built that way.",
+    "keyCharacteristics": [
+      "Warm paper (cream) against warm coal, never cold-grey",
+      "Syne display type carries identity; DM Sans carries reading and tool copy",
+      "One accent color — Spark Orange — rare on each screen, ambient as shadow, reserved for the act the visitor came to do",
+      "Cool-blue schematic lines appear only inside diagrams, flows, and data-shape annotations — never as UI accent",
+      "The grid, the hairline border, and the uppercase kicker label are part of the look, not removed",
+      "Tool chrome is minimal and native-feeling; identity lives in the ground, the type, and the orange, not in decoration placed over the work surface"
+    ],
+    "rules": [
+      { "name": "The One-Spark Rule", "body": "Spark Orange appears once at full saturation per visible viewport — the thing the visitor is meant to do or follow. Everything else that uses orange (kicker labels, hover halos, radial glows) is a tint or alpha blend of the accent, not a second CTA pretending to be one.", "section": "colors" },
+      { "name": "The Warm-Only Rule", "body": "The ground is never pure white or pure black. If a surface reads cool-grey next to a warm neighbor, it is wrong, not neutral. The Carbon value survives as the one legacy exception and is called out as such.", "section": "colors" },
+      { "name": "The Schematic-Only Blue Rule", "body": "Schematic Blue is for diagrams, flow lines, and annotations. It is never used for text, buttons, borders, or cards. If a surface needs a non-orange accent for UI, it uses a neutral, not blue.", "section": "colors" },
+      { "name": "The Kicker-Before-Display Rule", "body": "Every hero or significant section is introduced by a short uppercase kicker label; the display headline follows. A display without a kicker reads as a blog post title, not a tool page.", "section": "typography" },
+      { "name": "The Prose Width Rule", "body": "Long-form reading body is always capped at 65ch. Tool copy (labels, help text, inline prose) is narrower and lives inside the tool's own frame; prose width is a reading rule, not a tool-UI rule.", "section": "typography" },
+      { "name": "The Centered-Column Rule", "body": "Content is centered, contained, and anchored to one of the three named widths (1440 / 1400 / 1152). Bleed-to-edge sections exist only as background decoration, never as the content frame.", "section": "layout" },
+      { "name": "The Flat-At-Rest Rule", "body": "No element is elevated until a state demands it. Static surfaces use a hairline border and a tinted ground, never a resting drop shadow.", "section": "elevation" },
+      { "name": "The Warm-Shadow Rule", "body": "Shadows are always warm — orange at low alpha, oxblood at larger scale, or warm-black for neutral lift. Cool/blue shadows are a failure.", "section": "elevation" },
+      { "name": "The 28px Signature Rule", "body": "The oversized 28px radius marks a surface that is itself a piece of content (a featured article, a workspace preview, a tool showcase). Normal cards stay at 16px; promoting a 16px card to 28px gives it editorial weight.", "section": "shapes" }
+    ],
+    "dos": [
+      "Do cap long-form reading at 65ch; let display headlines break the cap intentionally.",
+      "Do lead every section with a short uppercase kicker label in label typography (DM Sans 700, 0.75rem, letter-spacing 0.12em).",
+      "Do use pills for actions and nav, and 16/28px soft rectangles for surfaces.",
+      "Do keep orange rare and loud — one instance of full-saturation Spark Orange per visible viewport.",
+      "Do treat shadows as state: flat at rest, lift on hover, orange-tinted bloom under the thing being touched.",
+      "Do tint backgrounds warm (cream, coal, ink, bone). If a surface looks cool-grey, raise the warmth.",
+      "Do use JetBrains Mono for inline tokens and code, and Meadow Green for the code color.",
+      "Do keep the hero flow lines (the four-stop gradient SVG) wherever a hero needs the workshop's signature."
+    ],
+    "donts": [
+      "Don't use Schematic Blue on UI chrome (buttons, nav, text, borders). Blue means \"this is a diagram.\"",
+      "Don't redefine the brand ramp in a component; use the brand/orange Tailwind alias which already points at one source.",
+      "Don't add resting drop shadows to static surfaces; depth is reserved for state.",
+      "Don't promote a 16px card to 28px unless the surface is itself content (a featured article, a workspace preview, a tool showcase).",
+      "Don't use pure white or pure black as a page ground; the workshop's grounds are always warm-tinted.",
+      "Don't introduce a cool-grey neutral into a section that already has Paper Cream or Coal nearby; the mismatch is visible.",
+      "Don't add new display or body fonts; the Syne / DM Sans / JetBrains Mono stack is the system.",
+      "Don't replace the hero flow-line signature with a generic gradient blob.",
+      "Don't make AI a headline. If a tool uses AI inside, it is a detail, not the pitch."
+    ]
+  }
+}

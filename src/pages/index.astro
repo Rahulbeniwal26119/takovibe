@@ -37,46 +37,59 @@ try {
   console.warn("Homepage articles could not be loaded.", error);
 }
 
-const latestPost = featuredPosts[0];
-const workspacePowers = [
+const tools = [
   {
-    title: "Run the code",
-    copy: "Turn claims into small experiments inside the article, so the idea is not just something you read.",
+    title: "Vellora",
+    role: "Read EPUBs and PDFs, local-first.",
+    href: "/vellora",
+    tag: "Reader",
   },
   {
-    title: "Ask in context",
-    copy: "Use Kumi around the paragraph you are reading instead of losing the thread in another tab.",
+    title: "Sketch Notes",
+    role: "Diagram systems while you're learning them.",
+    href: "/notes",
+    tag: "Visual",
   },
   {
-    title: "Sketch the system",
-    copy: "Attach a diagram to the piece you are studying so the model survives after the tab closes.",
+    title: "Runo",
+    role: "Self-hosted, Postman-style API client.",
+    href: "/runo",
+    tag: "API",
   },
   {
-    title: "Save the insight",
-    copy: "Highlights, notes, and follow-ups live with the article, where they stay useful.",
+    title: "ResumeVibe",
+    role: "Audit the resume before a recruiter does.",
+    href: "https://resumevibe.takovibe.com/",
+    tag: "Career",
+  },
+  {
+    title: "Playground",
+    role: "Run Python, JS, Go, Rust, HTML in the browser.",
+    href: "/playground",
+    tag: "Runnable",
+  },
+  {
+    title: "Tasks",
+    role: "A daily surface for notes, checklists, carry-over.",
+    href: "/tasks",
+    tag: "Planning",
   },
 ];
-
-const proofStats = [
-  { value: "Run", label: "code beside ideas" },
-  { value: "Sketch", label: "systems as they form" },
-  { value: "Ask", label: "without losing context" },
-];
-
-const toolConstellation = ["Vellora", "Notes", "Tasks", "Code", "Diff", "Resume"];
 ---
 
 <Layout
-  title="TakoVibe - The reasoning behind real systems"
-  description="Opinionated technical articles with runnable code, diagrams, and contextual AI help for engineers who want the reasoning behind real systems."
+  title="TakoVibe — small, honest web tools, built in the open"
+  description="Rahul Beniwal's workshop of practical web tools. Vellora for reading, Sketch Notes for diagrams, Runo for APIs, ResumeVibe, Playground, Tasks — and a DPDP-compliant PDF redactor shipping next."
   type="website"
   author="Rahul Beniwal"
-  tags={["software engineering", "system design", "runnable code", "technical writing"]}
+  tags={["developer tools", "web tools", "DPDP redactor", "local-first", "build in public"]}
 >
   <div class="home-shell min-h-screen overflow-hidden bg-[#f4f0e8] text-neutral-950 dark:bg-[#11100e] dark:text-stone-100">
+
+    <!-- HERO -->
     <section class="relative isolate overflow-hidden border-b border-black/10 dark:border-white/10">
       <div class="hero-grid absolute inset-0 -z-20 opacity-60 dark:opacity-35"></div>
-      <svg class="home-hero-map absolute inset-0 -z-10 h-full w-full opacity-80 dark:opacity-55" viewBox="0 0 1440 860" preserveAspectRatio="none" aria-hidden="true">
+      <svg class="home-hero-map absolute inset-0 -z-10 h-full w-full opacity-70 dark:opacity-45" viewBox="0 0 1440 860" preserveAspectRatio="none" aria-hidden="true">
         <defs>
           <linearGradient id="home-hero-flow" x1="0" x2="1" y1="0" y2="1">
             <stop offset="0" stop-color="#34d399"></stop>
@@ -89,273 +102,152 @@ const toolConstellation = ["Vellora", "Notes", "Tasks", "Code", "Diff", "Resume"
         <path class="home-flow-line home-flow-delay" d="M-120 664C130 456 326 760 544 548s372-236 568-70 274 116 440-44" fill="none" stroke="url(#home-hero-flow)" stroke-width="4"></path>
       </svg>
 
-      <div class="mx-auto grid min-h-[calc(100vh-5rem)] max-w-[1440px] gap-8 px-5 pb-12 pt-14 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.56fr)] lg:items-center lg:gap-10 lg:px-12 lg:pb-16 lg:pt-20 xl:grid-cols-[minmax(0,1fr)_minmax(26rem,0.48fr)] xl:gap-14">
-        <div class="min-w-0 max-w-4xl">
-          <p class="home-kicker home-rise">A publication for working engineers</p>
-          <h1 class="home-rise home-delay-1 mt-7 max-w-[9.5ch] font-display text-[clamp(2.8rem,12vw,6.1rem)] font-extrabold leading-[0.92] sm:text-[clamp(3.25rem,5.7vw,6.1rem)] 2xl:text-[6.35rem]">
-            <span class="block">The reasoning</span>
-            <span class="block">behind real</span>
-            <span class="block">systems.</span>
+      <div class="mx-auto grid max-w-[1440px] gap-10 px-5 pb-16 pt-14 sm:px-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-center lg:gap-14 lg:px-12 lg:pb-20 lg:pt-20">
+        <div class="min-w-0">
+          <p class="home-kicker home-rise">The workshop</p>
+          <h1 class="home-rise home-delay-1 mt-6 max-w-[12ch] font-display text-[clamp(2.75rem,10vw,5.5rem)] font-extrabold leading-[0.94] sm:text-[clamp(3rem,5.2vw,5.5rem)]">
+            Small, honest tools, built in the open.
           </h1>
-          <p class="home-rise home-delay-2 mt-7 max-w-2xl text-base leading-7 text-neutral-700 dark:text-stone-300 sm:mt-9 sm:text-xl sm:leading-9">
-            One deep technical piece at a time: the claim, the tradeoff, the
-            runnable artifact, and the questions that make the system click.
+          <p class="home-rise home-delay-2 mt-6 max-w-xl text-base leading-7 text-neutral-700 dark:text-stone-300 sm:text-lg sm:leading-8">
+            One builder's workshop of practical web tools. Each one does one job clearly and ships with the reasoning behind it. Pick the one that fits the job in front of you.
           </p>
-          <form id="home-newsletter-form" class="home-rise home-delay-3 mt-7 max-w-xl sm:mt-9">
-            <label for="home-newsletter-email" class="sr-only">Email address</label>
-            <div class="flex flex-col gap-3 rounded-2xl border border-black/10 bg-white/70 p-2 shadow-xl shadow-orange-950/5 backdrop-blur dark:border-white/10 dark:bg-white/[0.045] sm:flex-row">
-              <input
-                id="home-newsletter-email"
-                name="email"
-                type="email"
-                autocomplete="email"
-                required
-                placeholder="Email for one deep-dive a week"
-                class="min-h-12 flex-1 rounded-xl border-0 bg-transparent px-4 text-sm text-neutral-900 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-orange-500 dark:text-white dark:placeholder:text-stone-500"
-              />
-              <button type="submit" class="home-button home-button-primary justify-center">
-                Subscribe
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M5 12h13m-5-5 5 5-5 5"></path>
-                </svg>
-              </button>
-            </div>
-            <p id="home-newsletter-status" class="mt-3 min-h-5 text-sm font-medium text-neutral-600 dark:text-stone-400"></p>
-          </form>
-          <div class="home-rise home-delay-3 mt-6 flex flex-wrap gap-3">
-            <a class="home-button home-button-primary" href="/blog">
-              Read articles
+          <div class="home-rise home-delay-3 mt-8 flex flex-wrap gap-3">
+            <a class="home-button home-button-primary" href="#tools">
+              Browse the tools
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M5 12h13m-5-5 5 5-5 5"></path>
               </svg>
             </a>
-            <a class="home-button home-button-secondary" href="#articles">
-              Latest issue
+            <a class="home-button home-button-secondary" href="/blog">
+              Read the blog
             </a>
-          </div>
-          <div class="home-rise home-delay-3 mt-8 grid max-w-2xl gap-px overflow-hidden rounded-lg border border-black/10 bg-black/10 dark:border-white/10 dark:bg-white/10 min-[520px]:grid-cols-3 sm:mt-10">
-            {proofStats.map((stat) => (
-              <div class="home-stat bg-[#f7f4ed]/90 p-4 backdrop-blur dark:bg-[#151412]/85">
-                <div class="font-display text-2xl font-bold text-neutral-950 dark:text-white">{stat.value}</div>
-                <div class="mt-1 text-xs font-bold uppercase tracking-[0.12em] text-neutral-500 dark:text-stone-500">{stat.label}</div>
-              </div>
-            ))}
           </div>
         </div>
 
-        <div class="home-rise home-delay-2 min-w-0 lg:justify-self-end">
-          {latestPost ? (
-            <a href={`/blog/${latestPost.slug}`} class="featured-article group relative mx-auto block w-full max-w-[23rem] overflow-hidden rounded-lg border border-black/10 bg-[#181713] text-stone-100 shadow-2xl shadow-orange-950/15 transition hover:-translate-y-1 hover:shadow-orange-950/25 dark:border-white/10 sm:max-w-[26rem] xl:max-w-[28rem]">
-              <svg class="absolute inset-0 h-full w-full opacity-45" viewBox="0 0 520 620" preserveAspectRatio="none" aria-hidden="true">
-                <defs>
-                  <pattern id="featured-grid" width="34" height="34" patternUnits="userSpaceOnUse">
-                    <path d="M34 0H0v34" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="1"></path>
-                  </pattern>
-                </defs>
-                <rect width="520" height="620" fill="url(#featured-grid)"></rect>
-                <path class="home-flow-line" d="M-20 152C80 42 158 226 252 128s170-116 300 8" fill="none" stroke="#fb923c" stroke-width="3"></path>
-                <path class="home-flow-line home-flow-delay" d="M-30 478c112-118 198 48 310-70s160-90 278-12" fill="none" stroke="#38bdf8" stroke-width="3"></path>
-              </svg>
-              {latestPost.image_url ? (
-                <img src={`${latestPost.image_url}?tr=w-800`} alt="" class="relative h-40 w-full object-cover opacity-85 transition duration-500 group-hover:scale-[1.02] group-hover:opacity-100 sm:h-48 xl:h-52" />
-              ) : (
-                <div class="relative h-40 bg-[linear-gradient(135deg,#181713,#2b2119)] sm:h-48 xl:h-52"></div>
-              )}
-              <div class="relative p-4 sm:p-5 xl:p-6">
-                <div class="flex flex-wrap gap-2 text-[10px] font-bold uppercase text-orange-300">
-                  <span>Latest article</span>
-                  <span class="text-stone-600">/</span>
-                  <span>{latestPost.tags?.[0] || "Engineering"}</span>
+        <!-- Hero tools grid: every tool one click away -->
+        <div id="tools" class="home-rise home-delay-2 min-w-0 scroll-mt-28">
+          <div class="grid gap-3 sm:grid-cols-2">
+            {tools.map((tool) => (
+              <a
+                href={tool.href}
+                class="hero-tool-tile group relative flex min-h-[10rem] flex-col justify-between rounded-2xl border border-neutral-900/15 bg-white p-5 shadow-sm shadow-neutral-900/5 transition dark:border-white/15 dark:bg-[#1c1917] dark:shadow-black/30"
+              >
+                <div class="flex items-start justify-between gap-3">
+                  <span class="font-display text-2xl font-bold text-neutral-950 transition group-hover:text-orange-700 dark:text-white dark:group-hover:text-orange-300">
+                    {tool.title}
+                  </span>
+                  <span class="rounded-full border border-neutral-900/15 bg-neutral-100 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-neutral-800 dark:border-white/15 dark:bg-white/[0.08] dark:text-stone-200">
+                    {tool.tag}
+                  </span>
                 </div>
-                <h2 class="mt-3 line-clamp-3 font-display text-2xl font-bold leading-tight sm:text-3xl">
-                  {latestPost.title}
-                </h2>
-                <p class="mt-3 line-clamp-2 text-sm leading-6 text-stone-400">
-                  {latestPost.description}
+                <p class="mt-3 text-sm leading-6 text-neutral-700 dark:text-stone-300">
+                  {tool.role}
                 </p>
-                <div class="mt-5 grid gap-2 border-y border-white/10 py-3 min-[420px]:grid-cols-3">
-                  {toolConstellation.slice(0, 3).map((tool) => (
-                    <span class="rounded-lg border border-white/10 bg-white/[0.05] px-3 py-2 text-center text-[10px] font-black uppercase tracking-[0.14em] text-stone-300">
-                      {tool}
-                    </span>
-                  ))}
-                </div>
-                <span class="home-product-link mt-5 text-orange-300">
-                  Read the piece
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                <span class="mt-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-orange-700 dark:text-orange-300">
+                  Open
+                  <svg class="hero-tool-arrow h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M5 12h13m-5-5 5 5-5 5"></path>
                   </svg>
                 </span>
-              </div>
-            </a>
-          ) : (
-            <div class="rounded-[1.75rem] border border-black/10 bg-white/70 p-8 dark:border-white/10 dark:bg-white/[0.045]">
-              <p class="home-kicker text-orange-700 dark:text-orange-300">Next issue</p>
-              <h2 class="mt-5 font-display text-4xl font-bold">A deep-dive is being prepared.</h2>
-              <p class="mt-4 text-neutral-600 dark:text-stone-400">Subscribe now and start with the full library while the next piece lands.</p>
-              <div class="mt-8 grid gap-2 sm:grid-cols-2">
-                {toolConstellation.map((tool) => (
-                  <span class="rounded-lg border border-black/10 bg-white/70 px-3 py-2 text-xs font-bold uppercase text-neutral-600 dark:border-white/10 dark:bg-white/[0.05] dark:text-stone-300">
-                    {tool}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div class="border-t border-black/10 bg-[#181713] text-stone-200 dark:border-white/10">
-        <div class="home-marquee flex min-w-max items-center gap-10 py-3 text-[10px] font-bold uppercase text-stone-400">
-          <span>Runnable deep-dives</span><i></i><span>System design</span><i></i><span>Python internals</span><i></i><span>Architecture tradeoffs</span><i></i><span>Code you can run</span><i></i><span>One issue a week</span><i></i><span>Runnable deep-dives</span><i></i><span>System design</span><i></i><span>Python internals</span><i></i><span>Architecture tradeoffs</span><i></i><span>Code you can run</span><i></i><span>One issue a week</span>
+              </a>
+            ))}
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
+    <!-- SHIPPING NEXT -->
+    <section class="border-b border-black/10 bg-[#efeadd] px-5 py-14 dark:border-white/10 dark:bg-[#141310] sm:px-8 sm:py-16 lg:px-12">
       <div class="mx-auto max-w-[1440px]">
-        <div class="grid gap-10 lg:grid-cols-[0.42fr_1fr] lg:gap-20">
+        <div class="grid gap-8 rounded-[1.75rem] border border-black/10 bg-white/75 p-6 shadow-xl shadow-orange-950/5 backdrop-blur dark:border-white/10 dark:bg-[#1b1a16] dark:shadow-black/30 sm:p-9 lg:grid-cols-[0.95fr_1fr] lg:items-center">
           <div>
-            <p class="home-kicker">The learning surface</p>
-            <h2 class="mt-5 font-display text-4xl font-bold leading-[0.96] sm:text-6xl">
-              Stay with the difficult part.
+            <span class="inline-flex items-center gap-2 rounded-full border border-orange-400/35 bg-orange-400/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-orange-700 dark:text-orange-300">
+              <span class="h-1.5 w-1.5 rounded-full bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.6)]"></span>
+              Shipping next
+            </span>
+            <h2 class="mt-6 max-w-2xl font-display text-4xl font-extrabold leading-[0.95] sm:text-5xl">
+              A DPDP-compliant PDF redactor.
             </h2>
-            <p class="mt-6 max-w-sm text-base leading-7 text-neutral-600 dark:text-stone-400">
-              The best learning tools do not interrupt the thought. They open at
-              the moment they are needed, then get out of the way.
+            <p class="mt-5 max-w-xl text-base leading-7 text-neutral-700 dark:text-stone-300">
+              Redact personal data from PDFs under the Digital Personal Data Protection Act without uploading the document anywhere you don't control. Local-first, auditable, free. Built in the open on the changelog.
+            </p>
+            <div class="mt-7 flex flex-wrap gap-3">
+              <a href="/changelog" class="home-button home-button-primary">
+                Follow the build
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 12h13m-5-5 5 5-5 5"></path>
+                </svg>
+              </a>
+              <a href="/blog" class="home-button home-button-secondary">
+                Why this tool
+              </a>
+            </div>
+          </div>
+
+          <div class="relative overflow-hidden rounded-[1.5rem] border border-black/10 bg-[#11100e] p-5 text-stone-100 shadow-2xl shadow-orange-950/15 dark:border-white/10">
+            <div class="absolute inset-0 dpdp-grid opacity-30"></div>
+            <div class="relative">
+              <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                <div class="flex items-center gap-2">
+                  <span class="h-2.5 w-2.5 rounded-full bg-orange-500"></span>
+                  <span class="home-kicker text-stone-500">Redactor preview</span>
+                </div>
+                <span class="rounded-full border border-orange-400/30 bg-orange-400/10 px-2.5 py-1 text-[9px] font-black uppercase text-orange-200">
+                  Draft
+                </span>
+              </div>
+
+              <div class="mt-5 rounded-lg border border-white/10 bg-white/[0.035] p-5">
+                <div class="home-kicker text-orange-300">Agreement · page 3 of 7</div>
+                <div class="mt-5 space-y-2.5 text-sm leading-6 text-stone-300">
+                  <p>
+                    This Agreement is entered into between
+                    <span class="dpdp-redact">[redacted name]</span>
+                    (PAN
+                    <span class="dpdp-redact">[redacted PAN]</span>) and the Company.
+                  </p>
+                  <p>
+                    Correspondence shall be sent to
+                    <span class="dpdp-redact">[redacted address]</span>
+                    or
+                    <span class="dpdp-redact">[redacted phone]</span>.
+                  </p>
+                </div>
+              </div>
+
+              <div class="mt-4 grid gap-2">
+                <div class="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-[11px] text-stone-300">
+                  <span class="font-mono">Name</span>
+                  <span class="font-mono text-orange-200">3 occurrences · redacted</span>
+                </div>
+                <div class="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-[11px] text-stone-300">
+                  <span class="font-mono">PAN · address · phone</span>
+                  <span class="font-mono text-orange-200">4 occurrences · redacted</span>
+                </div>
+                <div class="flex items-center justify-between rounded-lg border border-orange-400/25 bg-orange-400/10 px-3 py-2 text-[11px]">
+                  <span class="font-mono text-orange-200">Export</span>
+                  <span class="font-mono text-orange-100">flattened · audit log</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BLOG -->
+    <section class="px-5 py-20 sm:px-8 sm:py-24 lg:px-12" id="articles">
+      <div class="mx-auto max-w-[1440px]">
+        <div class="flex flex-wrap items-end justify-between gap-6 border-b border-black/15 pb-6 dark:border-white/15">
+          <div>
+            <p class="home-kicker">From the blog</p>
+            <h2 class="mt-4 font-display text-4xl font-bold sm:text-5xl">How the tools got built.</h2>
+            <p class="mt-4 max-w-xl text-base leading-7 text-neutral-600 dark:text-stone-400">
+              Each piece is the reasoning behind a tool, a choice, or a failure worth remembering.
             </p>
           </div>
-
-          <div class="workspace-frame relative overflow-hidden rounded-[1.75rem] border border-black/10 bg-[#181713] text-stone-100 shadow-2xl shadow-orange-950/15 dark:border-white/10">
-            <svg class="absolute inset-0 h-full w-full opacity-25" viewBox="0 0 980 620" preserveAspectRatio="none" aria-hidden="true">
-              <path class="home-flow-line" d="M-40 500C148 352 282 592 446 380s334-240 574-70" fill="none" stroke="#34d399" stroke-width="4"></path>
-              <path class="home-flow-line home-flow-delay" d="M-64 146C128 42 270 236 438 142s326-76 594 118" fill="none" stroke="#fb923c" stroke-width="4"></path>
-            </svg>
-            <div class="flex items-center justify-between border-b border-white/10 px-4 py-3 sm:px-5">
-              <div class="flex items-center gap-2">
-                <span class="h-2.5 w-2.5 rounded-full bg-orange-500"></span>
-                <span class="home-kicker text-stone-400">Reading workspace</span>
-              </div>
-              <span class="rounded-full border border-white/10 px-2.5 py-1 text-[9px] font-bold uppercase text-orange-300">Focus mode</span>
-            </div>
-
-            <div class="grid min-h-[560px] lg:grid-cols-[1.12fr_0.88fr]">
-              <article class="relative border-b border-white/10 p-6 sm:p-9 lg:border-b-0 lg:border-r">
-                <p class="home-kicker text-orange-300">System design / queues</p>
-                <h3 class="mt-7 max-w-xl font-display text-3xl font-bold leading-[1.02] sm:text-5xl">
-                  Backpressure is a promise to the rest of your system.
-                </h3>
-                <div class="mt-8 max-w-xl space-y-4 text-sm leading-7 text-stone-400 sm:text-base">
-                  <p>
-                    When incoming work arrives faster than your workers can
-                    process it, the queue gives the system somewhere honest to
-                    put the pressure.
-                  </p>
-                  <p class="border-l-2 border-orange-500 bg-white/[0.045] px-4 py-3 text-stone-200">
-                    The goal is not infinite capacity. It is graceful behavior
-                    when capacity is finite.
-                  </p>
-                  <p class="home-kicker text-orange-300">Saved highlight / memory note attached</p>
-                </div>
-                <div class="mt-8 flex flex-wrap gap-2 text-[10px] font-bold uppercase">
-                  <span class="rounded-full border border-orange-400/30 bg-orange-400/10 px-3 py-1.5 text-orange-200">Highlight</span>
-                  <span class="rounded-full border border-white/10 px-3 py-1.5 text-stone-400">Ask Kumi</span>
-                  <span class="rounded-full border border-white/10 px-3 py-1.5 text-stone-400">Translate</span>
-                </div>
-                <div class="absolute inset-x-6 bottom-6 flex items-center gap-3 text-[10px] font-bold uppercase text-stone-500 sm:inset-x-9">
-                  <span>42%</span>
-                  <span class="h-px flex-1 bg-white/10"><span class="block h-px w-[42%] bg-orange-500"></span></span>
-                  <span>07:14</span>
-                </div>
-              </article>
-
-              <aside class="grid bg-[#12110f] sm:grid-cols-2 lg:grid-cols-1">
-                <div class="border-b border-white/10 p-5">
-                  <div class="flex items-center justify-between">
-                    <p class="home-kicker text-stone-500">Sketch note</p>
-                    <span class="text-orange-400">+</span>
-                  </div>
-                  <div class="mt-5 rounded-xl border border-white/10 bg-white/[0.035] p-4">
-                    <svg class="h-28 w-full" viewBox="0 0 360 120" aria-hidden="true">
-                      <rect x="12" y="24" width="72" height="44" rx="9" fill="rgba(251,146,60,.12)" stroke="rgba(251,146,60,.62)"></rect>
-                      <rect x="144" y="50" width="78" height="44" rx="9" fill="rgba(245,158,11,.12)" stroke="rgba(245,158,11,.62)"></rect>
-                      <rect x="276" y="24" width="72" height="44" rx="9" fill="rgba(52,211,153,.1)" stroke="rgba(52,211,153,.56)"></rect>
-                      <path class="home-flow-line" d="M84 46C110 42 122 70 144 72M222 72c26 2 30-24 54-26" fill="none" stroke="#fb923c" stroke-width="3" stroke-linecap="round"></path>
-                      <text x="31" y="52" fill="#fdba74" font-size="12" font-weight="800">API</text>
-                      <text x="164" y="78" fill="#fcd34d" font-size="12" font-weight="800">Queue</text>
-                      <text x="292" y="52" fill="#6ee7b7" font-size="12" font-weight="800">Work</text>
-                    </svg>
-                    <p class="mt-4 text-xs leading-5 text-stone-500">
-                      Buffer the spike. Keep consumers moving at a sustainable rate.
-                    </p>
-                  </div>
-                </div>
-                <div class="border-b border-white/10 p-5 sm:border-b-0 lg:border-b">
-                  <p class="home-kicker text-stone-500">Run the assumption</p>
-                  <pre class="mt-5 overflow-hidden rounded-xl border border-white/10 bg-black/20 p-4 text-[11px] leading-6 text-stone-400"><code><span class="text-orange-300">const</span> capacity = 120;
-<span class="text-orange-300">const</span> incoming = 360;
-
-queue.buffer(incoming - capacity);</code></pre>
-                </div>
-                <div class="col-span-full p-5">
-                  <p class="home-kicker text-stone-500">Kumi asks</p>
-                  <p class="mt-3 max-w-sm text-sm leading-6 text-stone-300">
-                    What should happen when the queue itself reaches its limit?
-                  </p>
-                </div>
-              </aside>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="border-y border-black/10 bg-[#e9e3d8] px-5 py-20 text-neutral-950 dark:border-white/10 dark:bg-[#181713] dark:text-stone-100 sm:px-8 sm:py-28 lg:px-12">
-      <div class="mx-auto max-w-[1440px]">
-        <div class="grid gap-8 lg:grid-cols-[1fr_0.7fr] lg:items-end">
-          <div>
-            <p class="home-kicker text-orange-700 dark:text-orange-300">The article workspace</p>
-            <h2 class="mt-5 max-w-4xl font-display text-5xl font-bold leading-[0.92] sm:text-7xl">
-              The tools serve the reading.
-            </h2>
-          </div>
-          <p class="max-w-xl text-base leading-7 text-neutral-600 dark:text-stone-400">
-            The publication stays focused on articles. The software earns its
-            place by making those articles runnable, discussable, and easier to
-            remember.
-          </p>
-        </div>
-
-        <div class="mt-14 grid gap-px overflow-hidden rounded-[1.75rem] border border-black/10 bg-black/10 dark:border-white/10 dark:bg-white/10 md:grid-cols-2 xl:grid-cols-4">
-          {workspacePowers.map((power, index) => (
-            <div class="product-card relative min-h-[17rem] overflow-hidden bg-[#f4f0e8] p-5 dark:bg-[#12110f] sm:p-6">
-              <div class="absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-orange-500/20 via-orange-400/5 to-transparent"></div>
-              <svg class="absolute inset-x-0 top-0 h-32 w-full opacity-60" viewBox="0 0 320 130" preserveAspectRatio="none" aria-hidden="true">
-                <path class="home-flow-line" d="M-30 84C48 18 108 128 178 62s104-48 176-2" fill="none" stroke={index % 2 === 0 ? "#fb923c" : "#38bdf8"} stroke-width="3"></path>
-              </svg>
-              <div class="relative flex h-full flex-col">
-                <div class="flex items-center justify-between gap-3">
-                  <span class="font-mono text-xs text-orange-700 dark:text-orange-300">0{index + 1}</span>
-                  <span class="rounded-full border border-black/10 px-2.5 py-1 text-[9px] font-bold uppercase text-neutral-500 dark:border-white/10 dark:text-stone-400">In article</span>
-                </div>
-                <h3 class="mt-16 font-display text-3xl font-bold text-neutral-950 dark:text-white">{power.title}</h3>
-                <p class="mt-4 text-sm leading-6 text-neutral-600 dark:text-stone-400">{power.copy}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-
-    <section class="px-5 py-20 sm:px-8 sm:py-28 lg:px-12" id="articles">
-      <div class="mx-auto max-w-[1440px]">
-        <div class="flex items-end justify-between gap-6 border-b border-black/15 pb-6 dark:border-white/15">
-          <div>
-            <p class="home-kicker">From the library</p>
-            <h2 class="mt-4 font-display text-4xl font-bold sm:text-6xl">Keep reading.</h2>
-          </div>
           <a class="home-text-link" href="/blog">
-            All articles
+            All posts
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M5 12h13m-5-5 5 5-5 5"></path>
             </svg>
@@ -367,13 +259,13 @@ queue.buffer(incoming - capacity);</code></pre>
             {featuredPosts.map((post, index) => (
               <a href={`/blog/${post.slug}`} class="article-row group grid gap-5 border-b border-black/15 py-7 dark:border-white/15 sm:grid-cols-[3rem_1fr_10rem] sm:items-center">
                 <span class="font-mono text-xs text-neutral-500">0{index + 1}</span>
-                <div>
+                <div class="min-w-0">
                   <div class="flex flex-wrap gap-2 text-[10px] font-bold uppercase text-orange-600 dark:text-orange-400">
                     <span>{post.tags?.[0] || "Engineering"}</span>
                     <span class="text-neutral-400">/</span>
                     <span class="text-neutral-500">{post.author?.name || "TakoVibe"}</span>
                   </div>
-                  <h3 class="mt-3 max-w-4xl font-display text-2xl font-bold leading-tight transition group-hover:text-orange-600 dark:group-hover:text-orange-400 sm:text-4xl">
+                  <h3 class="mt-3 max-w-4xl font-display text-2xl font-bold leading-tight transition group-hover:text-orange-600 dark:group-hover:text-orange-400 sm:text-3xl">
                     {post.title}
                   </h3>
                   <p class="mt-2 line-clamp-2 max-w-3xl text-sm leading-6 text-neutral-600 dark:text-stone-400">{post.description}</p>
@@ -382,7 +274,7 @@ queue.buffer(incoming - capacity);</code></pre>
                   {post.image_url ? (
                     <img src={`${post.image_url}?tr=w-320`} alt="" class="h-20 w-32 rounded-lg object-cover grayscale transition duration-500 group-hover:grayscale-0" loading="lazy" />
                   ) : (
-                    <span class="home-text-link">Read article</span>
+                    <span class="home-text-link">Read</span>
                   )}
                 </div>
               </a>
@@ -390,64 +282,43 @@ queue.buffer(incoming - capacity);</code></pre>
           </div>
         ) : (
           <div class="border-b border-black/15 py-12 text-neutral-600 dark:border-white/15 dark:text-stone-400">
-            The next article is being prepared. Explore the full library in the meantime.
+            The next piece is being written. The tools work in the meantime.
           </div>
         )}
       </div>
     </section>
 
-    <section class="border-y border-black/10 bg-[#181713] px-5 py-20 text-stone-100 dark:border-white/10 sm:px-8 sm:py-28 lg:px-12">
-      <div class="mx-auto grid max-w-[1440px] gap-10 lg:grid-cols-[0.82fr_1fr] lg:items-center">
-        <div>
-          <p class="home-kicker text-orange-300">Tools worth showcasing</p>
-          <h2 class="mt-5 max-w-3xl font-display text-4xl font-extrabold leading-[0.98] sm:text-6xl">
-            The tool suite has its own page now.
-          </h2>
-          <p class="mt-6 max-w-2xl text-base leading-7 text-stone-400">
-            Vellora, Sketch Notes, ResumeVibe, Tasks, Playground, and Runo
-            now live together with richer detail, product visuals, workflows,
-            and direct paths into each tool.
-          </p>
-          <div class="mt-8 flex flex-wrap gap-3">
-            <a class="home-button home-button-primary" href="/tools">
-              Explore tools
+    <!-- NEWSLETTER -->
+    <section id="newsletter-wrapper" class="border-t border-black/10 bg-[#efeadd] px-5 py-16 dark:border-white/10 dark:bg-[#141310] sm:px-8 sm:py-20 lg:px-12">
+      <div class="mx-auto max-w-2xl text-center">
+        <p class="home-kicker">Stay close</p>
+        <h2 class="mt-5 font-display text-3xl font-bold leading-[0.96] sm:text-4xl">
+          One email when the next tool ships.
+        </h2>
+        <p class="mt-4 text-base leading-7 text-neutral-600 dark:text-stone-400">
+          No weekly cadence promise, no marketing. You'll hear from me when something real ships or a post is worth your time.
+        </p>
+        <form id="home-newsletter-form" class="mt-8">
+          <label for="home-newsletter-email" class="sr-only">Email address</label>
+          <div class="mx-auto flex max-w-lg flex-col gap-3 rounded-2xl border border-black/10 bg-white/70 p-2 shadow-xl shadow-orange-950/5 backdrop-blur dark:border-white/10 dark:bg-white/[0.045] sm:flex-row">
+            <input
+              id="home-newsletter-email"
+              name="email"
+              type="email"
+              autocomplete="email"
+              required
+              placeholder="you@example.com"
+              class="min-h-12 flex-1 rounded-xl border-0 bg-transparent px-4 text-sm text-neutral-900 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-orange-500 dark:text-white dark:placeholder:text-stone-500"
+            />
+            <button type="submit" class="home-button home-button-primary justify-center">
+              Subscribe
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M5 12h13m-5-5 5 5-5 5"></path>
               </svg>
-            </a>
-            <a class="inline-flex items-center justify-center rounded-full border border-white/20 px-6 py-3 text-sm font-bold text-white transition hover:bg-white/10" href="/playground">
-              Try Playground
-            </a>
+            </button>
           </div>
-        </div>
-
-        <a href="/tools" class="group relative min-h-[28rem] overflow-hidden rounded-lg border border-white/10 bg-[#0f1311] p-5 shadow-2xl shadow-black/30 transition hover:-translate-y-1 hover:border-orange-300/40 sm:p-7">
-          <div class="absolute inset-0 opacity-35">
-            <svg class="h-full w-full" viewBox="0 0 720 520" preserveAspectRatio="none" aria-hidden="true">
-              <defs>
-                <pattern id="home-tools-grid" width="42" height="42" patternUnits="userSpaceOnUse">
-                  <path d="M42 0H0v42" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="1"></path>
-                </pattern>
-                <linearGradient id="home-tools-line" x1="0" x2="1" y1="0" y2="1">
-                  <stop offset="0" stop-color="#34d399"></stop>
-                  <stop offset=".45" stop-color="#fb923c"></stop>
-                  <stop offset="1" stop-color="#38bdf8"></stop>
-                </linearGradient>
-              </defs>
-              <rect width="720" height="520" fill="url(#home-tools-grid)"></rect>
-              <path class="home-tool-dash" d="M94 112C210 42 258 194 356 152s154-70 278 20" fill="none" stroke="url(#home-tools-line)" stroke-width="3"></path>
-              <path class="home-tool-dash home-tool-delay" d="M84 380c110-108 184 18 268-68s160-156 290-76" fill="none" stroke="url(#home-tools-line)" stroke-width="3"></path>
-            </svg>
-          </div>
-          <div class="relative grid h-full gap-3 sm:grid-cols-2">
-            {["Vellora", "Notes", "ResumeVibe", "Tasks", "Playground", "Runo"].map((tool, index) => (
-              <div class="flex min-h-28 flex-col justify-between rounded-lg border border-white/10 bg-white/[0.055] p-4 backdrop-blur">
-                <span class="font-mono text-xs text-orange-300">0{index + 1}</span>
-                <span class="font-display text-2xl font-bold text-white">{tool}</span>
-              </div>
-            ))}
-          </div>
-        </a>
+          <p id="home-newsletter-status" class="mt-3 min-h-5 text-sm font-medium text-neutral-600 dark:text-stone-400"></p>
+        </form>
       </div>
     </section>
 
@@ -482,11 +353,11 @@ queue.buffer(incoming - capacity);</code></pre>
         throw new Error("Newsletter request failed");
       }
 
-      status.textContent = "You're in. The next deep-dive will land in your inbox.";
+      status.textContent = "You're in. You'll hear from me when the next tool ships.";
       emailInput.value = "";
     } catch (error) {
       status.textContent = "Something failed. Please try again.";
-    } finally {
+    }  finally {
       if (submitButton) {
         submitButton.disabled = false;
         submitButton.classList.remove("opacity-70");
@@ -513,12 +384,29 @@ queue.buffer(incoming - capacity);</code></pre>
     text-transform: uppercase;
   }
 
-  .hero-grid,
-  .cta-grid {
+  .hero-grid {
     background-image:
       linear-gradient(to right, var(--line) 1px, transparent 1px),
       linear-gradient(to bottom, var(--line) 1px, transparent 1px);
     background-size: 48px 48px;
+  }
+
+  .dpdp-grid {
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.08) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.08) 1px, transparent 1px);
+    background-size: 36px 36px;
+  }
+
+  .dpdp-redact {
+    display: inline-block;
+    padding: 0.05rem 0.35rem;
+    border-radius: 3px;
+    background: #1c1917;
+    color: transparent;
+    user-select: none;
+    letter-spacing: 0;
+    /* ponytail: color transparent on near-black background hides the placeholder text while preserving the character width — reads as a redaction mark, not a chip */
   }
 
   .home-button {
@@ -533,8 +421,7 @@ queue.buffer(incoming - capacity);</code></pre>
   }
 
   .home-button svg,
-  .home-text-link svg,
-  .home-product-link svg {
+  .home-text-link svg {
     height: 1rem;
     width: 1rem;
     fill: none;
@@ -547,8 +434,7 @@ queue.buffer(incoming - capacity);</code></pre>
 
   .home-button:hover svg,
   .home-text-link:hover svg,
-  .product-card:hover .home-product-link svg,
-  .showcase-card:hover .home-product-link svg {
+  .hero-tool-tile:hover .hero-tool-arrow {
     transform: translateX(0.25rem);
   }
 
@@ -590,17 +476,6 @@ queue.buffer(incoming - capacity);</code></pre>
     color: #fb923c;
   }
 
-  .home-product-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: #fdba74;
-    font-size: 0.68rem;
-    font-weight: 800;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-  }
-
   .home-flow-line {
     stroke-dasharray: 18 20;
     animation: homeSignal 20s linear infinite;
@@ -614,39 +489,23 @@ queue.buffer(incoming - capacity);</code></pre>
     mask-image: linear-gradient(to bottom, transparent, black 16%, black 86%, transparent);
   }
 
-  .featured-article::after,
-  .workspace-frame::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.08) 42%, transparent 58%);
-    transform: translateX(-120%);
-    transition: transform 720ms ease;
+  .hero-tool-tile {
+    position: relative;
   }
 
-  .featured-article:hover::after,
-  .workspace-frame:hover::after {
-    transform: translateX(120%);
+  .hero-tool-tile:hover {
+    transform: translateY(-2px);
+    border-color: rgba(234, 88, 12, 0.5);
+    box-shadow:
+      0 12px 32px -12px rgba(249, 115, 22, 0.25),
+      0 2px 6px rgba(28, 25, 23, 0.05);
   }
 
-  .home-stat,
-  .product-card {
-    transition:
-      transform 220ms ease,
-      background-color 220ms ease,
-      box-shadow 220ms ease;
-  }
-
-  .home-stat:hover,
-  .product-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 24px 70px rgba(28, 25, 23, 0.08);
-  }
-
-  :global(.dark) .home-stat:hover,
-  :global(.dark) .product-card:hover {
-    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+  :global(.dark) .hero-tool-tile:hover {
+    border-color: rgba(251, 146, 60, 0.55);
+    box-shadow:
+      0 0 24px rgba(251, 146, 60, 0.18),
+      0 10px 24px rgba(0, 0, 0, 0.35);
   }
 
   .article-row {
@@ -657,26 +516,6 @@ queue.buffer(incoming - capacity);</code></pre>
     padding-left: 1rem;
     padding-right: 1rem;
     background: rgba(234, 88, 12, 0.055);
-  }
-
-  .home-marquee {
-    animation: drift 22s linear infinite;
-  }
-
-  .home-marquee i {
-    height: 0.25rem;
-    width: 0.25rem;
-    border-radius: 999px;
-    background: #f97316;
-  }
-
-  .home-tool-dash {
-    stroke-dasharray: 16 18;
-    animation: homeToolFlow 18s linear infinite;
-  }
-
-  .home-tool-delay {
-    animation-delay: -7s;
   }
 
   .home-rise {
@@ -706,21 +545,6 @@ queue.buffer(incoming - capacity);</code></pre>
     }
   }
 
-  @keyframes drift {
-    from {
-      transform: translateX(0);
-    }
-    to {
-      transform: translateX(-50%);
-    }
-  }
-
-  @keyframes homeToolFlow {
-    to {
-      stroke-dashoffset: -420;
-    }
-  }
-
   @keyframes homeSignal {
     to {
       stroke-dashoffset: -520;
@@ -728,16 +552,9 @@ queue.buffer(incoming - capacity);</code></pre>
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .home-marquee,
     .home-rise,
-    .home-tool-dash,
     .home-flow-line {
       animation: none;
-    }
-
-    .featured-article::after,
-    .workspace-frame::after {
-      display: none;
     }
   }
 </style>

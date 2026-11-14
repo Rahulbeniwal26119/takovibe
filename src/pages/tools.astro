@@ -8,22 +8,22 @@ const tools = [
     title: "Vellora",
     eyebrow: "Deep reading",
     href: "/vellora",
-    cta: "Explore Vellora",
+    cta: "Open Vellora",
     summary:
-      "Read EPUBs and PDFs in a focused workspace with folders, synced progress, memory notes, and Kumi nearby.",
+      "An EPUB and PDF workspace with folders, highlights, light/sepia/dark themes, and local-first progress.",
     promise:
-      "A book stops being a lonely file and becomes a study surface you can return to with context.",
+      "A book stops being a lonely file and becomes a study surface you keep returning to with your own marks intact.",
     visual: "reader",
     accent: "amber",
-    tags: ["Vellora", "Folders", "Highlights", "Progress memory"],
+    tags: ["Local-first", "Folders", "Highlights", "Themes"],
     details: [
       "Upload and continue books without rebuilding your place every session.",
       "Create folders for subjects, courses, or projects, then move books between them from the shelf.",
       "Mark important passages with color and keep small notes close to the text.",
-      "PDFs and EPUBs alike: highlights, light/sepia/dark themes, and saved progress now work the same in both.",
-      "Use contextual help when a paragraph needs translation, summary, or explanation.",
+      "PDFs and EPUBs alike: highlights, light/sepia/dark themes, and saved progress work the same in both.",
+      "Ask in context when a paragraph needs translation, summary, or explanation.",
     ],
-    workflow: ["Open Vellora", "Create folders", "Ask Kumi", "Return with memory"],
+    workflow: ["Open Vellora", "Create folders", "Mark passages", "Return with marks intact"],
   },
   {
     number: "02",
@@ -174,48 +174,48 @@ const accentClasses = {
 
 const workflowSteps = [
   {
-    title: "Learn",
-    copy: "Start in the article or Vellora. Keep the hard idea in view while you test, ask, and annotate.",
+    title: "One job",
+    copy: "Each tool does one thing clearly, with the fewest moving parts that make it useful. No suite lock-in, no cross-sell.",
   },
   {
-    title: "Model",
-    copy: "Move the shape into Sketch Notes, Tasks, or a runnable snippet so the concept becomes workable.",
+    title: "Your data",
+    copy: "Local-first wherever the work is personal. A reader's highlights, a sketch, a redacted document stay on your machine unless you choose otherwise.",
   },
   {
-    title: "Share",
-    copy: "Use Playground, Runo, or ResumeVibe when the work needs to leave your own head and meet another person.",
+    title: "In the open",
+    copy: "Every tool arrives with a build log: how it was shaped, what it tried, what it learned. The changelog is the proof of life.",
   },
 ];
 ---
 
 <Layout
-  title="TakoVibe Tools - Vellora, Notes, Tasks, Playground, ResumeVibe, Runo"
-  description="Explore the full TakoVibe tool suite for deep reading, visual notes, daily planning, runnable code, resume review, and self-hosted API workflows."
+  title="TakoVibe Tools — the workshop: Vellora, Sketch Notes, Runo, ResumeVibe, Playground, Tasks"
+  description="Small, honest web tools built by Rahul Beniwal, each shipped with the reasoning behind it. Vellora for reading, Sketch Notes for diagrams, Runo for APIs, Playground for code, Tasks for the day, and a DPDP-compliant PDF redactor shipping next."
   type="website"
   author="Rahul Beniwal"
-  tags={["TakoVibe tools", "developer tools", "reader", "code playground", "tasks"]}
+  tags={["TakoVibe tools", "developer tools", "reader", "code playground", "tasks", "DPDP redactor"]}
 >
   <main class="tools-shell min-h-screen overflow-hidden bg-[#f7f4ed] text-neutral-950 dark:bg-[#0f100e] dark:text-stone-100">
     <section class="relative isolate border-b border-black/10 dark:border-white/10">
       <div class="tools-grid absolute inset-0 -z-10 opacity-70 dark:opacity-35"></div>
       <div class="mx-auto grid min-h-[calc(100vh-5rem)] max-w-[1440px] gap-10 px-5 pb-16 pt-16 sm:px-8 lg:grid-cols-[0.86fr_1fr] lg:items-center lg:px-12 lg:py-20">
         <div class="tools-rise max-w-4xl">
-          <p class="tools-kicker text-orange-700 dark:text-orange-300">TakoVibe tool suite</p>
-          <h1 class="mt-6 max-w-[10ch] font-display text-[clamp(3.2rem,7vw,7rem)] font-extrabold leading-[0.88]">
-            Tools for the work around the article.
+          <p class="tools-kicker text-orange-700 dark:text-orange-300">The workshop</p>
+          <h1 class="mt-6 max-w-[11ch] font-display text-[clamp(3.2rem,7vw,7rem)] font-extrabold leading-[0.88]">
+            Small, honest tools, built in the open.
           </h1>
           <p class="mt-8 max-w-2xl text-lg leading-8 text-neutral-700 dark:text-stone-300">
-            Read deeply, sketch the system, run the code, plan the day, review the change, and polish the proof you send into the world.
+            One builder's workshop of practical web tools. Each one does one thing clearly and ships with the reasoning behind it. Pick the tool for the job in front of you — or follow along as the next one gets built.
           </p>
           <div class="mt-9 flex flex-wrap gap-3">
             <a href="#tool-stack" class="tools-button bg-orange-600 text-white hover:bg-orange-700">
-              Explore the stack
+              See every tool
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M5 12h13m-5-5 5 5-5 5"></path>
               </svg>
             </a>
-            <a href="/vellora" class="tools-button border border-black/10 bg-white/70 text-neutral-900 hover:border-orange-300 dark:border-white/10 dark:bg-white/[0.045] dark:text-white dark:hover:border-orange-300/40">
-              Start with Vellora
+            <a href="#shipping-next" class="tools-button border border-black/10 bg-white/70 text-neutral-900 hover:border-orange-300 dark:border-white/10 dark:bg-white/[0.045] dark:text-white dark:hover:border-orange-300/40">
+              What's shipping next
             </a>
           </div>
         </div>
@@ -277,17 +277,112 @@ const workflowSteps = [
       </div>
     </section>
 
+    <section id="shipping-next" class="border-b border-black/10 bg-[#f1ece2] px-5 py-14 dark:border-white/10 dark:bg-[#141310] sm:px-8 sm:py-16 lg:px-12">
+      <div class="mx-auto max-w-[1440px]">
+        <div class="grid gap-10 rounded-lg border border-black/10 bg-white/75 p-6 shadow-xl shadow-orange-950/5 backdrop-blur dark:border-white/10 dark:bg-[#1b1a16] dark:shadow-black/30 sm:p-9 lg:grid-cols-[0.8fr_1fr] lg:items-center">
+          <div>
+            <span class="inline-flex items-center gap-2 rounded-full border border-orange-400/35 bg-orange-400/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-orange-700 dark:text-orange-300">
+              <span class="h-1.5 w-1.5 rounded-full bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.6)]"></span>
+              Shipping next
+            </span>
+            <h2 class="mt-6 max-w-2xl font-display text-4xl font-extrabold leading-[0.95] sm:text-5xl">
+              A DPDP-compliant PDF redactor.
+            </h2>
+            <p class="mt-5 max-w-xl text-base leading-7 text-neutral-700 dark:text-stone-300">
+              Redact personal data from PDFs under the Digital Personal Data Protection Act without uploading the document anywhere you don't control. Local-first, auditable, and free. Being built in the open on the changelog.
+            </p>
+            <div class="mt-7 flex flex-wrap gap-3">
+              <a href="/changelog" class="tools-button border border-black/10 bg-white text-neutral-900 hover:border-orange-300 dark:border-white/10 dark:bg-white/[0.05] dark:text-white dark:hover:border-orange-300/40">
+                Follow the build
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 12h13m-5-5 5 5-5 5"></path>
+                </svg>
+              </a>
+              <a href="/blog" class="tools-button text-neutral-600 hover:text-orange-700 dark:text-stone-400 dark:hover:text-orange-300">
+                Read the build log
+              </a>
+            </div>
+          </div>
+
+          <div class="relative overflow-hidden rounded-lg border border-black/10 bg-[#11100e] p-5 text-stone-100 shadow-2xl shadow-orange-950/15 dark:border-white/10">
+            <div class="absolute inset-0 tools-panel-grid opacity-30"></div>
+            <div class="relative">
+              <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                <div class="flex items-center gap-2">
+                  <span class="h-2.5 w-2.5 rounded-full bg-orange-500"></span>
+                  <span class="tools-kicker text-stone-500">Redactor preview</span>
+                </div>
+                <span class="rounded-full border border-orange-400/30 bg-orange-400/10 px-2.5 py-1 text-[9px] font-black uppercase text-orange-200">
+                  Draft
+                </span>
+              </div>
+
+              <div class="mt-5 rounded-lg border border-white/10 bg-white/[0.035] p-5">
+                <div class="tools-kicker text-orange-300">Agreement · page 3 of 7</div>
+                <div class="mt-5 space-y-2.5 text-sm leading-6 text-stone-300">
+                  <p>
+                    This Agreement is entered into between
+                    <span class="relative rounded bg-[#1c1917] px-1.5 py-0.5 text-stone-100">
+                      <span class="opacity-0">Aarav Sharma</span>
+                      <span class="absolute inset-0 rounded bg-[#1c1917]"></span>
+                    </span>
+                    (PAN
+                    <span class="relative rounded bg-[#1c1917] px-1.5 py-0.5 text-stone-100">
+                      <span class="opacity-0">ABCPX1234K</span>
+                      <span class="absolute inset-0 rounded bg-[#1c1917]"></span>
+                    </span>
+                    ) and the Company.
+                  </p>
+                  <p>
+                    Correspondence shall be sent to
+                    <span class="relative rounded bg-[#1c1917] px-1.5 py-0.5 text-stone-100">
+                      <span class="opacity-0">42 Rose Lane, Bengaluru</span>
+                      <span class="absolute inset-0 rounded bg-[#1c1917]"></span>
+                    </span>
+                    or
+                    <span class="relative rounded bg-[#1c1917] px-1.5 py-0.5 text-stone-100">
+                      <span class="opacity-0">+91 98XXX XXXXX</span>
+                      <span class="absolute inset-0 rounded bg-[#1c1917]"></span>
+                    </span>.
+                  </p>
+                </div>
+              </div>
+
+              <div class="mt-5 grid gap-2">
+                <div class="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2.5 text-xs text-stone-300">
+                  <span class="font-mono">Name</span>
+                  <span class="font-mono text-orange-200">3 occurrences · redacted</span>
+                </div>
+                <div class="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2.5 text-xs text-stone-300">
+                  <span class="font-mono">PAN</span>
+                  <span class="font-mono text-orange-200">1 occurrence · redacted</span>
+                </div>
+                <div class="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2.5 text-xs text-stone-300">
+                  <span class="font-mono">Address · Phone</span>
+                  <span class="font-mono text-orange-200">2 occurrences · redacted</span>
+                </div>
+                <div class="flex items-center justify-between rounded-lg border border-orange-400/25 bg-orange-400/10 px-3 py-2.5 text-xs">
+                  <span class="font-mono text-orange-200">Export</span>
+                  <span class="font-mono text-orange-100">flattened · audit log</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section id="tool-stack" class="px-5 py-20 sm:px-8 sm:py-28 lg:px-12">
       <div class="mx-auto max-w-[1440px]">
         <div class="grid gap-8 lg:grid-cols-[0.7fr_1fr] lg:items-end">
           <div>
-            <p class="tools-kicker text-orange-700 dark:text-orange-300">All tools</p>
+            <p class="tools-kicker text-orange-700 dark:text-orange-300">The stack</p>
             <h2 class="mt-5 max-w-3xl font-display text-4xl font-extrabold leading-[0.95] sm:text-6xl">
-              One suite, six different jobs.
+              Six shipped tools. One shipping next.
             </h2>
           </div>
           <p class="max-w-2xl text-base leading-7 text-neutral-600 dark:text-stone-400">
-            Each tool keeps a different part of the engineering loop close to the reading surface: learning, mapping, planning, experimenting, API testing, and presenting.
+            Each tool is small, free to use, and does one thing clearly. Open the one you came for; the others will be there when a different job shows up.
           </p>
         </div>
 
@@ -468,13 +563,13 @@ print(explain(system))</code></pre>
       <div class="mx-auto max-w-[1440px]">
         <div class="grid gap-8 lg:grid-cols-[0.7fr_1fr] lg:items-end">
           <div>
-            <p class="tools-kicker text-orange-300">How they fit</p>
+            <p class="tools-kicker text-orange-300">What they share</p>
             <h2 class="mt-5 max-w-3xl font-display text-4xl font-extrabold leading-[0.95] sm:text-6xl">
-              A workflow, not a drawer of random apps.
+              Different jobs. Same three rules.
             </h2>
           </div>
           <p class="max-w-2xl text-base leading-7 text-stone-400">
-            The tools are arranged around the way ideas move: from reading, to modeling, to execution, to something another person can review.
+            None of these tools is trying to be a platform. They're sized to fit the moment the job actually shows up, and they're built on the same three commitments.
           </p>
         </div>
 
@@ -514,12 +609,12 @@ print(explain(system))</code></pre>
               Pick the tool closest to the job in front of you.
             </h2>
             <p class="mt-5 max-w-2xl text-base leading-7 text-stone-400">
-              The suite is broad on purpose: some days you need a clean reading surface, some days a runnable proof, and some days a sharper artifact to share.
+              No tour, no setup, no accounts to spin up. Open the one you came for; the others are one click away when a different job shows up.
             </p>
           </div>
           <div class="relative flex flex-col gap-3 sm:flex-row lg:flex-col">
-            <a href="/reader" class="tools-button justify-center bg-white text-neutral-950 hover:bg-stone-200">Open Vellora</a>
-            <a href="/playground" class="tools-button justify-center border border-white/20 text-white hover:bg-white/10">Try Playground</a>
+            <a href="/vellora" class="tools-button justify-center bg-white text-neutral-950 hover:bg-stone-200">Open Vellora</a>
+            <a href="#shipping-next" class="tools-button justify-center border border-white/20 text-white hover:bg-white/10">See what's next</a>
           </div>
         </div>
       </div>

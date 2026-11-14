@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "broken-image",
+        "value": "*",
+        "files": [
+          "src/components/Header.astro"
+        ],
+        "createdAt": "2026-11-14T06:05:39.092Z",
+        "reason": "mobile-user-avatar img is JS-hydrated by checkMobileAuth() under a hidden parent; src is set to user.image or a data-URI initial before the drawer is ever shown"
+      }
+    ]
+  }
+}
